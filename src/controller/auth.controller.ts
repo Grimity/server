@@ -1,4 +1,11 @@
-import { Controller, Body, Post, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Post,
+  Get,
+  UseGuards,
+  HttpCode,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -11,17 +18,27 @@ import {
   RegisterDto,
   Register409Dto,
   RegisterSuccessDto,
+  LoginSuccessDto,
 } from './dto/auth';
 import { JwtGuard } from 'src/common/guard';
 
 @ApiTags('/auth')
+@ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: '로그인' })
+  @ApiResponse({
+    status: 200,
+    description: '로그인 성공',
+    type: LoginSuccessDto,
+  })
+  @HttpCode(200)
   @Post('login')
-  async login(@Body() { provider, providerAccessToken }: LoginDto) {
+  async login(
+    @Body() { provider, providerAccessToken }: LoginDto,
+  ): Promise<LoginSuccessDto> {
     return this.authService.login(provider, providerAccessToken);
   }
 

@@ -3,7 +3,7 @@ import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
-  @ApiProperty()
+  @ApiProperty({ enum: ['GOOGLE', 'KAKAO'] })
   @Transform(({ value }) => value.toUpperCase())
   @IsEnum(['GOOGLE', 'KAKAO'])
   provider: 'GOOGLE' | 'KAKAO';

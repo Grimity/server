@@ -21,7 +21,7 @@ export class UserRepository {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2025'
       ) {
-        throw new HttpException('User not found', 404);
+        throw new HttpException('USER', 404);
       }
       throw e;
     }
@@ -59,13 +59,5 @@ export class UserRepository {
       }
       throw e;
     }
-  }
-
-  async findOneByName(name: string) {
-    return this.prisma.user.findFirst({
-      where: {
-        name,
-      },
-    });
   }
 }

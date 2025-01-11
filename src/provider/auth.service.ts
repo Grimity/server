@@ -10,13 +10,23 @@ export class AuthService {
   ) {}
 
   async login(provider: string, providerAccessToken: string) {
+    let providerId;
+
     if (provider === 'GOOGLE') {
       const googleProfile = await this.getGoogleProfile(providerAccessToken);
-      console.log(googleProfile);
-    } else if (provider === 'KAKAO') {
+      providerId = googleProfile.id;
+    } else {
       const kakaoProfile = await this.getKakaoProfile(providerAccessToken);
-      console.log(kakaoProfile);
+      providerId = kakaoProfile.kakaoId;
     }
+
+    const user = await this.userRepository.findOneByProviderOrThrow(
+      provider,
+      providerId,
+    );
+
+    const accessToken = this.jwtService.sign({ id: user.id });
+    return { accessToken };
   }
 
   async register({
