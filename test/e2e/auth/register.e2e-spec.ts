@@ -97,4 +97,70 @@ describe('POST /auth/register', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('이미 있는 유저일 때 409와 함께 USER 메시지를 반환한다', async () => {
+    // given
+    await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'kakaoId',
+        email: 'test@test.com',
+        name: 'test',
+      },
+    });
+
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId',
+      email: 'test@test.com',
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test2',
+      });
+
+    // then
+    expect(status).toBe(409);
+    expect(body.message).toBe('USER');
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('이미 있는 닉네임일때 409와 함께 NAME 메시지를 반환한다', async () => {
+    // given
+    await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'kakaoId',
+        email: 'test@test.com',
+        name: 'test',
+      },
+    });
+
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId2',
+      email: 'test@test.com',
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+      });
+
+    // then
+    expect(status).toBe(409);
+    expect(body.message).toBe('NAME');
+
+    // cleanup
+    spy.mockRestore();
+  });
 });
