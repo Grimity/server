@@ -6,7 +6,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
-import { LoginDto, RegisterDto, Register409Dto } from './dto/auth';
+import {
+  LoginDto,
+  RegisterDto,
+  Register409Dto,
+  RegisterSuccessDto,
+} from './dto/auth';
 import { JwtGuard } from 'src/common/guard';
 
 @ApiTags('/auth')
@@ -22,13 +27,20 @@ export class AuthController {
 
   @ApiOperation({ summary: '회원가입' })
   @ApiResponse({
+    status: 201,
+    description: '회원가입 성공',
+    type: RegisterSuccessDto,
+  })
+  @ApiResponse({
     status: 409,
     description: '이미 있는 회원 or 닉네임 중복',
     type: Register409Dto,
   })
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+  ): Promise<RegisterSuccessDto> {
+    return await this.authService.register(registerDto);
   }
 
   @ApiBearerAuth()

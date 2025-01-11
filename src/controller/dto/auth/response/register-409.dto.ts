@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class Register409Dto {
-  @ApiProperty()
-  statusCode: number;
+  @ApiProperty({ example: 409 })
+  statusCode: 409;
 
   @ApiProperty({
     enum: ['NAME', 'USER'],
