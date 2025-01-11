@@ -25,7 +25,6 @@ jobs:
         run: |
           npm install
           npx prisma db push
-          npx prisma generate
 
       - name: Run tests
         run: |
