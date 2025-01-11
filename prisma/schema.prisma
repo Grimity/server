@@ -27,8 +27,8 @@ model Follow {
   followedById String @db.Uuid
   followingId  String @db.Uuid
 
-  followedBy User @relation("followedBy", fields: [followedById], references: [id])
-  following  User @relation("following", fields: [followingId], references: [id])
+  followedBy User @relation("followedBy", fields: [followedById], references: [id], onDelete: Cascade)
+  following  User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followedById, followingId])
 }
