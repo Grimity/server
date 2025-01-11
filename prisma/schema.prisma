@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,28 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  provider    String
+  providerId  String
+  email       String
+  name        String   @unique
+  image       String?
+  description String?
+  link        String[]
+
+  followedBy Follow[] @relation("followedBy")
+  following  Follow[] @relation("following")
+}
+
+model Follow {
+  followedById String @db.Uuid
+  followingId  String @db.Uuid
+
+  followedBy User @relation("followedBy", fields: [followedById], references: [id])
+  following  User @relation("following", fields: [followingId], references: [id])
+
+  @@id([followedById, followingId])
 }
