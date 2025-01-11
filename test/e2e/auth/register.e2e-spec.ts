@@ -3,12 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
-// import { AuthService } from 'src/provider/auth.service';
+import { AuthService } from 'src/provider/auth.service';
 
 describe('POST /auth/register', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  // let authService: AuthService;
+  let authService: AuthService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -17,7 +17,7 @@ describe('POST /auth/register', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    // authService = module.get<AuthService>(AuthService);
+    authService = module.get<AuthService>(AuthService);
 
     await app.init();
   });
@@ -66,5 +66,35 @@ describe('POST /auth/register', () => {
 
     // then
     expect(status).toBe(400);
+  });
+
+  it('유저를 생성한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId',
+      email: 'test@test.com',
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+      });
+
+    // then
+    expect(status).toBe(201);
+    expect(body).toHaveProperty('accessToken');
+
+    const { status: status2 } = await request(app.getHttpServer())
+      .get('/auth/test')
+      .set('Authorization', `Bearer ${body.accessToken}`);
+
+    expect(status2).toBe(200);
+
+    // cleanup
+    spy.mockRestore();
   });
 });
