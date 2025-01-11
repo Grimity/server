@@ -19,6 +19,8 @@ model User {
 
   followedBy Follow[] @relation("followedBy")
   following  Follow[] @relation("following")
+
+  @@unique([provider, providerId])
 }
 
 model Follow {
