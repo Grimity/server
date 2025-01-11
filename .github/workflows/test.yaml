@@ -1,0 +1,32 @@
+name: Test
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/chessmong
+      JWT_SECRET: test
+      JWT_EXPIRES_IN: 1d
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start PostgreSQL
+        run: docker run --name postgres -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 postgres:16
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx prisma db push
+          npx prisma generate
+
+      - name: Run tests
+        run: |
+          npm run test:e2e
