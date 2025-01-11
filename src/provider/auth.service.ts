@@ -10,8 +10,10 @@ export class AuthService {
   ) {}
 
   async login(provider: string, providerAccessToken: string) {
-    if (provider === 'google') {
-    } else if (provider === 'kakao') {
+    if (provider === 'GOOGLE') {
+      const googleProfile = await this.getGoogleProfile(providerAccessToken);
+      console.log(googleProfile);
+    } else if (provider === 'KAKAO') {
       const kakaoProfile = await this.getKakaoProfile(providerAccessToken);
       console.log(kakaoProfile);
     }
@@ -34,6 +36,17 @@ export class AuthService {
       email: data.kakao_account.email,
     };
   }
+
+  async getGoogleProfile(accessToken: string) {
+    const response = await fetch(
+      `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${accessToken}`,
+    );
+    const data = (await response.json()) as GoogleProfile;
+    if (!data.id) {
+      throw new HttpException('Invalid access token', 500);
+    }
+    return data;
+  }
 }
 
 export type KakaoProfile = {
@@ -50,4 +63,11 @@ export type KakaoProfile = {
     is_email_verified: boolean;
     email: string;
   };
+};
+
+export type GoogleProfile = {
+  id: string;
+  email: string;
+  verified_email: boolean;
+  picture: string;
 };
