@@ -105,6 +105,7 @@ describe('POST /aws/image-upload-url', () => {
     // then
     expect(status).toBe(201);
     expect(body.url).toBeDefined();
+    expect(body.filename).toBeDefined();
 
     // cleanup
     spy.mockRestore();

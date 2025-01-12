@@ -18,7 +18,11 @@ export class AwsService {
     ext: 'jpg' | 'jpeg' | 'png',
   ) {
     const key = `${type}/${uuidv4()}.${ext}`;
-    return await this.createUploadUrl(key);
+    const url = await this.createUploadUrl(key);
+    return {
+      url,
+      filename: key,
+    };
   }
 
   async createUploadUrl(key: string) {
@@ -26,9 +30,6 @@ export class AwsService {
       Bucket: this.configService.get('AWS_IMAGE_BUCKET_NAME'),
       Key: key,
     });
-    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 60 });
-    return {
-      url,
-    };
+    return await getSignedUrl(this.s3Client, command, { expiresIn: 60 });
   }
 }
