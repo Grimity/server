@@ -16,7 +16,10 @@ import {
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { UpdateProfileImageDto } from 'src/controller/dto/user';
+import {
+  UpdateProfileImageDto,
+  UpdateProfileDto,
+} from 'src/controller/dto/user';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -50,6 +53,21 @@ export class UserController {
   @Delete('me/image')
   async deleteProfileImage(@CurrentUser() userId: string) {
     await this.userService.updateProfileImage(userId, null);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내 정보 변경' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 409, description: '이미 존재하는 이름' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('me')
+  async updateProfile(
+    @CurrentUser() userId: string,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    await this.userService.updateProfile(userId, dto);
     return;
   }
 }

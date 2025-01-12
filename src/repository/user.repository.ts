@@ -72,4 +72,34 @@ export class UserRepository {
     });
     return;
   }
+
+  async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
+    try {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          name: updateProfileInput.name,
+          description: updateProfileInput.description,
+          links: updateProfileInput.links,
+        },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new HttpException('NAME', 409);
+      }
+      throw e;
+    }
+  }
 }
+
+type UpdateProfileInput = {
+  name: string;
+  description: string;
+  links: string[];
+};

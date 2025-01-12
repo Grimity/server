@@ -9,4 +9,29 @@ export class UserService {
     await this.userRepository.updateImage(userId, filename);
     return;
   }
+
+  async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
+    const { links } = updateProfileInput;
+
+    let transformedLinks: string[] = [];
+    if (links.length > 0) {
+      transformedLinks = links.map(({ linkName, link }) => {
+        return `${linkName} ${link}`;
+      });
+    }
+    await this.userRepository.updateProfile(userId, {
+      ...updateProfileInput,
+      links: transformedLinks,
+    });
+    return;
+  }
 }
+
+export type UpdateProfileInput = {
+  name: string;
+  description: string;
+  links: {
+    linkName: string;
+    link: string;
+  }[];
+};
