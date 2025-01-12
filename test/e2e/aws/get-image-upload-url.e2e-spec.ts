@@ -85,7 +85,7 @@ describe('POST /aws/image-upload-url', () => {
     spy.mockRestore();
   });
 
-  it('성공하면 200과 함께 url을 반환한다', async () => {
+  it('성공하면 201과 함께 url을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: '1234',
@@ -103,7 +103,7 @@ describe('POST /aws/image-upload-url', () => {
       });
 
     // then
-    expect(status).toBe(200);
+    expect(status).toBe(201);
     expect(body.url).toBeDefined();
 
     // cleanup
