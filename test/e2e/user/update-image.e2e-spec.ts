@@ -83,4 +83,52 @@ describe('PUT /users/me/image', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('filename에 확장자가 없을 때 400을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/image')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        filename: 'profile/test',
+      });
+
+    // then
+    expect(status).toBe(400);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('filename에 분류가 없을 때 400을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/image')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        filename: 'test.jpg',
+      });
+
+    // then
+    expect(status).toBe(400);
+
+    // cleanup
+    spy.mockRestore();
+  });
 });

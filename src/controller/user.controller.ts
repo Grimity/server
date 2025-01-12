@@ -1,4 +1,11 @@
-import { Controller, Put, UseGuards, Body, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Put,
+  UseGuards,
+  Body,
+  HttpCode,
+  HttpException,
+} from '@nestjs/common';
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -15,6 +22,9 @@ export class UserController {
     @CurrentUser() userId: string,
     @Body() { filename }: UpdateProfileImageDto,
   ) {
+    if (!filename.includes('.') || !filename.includes('/')) {
+      throw new HttpException('INVALID_FILENAME', 400);
+    }
     await this.userService.updateProfileImage(userId, filename);
     return;
   }
