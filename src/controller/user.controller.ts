@@ -4,7 +4,6 @@ import {
   UseGuards,
   Body,
   HttpCode,
-  HttpException,
   Delete,
 } from '@nestjs/common';
 import {
@@ -38,9 +37,6 @@ export class UserController {
     @CurrentUser() userId: string,
     @Body() { filename }: UpdateProfileImageDto,
   ) {
-    if (!filename.startsWith('profile/') || !filename.includes('.')) {
-      throw new HttpException('INVALID_FILENAME', 400);
-    }
     await this.userService.updateProfileImage(userId, filename);
     return;
   }
