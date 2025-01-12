@@ -19,8 +19,9 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followedBy Follow[] @relation("followedBy")
-  following  Follow[] @relation("following")
+  followedBys Follow[]  @relation("followedBy")
+  followings  Follow[]  @relation("following")
+  galleries   Gallery[]
 
   @@unique([provider, providerId])
 }
@@ -33,4 +34,32 @@ model Follow {
   following  User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followedById, followingId])
+  @@index([followingId])
+}
+
+model Gallery {
+  id        String   @id @default(uuid()) @db.Uuid
+  authorId  String   @db.Uuid
+  title     String
+  images    String[]
+  isAI      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  viewCount Int      @default(0)
+  likeCount Int      @default(0)
+  content   String   @default("")
+  tags      Tag[]
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([title])
+  @@index([authorId])
+}
+
+model Tag {
+  galleryId String @db.Uuid
+  tagName   String
+
+  gallery Gallery @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+
+  @@id([galleryId, tagName])
 }
