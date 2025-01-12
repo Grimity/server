@@ -11,9 +11,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: postgres://postgres:postgres@localhost:5432/chessmong
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/grimity
       JWT_SECRET: test
       JWT_EXPIRES_IN: 1d
+      AWS_IMAGE_BUCKET_NAME: grimity-image-dev
+      AWS_REGION: ap-northeast-2
     steps:
       - name: Checkout
         uses: actions/checkout@v4
