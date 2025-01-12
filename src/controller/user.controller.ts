@@ -59,6 +59,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 정보 변경' })
   @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 409, description: '이미 존재하는 이름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put('me')

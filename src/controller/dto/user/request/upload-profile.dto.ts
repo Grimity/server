@@ -27,12 +27,12 @@ export class UpdateProfileDto {
   @Length(1, 10)
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: '없으면 빈 문자열 주세요' })
   @IsString()
   @Length(0, 24)
   description: string;
 
-  @ApiProperty({ type: LinkDto, isArray: true })
+  @ApiProperty({ type: LinkDto, isArray: true, description: '최대 3개' })
   @IsArray()
   @ArrayMaxSize(3)
   @ValidateNested({ each: true })
