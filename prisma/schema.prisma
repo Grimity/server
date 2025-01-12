@@ -17,6 +17,8 @@ model User {
   description String?
   link        String[]
 
+  createdAt DateTime @default(now())
+
   followedBy Follow[] @relation("followedBy")
   following  Follow[] @relation("following")
 
