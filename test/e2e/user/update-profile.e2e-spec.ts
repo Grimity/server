@@ -173,4 +173,76 @@ describe('PUT /users/me', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('204와 함께 프로필을 수정한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test2',
+        description: 'test',
+        links: [
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+        ],
+      });
+
+    // then
+    expect(status).toBe(204);
+    const user = await prisma.user.findFirstOrThrow();
+    expect(user.name).toBe('test2');
+    expect(user.description).toBe('test');
+    expect(user.links).toEqual(['test https://test.com']);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('중복된 name일 때 409를 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+    const accessToken = await register(app, 'test');
+    await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        name: 'test2',
+        email: 'test@test.com',
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test2',
+        description: 'test',
+        links: [
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+        ],
+      });
+
+    // then
+    expect(status).toBe(409);
+
+    // cleanup
+    spy.mockRestore();
+  });
 });

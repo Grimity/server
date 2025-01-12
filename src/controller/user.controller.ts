@@ -66,6 +66,7 @@ export class UserController {
     @CurrentUser() userId: string,
     @Body() dto: UpdateProfileDto,
   ) {
-    console.log(userId, dto);
+    await this.userService.updateProfile(userId, dto);
+    return;
   }
 }
