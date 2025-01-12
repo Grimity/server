@@ -4,6 +4,7 @@ import { PrismaModule } from './module/prisma.module';
 import { globalPipe } from './common/pipe/global.pipe';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './module/auth.module';
+import { AwsModule } from './module/aws.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AuthModule } from './module/auth.module';
       global: true,
     }),
     AuthModule,
+    AwsModule,
   ],
   providers: [globalPipe],
 })
