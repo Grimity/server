@@ -34,6 +34,10 @@ export class AuthController {
     description: '로그인 성공',
     type: LoginSuccessDto,
   })
+  @ApiResponse({
+    status: 404,
+    description: '회원 없음',
+  })
   @HttpCode(200)
   @Post('login')
   async login(
