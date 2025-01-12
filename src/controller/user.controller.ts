@@ -6,15 +6,27 @@ import {
   HttpCode,
   HttpException,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import { UpdateProfileImageDto } from 'src/controller/dto/user';
 
+@ApiTags('/users')
+@ApiResponse({ status: 401, description: 'Unauthorized' })
+@ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '프로필 이미지 변경' })
+  @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put('me/image')
