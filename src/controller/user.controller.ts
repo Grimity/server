@@ -38,7 +38,7 @@ export class UserController {
     @CurrentUser() userId: string,
     @Body() { filename }: UpdateProfileImageDto,
   ) {
-    if (!filename.includes('.') || !filename.includes('/')) {
+    if (!filename.startsWith('profile/') || !filename.includes('.')) {
       throw new HttpException('INVALID_FILENAME', 400);
     }
     await this.userService.updateProfileImage(userId, filename);
