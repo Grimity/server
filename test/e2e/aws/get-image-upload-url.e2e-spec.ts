@@ -84,4 +84,29 @@ describe('POST /aws/image-upload-url', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('성공하면 200과 함께 url을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: '1234',
+      email: 'test@test.com',
+    });
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/aws/image-upload-url')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        type: 'gallery',
+        ext: 'jpg',
+      });
+
+    // then
+    expect(status).toBe(200);
+    expect(body.url).toBeDefined();
+
+    // cleanup
+    spy.mockRestore();
+  });
 });
