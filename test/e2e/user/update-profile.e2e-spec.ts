@@ -245,4 +245,36 @@ describe('PUT /users/me', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('links를 삭제한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+    const accessToken = await register(app, 'test');
+    await prisma.user.updateMany({
+      data: {
+        links: ['test https://test.com', 'test2 https://test2.com'],
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test2',
+        description: 'test',
+        links: [],
+      });
+
+    // then
+    expect(status).toBe(204);
+    const user = await prisma.user.findFirstOrThrow();
+    expect(user.links).toEqual([]);
+
+    // cleanup
+    spy.mockRestore();
+  });
 });
