@@ -14,7 +14,7 @@ model User {
   email       String
   name        String   @unique
   image       String?
-  description String?
+  description String   @default("")
   link        String[]
 
   createdAt DateTime @default(now())
