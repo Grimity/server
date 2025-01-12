@@ -61,7 +61,7 @@ export class UserRepository {
     }
   }
 
-  async updateImage(userId: string, filename: string) {
+  async updateImage(userId: string, filename: string | null) {
     await this.prisma.user.update({
       where: {
         id: userId,

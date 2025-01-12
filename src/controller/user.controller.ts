@@ -5,6 +5,7 @@ import {
   Body,
   HttpCode,
   HttpException,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -38,6 +39,17 @@ export class UserController {
       throw new HttpException('INVALID_FILENAME', 400);
     }
     await this.userService.updateProfileImage(userId, filename);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '프로필 이미지 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('me/image')
+  async deleteProfileImage(@CurrentUser() userId: string) {
+    await this.userService.updateProfileImage(userId, null);
     return;
   }
 }
