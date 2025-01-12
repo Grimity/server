@@ -20,6 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: github-actions
+          aws-region: ap-northeast-2
+
       - name: Start PostgreSQL
         run: docker run --name postgres -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 postgres:16
 
