@@ -16,6 +16,6 @@ export class GalleryController {
     @CurrentUser() userId: string,
     @Body() createGalleryDto: CreateGalleryDto,
   ) {
-    console.log(userId, createGalleryDto);
+    return await this.galleryService.create(userId, createGalleryDto);
   }
 }

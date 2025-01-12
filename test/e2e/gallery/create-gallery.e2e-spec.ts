@@ -202,4 +202,57 @@ describe('POST /galleries', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('201와 함께 gallery를 생성한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/galleries')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'test',
+        images: ['gallery/test.jpg'],
+        isAI: false,
+        content: '',
+        tags: ['test'],
+      });
+
+    // then
+    expect(status).toBe(201);
+    expect(body).toEqual({
+      id: expect.any(String),
+    });
+    const gallery = await prisma.gallery.findFirstOrThrow({
+      include: {
+        tags: true,
+      },
+    });
+    expect(gallery).toEqual({
+      id: body.id,
+      authorId: expect.any(String),
+      title: 'test',
+      content: '',
+      isAI: false,
+      images: ['gallery/test.jpg'],
+      tags: [
+        {
+          galleryId: body.id,
+          tagName: 'test',
+        },
+      ],
+      createdAt: expect.any(Date),
+      likeCount: 0,
+      viewCount: 0,
+    });
+
+    // cleanup
+    spy.mockRestore();
+  });
 });
