@@ -26,6 +26,29 @@ export class UserService {
     return;
   }
 
+  async getMyProfile(userId: string) {
+    const user = await this.userRepository.getMyProfile(userId);
+
+    return {
+      id: user.id,
+      provider: user.provider,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      description: user.description,
+      links: user.links.map((link) => {
+        const [linkName, linkUrl] = link.split(' ');
+        return {
+          linkName,
+          link: linkUrl,
+        };
+      }),
+      createdAt: user.createdAt,
+      followerCount: user._count.followers,
+      followingCount: user._count.followings,
+    };
+  }
+
   async follow(userId: string, targetUserId: string) {
     await this.userRepository.follow(userId, targetUserId);
     return;

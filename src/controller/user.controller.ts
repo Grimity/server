@@ -7,6 +7,7 @@ import {
   Delete,
   ParseUUIDPipe,
   Param,
+  Get,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -67,6 +68,12 @@ export class UserController {
   ) {
     await this.userService.updateProfile(userId, dto);
     return;
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('me')
+  async getMe(@CurrentUser() userId: string) {
+    return this.userService.getMyProfile(userId);
   }
 
   @ApiBearerAuth()
