@@ -163,6 +163,49 @@ export class UserRepository {
     });
     return;
   }
+
+  async getUserProfile(targetUserId: string) {
+    try {
+      return await this.prisma.user.findUniqueOrThrow({
+        where: {
+          id: targetUserId,
+        },
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          description: true,
+          links: true,
+          _count: {
+            select: {
+              followers: true,
+              followings: true,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('USER', 404);
+      }
+      throw e;
+    }
+  }
+
+  async isFollowing(userId: string, targetUserId: string) {
+    const follow = await this.prisma.follow.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      },
+    });
+    return !!follow;
+  }
 }
 
 type UpdateProfileInput = {
