@@ -19,21 +19,21 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followedBys Follow[]  @relation("followedBy")
-  followings  Follow[]  @relation("following")
-  galleries   Gallery[]
+  followers  Follow[]  @relation("following")
+  followings Follow[]  @relation("follower")
+  galleries  Gallery[]
 
   @@unique([provider, providerId])
 }
 
 model Follow {
-  followedById String @db.Uuid
-  followingId  String @db.Uuid
+  followerId  String @db.Uuid
+  followingId String @db.Uuid
 
-  followedBy User @relation("followedBy", fields: [followedById], references: [id], onDelete: Cascade)
-  following  User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
 
-  @@id([followedById, followingId])
+  @@id([followerId, followingId])
   @@index([followingId])
 }
 

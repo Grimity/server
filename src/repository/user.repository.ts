@@ -96,6 +96,43 @@ export class UserRepository {
       throw e;
     }
   }
+
+  async follow(userId: string, targetUserId: string) {
+    try {
+      await this.prisma.follow.create({
+        data: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        return;
+      } else if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2003'
+      ) {
+        throw new HttpException('없는 유저', 404);
+      }
+      throw e;
+    }
+  }
+
+  async unfollow(userId: string, targetUserId: string) {
+    await this.prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      },
+    });
+    return;
+  }
 }
 
 type UpdateProfileInput = {

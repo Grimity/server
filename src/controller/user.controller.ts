@@ -5,6 +5,8 @@ import {
   Body,
   HttpCode,
   Delete,
+  ParseUUIDPipe,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -64,6 +66,34 @@ export class UserController {
     @Body() dto: UpdateProfileDto,
   ) {
     await this.userService.updateProfile(userId, dto);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('follow/:targetId')
+  async follow(
+    @CurrentUser() userId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.follow(userId, targetId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '언팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('follow/:targetId')
+  async unfollow(
+    @CurrentUser() userId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.unfollow(userId, targetId);
     return;
   }
 }
