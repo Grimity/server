@@ -82,4 +82,18 @@ export class UserController {
     await this.userService.follow(userId, targetId);
     return;
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '언팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('follow/:targetId')
+  async unfollow(
+    @CurrentUser() userId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.unfollow(userId, targetId);
+    return;
+  }
 }

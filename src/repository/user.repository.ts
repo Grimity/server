@@ -121,6 +121,18 @@ export class UserRepository {
       throw e;
     }
   }
+
+  async unfollow(userId: string, targetUserId: string) {
+    await this.prisma.follow.delete({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      },
+    });
+    return;
+  }
 }
 
 type UpdateProfileInput = {

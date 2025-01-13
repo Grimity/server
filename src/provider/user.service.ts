@@ -30,6 +30,11 @@ export class UserService {
     await this.userRepository.follow(userId, targetUserId);
     return;
   }
+
+  async unfollow(userId: string, targetUserId: string) {
+    await this.userRepository.unfollow(userId, targetUserId);
+    return;
+  }
 }
 
 export type UpdateProfileInput = {
