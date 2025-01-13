@@ -19,10 +19,11 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers  Follow[] @relation("following")
-  followings Follow[] @relation("follower")
-  feeds      Feed[]
-  likes      Like[]
+  followers    Follow[]      @relation("following")
+  followings   Follow[]      @relation("follower")
+  feeds        Feed[]
+  likes        Like[]
+  feedComments FeedComment[]
 
   @@unique([provider, providerId])
 }
@@ -50,8 +51,9 @@ model Feed {
   content   String   @default("")
   tags      Tag[]
 
-  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likes  Like[]
+  author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes        Like[]
+  feedComments FeedComment[]
 
   @@index([authorId])
   @@index([createdAt(sort: Desc)])
@@ -74,4 +76,20 @@ model Like {
   feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
 
   @@id([userId, feedId])
+}
+
+model FeedComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  feedId    String   @db.Uuid
+  writerId  String   @db.Uuid
+  parentId  String?  @db.Uuid
+  content   String
+  createdAt DateTime @default(now())
+
+  writer        User          @relation(fields: [writerId], references: [id], onDelete: Cascade)
+  feed          Feed          @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  parent        FeedComment?  @relation("ChildComments", fields: [parentId], references: [id], onDelete: Cascade)
+  childComments FeedComment[] @relation("ChildComments")
+
+  @@index([feedId])
 }
