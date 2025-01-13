@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class FeedRepository {
@@ -27,6 +28,39 @@ export class FeedRepository {
         id: true,
       },
     });
+  }
+
+  async like(userId: string, feedId: string) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.like.create({
+          data: {
+            userId,
+            feedId,
+          },
+        }),
+        this.prisma.feed.update({
+          where: {
+            id: feedId,
+          },
+          data: {
+            likeCount: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
+      return;
+    } catch (e: any) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new HttpException('이미 좋아요를 누름', 409);
+        } else if (e.code === 'P2025') {
+          throw new HttpException('피드가 없음', 404);
+        }
+      }
+      throw e;
+    }
   }
 }
 

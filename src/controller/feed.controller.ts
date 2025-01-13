@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Put,
+  Param,
+  ParseUUIDPipe,
+  HttpCode,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -31,5 +40,18 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'like' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('like/:feedId')
+  async like(
+    @CurrentUser() userId: string,
+    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.like(userId, feedId);
+    return;
   }
 }
