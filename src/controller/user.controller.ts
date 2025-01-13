@@ -16,7 +16,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { UserService } from 'src/provider/user.service';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   UpdateProfileImageDto,
@@ -107,5 +107,14 @@ export class UserController {
   ) {
     await this.userService.unfollow(userId, targetId);
     return;
+  }
+
+  @UseGuards(OptionalJwtGuard)
+  @Get(':id')
+  async getUser(
+    @CurrentUser() userId: string | null,
+    @Param('id') targetId: string,
+  ) {
+    console.log(userId, targetId);
   }
 }

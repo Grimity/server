@@ -7,6 +7,10 @@ export const CurrentUser = createParamDecorator(
       .switchToHttp()
       .getRequest<Request & { user: { id: string } }>();
 
+    if (!req.user) {
+      return null;
+    }
+
     return req.user.id;
   },
 );
