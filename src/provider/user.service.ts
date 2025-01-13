@@ -58,6 +58,58 @@ export class UserService {
     await this.userRepository.unfollow(userId, targetUserId);
     return;
   }
+
+  async getUserProfile(userId: string | null, targetUserId: string) {
+    if (userId) {
+      return this.getUserProfileWithLogin(userId, targetUserId);
+    }
+    return this.getUserProfileWithoutLogin(targetUserId);
+  }
+
+  async getUserProfileWithLogin(userId: string, targetUserId: string) {
+    const [targetUser, isFollowing] = await Promise.all([
+      this.userRepository.getUserProfile(targetUserId),
+      this.userRepository.isFollowing(userId, targetUserId),
+    ]);
+
+    return {
+      id: targetUser.id,
+      name: targetUser.name,
+      image: targetUser.image,
+      description: targetUser.description,
+      links: targetUser.links.map((link) => {
+        const [linkName, linkUrl] = link.split(' ');
+        return {
+          linkName,
+          link: linkUrl,
+        };
+      }),
+      followerCount: targetUser._count.followers,
+      followingCount: targetUser._count.followings,
+      isFollowing,
+    };
+  }
+
+  async getUserProfileWithoutLogin(targetUserId: string) {
+    const user = await this.userRepository.getUserProfile(targetUserId);
+
+    return {
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      description: user.description,
+      links: user.links.map((link) => {
+        const [linkName, linkUrl] = link.split(' ');
+        return {
+          linkName,
+          link: linkUrl,
+        };
+      }),
+      followerCount: user._count.followers,
+      followingCount: user._count.followings,
+      isFollowing: false,
+    };
+  }
 }
 
 export type UpdateProfileInput = {

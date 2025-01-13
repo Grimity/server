@@ -115,6 +115,6 @@ export class UserController {
     @CurrentUser() userId: string | null,
     @Param('id') targetId: string,
   ) {
-    console.log(userId, targetId);
+    return this.userService.getUserProfile(userId, targetId);
   }
 }
