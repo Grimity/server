@@ -30,6 +30,96 @@ export class FeedRepository {
     });
   }
 
+  async getFeedWithoutLogin(feedId: string) {
+    try {
+      return await this.prisma.feed.findUniqueOrThrow({
+        where: {
+          id: feedId,
+        },
+        select: {
+          id: true,
+          title: true,
+          cards: true,
+          isAI: true,
+          createdAt: true,
+          viewCount: true,
+          likeCount: true,
+          content: true,
+          tags: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              _count: {
+                select: {
+                  followers: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('피드가 없음', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
+  async getFeedWithLogin(userId: string, feedId: string) {
+    try {
+      return await this.prisma.feed.findUniqueOrThrow({
+        where: {
+          id: feedId,
+        },
+        select: {
+          id: true,
+          title: true,
+          cards: true,
+          isAI: true,
+          createdAt: true,
+          viewCount: true,
+          likeCount: true,
+          content: true,
+          tags: true,
+          likes: {
+            where: {
+              userId,
+            },
+          },
+          author: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              _count: {
+                select: {
+                  followers: true,
+                },
+              },
+              followers: {
+                where: {
+                  followerId: userId,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('피드가 없음', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
   async like(userId: string, feedId: string) {
     try {
       await this.prisma.$transaction([

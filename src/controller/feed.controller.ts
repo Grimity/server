@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   Delete,
+  Get,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,8 +17,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
-import { CreateFeedDto, FeedIdDto } from './dto/feed';
-import { JwtGuard } from 'src/common/guard';
+import { CreateFeedDto, FeedIdDto, FeedDetailDto } from './dto/feed';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
 @ApiTags('/feeds')
@@ -41,6 +42,23 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 상세 조회 - Optional Guard' })
+  @ApiResponse({
+    status: 200,
+    description: '피드 조회 성공',
+    type: FeedDetailDto,
+  })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @UseGuards(OptionalJwtGuard)
+  @Get(':feedId')
+  async getFeed(
+    @CurrentUser() userId: string | null,
+    @Param('feedId', ParseUUIDPipe) feedId: string,
+  ): Promise<FeedDetailDto> {
+    return await this.feedService.getFeed(userId, feedId);
   }
 
   @ApiBearerAuth()
