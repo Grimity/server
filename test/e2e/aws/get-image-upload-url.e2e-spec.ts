@@ -37,7 +37,7 @@ describe('POST /aws/image-upload-url', () => {
     expect(status).toBe(401);
   });
 
-  it('type은 profile, gallery, communityPost 중 하나여야 한다', async () => {
+  it('type은 profile, feed, communityPost 중 하나여야 한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: '1234',
@@ -74,7 +74,7 @@ describe('POST /aws/image-upload-url', () => {
       .post('/aws/image-upload-url')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 'gallery',
+        type: 'feed',
         ext: 'invalid',
       });
 
@@ -98,14 +98,14 @@ describe('POST /aws/image-upload-url', () => {
       .post('/aws/image-upload-url')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 'gallery',
+        type: 'feed',
         ext: 'jpg',
       });
 
     // then
     expect(status).toBe(201);
     expect(body.url).toBeDefined();
-    expect(body.filename).toBeDefined();
+    expect(body.imageName).toBeDefined();
 
     // cleanup
     spy.mockRestore();

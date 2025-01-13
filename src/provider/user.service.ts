@@ -5,8 +5,8 @@ import { UserRepository } from 'src/repository/user.repository';
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
-  async updateProfileImage(userId: string, filename: string | null) {
-    await this.userRepository.updateImage(userId, filename);
+  async updateProfileImage(userId: string, imageName: string | null) {
+    await this.userRepository.updateImage(userId, imageName);
     return;
   }
 

@@ -27,5 +27,5 @@ export class UpdateProfileImageDto {
   @IsString()
   @IsNotEmpty()
   @Validate(IsProfileImage)
-  filename: string;
+  imageName: string;
 }
