@@ -5,6 +5,8 @@ import {
   Body,
   HttpCode,
   Delete,
+  ParseUUIDPipe,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -64,6 +66,17 @@ export class UserController {
     @Body() dto: UpdateProfileDto,
   ) {
     await this.userService.updateProfile(userId, dto);
+    return;
+  }
+
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('follow/:userId')
+  async follow(
+    @CurrentUser() userId: string,
+    @Param('userId', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.follow(userId, targetId);
     return;
   }
 }

@@ -25,6 +25,11 @@ export class UserService {
     });
     return;
   }
+
+  async follow(userId: string, targetUserId: string) {
+    await this.userRepository.follow(userId, targetUserId);
+    return;
+  }
 }
 
 export type UpdateProfileInput = {

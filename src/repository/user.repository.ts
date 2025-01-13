@@ -96,6 +96,26 @@ export class UserRepository {
       throw e;
     }
   }
+
+  async follow(userId: string, targetUserId: string) {
+    try {
+      await this.prisma.follow.create({
+        data: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        return;
+      }
+      throw e;
+    }
+  }
 }
 
 type UpdateProfileInput = {
