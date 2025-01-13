@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   Delete,
+  Get,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,7 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
 import { CreateFeedDto, FeedIdDto } from './dto/feed';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
 @ApiTags('/feeds')
@@ -41,6 +42,15 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @UseGuards(OptionalJwtGuard)
+  @Get(':feedId')
+  async getFeed(
+    @CurrentUser() userId: string | null,
+    @Param('feedId', ParseUUIDPipe) feedId: string,
+  ) {
+    return await this.feedService.getFeed(userId, feedId);
   }
 
   @ApiBearerAuth()
