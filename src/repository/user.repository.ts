@@ -97,6 +97,36 @@ export class UserRepository {
     }
   }
 
+  async getMyProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        provider: true,
+        email: true,
+        name: true,
+        image: true,
+        createdAt: true,
+        description: true,
+        links: true,
+        _count: {
+          select: {
+            followers: true,
+            followings: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new HttpException('USER', 404);
+    }
+
+    return user;
+  }
+
   async follow(userId: string, targetUserId: string) {
     try {
       await this.prisma.follow.create({

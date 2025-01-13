@@ -11,12 +11,12 @@ import {
 import { Type } from 'class-transformer';
 
 export class LinkDto {
-  @ApiProperty()
+  @ApiProperty({ example: '인스타그램' })
   @IsString()
   @IsNotEmpty()
   linkName: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'https://www.instagram.com/username' })
   @IsUrl()
   link: string;
 }
