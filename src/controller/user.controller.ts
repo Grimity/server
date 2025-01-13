@@ -22,6 +22,7 @@ import {
   UpdateProfileImageDto,
   UpdateProfileDto,
   MyProfileDto,
+  UserProfileDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -109,14 +110,16 @@ export class UserController {
     return;
   }
 
-  @ApiOperation({ summary: '유저 정보 조회' })
-  @ApiResponse({ status: 200, description: '성공' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '유저 정보 조회 - Optional Guard' })
+  @ApiResponse({ status: 200, description: '성공', type: UserProfileDto })
+  @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getUser(
     @CurrentUser() userId: string | null,
     @Param('id', ParseUUIDPipe) targetId: string,
-  ) {
+  ): Promise<UserProfileDto> {
     return this.userService.getUserProfile(userId, targetId);
   }
 }
