@@ -112,6 +112,11 @@ export class UserRepository {
         e.code === 'P2002'
       ) {
         return;
+      } else if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2003'
+      ) {
+        throw new HttpException('없는 유저', 404);
       }
       throw e;
     }

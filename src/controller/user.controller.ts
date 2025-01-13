@@ -69,12 +69,15 @@ export class UserController {
     return;
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Put('follow/:userId')
+  @Put('follow/:targetId')
   async follow(
     @CurrentUser() userId: string,
-    @Param('userId', ParseUUIDPipe) targetId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
   ) {
     await this.userService.follow(userId, targetId);
     return;
