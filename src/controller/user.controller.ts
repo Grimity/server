@@ -21,6 +21,7 @@ import { CurrentUser } from 'src/common/decorator';
 import {
   UpdateProfileImageDto,
   UpdateProfileDto,
+  MyProfileDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -70,9 +71,13 @@ export class UserController {
     return;
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내 정보 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: MyProfileDto })
+  @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(JwtGuard)
   @Get('me')
-  async getMe(@CurrentUser() userId: string) {
+  async getMe(@CurrentUser() userId: string): Promise<MyProfileDto> {
     return this.userService.getMyProfile(userId);
   }
 
