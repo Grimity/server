@@ -13,6 +13,11 @@ export class FeedService {
     await this.feedRepository.like(userId, feedId);
     return;
   }
+
+  async unlike(userId: string, feedId: string) {
+    await this.feedRepository.unlike(userId, feedId);
+    return;
+  }
 }
 
 export type CreateFeedInput = {

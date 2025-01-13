@@ -51,12 +51,45 @@ export class FeedRepository {
         }),
       ]);
       return;
-    } catch (e: any) {
+    } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
           throw new HttpException('이미 좋아요를 누름', 409);
-        } else if (e.code === 'P2025') {
+        } else if (e.code === 'P2003') {
           throw new HttpException('피드가 없음', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
+  async unlike(userId: string, feedId: string) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.like.delete({
+          where: {
+            userId_feedId: {
+              userId,
+              feedId,
+            },
+          },
+        }),
+        this.prisma.feed.update({
+          where: {
+            id: feedId,
+          },
+          data: {
+            likeCount: {
+              decrement: 1,
+            },
+          },
+        }),
+      ]);
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('좋아요를 안했음', 404);
         }
       }
       throw e;

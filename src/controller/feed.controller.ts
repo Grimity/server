@@ -7,6 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -55,6 +56,21 @@ export class FeedController {
     @Param('feedId', new ParseUUIDPipe()) feedId: string,
   ) {
     await this.feedService.like(userId, feedId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'unlike' })
+  @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
+  @ApiResponse({ status: 404, description: '좋아요를 안했음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('like/:feedId')
+  async unlike(
+    @CurrentUser() userId: string,
+    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.unlike(userId, feedId);
     return;
   }
 }
