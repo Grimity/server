@@ -22,6 +22,7 @@ model User {
   followers  Follow[] @relation("following")
   followings Follow[] @relation("follower")
   feeds      Feed[]
+  likes      Like[]
 
   @@unique([provider, providerId])
 }
@@ -49,10 +50,11 @@ model Feed {
   content   String   @default("")
   tags      Tag[]
 
-  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes  Like[]
 
-  @@index([title])
   @@index([authorId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Tag {
@@ -62,4 +64,14 @@ model Tag {
   feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
 
   @@id([feedId, tagName])
+}
+
+model Like {
+  userId String @db.Uuid
+  feedId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+
+  @@id([userId, feedId])
 }

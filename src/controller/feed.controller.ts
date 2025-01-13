@@ -1,4 +1,14 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Put,
+  Param,
+  ParseUUIDPipe,
+  HttpCode,
+  Delete,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -31,5 +41,36 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'like' })
+  @ApiResponse({ status: 204, description: '좋아요 성공' })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('like/:feedId')
+  async like(
+    @CurrentUser() userId: string,
+    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.like(userId, feedId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'unlike' })
+  @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
+  @ApiResponse({ status: 404, description: '좋아요를 안했음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('like/:feedId')
+  async unlike(
+    @CurrentUser() userId: string,
+    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.unlike(userId, feedId);
+    return;
   }
 }
