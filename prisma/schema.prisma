@@ -53,8 +53,8 @@ model Feed {
   author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes  Like[]
 
-  @@index([title])
   @@index([authorId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Tag {
