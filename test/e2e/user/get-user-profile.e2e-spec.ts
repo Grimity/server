@@ -104,4 +104,14 @@ describe('GET /users/:id', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('없는 유저면 404를 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer()).get(
+      '/users/0bc1f834-add1-4627-a695-85898cedad4d',
+    );
+
+    // then
+    expect(status).toBe(404);
+  });
 });

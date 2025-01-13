@@ -109,11 +109,13 @@ export class UserController {
     return;
   }
 
+  @ApiOperation({ summary: '유저 정보 조회' })
+  @ApiResponse({ status: 200, description: '성공' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getUser(
     @CurrentUser() userId: string | null,
-    @Param('id') targetId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
   ) {
     return this.userService.getUserProfile(userId, targetId);
   }

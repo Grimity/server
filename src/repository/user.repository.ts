@@ -165,24 +165,34 @@ export class UserRepository {
   }
 
   async getUserProfile(targetUserId: string) {
-    return await this.prisma.user.findUniqueOrThrow({
-      where: {
-        id: targetUserId,
-      },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        description: true,
-        links: true,
-        _count: {
-          select: {
-            followers: true,
-            followings: true,
+    try {
+      return await this.prisma.user.findUniqueOrThrow({
+        where: {
+          id: targetUserId,
+        },
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          description: true,
+          links: true,
+          _count: {
+            select: {
+              followers: true,
+              followings: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('USER', 404);
+      }
+      throw e;
+    }
   }
 
   async isFollowing(userId: string, targetUserId: string) {
