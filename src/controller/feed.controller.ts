@@ -5,31 +5,31 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { GalleryService } from 'src/provider/gallery.service';
-import { CreateGalleryDto, GalleryIdDto } from './dto/gallery';
+import { FeedService } from 'src/provider/feed.service';
+import { CreateFeedDto, FeedIdDto } from './dto/feed';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
-@ApiTags('/galleries')
+@ApiTags('/feeds')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
-@Controller('galleries')
-export class GalleryController {
-  constructor(private galleryService: GalleryService) {}
+@Controller('feeds')
+export class FeedController {
+  constructor(private feedService: FeedService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '갤러리 생성' })
+  @ApiOperation({ summary: '피드 생성' })
   @ApiResponse({
     status: 201,
-    description: '갤러리 생성 성공',
-    type: GalleryIdDto,
+    description: '피드 생성 성공',
+    type: FeedIdDto,
   })
   @UseGuards(JwtGuard)
   @Post()
   async create(
     @CurrentUser() userId: string,
-    @Body() createGalleryDto: CreateGalleryDto,
-  ): Promise<GalleryIdDto> {
-    return await this.galleryService.create(userId, createGalleryDto);
+    @Body() createFeedDto: CreateFeedDto,
+  ): Promise<FeedIdDto> {
+    return await this.feedService.create(userId, createFeedDto);
   }
 }

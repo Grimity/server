@@ -5,5 +5,5 @@ export class UrlDto {
   url: string;
 
   @ApiProperty()
-  filename: string;
+  imageName: string;
 }

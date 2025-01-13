@@ -5,7 +5,7 @@ import { globalPipe } from './common/pipe/global.pipe';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './module/auth.module';
 import { AwsModule } from './module/aws.module';
-import { GalleryModule } from './module/gallery.module';
+import { FeedModule } from './module/feed.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { GalleryModule } from './module/gallery.module';
     }),
     AuthModule,
     AwsModule,
-    GalleryModule,
+    FeedModule,
   ],
   providers: [globalPipe],
 })

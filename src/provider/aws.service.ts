@@ -14,14 +14,14 @@ export class AwsService {
   }
 
   async getUploadUrl(
-    type: 'profile' | 'gallery' | 'communityPost',
+    type: 'profile' | 'feed' | 'communityPost',
     ext: 'jpg' | 'jpeg' | 'png',
   ) {
     const key = `${type}/${uuidv4()}.${ext}`;
     const url = await this.createUploadUrl(key);
     return {
       url,
-      filename: key,
+      imageName: key,
     };
   }
 

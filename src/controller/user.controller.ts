@@ -40,9 +40,9 @@ export class UserController {
   @Put('me/image')
   async updateProfileImage(
     @CurrentUser() userId: string,
-    @Body() { filename }: UpdateProfileImageDto,
+    @Body() { imageName }: UpdateProfileImageDto,
   ) {
-    await this.userService.updateProfileImage(userId, filename);
+    await this.userService.updateProfileImage(userId, imageName);
     return;
   }
 

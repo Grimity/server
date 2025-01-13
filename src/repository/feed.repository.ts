@@ -2,20 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 
 @Injectable()
-export class GalleryRepository {
+export class FeedRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, createGalleryInput: CreateGalleryInput) {
-    return await this.prisma.gallery.create({
+  async create(userId: string, createFeedInput: CreateFeedInput) {
+    return await this.prisma.feed.create({
       data: {
         authorId: userId,
-        title: createGalleryInput.title,
-        content: createGalleryInput.content,
-        isAI: createGalleryInput.isAI,
-        images: createGalleryInput.images,
+        title: createFeedInput.title,
+        content: createFeedInput.content,
+        isAI: createFeedInput.isAI,
+        cards: createFeedInput.cards,
         tags: {
           createMany: {
-            data: createGalleryInput.tags.map((tag) => {
+            data: createFeedInput.tags.map((tag) => {
               return {
                 tagName: tag,
               };
@@ -30,9 +30,9 @@ export class GalleryRepository {
   }
 }
 
-type CreateGalleryInput = {
+type CreateFeedInput = {
   title: string;
-  images: string[];
+  cards: string[];
   isAI: boolean;
   content: string;
   tags: string[];

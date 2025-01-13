@@ -37,7 +37,7 @@ describe('PUT /users/me/image', () => {
     expect(status).toBe(401);
   });
 
-  it('filename이 없을 때 400을 반환한다', async () => {
+  it('imageName이 없을 때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -72,7 +72,7 @@ describe('PUT /users/me/image', () => {
       .put('/users/me/image')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        filename: 'profile/test.jpg',
+        imageName: 'profile/test.jpg',
       });
 
     // then
@@ -84,7 +84,7 @@ describe('PUT /users/me/image', () => {
     spy.mockRestore();
   });
 
-  it('filename에 확장자가 없을 때 400을 반환한다', async () => {
+  it('imageName에 확장자가 없을 때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -98,7 +98,7 @@ describe('PUT /users/me/image', () => {
       .put('/users/me/image')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        filename: 'profile/test',
+        imageName: 'profile/test',
       });
 
     // then
@@ -108,7 +108,7 @@ describe('PUT /users/me/image', () => {
     spy.mockRestore();
   });
 
-  it('filename에 분류가 없을 때 400을 반환한다', async () => {
+  it('imageName에 분류가 없을 때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -122,7 +122,7 @@ describe('PUT /users/me/image', () => {
       .put('/users/me/image')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        filename: 'test.jpg',
+        imageName: 'test.jpg',
       });
 
     // then

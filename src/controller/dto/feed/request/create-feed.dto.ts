@@ -10,23 +10,21 @@ import {
   Validate,
 } from 'class-validator';
 
-@ValidatorConstraint({ name: 'IsGalleryImage', async: false })
-export class IsGalleryImage implements ValidatorConstraintInterface {
-  validate(image: string) {
+@ValidatorConstraint({ name: 'IsFeedCard', async: false })
+export class IsFeedCard implements ValidatorConstraintInterface {
+  validate(card: string) {
     return (
-      typeof image === 'string' &&
-      image.startsWith('gallery/') &&
-      image.includes('.')
+      typeof card === 'string' && card.startsWith('feed/') && card.includes('.')
     );
   }
 
   defaultMessage() {
-    return '이미지는 gallery/로 시작하고 확장자를 포함해야 합니다';
+    return '이미지는 feed/로 시작하고 확장자를 포함해야 합니다';
   }
 }
 
-@ValidatorConstraint({ name: 'IsGalleryTag', async: false })
-export class IsGalleryTag implements ValidatorConstraintInterface {
+@ValidatorConstraint({ name: 'IsFeedTag', async: false })
+export class IsFeedTag implements ValidatorConstraintInterface {
   validate(tag: string) {
     return typeof tag === 'string' && tag.length <= 10 && tag.length > 0;
   }
@@ -36,7 +34,7 @@ export class IsGalleryTag implements ValidatorConstraintInterface {
   }
 }
 
-export class CreateGalleryDto {
+export class CreateFeedDto {
   @ApiProperty({ description: '1글자이상 24글자 이하' })
   @IsString()
   @Length(1, 24)
@@ -46,13 +44,13 @@ export class CreateGalleryDto {
     isArray: true,
     type: 'string',
     description: '이미지 파일명배열, 최소 1개, 최대 10개',
-    example: ['gallery/{UUID}.jpg'],
+    example: ['feed/{UUID}.jpg'],
   })
   @IsString({ each: true })
   @ArrayNotEmpty()
   @ArrayMaxSize(10)
-  @Validate(IsGalleryImage, { each: true })
-  images: string[];
+  @Validate(IsFeedCard, { each: true })
+  cards: string[];
 
   @ApiProperty()
   @IsBoolean()
@@ -74,6 +72,6 @@ export class CreateGalleryDto {
   })
   @IsString({ each: true })
   @ArrayMaxSize(8)
-  @Validate(IsGalleryTag, { each: true })
+  @Validate(IsFeedTag, { each: true })
   tags: string[];
 }

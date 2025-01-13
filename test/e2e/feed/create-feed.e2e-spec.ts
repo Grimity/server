@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('POST /galleries', () => {
+describe('POST /feeds', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -29,9 +29,7 @@ describe('POST /galleries', () => {
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
-    const { status } = await request(app.getHttpServer())
-      .post('/galleries')
-      .send();
+    const { status } = await request(app.getHttpServer()).post('/feeds').send();
 
     // then
     expect(status).toBe(401);
@@ -48,11 +46,11 @@ describe('POST /galleries', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/galleries')
+      .post('/feeds')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: '',
-        images: ['gallery/test.jpg'],
+        cards: ['feed/test.jpg'],
         isAI: false,
         content: '',
         tags: [],
@@ -76,11 +74,11 @@ describe('POST /galleries', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/galleries')
+      .post('/feeds')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'a'.repeat(25),
-        images: ['gallery/test.jpg'],
+        cards: ['feed/test.jpg'],
         isAI: false,
         content: '',
         tags: [],
@@ -93,7 +91,7 @@ describe('POST /galleries', () => {
     spy.mockRestore();
   });
 
-  it('images는 하나이상, 10개 이하여야 한다', async () => {
+  it('cards는 하나이상, 10개 이하여야 한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -105,21 +103,21 @@ describe('POST /galleries', () => {
     // when
     const [{ status }, { status: status2 }] = await Promise.all([
       request(app.getHttpServer())
-        .post('/galleries')
+        .post('/feeds')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'test',
-          images: [],
+          cards: [],
           isAI: false,
           content: '',
           tags: [],
         }),
       request(app.getHttpServer())
-        .post('/galleries')
+        .post('/feeds')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'test',
-          images: new Array(11).fill('gallery/test.jpg'),
+          cards: new Array(11).fill('feed/test.jpg'),
           isAI: false,
           content: '',
           tags: [],
@@ -134,7 +132,7 @@ describe('POST /galleries', () => {
     spy.mockRestore();
   });
 
-  it('image는 gallery/로 시작하고 확장자를 포함해야한다', async () => {
+  it('card는 feed/로 시작하고 확장자를 포함해야한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -145,11 +143,11 @@ describe('POST /galleries', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/galleries')
+      .post('/feeds')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'test',
-        images: ['test'],
+        cards: ['test'],
         isAI: false,
         content: '',
         tags: [],
@@ -174,21 +172,21 @@ describe('POST /galleries', () => {
     // when
     const [{ status }, { status: status2 }] = await Promise.all([
       request(app.getHttpServer())
-        .post('/galleries')
+        .post('/feeds')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'test',
-          images: ['gallery/test.jpg'],
+          cards: ['feed/test.jpg'],
           isAI: false,
           content: '',
           tags: [''],
         }),
       request(app.getHttpServer())
-        .post('/galleries')
+        .post('/feeds')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'test',
-          images: ['gallery/test.jpg'],
+          cards: ['feed/test.jpg'],
           isAI: false,
           content: '',
           tags: ['a'.repeat(11)],
@@ -203,7 +201,7 @@ describe('POST /galleries', () => {
     spy.mockRestore();
   });
 
-  it('201와 함께 gallery를 생성한다', async () => {
+  it('201와 함께 feed를 생성한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -214,11 +212,11 @@ describe('POST /galleries', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .post('/galleries')
+      .post('/feeds')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'test',
-        images: ['gallery/test.jpg'],
+        cards: ['feed/test.jpg'],
         isAI: false,
         content: '',
         tags: ['test'],
@@ -229,21 +227,21 @@ describe('POST /galleries', () => {
     expect(body).toEqual({
       id: expect.any(String),
     });
-    const gallery = await prisma.gallery.findFirstOrThrow({
+    const feed = await prisma.feed.findFirstOrThrow({
       include: {
         tags: true,
       },
     });
-    expect(gallery).toEqual({
+    expect(feed).toEqual({
       id: body.id,
       authorId: expect.any(String),
       title: 'test',
       content: '',
       isAI: false,
-      images: ['gallery/test.jpg'],
+      cards: ['feed/test.jpg'],
       tags: [
         {
-          galleryId: body.id,
+          feedId: body.id,
           tagName: 'test',
         },
       ],
