@@ -44,6 +44,9 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'like' })
+  @ApiResponse({ status: 204, description: '좋아요 성공' })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put('like/:feedId')
