@@ -91,4 +91,19 @@ export class FeedController {
     await this.feedService.unlike(userId, feedId);
     return;
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 조회 - Optional Guard' })
+  @ApiResponse({ status: 204, description: '조회 성공' })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @UseGuards(OptionalJwtGuard)
+  @HttpCode(204)
+  @Put(':feedId/view')
+  async view(
+    @CurrentUser() userId: string | null,
+    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.view(userId, feedId);
+    return;
+  }
 }

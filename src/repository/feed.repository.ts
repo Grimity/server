@@ -185,6 +185,57 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async increaseViewCount(feedId: string) {
+    try {
+      await this.prisma.feed.update({
+        where: {
+          id: feedId,
+        },
+        data: {
+          viewCount: {
+            increment: 1,
+          },
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('피드가 없음', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
+  async createView(userId: string, feedId: string) {
+    try {
+      await this.prisma.view.upsert({
+        where: {
+          userId_feedId: {
+            userId,
+            feedId,
+          },
+        },
+        update: {
+          createdAt: new Date(),
+        },
+        create: {
+          userId,
+          feedId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2003') {
+          throw new HttpException('피드가 없음', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedInput = {
