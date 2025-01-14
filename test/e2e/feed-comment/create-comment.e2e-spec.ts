@@ -198,4 +198,30 @@ describe('POST /feed-comments', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('feedId가 존재하지 않을 때 404를 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/feed-comments')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        content: 'test',
+        feedId: '00000000-0000-0000-0000-000000000000',
+        parentCommentId: null,
+      });
+
+    // then
+    expect(status).toBe(404);
+
+    // cleanup
+    spy.mockRestore();
+  });
 });

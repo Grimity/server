@@ -19,7 +19,7 @@ export class FeedCommentRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
+        if (e.code === 'P2003') {
           throw new HttpException('FEED', 404);
         }
       }
