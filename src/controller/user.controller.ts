@@ -87,7 +87,7 @@ export class UserController {
   @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Put('follow/:targetId')
+  @Put(':targetId/follow')
   async follow(
     @CurrentUser() userId: string,
     @Param('targetId', ParseUUIDPipe) targetId: string,
@@ -101,7 +101,7 @@ export class UserController {
   @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Delete('follow/:targetId')
+  @Delete(':targetId/follow')
   async unfollow(
     @CurrentUser() userId: string,
     @Param('targetId', ParseUUIDPipe) targetId: string,

@@ -141,7 +141,7 @@ describe('GET /feeds/:feedId', () => {
         .put(`/feeds/like/${feed.id}`)
         .set('Authorization', `Bearer ${accessToken}`),
       request(app.getHttpServer())
-        .put(`/users/follow/${user2.id}`)
+        .put(`/users/${user2.id}/follow`)
         .set('Authorization', `Bearer ${accessToken}`),
     ]);
 

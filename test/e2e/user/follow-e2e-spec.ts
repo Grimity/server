@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /users/follow/:targetId', () => {
+describe('PUT /users/:targetId/follow', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('PUT /users/follow/:targetId', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/users/follow/test')
+      .put('/users/test/follow')
       .send();
 
     // then
@@ -56,7 +56,7 @@ describe('PUT /users/follow/:targetId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/users/follow/${targetUser.id}`)
+      .put(`/users/${targetUser.id}/follow`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -89,13 +89,13 @@ describe('PUT /users/follow/:targetId', () => {
     });
 
     await request(app.getHttpServer())
-      .put(`/users/follow/${targetUser.id}`)
+      .put(`/users/${targetUser.id}/follow`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/users/follow/${targetUser.id}`)
+      .put(`/users/${targetUser.id}/follow`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 

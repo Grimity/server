@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /users/follow/:targetId', () => {
+describe('DELETE /users/:targetId/follow', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('DELETE /users/follow/:targetId', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/users/follow/test')
+      .put('/users/test/follow')
       .send();
 
     // then
@@ -65,7 +65,7 @@ describe('DELETE /users/follow/:targetId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete(`/users/follow/${targetUser.id}`)
+      .delete(`/users/${targetUser.id}/follow`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
