@@ -66,6 +66,10 @@ export class UserService {
     return this.getUserProfileWithoutLogin(targetUserId);
   }
 
+  async getMyFollowers(userId: string) {
+    return await this.userRepository.findMyFollowers(userId);
+  }
+
   async getUserProfileWithLogin(userId: string, targetUserId: string) {
     const [targetUser, isFollowing] = await Promise.all([
       this.userRepository.getUserProfile(targetUserId),

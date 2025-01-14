@@ -83,31 +83,12 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '팔로우' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiOperation({ summary: '내 팔로워 조회' })
+  @ApiResponse({ status: 200, description: '성공' })
   @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Put(':targetId/follow')
-  async follow(
-    @CurrentUser() userId: string,
-    @Param('targetId', ParseUUIDPipe) targetId: string,
-  ) {
-    await this.userService.follow(userId, targetId);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '언팔로우' })
-  @ApiResponse({ status: 204, description: '성공' })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Delete(':targetId/follow')
-  async unfollow(
-    @CurrentUser() userId: string,
-    @Param('targetId', ParseUUIDPipe) targetId: string,
-  ) {
-    await this.userService.unfollow(userId, targetId);
-    return;
+  @Get('me/followers')
+  async getMyFollowers(@CurrentUser() userId: string) {
+    return this.userService.getMyFollowers(userId);
   }
 
   @ApiBearerAuth()
@@ -121,5 +102,33 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
   ): Promise<UserProfileDto> {
     return this.userService.getUserProfile(userId, targetId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put(':id/follow')
+  async follow(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.follow(userId, targetId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '언팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id/follow')
+  async unfollow(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.unfollow(userId, targetId);
+    return;
   }
 }

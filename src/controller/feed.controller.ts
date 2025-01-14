@@ -93,7 +93,7 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 조회 - Optional Guard' })
+  @ApiOperation({ summary: '피드 조회수 증가용 api - Optional Guard' })
   @ApiResponse({ status: 204, description: '조회 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
   @UseGuards(OptionalJwtGuard)
