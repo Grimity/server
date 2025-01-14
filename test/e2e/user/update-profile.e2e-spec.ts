@@ -77,7 +77,7 @@ describe('PUT /users/me', () => {
     spy.mockRestore();
   });
 
-  it('description이 25글자 이상일때 400을 반환한다', async () => {
+  it('description이 51글자 이상일때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -91,7 +91,7 @@ describe('PUT /users/me', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'test2',
-        description: '01234567890123456789012345',
+        description: 'a'.repeat(51),
         links: [],
       });
 
