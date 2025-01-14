@@ -8,7 +8,7 @@ import {
   ArrayMaxSize,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class LinkDto {
   @ApiProperty({ example: '인스타그램' })
@@ -33,6 +33,7 @@ export class UpdateProfileDto {
   description: string;
 
   @ApiProperty({ type: LinkDto, isArray: true, description: '최대 3개' })
+  @Transform(({ value }) => (value === null ? [] : value))
   @IsArray()
   @ArrayMaxSize(3)
   @ValidateNested({ each: true })
