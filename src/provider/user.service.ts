@@ -114,6 +114,18 @@ export class UserService {
       isFollowing: false,
     };
   }
+
+  async getFollowers(userId: string) {
+    const results = await this.userRepository.findFollowers(userId);
+    return results.map((result) => {
+      return {
+        id: result.follower.id,
+        name: result.follower.name,
+        image: result.follower.image,
+        followerCount: result.follower._count.followers,
+      };
+    });
+  }
 }
 
 export type UpdateProfileInput = {

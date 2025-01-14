@@ -224,6 +224,28 @@ export class UserRepository {
       where f."followingId" = ${userId}::uuid;
     `) as MyFollower[];
   }
+
+  async findFollowers(userId: string) {
+    return await this.prisma.follow.findMany({
+      where: {
+        followingId: userId,
+      },
+      select: {
+        follower: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            _count: {
+              select: {
+                followers: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
 
 type UpdateProfileInput = {

@@ -24,6 +24,7 @@ import {
   MyProfileDto,
   UserProfileDto,
   MyFollowerDto,
+  FollowerDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -138,5 +139,19 @@ export class UserController {
   ) {
     await this.userService.unfollow(userId, targetId);
     return;
+  }
+
+  @ApiOperation({ summary: '팔로워 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: FollowerDto,
+    isArray: true,
+  })
+  @Get(':id/followers')
+  async getFollowers(
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ): Promise<FollowerDto[]> {
+    return this.userService.getFollowers(targetId);
   }
 }
