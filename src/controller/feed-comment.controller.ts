@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Query,
+  Get,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -29,5 +37,13 @@ export class FeedCommentController {
   ) {
     await this.feedCommentService.create(userId, createFeedCommentDto);
     return;
+  }
+
+  @Get()
+  @ApiOperation({ summary: '피드 댓글 조회' })
+  @ApiResponse({ status: 200, description: '성공' })
+  @ApiResponse({ status: 404, description: '피드를 찾을 수 없음' })
+  async findAll(@Query('feedId', ParseUUIDPipe) feedId: string) {
+    console.log(feedId);
   }
 }
