@@ -10,10 +10,11 @@ export class FeedCommentController {
 
   @Post()
   @UseGuards(JwtGuard)
-  async createFeedComment(
+  async create(
     @CurrentUser() userId: string,
     @Body() createFeedCommentDto: CreateFeedCommentDto,
   ) {
-    console.log(userId, createFeedCommentDto);
+    await this.feedCommentService.create(userId, createFeedCommentDto);
+    return;
   }
 }

@@ -13,7 +13,7 @@ export class CreateFeedCommentDto {
   @ValidateIf((o) => o.parentCommentId !== null)
   @IsUUID()
   @IsOptional()
-  parentCommentId: string | null;
+  parentCommentId?: string | null;
 
   @IsString()
   @Length(1, 1000)

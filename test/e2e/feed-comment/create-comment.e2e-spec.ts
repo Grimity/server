@@ -113,4 +113,89 @@ describe('POST /feed-comments', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('201과 함께 댓글을 생성한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+    const user = await prisma.user.findFirstOrThrow();
+    const feed = await prisma.feed.create({
+      data: {
+        content: 'test',
+        authorId: user.id,
+        title: 'test',
+        cards: ['feed/test.png'],
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/feed-comments')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        comment: 'test',
+        feedId: feed.id,
+        parentCommentId: null,
+      });
+
+    // then
+    expect(status).toBe(201);
+    const feedComment = await prisma.feedComment.findMany();
+    expect(feedComment).toHaveLength(1);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('대댓도 생성한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+    const user = await prisma.user.findFirstOrThrow();
+    const feed = await prisma.feed.create({
+      data: {
+        content: 'test',
+        authorId: user.id,
+        title: 'test',
+        cards: ['feed/test.png'],
+      },
+    });
+    const parentComment = await prisma.feedComment.create({
+      data: {
+        content: 'test',
+        feedId: feed.id,
+        writerId: user.id,
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/feed-comments')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        comment: 'test',
+        feedId: feed.id,
+        parentCommentId: parentComment.id,
+      });
+
+    // then
+    expect(status).toBe(201);
+    const feedComment = await prisma.feedComment.findMany({
+      where: {
+        parentId: parentComment.id,
+      },
+    });
+    expect(feedComment).toHaveLength(1);
+
+    // cleanup
+    spy.mockRestore();
+  });
 });
