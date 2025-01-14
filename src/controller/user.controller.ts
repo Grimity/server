@@ -23,6 +23,7 @@ import {
   UpdateProfileDto,
   MyProfileDto,
   UserProfileDto,
+  MyFollowerDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -84,10 +85,17 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 조회' })
-  @ApiResponse({ status: 200, description: '성공' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyFollowerDto,
+    isArray: true,
+  })
   @UseGuards(JwtGuard)
   @Get('me/followers')
-  async getMyFollowers(@CurrentUser() userId: string) {
+  async getMyFollowers(
+    @CurrentUser() userId: string,
+  ): Promise<MyFollowerDto[]> {
     return this.userService.getMyFollowers(userId);
   }
 
