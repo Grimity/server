@@ -62,6 +62,21 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 삭제' })
+  @ApiResponse({ status: 204, description: '피드 삭제 성공' })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id')
+  async delete(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.deleteOne(userId, feedId);
+    return;
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'like' })
   @ApiResponse({ status: 204, description: '좋아요 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
