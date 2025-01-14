@@ -53,10 +53,10 @@ export class FeedController {
   })
   @ApiResponse({ status: 404, description: '피드가 없음' })
   @UseGuards(OptionalJwtGuard)
-  @Get(':feedId')
+  @Get(':id')
   async getFeed(
     @CurrentUser() userId: string | null,
-    @Param('feedId', ParseUUIDPipe) feedId: string,
+    @Param('id', ParseUUIDPipe) feedId: string,
   ): Promise<FeedDetailDto> {
     return await this.feedService.getFeed(userId, feedId);
   }
@@ -68,10 +68,10 @@ export class FeedController {
   @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Put(':feedId/like')
+  @Put(':id/like')
   async like(
     @CurrentUser() userId: string,
-    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
   ) {
     await this.feedService.like(userId, feedId);
     return;
@@ -83,25 +83,25 @@ export class FeedController {
   @ApiResponse({ status: 404, description: '좋아요를 안했음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Delete(':feedId/like')
+  @Delete(':id/like')
   async unlike(
     @CurrentUser() userId: string,
-    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
   ) {
     await this.feedService.unlike(userId, feedId);
     return;
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 조회 - Optional Guard' })
+  @ApiOperation({ summary: '피드 조회수 증가용 api - Optional Guard' })
   @ApiResponse({ status: 204, description: '조회 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
   @UseGuards(OptionalJwtGuard)
   @HttpCode(204)
-  @Put(':feedId/view')
+  @Put(':id/view')
   async view(
     @CurrentUser() userId: string | null,
-    @Param('feedId', new ParseUUIDPipe()) feedId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
   ) {
     await this.feedService.view(userId, feedId);
     return;

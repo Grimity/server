@@ -206,10 +206,80 @@ export class UserRepository {
     });
     return !!follow;
   }
+
+  async findMyFollowers(userId: string) {
+    return (await this.prisma.$queryRaw`
+      select
+        u.id,
+        u.name,
+        u.image,
+        cast((select count(*) from "Follow" where "followingId" = u.id) as integer) as "followerCount",
+        exists (
+          select 1
+          from "Follow"
+          where "followerId" = ${userId}::uuid and "followingId" = u.id
+        ) as "isFollowing"
+      from "User" u
+      join "Follow" f on u.id = f."followerId"
+      where f."followingId" = ${userId}::uuid;
+    `) as MyFollower[];
+  }
+
+  async findFollowers(userId: string) {
+    return await this.prisma.follow.findMany({
+      where: {
+        followingId: userId,
+      },
+      select: {
+        follower: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            _count: {
+              select: {
+                followers: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findFollowings(userId: string) {
+    return await this.prisma.follow.findMany({
+      where: {
+        followerId: userId,
+      },
+      select: {
+        following: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            _count: {
+              select: {
+                followers: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
 
 type UpdateProfileInput = {
   name: string;
   description: string;
   links: string[];
+};
+
+export type MyFollower = {
+  id: string;
+  name: string;
+  image: string | null;
+  followerCount: number;
+  isFollowing: boolean;
 };

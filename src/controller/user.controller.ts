@@ -23,6 +23,8 @@ import {
   UpdateProfileDto,
   MyProfileDto,
   UserProfileDto,
+  MyFollowerDto,
+  FollowerDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -83,30 +85,32 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '팔로우' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiOperation({ summary: '내 팔로워 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyFollowerDto,
+    isArray: true,
+  })
   @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Put(':targetId/follow')
-  async follow(
+  @Get('me/followers')
+  async getMyFollowers(
     @CurrentUser() userId: string,
-    @Param('targetId', ParseUUIDPipe) targetId: string,
-  ) {
-    await this.userService.follow(userId, targetId);
-    return;
+  ): Promise<MyFollowerDto[]> {
+    return this.userService.getMyFollowers(userId);
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '언팔로우' })
+  @ApiOperation({ summary: '내 팔로워 삭제' })
   @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Delete(':targetId/follow')
-  async unfollow(
+  @Delete('me/followers/:id')
+  async deleteMyFollower(
     @CurrentUser() userId: string,
-    @Param('targetId', ParseUUIDPipe) targetId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
   ) {
-    await this.userService.unfollow(userId, targetId);
+    await this.userService.unfollow(targetId, userId);
     return;
   }
 
@@ -121,5 +125,61 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
   ): Promise<UserProfileDto> {
     return this.userService.getUserProfile(userId, targetId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put(':id/follow')
+  async follow(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.follow(userId, targetId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '언팔로우' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id/follow')
+  async unfollow(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.unfollow(userId, targetId);
+    return;
+  }
+
+  @ApiOperation({ summary: '팔로워 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: FollowerDto,
+    isArray: true,
+  })
+  @Get(':id/followers')
+  async getFollowers(
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ): Promise<FollowerDto[]> {
+    return this.userService.getFollowers(targetId);
+  }
+
+  @ApiOperation({ summary: '팔로잉 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: FollowerDto,
+    isArray: true,
+  })
+  @Get(':id/followings')
+  async getFollowings(
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ): Promise<FollowerDto[]> {
+    return this.userService.getFollowings(targetId);
   }
 }
