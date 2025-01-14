@@ -26,6 +26,55 @@ export class FeedCommentRepository {
       throw e;
     }
   }
+
+  async findAllByFeedId(feedId: string) {
+    return await this.prisma.feedComment.findMany({
+      where: {
+        feedId,
+        parentId: null,
+      },
+      select: {
+        id: true,
+        parentId: true,
+        content: true,
+        createdAt: true,
+        writer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        childComments: {
+          select: {
+            id: true,
+            parentId: true,
+            content: true,
+            createdAt: true,
+            writer: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
+  async countByFeedId(feedId: string) {
+    return await this.prisma.feedComment.count({
+      where: {
+        feedId,
+      },
+    });
+  }
 }
 
 type CreateFeedCommentInput = {

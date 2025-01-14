@@ -44,6 +44,6 @@ export class FeedCommentController {
   @ApiResponse({ status: 200, description: '성공' })
   @ApiResponse({ status: 404, description: '피드를 찾을 수 없음' })
   async findAll(@Query('feedId', ParseUUIDPipe) feedId: string) {
-    console.log(feedId);
+    return await this.feedCommentService.getAllByFeedId(feedId);
   }
 }

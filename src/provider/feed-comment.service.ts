@@ -9,6 +9,18 @@ export class FeedCommentService {
     await this.feedCommentRepository.create(userId, input);
     return;
   }
+
+  async getAllByFeedId(feedId: string) {
+    const [comments, commentCount] = await Promise.all([
+      this.feedCommentRepository.findAllByFeedId(feedId),
+      this.feedCommentRepository.countByFeedId(feedId),
+    ]);
+
+    return {
+      comments,
+      commentCount,
+    };
+  }
 }
 
 export type CreateFeedCommentInput = {
