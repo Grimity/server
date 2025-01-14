@@ -101,6 +101,20 @@ export class UserController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: '내 팔로워 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('me/followers/:id')
+  async deleteMyFollower(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.unfollow(targetId, userId);
+    return;
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: '유저 정보 조회 - Optional Guard' })
   @ApiResponse({ status: 200, description: '성공', type: UserProfileDto })
   @ApiResponse({ status: 404, description: '없는 유저' })
