@@ -154,4 +154,18 @@ export class UserController {
   ): Promise<FollowerDto[]> {
     return this.userService.getFollowers(targetId);
   }
+
+  @ApiOperation({ summary: '팔로잉 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: FollowerDto,
+    isArray: true,
+  })
+  @Get(':id/followings')
+  async getFollowings(
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ): Promise<FollowerDto[]> {
+    return this.userService.getFollowings(targetId);
+  }
 }

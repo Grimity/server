@@ -126,6 +126,18 @@ export class UserService {
       };
     });
   }
+
+  async getFollowings(userId: string) {
+    const results = await this.userRepository.findFollowings(userId);
+    return results.map((result) => {
+      return {
+        id: result.following.id,
+        name: result.following.name,
+        image: result.following.image,
+        followerCount: result.following._count.followers,
+      };
+    });
+  }
 }
 
 export type UpdateProfileInput = {

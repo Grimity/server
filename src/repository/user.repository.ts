@@ -246,6 +246,28 @@ export class UserRepository {
       },
     });
   }
+
+  async findFollowings(userId: string) {
+    return await this.prisma.follow.findMany({
+      where: {
+        followerId: userId,
+      },
+      select: {
+        following: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            _count: {
+              select: {
+                followers: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
 
 type UpdateProfileInput = {
