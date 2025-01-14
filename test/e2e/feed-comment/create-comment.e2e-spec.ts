@@ -52,7 +52,7 @@ describe('POST /feed-comments', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         feedId: '1',
-        comment: 'test',
+        content: 'test',
       });
 
     // then
@@ -62,7 +62,7 @@ describe('POST /feed-comments', () => {
     spy.mockRestore();
   });
 
-  it('comment가 없을 때 400을 반환한다', async () => {
+  it('content가 없을 때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -76,7 +76,7 @@ describe('POST /feed-comments', () => {
       .post('/feed-comments')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        comment: '',
+        content: '',
         feedId: '00000000-0000-0000-0000-000000000000',
         parentCommentId: null,
       });
@@ -102,7 +102,7 @@ describe('POST /feed-comments', () => {
       .post('/feed-comments')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        comment: 'test',
+        content: 'test',
         feedId: '00000000-0000-0000-0000-000000000000',
         parentCommentId: '1',
       });
@@ -137,7 +137,7 @@ describe('POST /feed-comments', () => {
       .post('/feed-comments')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        comment: 'test',
+        content: 'test',
         feedId: feed.id,
         parentCommentId: null,
       });
@@ -181,7 +181,7 @@ describe('POST /feed-comments', () => {
       .post('/feed-comments')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        comment: 'test',
+        content: 'test',
         feedId: feed.id,
         parentCommentId: parentComment.id,
       });

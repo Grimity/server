@@ -14,5 +14,5 @@ export class FeedCommentService {
 export type CreateFeedCommentInput = {
   feedId: string;
   parentCommentId?: string | null;
-  comment: string;
+  content: string;
 };

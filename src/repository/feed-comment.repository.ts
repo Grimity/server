@@ -13,7 +13,7 @@ export class FeedCommentRepository {
           writerId: userId,
           feedId: input.feedId,
           parentId: input.parentCommentId ?? null,
-          content: input.comment,
+          content: input.content,
         },
       });
       return;
@@ -31,5 +31,5 @@ export class FeedCommentRepository {
 type CreateFeedCommentInput = {
   feedId: string;
   parentCommentId?: string | null;
-  comment: string;
+  content: string;
 };
