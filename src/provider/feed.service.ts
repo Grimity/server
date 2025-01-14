@@ -75,6 +75,18 @@ export class FeedService {
     await this.feedRepository.unlike(userId, feedId);
     return;
   }
+
+  async view(userId: string | null, feedId: string) {
+    if (userId) {
+      await Promise.all([
+        this.feedRepository.createView(userId, feedId),
+        this.feedRepository.increaseViewCount(feedId),
+      ]);
+    } else {
+      await this.feedRepository.increaseViewCount(feedId);
+    }
+    return;
+  }
 }
 
 export type CreateFeedInput = {
