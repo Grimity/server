@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /feeds/like/:feedId', () => {
+describe('DELETE /feeds/:feedId/like', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('DELETE /feeds/like/:feedId', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/like/1')
+      .delete('/feeds/1/like')
       .send();
 
     // then
@@ -48,7 +48,7 @@ describe('DELETE /feeds/like/:feedId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/like/1')
+      .delete('/feeds/1/like')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -80,14 +80,14 @@ describe('DELETE /feeds/like/:feedId', () => {
     });
 
     await request(app.getHttpServer())
-      .put(`/feeds/like/${feed.id}`)
+      .put(`/feeds/${feed.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // when
 
     const { status } = await request(app.getHttpServer())
-      .delete(`/feeds/like/${feed.id}`)
+      .delete(`/feeds/${feed.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
@@ -122,7 +122,7 @@ describe('DELETE /feeds/like/:feedId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/like/00000000-0000-0000-0000-000000000000')
+      .delete('/feeds/00000000-0000-0000-0000-000000000000/like')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
