@@ -6,6 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './module/auth.module';
 import { AwsModule } from './module/aws.module';
 import { FeedModule } from './module/feed.module';
+import { FeedCommentModule } from './module/feed-comment.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { FeedModule } from './module/feed.module';
     AuthModule,
     AwsModule,
     FeedModule,
+    FeedCommentModule,
   ],
   providers: [globalPipe],
 })
