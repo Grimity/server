@@ -68,7 +68,7 @@ export class FeedController {
   @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Put('like/:feedId')
+  @Put(':feedId/like')
   async like(
     @CurrentUser() userId: string,
     @Param('feedId', new ParseUUIDPipe()) feedId: string,
@@ -83,7 +83,7 @@ export class FeedController {
   @ApiResponse({ status: 404, description: '좋아요를 안했음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Delete('like/:feedId')
+  @Delete(':feedId/like')
   async unlike(
     @CurrentUser() userId: string,
     @Param('feedId', new ParseUUIDPipe()) feedId: string,

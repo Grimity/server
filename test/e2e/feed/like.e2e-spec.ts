@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /feeds/like/:feedId', () => {
+describe('PUT /feeds/:feedId/like', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('PUT /feeds/like/:feedId', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feeds/like/1')
+      .put('/feeds/1/like')
       .send();
 
     // then
@@ -48,7 +48,7 @@ describe('PUT /feeds/like/:feedId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feeds/like/1')
+      .put('/feeds/1/like')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -81,7 +81,7 @@ describe('PUT /feeds/like/:feedId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/feeds/like/${feed.id}`)
+      .put(`/feeds/${feed.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
@@ -121,10 +121,10 @@ describe('PUT /feeds/like/:feedId', () => {
 
     // when
     await request(app.getHttpServer())
-      .put(`/feeds/like/${feed.id}`)
+      .put(`/feeds/${feed.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`);
     const { status } = await request(app.getHttpServer())
-      .put(`/feeds/like/${feed.id}`)
+      .put(`/feeds/${feed.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
@@ -148,7 +148,7 @@ describe('PUT /feeds/like/:feedId', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feeds/like/0bc1f834-add1-4627-a695-85898cedad4d')
+      .put('/feeds/0bc1f834-add1-4627-a695-85898cedad4d/like')
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then

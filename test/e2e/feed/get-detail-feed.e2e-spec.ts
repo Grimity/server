@@ -138,7 +138,7 @@ describe('GET /feeds/:feedId', () => {
 
     await Promise.all([
       request(app.getHttpServer())
-        .put(`/feeds/like/${feed.id}`)
+        .put(`/feeds/${feed.id}/like`)
         .set('Authorization', `Bearer ${accessToken}`),
       request(app.getHttpServer())
         .put(`/users/${user2.id}/follow`)
