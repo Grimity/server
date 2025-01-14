@@ -92,6 +92,14 @@ export class FeedService {
     await this.feedRepository.deleteOne(userId, feedId);
     return;
   }
+
+  async update(
+    userId: string,
+    updateFeedInput: CreateFeedInput & { feedId: string },
+  ) {
+    await this.feedRepository.updateOne(userId, updateFeedInput);
+    return;
+  }
 }
 
 export type CreateFeedInput = {

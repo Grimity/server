@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { IsFeedCard, IsFeedTag } from 'src/common/validator';
 
-export class CreateFeedDto {
+export class UpdateFeedDto {
   @ApiProperty({ description: '1글자이상 24글자 이하' })
   @Length(1, 24)
   title: string;

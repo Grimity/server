@@ -255,6 +255,44 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async updateOne(
+    userId: string,
+    updateFeedInput: CreateFeedInput & { feedId: string },
+  ) {
+    try {
+      await this.prisma.feed.update({
+        where: {
+          id: updateFeedInput.feedId,
+          authorId: userId,
+        },
+        data: {
+          title: updateFeedInput.title,
+          content: updateFeedInput.content,
+          isAI: updateFeedInput.isAI,
+          cards: updateFeedInput.cards,
+          tags: {
+            deleteMany: {},
+            createMany: {
+              data: updateFeedInput.tags.map((tag) => {
+                return {
+                  tagName: tag,
+                };
+              }),
+            },
+          },
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('FEED', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedInput = {

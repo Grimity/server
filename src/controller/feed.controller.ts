@@ -17,7 +17,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
-import { CreateFeedDto, FeedIdDto, FeedDetailDto } from './dto/feed';
+import {
+  CreateFeedDto,
+  FeedIdDto,
+  FeedDetailDto,
+  UpdateFeedDto,
+} from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
@@ -59,6 +64,22 @@ export class FeedController {
     @Param('id', ParseUUIDPipe) feedId: string,
   ): Promise<FeedDetailDto> {
     return await this.feedService.getFeed(userId, feedId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 수정' })
+  @ApiResponse({ status: 204, description: '피드 수정 성공' })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put(':id')
+  async update(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
+    @Body() updateFeedDto: UpdateFeedDto,
+  ) {
+    await this.feedService.update(userId, { feedId, ...updateFeedDto });
+    return;
   }
 
   @ApiBearerAuth()
