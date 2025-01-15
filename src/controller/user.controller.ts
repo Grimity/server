@@ -8,6 +8,8 @@ import {
   ParseUUIDPipe,
   Param,
   Get,
+  Query,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,6 +27,7 @@ import {
   UserProfileDto,
   MyFollowerDto,
   FollowerDto,
+  GetFeedsByUserQuery,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -125,6 +128,25 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
   ): Promise<UserProfileDto> {
     return this.userService.getUserProfile(userId, targetId);
+  }
+
+  @ApiOperation({ summary: '유저별 피드 조회' })
+  @ApiResponse({ status: 200, description: '성공' })
+  @Get(':id/feeds')
+  async getFeeds(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Query() query: GetFeedsByUserQuery,
+  ) {
+    if (!query.lastCreatedAt && !query.lastId) {
+      console.log('here');
+    } else if (query.lastCreatedAt && query.lastId) {
+      console.log('here2');
+    } else {
+      throw new HttpException(
+        'lastId나 lastCreatedAt은 하나만 있으면 안됩니다',
+        400,
+      );
+    }
   }
 
   @ApiBearerAuth()
