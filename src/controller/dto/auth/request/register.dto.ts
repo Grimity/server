@@ -13,8 +13,8 @@ export class RegisterDto {
   @IsNotEmpty()
   providerAccessToken: string;
 
-  @ApiProperty({ description: '이름, 1~10자' })
+  @ApiProperty({ description: '이름, 1~12자' })
   @IsString()
-  @Length(1, 10)
+  @Length(1, 12)
   name: string;
 }
