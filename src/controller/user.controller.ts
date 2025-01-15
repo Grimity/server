@@ -29,6 +29,7 @@ import {
   FollowerDto,
   GetFeedsByUserQuery,
   UserFeedDto,
+  PopularUserDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -104,11 +105,6 @@ export class UserController {
     return this.userService.getMyFollowers(userId);
   }
 
-  @Get('popular')
-  async getPopularUsers() {
-    return this.userService.getPopularUsers();
-  }
-
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 삭제' })
   @ApiResponse({ status: 204, description: '성공' })
@@ -121,6 +117,18 @@ export class UserController {
   ) {
     await this.userService.unfollow(targetId, userId);
     return;
+  }
+
+  @ApiOperation({ summary: '인기 유저 조회 - 팔로워 많은 순으로 4명' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: PopularUserDto,
+    isArray: true,
+  })
+  @Get('popular')
+  async getPopularUsers(): Promise<PopularUserDto[]> {
+    return this.userService.getPopularUsers();
   }
 
   @ApiBearerAuth()
