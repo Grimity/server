@@ -85,6 +85,7 @@ export class UserService {
       name: targetUser.name,
       image: targetUser.image,
       description: targetUser.description,
+      email: targetUser.email.replace(/(.{3})@/, '***@'),
       links: targetUser.links.map((link) => {
         const [linkName, linkUrl] = link.split(' ');
         return {
@@ -114,6 +115,8 @@ export class UserService {
           link: linkUrl,
         };
       }),
+      // 이메일 골뱅이앞 3자리 별표
+      email: user.email.replace(/(.{3})@/, '***@'),
       followerCount: user._count.followers,
       followingCount: user._count.followings,
       feedCount: user._count.feeds,
