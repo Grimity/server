@@ -9,6 +9,7 @@ import {
   HttpCode,
   Delete,
   Get,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +23,7 @@ import {
   FeedIdDto,
   FeedDetailDto,
   UpdateFeedDto,
+  GetFeedsQuery,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -47,6 +49,17 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 목록 조회' })
+  @UseGuards(OptionalJwtGuard)
+  @Get()
+  async getFeeds(
+    @CurrentUser() userId: string | null,
+    @Query() query: GetFeedsQuery,
+  ) {
+    return await this.feedService.getFeeds(userId, query);
   }
 
   @ApiBearerAuth()
