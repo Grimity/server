@@ -104,6 +104,11 @@ export class UserController {
     return this.userService.getMyFollowers(userId);
   }
 
+  @Get('popular')
+  async getPopularUsers() {
+    return this.userService.getPopularUsers();
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 삭제' })
   @ApiResponse({ status: 204, description: '성공' })

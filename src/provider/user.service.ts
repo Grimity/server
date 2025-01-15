@@ -174,6 +174,19 @@ export class UserService {
       };
     });
   }
+
+  async getPopularUsers() {
+    const results = await this.userRepository.findPopular();
+    return results.map((result) => {
+      return {
+        id: result.id,
+        name: result.name,
+        image: result.image,
+        followerCount: result._count.followers,
+        feedCount: result._count.feeds,
+      };
+    });
+  }
 }
 
 export type UpdateProfileInput = {
