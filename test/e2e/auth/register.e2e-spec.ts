@@ -86,7 +86,10 @@ describe('POST /auth/register', () => {
 
     // then
     expect(status).toBe(201);
-    expect(body).toHaveProperty('accessToken');
+    expect(body).toEqual({
+      accessToken: expect.any(String),
+      id: expect.any(String),
+    });
 
     const { status: status2 } = await request(app.getHttpServer())
       .get('/auth/test')

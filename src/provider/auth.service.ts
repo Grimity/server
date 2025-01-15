@@ -26,7 +26,7 @@ export class AuthService {
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    return { accessToken };
+    return { accessToken, id: user.id };
   }
 
   async register({
@@ -58,7 +58,7 @@ export class AuthService {
     });
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    return { accessToken };
+    return { accessToken, id: user.id };
   }
 
   async getKakaoProfile(kakaoAccessToken: string) {

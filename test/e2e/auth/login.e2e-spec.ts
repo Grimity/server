@@ -87,7 +87,10 @@ describe('POST /auth/login', () => {
 
     // then
     expect(status).toBe(200);
-    expect(body.accessToken).toBeDefined();
+    expect(body).toEqual({
+      accessToken: expect.any(String),
+      id: expect.any(String),
+    });
 
     const { status: status2 } = await request(app.getHttpServer())
       .get('/auth/test')
