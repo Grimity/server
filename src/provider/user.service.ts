@@ -147,14 +147,27 @@ export class UserService {
     userId: string,
     { lastId, lastCreatedAt }: GetFeedsCursor,
   ) {
+    let feeds;
     if (lastId && lastCreatedAt) {
-      return await this.feedRepository.findManyByUserIdWithCursor(userId, {
+      feeds = await this.feedRepository.findManyByUserIdWithCursor(userId, {
         lastId,
         lastCreatedAt,
       });
     } else {
-      return await this.feedRepository.findManyByUserId(userId);
+      feeds = await this.feedRepository.findManyByUserId(userId);
     }
+
+    return feeds.map((feed) => {
+      return {
+        id: feed.id,
+        title: feed.title,
+        cards: feed.cards,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        commentCount: feed._count.feedComments,
+      };
+    });
   }
 }
 
