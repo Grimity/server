@@ -9,7 +9,6 @@ import {
   Param,
   Get,
   Query,
-  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -137,16 +136,7 @@ export class UserController {
     @Param('id', ParseUUIDPipe) userId: string,
     @Query() query: GetFeedsByUserQuery,
   ) {
-    if (!query.lastCreatedAt && !query.lastId) {
-      console.log('here');
-    } else if (query.lastCreatedAt && query.lastId) {
-      console.log('here2');
-    } else {
-      throw new HttpException(
-        'lastId나 lastCreatedAt은 하나만 있으면 안됩니다',
-        400,
-      );
-    }
+    return this.userService.getFeedsByUser(userId, query);
   }
 
   @ApiBearerAuth()

@@ -293,6 +293,82 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async findManyByUserId(userId: string) {
+    return await this.prisma.feed.findMany({
+      where: {
+        authorId: userId,
+      },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      select: {
+        id: true,
+        title: true,
+        cards: true,
+        createdAt: true,
+        viewCount: true,
+        likeCount: true,
+        _count: {
+          select: {
+            feedComments: true,
+          },
+        },
+      },
+      take: 12,
+    });
+  }
+
+  async findManyByUserIdWithCursor(
+    userId: string,
+    cursor: { lastId: string; lastCreatedAt: string },
+  ) {
+    return await this.prisma.feed.findMany({
+      where: {
+        authorId: userId,
+        OR: [
+          {
+            createdAt: {
+              lt: new Date(cursor.lastCreatedAt),
+            },
+          },
+          {
+            createdAt: new Date(cursor.lastCreatedAt),
+            id: {
+              lt: cursor.lastId,
+            },
+          },
+        ],
+      },
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      select: {
+        id: true,
+        title: true,
+        cards: true,
+        createdAt: true,
+        viewCount: true,
+        likeCount: true,
+        _count: {
+          select: {
+            feedComments: true,
+          },
+        },
+      },
+      take: 12,
+    });
+  }
 }
 
 type CreateFeedInput = {

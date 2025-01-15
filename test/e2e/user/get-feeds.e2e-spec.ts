@@ -57,23 +57,43 @@ describe('GET /users/:id/feeds', () => {
     expect(status).toBe(400);
   });
 
-  it('lastId나 lastCreatedAt은 하나만 있으면 400을 반환한다', async () => {
+  it('200과 함께 피드를 반환한다', async () => {
+    // given
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test',
+        email: 'test@test.com',
+        name: 'test',
+      },
+    });
+
+    await prisma.feed.createMany({
+      data: new Array(15).fill(0).map((_, index) => ({
+        authorId: user.id,
+        title: `title${index}`,
+        content: `content${index}`,
+        isAI: false,
+        createdAt: new Date(2021, 1, index + 1),
+      })),
+    });
+
     // when
-    const [res1, res2] = await Promise.all([
-      request(app.getHttpServer())
-        .get(
-          '/users/00000000-0000-0000-0000-000000000000/feeds?lastId=00000000-0000-0000-0000-000000000000',
-        )
-        .send(),
-      request(app.getHttpServer())
-        .get(
-          '/users/00000000-0000-0000-0000-000000000000/feeds?lastCreatedAt=2021-01-01T00:00:00.000Z',
-        )
-        .send(),
-    ]);
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/users/${user.id}/feeds`)
+      .send();
+
+    const { status: status2, body: body2 } = await request(app.getHttpServer())
+      .get(
+        `/users/${user.id}/feeds?lastId=${body[11].id}&lastCreatedAt=${body[11].createdAt}`,
+      )
+      .send();
 
     // then
-    expect(res1.status).toBe(400);
-    expect(res2.status).toBe(400);
+    expect(status).toBe(200);
+    expect(status2).toBe(200);
+    expect(body.length).toBe(12);
+    expect(body2.length).toBe(3);
+    expect(body2[0].title).toBe('title2');
   });
 });

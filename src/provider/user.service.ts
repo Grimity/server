@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
+import { FeedRepository } from 'src/repository/feed.repository';
 
 @Injectable()
 export class UserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(
+    private userRepository: UserRepository,
+    private feedRepository: FeedRepository,
+  ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
     await this.userRepository.updateImage(userId, imageName);
@@ -138,6 +142,20 @@ export class UserService {
       };
     });
   }
+
+  async getFeedsByUser(
+    userId: string,
+    { lastId, lastCreatedAt }: GetFeedsCursor,
+  ) {
+    if (lastId && lastCreatedAt) {
+      return await this.feedRepository.findManyByUserIdWithCursor(userId, {
+        lastId,
+        lastCreatedAt,
+      });
+    } else {
+      return await this.feedRepository.findManyByUserId(userId);
+    }
+  }
 }
 
 export type UpdateProfileInput = {
@@ -147,4 +165,9 @@ export type UpdateProfileInput = {
     linkName: string;
     link: string;
   }[];
+};
+
+type GetFeedsCursor = {
+  lastId?: string;
+  lastCreatedAt?: string;
 };
