@@ -8,12 +8,14 @@ import {
   ParseUUIDPipe,
   Param,
   Get,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
@@ -25,6 +27,8 @@ import {
   UserProfileDto,
   MyFollowerDto,
   FollowerDto,
+  GetFeedsByUserQuery,
+  UserFeedDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -125,6 +129,31 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
   ): Promise<UserProfileDto> {
     return this.userService.getUserProfile(userId, targetId);
+  }
+
+  @ApiOperation({ summary: '유저별 피드 조회 - 무한스크롤, 12개씩' })
+  @ApiQuery({
+    name: 'lastId',
+    required: false,
+    description: '마지막 피드 ID - 없으면 첫 12개',
+  })
+  @ApiQuery({
+    name: 'lastCreatedAt',
+    required: false,
+    description: '마지막 피드 생성일 - 없으면 첫 12개',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: UserFeedDto,
+    isArray: true,
+  })
+  @Get(':id/feeds')
+  async getFeeds(
+    @Param('id', ParseUUIDPipe) userId: string,
+    @Query() query: GetFeedsByUserQuery,
+  ): Promise<UserFeedDto[]> {
+    return this.userService.getFeedsByUser(userId, query);
   }
 
   @ApiBearerAuth()
