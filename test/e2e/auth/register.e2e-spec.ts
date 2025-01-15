@@ -54,14 +54,14 @@ describe('POST /auth/register', () => {
     expect(status).toBe(400);
   });
 
-  it('name이 11글자 이상일 때 400을 반환한다', async () => {
+  it('name이 13글자 이상일 때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
       .post('/auth/register')
       .send({
         provider: 'google',
         providerAccessToken: 'test',
-        name: '12345678901',
+        name: 'a'.repeat(13),
       });
 
     // then

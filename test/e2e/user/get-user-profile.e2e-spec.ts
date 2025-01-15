@@ -33,7 +33,7 @@ describe('GET /users/:id', () => {
       data: {
         provider: 'KAKAO',
         providerId: 'test',
-        email: 'test@test.com',
+        email: 'testtest2@test.com',
         name: 'test',
       },
     });
@@ -55,6 +55,7 @@ describe('GET /users/:id', () => {
       followingCount: 0,
       feedCount: 0,
       isFollowing: false,
+      email: 'testte***@test.com',
     });
   });
 
@@ -101,6 +102,7 @@ describe('GET /users/:id', () => {
       followingCount: 0,
       feedCount: 0,
       isFollowing: true,
+      email: 't***@test.com',
     });
 
     // cleanup

@@ -9,12 +9,14 @@ import {
   HttpCode,
   Delete,
   Get,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
 import {
@@ -22,6 +24,8 @@ import {
   FeedIdDto,
   FeedDetailDto,
   UpdateFeedDto,
+  GetFeedsQuery,
+  GetFeedsResponseDto,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -47,6 +51,43 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '피드 목록 조회, 무한스크롤 12개씩 - Optional Guard',
+  })
+  @ApiQuery({
+    name: 'lastId',
+    required: false,
+    type: 'string',
+    description: '없으면 처음부터 12개',
+  })
+  @ApiQuery({
+    name: 'lastCreatedAt',
+    required: false,
+    type: 'string',
+    description: '없으면 처음부터 12개',
+  })
+  @ApiQuery({
+    name: 'tag',
+    required: false,
+    type: 'string',
+    description: '있으면 태그검색, 이거도 똑같이 커서기반으로 12개씩',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '피드 목록 조회 성공',
+    type: GetFeedsResponseDto,
+    isArray: true,
+  })
+  @UseGuards(OptionalJwtGuard)
+  @Get()
+  async getFeeds(
+    @CurrentUser() userId: string | null,
+    @Query() query: GetFeedsQuery,
+  ): Promise<GetFeedsResponseDto[]> {
+    return await this.feedService.getFeeds(userId, query);
   }
 
   @ApiBearerAuth()

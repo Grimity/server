@@ -22,9 +22,9 @@ export class LinkDto {
 }
 
 export class UpdateProfileDto {
-  @ApiProperty()
+  @ApiProperty({ description: '이름, 1~12자' })
   @IsString()
-  @Length(1, 10)
+  @Length(1, 12)
   name: string;
 
   @ApiProperty({ description: '없으면 빈 문자열 주세요' })

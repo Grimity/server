@@ -369,6 +369,78 @@ export class FeedRepository {
       take: 12,
     });
   }
+
+  async findMany({ userId, lastId, lastCreatedAt, tag }: GetFeedsInput) {
+    const where: Prisma.FeedWhereInput = {};
+    if (lastId && lastCreatedAt) {
+      where.OR = [
+        {
+          createdAt: {
+            lt: new Date(lastCreatedAt),
+          },
+        },
+        {
+          createdAt: new Date(lastCreatedAt),
+          id: {
+            lt: lastId,
+          },
+        },
+      ];
+    }
+
+    if (tag) {
+      where.tags = {
+        some: {
+          tagName: {
+            contains: tag,
+          },
+        },
+      };
+    }
+
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      cards: true,
+      createdAt: true,
+      viewCount: true,
+      likeCount: true,
+      _count: {
+        select: {
+          feedComments: true,
+        },
+      },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+      };
+    }
+
+    return await this.prisma.feed.findMany({
+      where,
+      select,
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      take: 12,
+    });
+  }
 }
 
 type CreateFeedInput = {
@@ -377,4 +449,11 @@ type CreateFeedInput = {
   isAI: boolean;
   content: string;
   tags: string[];
+};
+
+type GetFeedsInput = {
+  userId?: string | null;
+  lastId?: string;
+  lastCreatedAt?: string;
+  tag?: string;
 };

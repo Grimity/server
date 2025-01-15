@@ -100,6 +100,32 @@ export class FeedService {
     await this.feedRepository.updateOne(userId, updateFeedInput);
     return;
   }
+
+  async getFeeds(
+    userId: string | null,
+    { lastId, lastCreatedAt, tag }: GetFeedsInput,
+  ) {
+    const feeds = await this.feedRepository.findMany({
+      userId,
+      lastId,
+      lastCreatedAt,
+      tag,
+    });
+
+    return feeds.map((feed) => {
+      return {
+        id: feed.id,
+        title: feed.title,
+        cards: feed.cards,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        commentCount: feed._count.feedComments,
+        author: feed.author,
+        isLike: feed.likes?.length === 1,
+      };
+    });
+  }
 }
 
 export type CreateFeedInput = {
@@ -108,4 +134,10 @@ export type CreateFeedInput = {
   isAI: boolean;
   content: string;
   tags: string[];
+};
+
+export type GetFeedsInput = {
+  lastId?: string;
+  lastCreatedAt?: string;
+  tag?: string;
 };
