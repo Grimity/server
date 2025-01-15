@@ -94,6 +94,7 @@ export class UserService {
       }),
       followerCount: targetUser._count.followers,
       followingCount: targetUser._count.followings,
+      feedCount: targetUser._count.feeds,
       isFollowing,
     };
   }
@@ -115,6 +116,7 @@ export class UserService {
       }),
       followerCount: user._count.followers,
       followingCount: user._count.followings,
+      feedCount: user._count.feeds,
       isFollowing: false,
     };
   }

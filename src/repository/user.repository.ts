@@ -180,6 +180,7 @@ export class UserRepository {
             select: {
               followers: true,
               followings: true,
+              feeds: true,
             },
           },
         },
