@@ -103,13 +103,13 @@ export class FeedService {
 
   async getFeeds(
     userId: string | null,
-    { lastId, lastCreatedAt, search }: GetFeedsInput,
+    { lastId, lastCreatedAt, tag }: GetFeedsInput,
   ) {
     const feeds = await this.feedRepository.findMany({
       userId,
       lastId,
       lastCreatedAt,
-      search,
+      tag,
     });
 
     return feeds.map((feed) => {
@@ -139,5 +139,5 @@ export type CreateFeedInput = {
 export type GetFeedsInput = {
   lastId?: string;
   lastCreatedAt?: string;
-  search?: string;
+  tag?: string;
 };

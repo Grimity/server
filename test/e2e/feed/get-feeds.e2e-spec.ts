@@ -152,7 +152,7 @@ describe('GET /feeds', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      `/feeds?search=스트`,
+      `/feeds?tag=스트`,
     );
 
     // then

@@ -11,5 +11,5 @@ export class GetFeedsQuery {
 
   @IsOptional()
   @IsString()
-  search?: string;
+  tag?: string;
 }
