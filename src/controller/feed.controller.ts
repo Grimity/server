@@ -90,6 +90,11 @@ export class FeedController {
     return await this.feedService.getFeeds(userId, query);
   }
 
+  @Get('hot')
+  async getHotFeeds() {
+    return await this.feedService.getHotFeeds();
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 상세 조회 - Optional Guard' })
   @ApiResponse({

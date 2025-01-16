@@ -126,6 +126,10 @@ export class FeedService {
       };
     });
   }
+
+  async getHotFeeds() {
+    return await this.feedRepository.findManyHot();
+  }
 }
 
 export type CreateFeedInput = {
