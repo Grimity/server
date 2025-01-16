@@ -26,6 +26,7 @@ import {
   UpdateFeedDto,
   GetFeedsQuery,
   GetFeedsResponseDto,
+  HotFeedDto,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -90,8 +91,15 @@ export class FeedController {
     return await this.feedService.getFeeds(userId, query);
   }
 
+  @ApiOperation({ summary: '핫한 피드 조회, 7개만 반환' })
+  @ApiResponse({
+    status: 200,
+    description: '핫한 피드 조회 성공',
+    type: HotFeedDto,
+    isArray: true,
+  })
   @Get('hot')
-  async getHotFeeds() {
+  async getHotFeeds(): Promise<HotFeedDto[]> {
     return await this.feedService.getHotFeeds();
   }
 
