@@ -39,7 +39,17 @@ export class NotificationController {
     return await this.notificationService.getAll(userId);
   }
 
-  @ApiOperation({ summary: '알림 읽음 처리' })
+  @ApiOperation({ summary: '전체 알림 읽음 처리' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @Put()
+  @HttpCode(204)
+  async readAll(@CurrentUser() userId: string) {
+    await this.notificationService.readAll(userId);
+    return;
+  }
+
+  @ApiOperation({ summary: '개별 알림 읽음 처리' })
   @ApiResponse({ status: 204, description: '성공' })
   @ApiResponse({ status: 404, description: '알림이 없음' })
   @UseGuards(JwtGuard)

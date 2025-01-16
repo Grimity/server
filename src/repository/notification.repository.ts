@@ -60,6 +60,18 @@ export class NotificationRepository {
       throw e;
     }
   }
+
+  async readAll(userId: string) {
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+    return;
+  }
 }
 
 export type CreateNotificationInput = {
