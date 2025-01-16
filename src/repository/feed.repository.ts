@@ -441,6 +441,35 @@ export class FeedRepository {
       take: 12,
     });
   }
+
+  async findManyHot() {
+    return await this.prisma.feed.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+        },
+      },
+      orderBy: {
+        likeCount: 'desc',
+      },
+      take: 7,
+      select: {
+        id: true,
+        title: true,
+        cards: true,
+        createdAt: true,
+        viewCount: true,
+        likeCount: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 type CreateFeedInput = {
