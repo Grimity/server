@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { FeedRepository } from 'src/repository/feed.repository';
+import { NotificationRepository } from 'src/repository/notification.repository';
 
 @Injectable()
 export class UserService {
   constructor(
     private userRepository: UserRepository,
     private feedRepository: FeedRepository,
+    private notificationRepository: NotificationRepository,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -50,11 +52,17 @@ export class UserService {
       createdAt: user.createdAt,
       followerCount: user._count.followers,
       followingCount: user._count.followings,
+      hasNotification: user.notifications.length > 0,
     };
   }
 
   async follow(userId: string, targetUserId: string) {
     await this.userRepository.follow(userId, targetUserId);
+    await this.notificationRepository.create({
+      userId: targetUserId,
+      type: 'FOLLOW',
+      actorId: userId,
+    });
     return;
   }
 

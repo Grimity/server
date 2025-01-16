@@ -8,15 +8,26 @@ export class FeedCommentRepository {
 
   async create(userId: string, input: CreateFeedCommentInput) {
     try {
-      await this.prisma.feedComment.create({
+      return await this.prisma.feedComment.create({
         data: {
           writerId: userId,
           feedId: input.feedId,
           parentId: input.parentCommentId ?? null,
           content: input.content,
         },
+        select: {
+          feed: {
+            select: {
+              authorId: true,
+            },
+          },
+          parent: {
+            select: {
+              writerId: true,
+            },
+          },
+        },
       });
-      return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2003') {

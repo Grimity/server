@@ -122,7 +122,7 @@ export class FeedRepository {
 
   async like(userId: string, feedId: string) {
     try {
-      await this.prisma.$transaction([
+      const [, feed] = await this.prisma.$transaction([
         this.prisma.like.create({
           data: {
             userId,
@@ -138,9 +138,12 @@ export class FeedRepository {
               increment: 1,
             },
           },
+          select: {
+            authorId: true,
+          },
         }),
       ]);
-      return;
+      return feed.authorId;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
