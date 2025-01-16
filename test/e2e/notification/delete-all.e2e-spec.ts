@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /notifications - 전체알림 읽음 처리', () => {
+describe('DELETE /notifications - 전체알림 삭제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -29,7 +29,9 @@ describe('PUT /notifications - 전체알림 읽음 처리', () => {
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
-    const { status } = await request(app.getHttpServer()).put('/notifications');
+    const { status } = await request(app.getHttpServer()).delete(
+      '/notifications',
+    );
 
     // then
     expect(status).toBe(401);
@@ -73,13 +75,13 @@ describe('PUT /notifications - 전체알림 읽음 처리', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/notifications')
+      .delete('/notifications')
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
     expect(status).toBe(204);
     const notifications = await prisma.notification.findMany();
-    expect(notifications.every((n) => n.isRead)).toBe(true);
+    expect(notifications).toHaveLength(0);
 
     // cleanup
     spy.mockRestore();

@@ -29,7 +29,9 @@ describe('PUT /notifications/:id', () => {
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
-    const { status } = await request(app.getHttpServer()).get('/notifications');
+    const { status } = await request(app.getHttpServer()).put(
+      '/notifications/00000000-0000-0000-0000-000000000000',
+    );
 
     // then
     expect(status).toBe(401);
