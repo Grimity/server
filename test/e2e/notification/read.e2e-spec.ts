@@ -35,6 +35,48 @@ describe('PUT /notifications/:id', () => {
     expect(status).toBe(401);
   });
 
+  it('id가 UUID가 아닐 때 400을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/notifications/1')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(400);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('없는 알림일 때 404를 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/notifications/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(404);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
   it('204와 함께 알림을 읽음 처리한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
