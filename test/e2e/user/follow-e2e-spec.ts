@@ -37,7 +37,7 @@ describe('PUT /users/:targetId/follow', () => {
     expect(status).toBe(401);
   });
 
-  it('204와 함께 팔로우한다', async () => {
+  it('204와 함께 팔로우하고 알림을 생성한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -66,12 +66,23 @@ describe('PUT /users/:targetId/follow', () => {
     const follow = await prisma.follow.findFirstOrThrow();
 
     expect(follow.followingId).toBe(targetUser.id);
+    const notification = await prisma.notification.findMany();
+    expect(notification.length).toBe(1);
+    expect(notification[0]).toEqual({
+      id: expect.any(String),
+      actorId: expect.any(String),
+      refId: null,
+      type: 'FOLLOW',
+      userId: targetUser.id,
+      isRead: false,
+      createdAt: expect.any(Date),
+    });
 
     // cleanup
     spy.mockRestore();
   });
 
-  it('두번 팔로우해도 204를 반환한다', async () => {
+  it('두번 팔로우하면 409를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -100,11 +111,7 @@ describe('PUT /users/:targetId/follow', () => {
       .send();
 
     // then
-    expect(status).toBe(204);
-
-    const follow = await prisma.follow.findFirstOrThrow();
-
-    expect(follow.followingId).toBe(targetUser.id);
+    expect(status).toBe(409);
 
     // cleanup
     spy.mockRestore();

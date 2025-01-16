@@ -141,7 +141,7 @@ export class UserRepository {
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2002'
       ) {
-        return;
+        throw new HttpException('이미 팔로우한 유저', 409);
       } else if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2003'

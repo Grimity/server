@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
+import type { NotificationType } from 'src/common/constants';
 
 @Injectable()
 export class NotificationRepository {
@@ -15,6 +16,6 @@ export class NotificationRepository {
 export type CreateNotificationInput = {
   actorId: string;
   refId?: string | null;
-  type: string;
+  type: NotificationType;
   userId: string;
 };
