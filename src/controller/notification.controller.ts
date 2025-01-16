@@ -73,4 +73,18 @@ export class NotificationController {
     await this.notificationService.read(userId, notificationId);
     return;
   }
+
+  @ApiOperation({ summary: '개별 알림 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '알림이 없음' })
+  @UseGuards(JwtGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  async delete(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) notificationId: string,
+  ) {
+    await this.notificationService.deleteOne(userId, notificationId);
+    return;
+  }
 }

@@ -81,6 +81,26 @@ export class NotificationRepository {
     });
     return;
   }
+
+  async deleteOne(userId: string, notificationId: string) {
+    try {
+      await this.prisma.notification.delete({
+        where: {
+          id: notificationId,
+          userId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('NOTIFICATION', 404);
+      }
+      throw e;
+    }
+  }
 }
 
 export type CreateNotificationInput = {
