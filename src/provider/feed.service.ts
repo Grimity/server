@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
+import { NotificationRepository } from 'src/repository/notification.repository';
 
 @Injectable()
 export class FeedService {
-  constructor(private feedRepository: FeedRepository) {}
+  constructor(
+    private feedRepository: FeedRepository,
+    private notificationRepository: NotificationRepository,
+  ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
     return await this.feedRepository.create(userId, createFeedInput);
@@ -67,7 +71,14 @@ export class FeedService {
   }
 
   async like(userId: string, feedId: string) {
-    await this.feedRepository.like(userId, feedId);
+    const authorId = await this.feedRepository.like(userId, feedId);
+    if (userId === authorId) return;
+    await this.notificationRepository.create({
+      userId: authorId,
+      actorId: userId,
+      type: 'LIKE',
+      refId: feedId,
+    });
     return;
   }
 
