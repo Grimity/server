@@ -52,6 +52,7 @@ export class UserService {
       createdAt: user.createdAt,
       followerCount: user._count.followers,
       followingCount: user._count.followings,
+      hasNotification: user.notifications.length > 0,
     };
   }
 

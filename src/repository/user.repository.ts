@@ -117,6 +117,15 @@ export class UserRepository {
             followings: true,
           },
         },
+        notifications: {
+          where: {
+            isRead: false,
+          },
+          take: 1,
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
