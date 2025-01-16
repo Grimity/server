@@ -11,6 +11,31 @@ export class NotificationRepository {
       data: input,
     });
   }
+
+  async findAllByUserId(userId: string) {
+    return await this.prisma.notification.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        actor: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        refId: true,
+        type: true,
+        isRead: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 50,
+    });
+  }
 }
 
 export type CreateNotificationInput = {
