@@ -6,6 +6,9 @@ import {
   Query,
   Get,
   ParseUUIDPipe,
+  Delete,
+  Param,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -55,5 +58,20 @@ export class FeedCommentController {
     @Query('feedId', ParseUUIDPipe) feedId: string,
   ): Promise<FeedCommentResponseDto> {
     return await this.feedCommentService.getAllByFeedId(feedId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 댓글 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id')
+  async deleteOne(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) commentId: string,
+  ) {
+    await this.feedCommentService.deleteOne(userId, commentId);
+    return;
   }
 }
