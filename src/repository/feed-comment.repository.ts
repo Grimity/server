@@ -88,6 +88,25 @@ export class FeedCommentRepository {
       },
     });
   }
+
+  async deleteOne(userId: string, commentId: string) {
+    try {
+      await this.prisma.feedComment.delete({
+        where: {
+          id: commentId,
+          writerId: userId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedCommentInput = {

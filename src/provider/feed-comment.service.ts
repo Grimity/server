@@ -22,6 +22,11 @@ export class FeedCommentService {
       commentCount,
     };
   }
+
+  async deleteOne(userId: string, commentId: string) {
+    await this.feedCommentRepository.deleteOne(userId, commentId);
+    return;
+  }
 }
 
 export type CreateFeedCommentInput = {
