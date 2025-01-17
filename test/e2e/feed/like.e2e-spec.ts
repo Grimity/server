@@ -59,7 +59,7 @@ describe('PUT /feeds/:feedId/like', () => {
     spy.mockRestore();
   });
 
-  it('204와 함께 like를 하고 알림을 생성한다', async () => {
+  it('204와 함께 like를 한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -100,17 +100,6 @@ describe('PUT /feeds/:feedId/like', () => {
       },
     });
     expect(like.userId).not.toBe(user.id);
-    const notification = await prisma.notification.findMany();
-    expect(notification.length).toBe(1);
-    expect(notification[0]).toEqual({
-      id: expect.any(String),
-      actorId: expect.any(String),
-      refId: feed.id,
-      type: 'LIKE',
-      userId: user.id,
-      isRead: false,
-      createdAt: expect.any(Date),
-    });
 
     // cleanup
     spy.mockRestore();

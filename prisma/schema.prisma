@@ -19,14 +19,12 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers     Follow[]       @relation("following")
-  followings    Follow[]       @relation("follower")
-  feeds         Feed[]
-  likes         Like[]
-  feedComments  FeedComment[]
-  views         View[]
-  notifications Notification[] @relation("notifications")
-  acts          Notification[] @relation("act")
+  followers    Follow[]      @relation("following")
+  followings   Follow[]      @relation("follower")
+  feeds        Feed[]
+  likes        Like[]
+  feedComments FeedComment[]
+  views        View[]
 
   @@unique([provider, providerId])
 }
@@ -108,19 +106,4 @@ model FeedComment {
   childComments FeedComment[] @relation("ChildComments")
 
   @@index([feedId])
-}
-
-model Notification {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  actorId   String   @db.Uuid
-  refId     String?  @db.Uuid
-  type      String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user  User @relation("notifications", fields: [userId], references: [id], onDelete: Cascade)
-  actor User @relation("act", fields: [actorId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }

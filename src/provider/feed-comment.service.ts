@@ -1,45 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { FeedCommentRepository } from 'src/repository/feed-comment.repository';
-import { NotificationRepository } from 'src/repository/notification.repository';
 
 @Injectable()
 export class FeedCommentService {
-  constructor(
-    private feedCommentRepository: FeedCommentRepository,
-    private notificationRepository: NotificationRepository,
-  ) {}
+  constructor(private feedCommentRepository: FeedCommentRepository) {}
 
   async create(userId: string, input: CreateFeedCommentInput) {
-    const data = await this.feedCommentRepository.create(userId, input);
+    return await this.feedCommentRepository.create(userId, input);
 
-    if (userId === data.feed.authorId) return;
-
-    const actorId = userId;
-    const refId = input.feedId;
-    const type = 'COMMENT';
-
-    await this.notificationRepository.create({
-      actorId,
-      refId,
-      type,
-      userId: data.feed.authorId,
-    });
-
-    if (
-      !data.parent ||
-      data.parent.writerId === userId ||
-      data.parent.writerId === data.feed.authorId
-    )
-      return;
-
-    await this.notificationRepository.create({
-      actorId,
-      refId,
-      type,
-      userId: data.parent.writerId,
-    });
-
-    return;
+    // TODO: notification
   }
 
   async getAllByFeedId(feedId: string) {
