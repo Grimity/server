@@ -51,7 +51,9 @@ export class FeedCommentController {
     type: FeedCommentResponseDto,
   })
   @Get()
-  async findAll(@Query('feedId', ParseUUIDPipe) feedId: string) {
+  async findAll(
+    @Query('feedId', ParseUUIDPipe) feedId: string,
+  ): Promise<FeedCommentResponseDto> {
     return await this.feedCommentService.getAllByFeedId(feedId);
   }
 }

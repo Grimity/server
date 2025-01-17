@@ -53,6 +53,7 @@ export class FeedCommentRepository {
           select: {
             id: true,
             name: true,
+            image: true,
           },
         },
         childComments: {
@@ -65,6 +66,7 @@ export class FeedCommentRepository {
               select: {
                 id: true,
                 name: true,
+                image: true,
               },
             },
           },
