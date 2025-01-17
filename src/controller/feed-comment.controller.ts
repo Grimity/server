@@ -63,6 +63,7 @@ export class FeedCommentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 댓글 삭제' })
   @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id')
