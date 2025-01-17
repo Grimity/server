@@ -93,6 +93,7 @@ describe('GET /feed-comments?feedId={feedId}', () => {
           writer: {
             id: user.id,
             name: 'test',
+            image: null,
           },
           childComments: [
             {
@@ -103,6 +104,7 @@ describe('GET /feed-comments?feedId={feedId}', () => {
               writer: {
                 id: user.id,
                 name: 'test',
+                image: null,
               },
             },
           ],
@@ -115,6 +117,7 @@ describe('GET /feed-comments?feedId={feedId}', () => {
           writer: {
             id: user.id,
             name: 'test',
+            image: null,
           },
           childComments: [],
         },

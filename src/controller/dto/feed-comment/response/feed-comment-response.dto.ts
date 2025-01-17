@@ -6,6 +6,14 @@ class WriterDto {
 
   @ApiProperty({ description: '작성자 이름' })
   name: string;
+
+  @ApiProperty({
+    description: '작성자 이미지',
+    nullable: true,
+    type: 'string',
+    example: 'profile/{UUID}.jpg',
+  })
+  image: string | null;
 }
 
 class FeedCommentChildDto {
@@ -13,13 +21,13 @@ class FeedCommentChildDto {
   id: string;
 
   @ApiProperty({ description: '부모 댓글 ID', type: 'string' })
-  parentId: string;
+  parentId: string | null;
 
   @ApiProperty({ description: '댓글 내용' })
   content: string;
 
   @ApiProperty({ description: '댓글 작성일시' })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({ description: '댓글 작성자', type: WriterDto })
   writer: WriterDto;
@@ -30,13 +38,13 @@ class FeedCommentParentDto {
   id: string;
 
   @ApiProperty({ description: '부모 댓글 ID', type: 'null' })
-  parentId: null;
+  parentId: string | null;
 
   @ApiProperty({ description: '댓글 내용' })
   content: string;
 
   @ApiProperty({ description: '댓글 작성일시' })
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty({ description: '댓글 작성자', type: WriterDto })
   writer: WriterDto;
