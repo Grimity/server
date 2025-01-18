@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('POST /aws/image-upload-url', () => {
+describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('POST /aws/image-upload-url', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/aws/image-upload-url')
+      .post('/aws/image-upload-urls')
       .send();
 
     // then
@@ -47,12 +47,14 @@ describe('POST /aws/image-upload-url', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/aws/image-upload-url')
+      .post('/aws/image-upload-urls')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'invalid',
-        ext: 'jpg',
-      });
+      .send([
+        {
+          type: 'invalid',
+          ext: 'jpg',
+        },
+      ]);
 
     // then
     expect(status).toBe(400);
@@ -71,12 +73,14 @@ describe('POST /aws/image-upload-url', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/aws/image-upload-url')
+      .post('/aws/image-upload-urls')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'feed',
-        ext: 'invalid',
-      });
+      .send([
+        {
+          type: 'feed',
+          ext: 'invalid',
+        },
+      ]);
 
     // then
     expect(status).toBe(400);
@@ -85,7 +89,7 @@ describe('POST /aws/image-upload-url', () => {
     spy.mockRestore();
   });
 
-  it('성공하면 201과 함께 url을 반환한다', async () => {
+  it('201과 함께 url을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: '1234',
@@ -95,17 +99,26 @@ describe('POST /aws/image-upload-url', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .post('/aws/image-upload-url')
+      .post('/aws/image-upload-urls')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'feed',
-        ext: 'jpg',
-      });
+      .send([
+        {
+          type: 'feed',
+          ext: 'png',
+        },
+        {
+          type: 'feed',
+          ext: 'jpg',
+        },
+        {
+          type: 'profile',
+          ext: 'jpeg',
+        },
+      ]);
 
     // then
     expect(status).toBe(201);
-    expect(body.url).toBeDefined();
-    expect(body.imageName).toBeDefined();
+    expect(body).toHaveLength(3);
 
     // cleanup
     spy.mockRestore();
