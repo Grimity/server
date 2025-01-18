@@ -309,4 +309,38 @@ describe('PUT /users/me', () => {
     // cleanup
     spy.mockRestore();
   });
+
+  it('linkName에 space가 있을 때 space를 제거한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test2',
+        description: 'test',
+        links: [
+          {
+            linkName: 't e s t',
+            link: 'https://test.com',
+          },
+        ],
+      });
+
+    // then
+    expect(status).toBe(204);
+    const user = await prisma.user.findFirstOrThrow();
+    expect(user.name).toBe('test2');
+    expect(user.description).toBe('test');
+    expect(user.links).toEqual(['test https://test.com']);
+
+    // cleanup
+    spy.mockRestore();
+  });
 });

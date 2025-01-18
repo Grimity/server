@@ -20,7 +20,7 @@ export class UserService {
     let transformedLinks: string[] = [];
     if (links.length > 0) {
       transformedLinks = links.map(({ linkName, link }) => {
-        return `${linkName} ${link}`;
+        return `${linkName.replaceAll(' ', '')} ${link.trim()}`;
       });
     }
     await this.userRepository.updateProfile(userId, {
