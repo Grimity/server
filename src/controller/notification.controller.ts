@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Put, HttpCode } from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -29,5 +29,13 @@ export class NotificationController {
   @Get()
   async getAll(@CurrentUser() userId: string): Promise<NotificationDto[]> {
     return this.notificationService.getAll(userId);
+  }
+
+  @ApiOperation({ summary: '전체 알림 읽음 처리' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @HttpCode(204)
+  @Put()
+  async read(@CurrentUser() userId: string) {
+    await this.notificationService.readAll(userId);
   }
 }

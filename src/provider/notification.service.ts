@@ -8,4 +8,9 @@ export class NotificationService {
   async getAll(userId: string) {
     return this.notificationRepository.findAll(userId);
   }
+
+  async readAll(userId: string) {
+    await this.notificationRepository.readAll(userId);
+    return;
+  }
 }
