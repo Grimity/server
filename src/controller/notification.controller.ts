@@ -1,4 +1,11 @@
-import { Controller, Get, UseGuards, Put, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Put,
+  HttpCode,
+  Delete,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -35,7 +42,15 @@ export class NotificationController {
   @ApiResponse({ status: 204, description: '성공' })
   @HttpCode(204)
   @Put()
-  async read(@CurrentUser() userId: string) {
+  async readAll(@CurrentUser() userId: string) {
     await this.notificationService.readAll(userId);
+  }
+
+  @ApiOperation({ summary: '전체 알림 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @HttpCode(204)
+  @Delete()
+  async deleteAll(@CurrentUser() userId: string) {
+    await this.notificationService.deleteAll(userId);
   }
 }
