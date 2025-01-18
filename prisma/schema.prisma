@@ -107,3 +107,16 @@ model FeedComment {
 
   @@index([feedId])
 }
+
+model Notification {
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  id        String   @default(uuid()) @db.Uuid
+  type      String
+  actorId   String   @db.Uuid
+  actorName String
+  feedId    String?  @db.Uuid
+  isRead    Boolean  @default(false)
+
+  @@id([userId, createdAt])
+}
