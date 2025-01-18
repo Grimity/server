@@ -1,14 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { FeedCommentRepository } from 'src/repository/feed-comment.repository';
+import { AwsService } from './aws.service';
 
 @Injectable()
 export class FeedCommentService {
-  constructor(private feedCommentRepository: FeedCommentRepository) {}
+  constructor(
+    private feedCommentRepository: FeedCommentRepository,
+    private awsService: AwsService,
+  ) {}
 
   async create(userId: string, input: CreateFeedCommentInput) {
-    return await this.feedCommentRepository.create(userId, input);
-
-    // TODO: notification
+    await this.feedCommentRepository.create(userId, input);
+    await this.awsService.pushEvent({
+      type: 'COMMENT',
+      actorId: userId,
+      feedId: input.feedId,
+      parentCommentId: input.parentCommentId,
+    });
+    return;
   }
 
   async getAllByFeedId(feedId: string) {

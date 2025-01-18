@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
+import { AwsService } from './aws.service';
 
 @Injectable()
 export class FeedService {
-  constructor(private feedRepository: FeedRepository) {}
+  constructor(
+    private feedRepository: FeedRepository,
+    private awsService: AwsService,
+  ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
     return await this.feedRepository.create(userId, createFeedInput);
@@ -67,9 +71,13 @@ export class FeedService {
   }
 
   async like(userId: string, feedId: string) {
-    return await this.feedRepository.like(userId, feedId);
-
-    // TODO: notification
+    await this.feedRepository.like(userId, feedId);
+    await this.awsService.pushEvent({
+      type: 'LIKE',
+      actorId: userId,
+      feedId,
+    });
+    return;
   }
 
   async unlike(userId: string, feedId: string) {
