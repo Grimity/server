@@ -109,14 +109,14 @@ model FeedComment {
 }
 
 model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
-  createdAt DateTime @default(now())
-  id        String   @default(uuid()) @db.Uuid
   type      String
   actorId   String   @db.Uuid
   actorName String
   feedId    String?  @db.Uuid
   isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 
-  @@id([userId, createdAt])
+  @@index([userId])
 }
