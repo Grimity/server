@@ -42,6 +42,7 @@ export class AwsService {
   }
 
   async pushEvent(event: LikeEvent | FollowEvent | CommentEvent) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
     const command = new SendMessageCommand({
       QueueUrl: this.configService.get('AWS_SQS_URL'),
       MessageBody: JSON.stringify(event),
