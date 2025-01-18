@@ -1,8 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class GetImageUploadUrlDto {
-  @ApiProperty({ enum: ['profile', 'feed'] })
+  @ApiProperty({ enum: ['PROFILE', 'FEED'] })
+  @Transform(({ value }) => value.toLowerCase())
   @IsEnum(['profile', 'feed'])
   type: 'profile' | 'feed';
 
