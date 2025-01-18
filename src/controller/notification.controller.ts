@@ -5,6 +5,8 @@ import {
   Put,
   HttpCode,
   Delete,
+  Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -52,5 +54,16 @@ export class NotificationController {
   @Delete()
   async deleteAll(@CurrentUser() userId: string) {
     await this.notificationService.deleteAll(userId);
+  }
+
+  @ApiOperation({ summary: '개별 알림 읽음 처리' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @HttpCode(204)
+  @Put(':id')
+  async read(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) notificationId: string,
+  ) {
+    await this.notificationService.readOne(userId, notificationId);
   }
 }

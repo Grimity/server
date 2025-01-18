@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class NotificationRepository {
@@ -44,5 +45,27 @@ export class NotificationRepository {
       },
     });
     return;
+  }
+
+  async readOne(userId: string, notificationId: string) {
+    try {
+      await this.prisma.notification.update({
+        where: {
+          userId,
+          id: notificationId,
+        },
+        data: {
+          isRead: true,
+        },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('NOTIFICATION', 404);
+      }
+    }
   }
 }
