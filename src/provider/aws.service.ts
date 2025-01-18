@@ -16,16 +16,21 @@ export class AwsService {
     this.sqsClient = new SQSClient();
   }
 
-  async getUploadUrl(
-    type: 'profile' | 'feed' | 'communityPost',
-    ext: 'jpg' | 'jpeg' | 'png',
-  ) {
+  async getUploadUrl(type: 'profile' | 'feed', ext: 'jpg' | 'jpeg' | 'png') {
     const key = `${type}/${uuidv4()}.${ext}`;
     const url = await this.createUploadUrl(key);
     return {
       url,
       imageName: key,
     };
+  }
+
+  async getUploadUrls(inputs: GetUplodateUrlInput[]) {
+    return await Promise.all(
+      inputs.map(async (input) => {
+        return await this.getUploadUrl(input.type, input.ext);
+      }),
+    );
   }
 
   async createUploadUrl(key: string) {
@@ -63,4 +68,9 @@ export type CommentEvent = {
   actorId: string;
   feedId: string;
   parentCommentId?: string | null;
+};
+
+type GetUplodateUrlInput = {
+  type: 'profile' | 'feed';
+  ext: 'jpg' | 'jpeg' | 'png';
 };
