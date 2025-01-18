@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { AwsService } from './aws.service';
+import { NotificationRepository } from 'src/repository/notification.repository';
 
 @Injectable()
 export class UserService {
@@ -9,6 +10,7 @@ export class UserService {
     private userRepository: UserRepository,
     private feedRepository: FeedRepository,
     private awsService: AwsService,
+    private notificationRepository: NotificationRepository,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -33,7 +35,10 @@ export class UserService {
   }
 
   async getMyProfile(userId: string) {
-    const user = await this.userRepository.getMyProfile(userId);
+    const [user, hasNotification] = await Promise.all([
+      this.userRepository.getMyProfile(userId),
+      this.notificationRepository.hasUnread(userId),
+    ]);
 
     return {
       id: user.id,
@@ -52,6 +57,7 @@ export class UserService {
       createdAt: user.createdAt,
       followerCount: user._count.followers,
       followingCount: user._count.followings,
+      hasNotification,
     };
   }
 

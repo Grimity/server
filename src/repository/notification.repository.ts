@@ -68,4 +68,14 @@ export class NotificationRepository {
       }
     }
   }
+
+  async hasUnread(userId: string) {
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        userId,
+        isRead: false,
+      },
+    });
+    return !!notification;
+  }
 }

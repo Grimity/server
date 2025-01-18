@@ -35,4 +35,7 @@ export class MyProfileDto {
 
   @ApiProperty({ description: '팔로잉 수' })
   followingCount: number;
+
+  @ApiProperty({ description: '알림 여부' })
+  hasNotification: boolean;
 }

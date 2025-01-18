@@ -90,6 +90,7 @@ describe('GET /users/me', () => {
       createdAt: expect.any(String),
       followerCount: 0,
       followingCount: 1,
+      hasNotification: false,
     });
 
     // cleanup
