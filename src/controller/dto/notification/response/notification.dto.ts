@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class NotificationDto {
   @ApiProperty({ enum: ['LIKE', 'COMMENT', 'FOLLOW'] })
-  type: 'LIKE' | 'COMMENT' | 'FOLLOW';
+  type: string;
 
   @ApiProperty({ description: '알림 아이디' })
   id: string;

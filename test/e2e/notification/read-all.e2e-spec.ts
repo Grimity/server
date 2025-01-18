@@ -5,8 +5,9 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
+import { v4 as uuid } from 'uuid';
 
-describe('GET /users/me', () => {
+describe('PUT /notifications - 전체 알림 읽음 처리', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -25,73 +26,62 @@ describe('GET /users/me', () => {
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await prisma.notification.deleteMany();
   });
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get('/users/me')
+      .put('/notifications')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('200과 함께 내 정보를 반환한다', async () => {
+  it('204와 함께 전체 알림을 읽음 처리 한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
+      kakaoId: '1234',
       email: 'test@test.com',
     });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
 
-    await prisma.user.updateMany({
-      data: {
-        description: 'test',
-        image: 'profile/test.png',
-        links: ['test1 https://test1.com'],
-      },
-    });
-
-    const targetUser = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-      },
-    });
-
-    await prisma.follow.create({
-      data: {
-        followerId: user.id,
-        followingId: targetUser.id,
-      },
+    await prisma.notification.createMany({
+      data: [
+        {
+          id: uuid(),
+          userId: user.id,
+          type: 'LIKE',
+          actorId: uuid(),
+          actorName: 'test',
+          feedId: uuid(),
+        },
+        {
+          id: uuid(),
+          userId: user.id,
+          type: 'COMMENT',
+          actorId: uuid(),
+          actorName: 'test',
+          feedId: uuid(),
+        },
+      ],
     });
 
     // when
-    const { status, body } = await request(app.getHttpServer())
-      .get('/users/me')
+    const { status } = await request(app.getHttpServer())
+      .put('/notifications')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
-    expect(status).toBe(200);
-    expect(body).toEqual({
-      id: user.id,
-      provider: 'KAKAO',
-      email: 'test@test.com',
-      name: 'test',
-      image: 'profile/test.png',
-      description: 'test',
-      links: [{ linkName: 'test1', link: 'https://test1.com' }],
-      createdAt: expect.any(String),
-      followerCount: 0,
-      followingCount: 1,
-      hasNotification: false,
-    });
+    expect(status).toBe(204);
+    const notifications = await prisma.notification.findMany();
+    expect(notifications.every((notification) => notification.isRead)).toBe(
+      true,
+    );
 
     // cleanup
     spy.mockRestore();
