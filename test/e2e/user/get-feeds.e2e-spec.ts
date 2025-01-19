@@ -33,6 +33,26 @@ describe('GET /users/:id/feeds', () => {
     expect(status).toBe(400);
   });
 
+  it('size가 숫자가 아닐때 400을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .get('/users/00000000-0000-0000-0000-000000000000/feeds?size=abc')
+      .send();
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('sort는 latest, like, view, oldest 중 하나여야 한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .get('/users/00000000-0000-0000-0000-000000000000/feeds?sort=abc')
+      .send();
+
+    // then
+    expect(status).toBe(400);
+  });
+
   it('200과 함께 피드를 반환한다', async () => {
     // given
     const user = await prisma.user.create({
