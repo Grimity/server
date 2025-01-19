@@ -146,14 +146,23 @@ export class UserController {
 
   @ApiOperation({ summary: '유저별 피드 조회 - 무한스크롤, 12개씩' })
   @ApiQuery({
-    name: 'lastId',
+    name: 'index',
     required: false,
-    description: '마지막 피드 ID - 없으면 첫 12개',
+    default: 0,
+    description: '0부터 시작',
   })
   @ApiQuery({
-    name: 'lastCreatedAt',
+    name: 'sort',
     required: false,
-    description: '마지막 피드 생성일 - 없으면 첫 12개',
+    default: 'latest',
+    description: '정렬 기준 - 대소문자 구분X',
+    enum: ['latest', 'like', 'view', 'oldest'],
+  })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    description: '가져올 피드 개수',
+    default: 12,
   })
   @ApiResponse({
     status: 200,
@@ -166,7 +175,12 @@ export class UserController {
     @Param('id', ParseUUIDPipe) userId: string,
     @Query() query: GetFeedsByUserQuery,
   ): Promise<UserFeedDto[]> {
-    return this.userService.getFeedsByUser(userId, query);
+    const { sort, index, size } = query;
+    return this.userService.getFeedsByUser(userId, {
+      sort: sort ?? 'latest',
+      index: index ?? 0,
+      size: size ?? 12,
+    });
   }
 
   @ApiBearerAuth()

@@ -162,19 +162,11 @@ export class UserService {
     });
   }
 
-  async getFeedsByUser(
-    userId: string,
-    { lastId, lastCreatedAt }: GetFeedsCursor,
-  ) {
-    let feeds;
-    if (lastId && lastCreatedAt) {
-      feeds = await this.feedRepository.findManyByUserIdWithCursor(userId, {
-        lastId,
-        lastCreatedAt,
-      });
-    } else {
-      feeds = await this.feedRepository.findManyByUserId(userId);
-    }
+  async getFeedsByUser(userId: string, getFeedsInput: GetFeedsInput) {
+    const feeds = await this.feedRepository.findManyByUserId(
+      userId,
+      getFeedsInput,
+    );
 
     return feeds.map((feed) => {
       return {
@@ -212,7 +204,8 @@ export type UpdateProfileInput = {
   }[];
 };
 
-type GetFeedsCursor = {
-  lastId?: string;
-  lastCreatedAt?: string;
+type GetFeedsInput = {
+  sort: 'latest' | 'like' | 'view' | 'oldest';
+  size: number;
+  index: number;
 };
