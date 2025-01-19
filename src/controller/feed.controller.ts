@@ -71,6 +71,12 @@ export class FeedController {
     description: '없으면 처음부터 12개',
   })
   @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 12,
+  })
+  @ApiQuery({
     name: 'tag',
     required: false,
     type: 'string',
@@ -86,9 +92,14 @@ export class FeedController {
   @Get()
   async getFeeds(
     @CurrentUser() userId: string | null,
-    @Query() query: GetFeedsQuery,
+    @Query() { lastId, lastCreatedAt, tag, size }: GetFeedsQuery,
   ): Promise<GetFeedsResponseDto[]> {
-    return await this.feedService.getFeeds(userId, query);
+    return await this.feedService.getFeeds(userId, {
+      lastId,
+      lastCreatedAt,
+      tag,
+      size: size ?? 12,
+    });
   }
 
   @ApiOperation({ summary: '핫한 피드 조회, 7개만 반환' })

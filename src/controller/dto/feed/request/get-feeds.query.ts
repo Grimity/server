@@ -1,4 +1,10 @@
-import { IsOptional, IsUUID, IsString, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsUUID,
+  IsString,
+  IsDateString,
+  IsInt,
+} from 'class-validator';
 
 export class GetFeedsQuery {
   @IsOptional()
@@ -12,4 +18,8 @@ export class GetFeedsQuery {
   @IsOptional()
   @IsString()
   tag?: string;
+
+  @IsOptional()
+  @IsInt()
+  size?: number;
 }
