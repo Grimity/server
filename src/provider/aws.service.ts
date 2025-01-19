@@ -16,7 +16,10 @@ export class AwsService {
     this.sqsClient = new SQSClient();
   }
 
-  async getUploadUrl(type: 'profile' | 'feed', ext: 'jpg' | 'jpeg' | 'png') {
+  async getUploadUrl(
+    type: 'profile' | 'feed',
+    ext: 'jpg' | 'jpeg' | 'png' | 'gif',
+  ) {
     const key = `${type}/${uuidv4()}.${ext}`;
     const url = await this.createUploadUrl(key);
     return {
@@ -73,5 +76,5 @@ export type CommentEvent = {
 
 type GetUplodateUrlInput = {
   type: 'profile' | 'feed';
-  ext: 'jpg' | 'jpeg' | 'png';
+  ext: 'jpg' | 'jpeg' | 'png' | 'gif';
 };

@@ -8,7 +8,7 @@ export class GetImageUploadUrlDto {
   @IsEnum(['profile', 'feed'])
   type: 'profile' | 'feed';
 
-  @ApiProperty({ enum: ['jpg', 'jpeg', 'png'] })
-  @IsEnum(['jpg', 'jpeg', 'png'])
-  ext: 'jpg' | 'jpeg' | 'png';
+  @ApiProperty({ enum: ['jpg', 'jpeg', 'png', 'gif'] })
+  @IsEnum(['jpg', 'jpeg', 'png', 'gif'])
+  ext: 'jpg' | 'jpeg' | 'png' | 'gif';
 }

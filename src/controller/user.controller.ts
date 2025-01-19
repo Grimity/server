@@ -144,7 +144,7 @@ export class UserController {
     return this.userService.getUserProfile(userId, targetId);
   }
 
-  @ApiOperation({ summary: '유저별 피드 조회 - 무한스크롤, 12개씩' })
+  @ApiOperation({ summary: '유저별 피드 조회' })
   @ApiQuery({
     name: 'index',
     required: false,
