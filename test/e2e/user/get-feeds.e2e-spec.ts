@@ -33,24 +33,20 @@ describe('GET /users/:id/feeds', () => {
     expect(status).toBe(400);
   });
 
-  it('lastId가 UUID가 아닐 때 400을 반환한다', async () => {
+  it('size가 숫자가 아닐때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get(
-        '/users/00000000-0000-0000-0000-000000000000/feeds?lastId=123&lastCreatedAt=2021-01-01T00:00:00.000Z',
-      )
+      .get('/users/00000000-0000-0000-0000-000000000000/feeds?size=abc')
       .send();
 
     // then
     expect(status).toBe(400);
   });
 
-  it('lastCreatedAt이 날짜 형식이 아닐 때 400을 반환한다', async () => {
+  it('sort는 latest, like, view, oldest 중 하나여야 한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get(
-        '/users/00000000-0000-0000-0000-000000000000/feeds?lastId=00000000-0000-0000-0000-000000000000&lastCreatedAt=123',
-      )
+      .get('/users/00000000-0000-0000-0000-000000000000/feeds?sort=abc')
       .send();
 
     // then
@@ -84,9 +80,7 @@ describe('GET /users/:id/feeds', () => {
       .send();
 
     const { status: status2, body: body2 } = await request(app.getHttpServer())
-      .get(
-        `/users/${user.id}/feeds?lastId=${body[11].id}&lastCreatedAt=${body[11].createdAt}`,
-      )
+      .get(`/users/${user.id}/feeds?index=1&size=12`)
       .send();
 
     // then

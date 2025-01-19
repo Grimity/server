@@ -297,19 +297,28 @@ export class FeedRepository {
     }
   }
 
-  async findManyByUserId(userId: string) {
+  async findManyByUserId(
+    userId: string,
+    { sort, size, index }: FindFeedsByUserInput,
+  ) {
+    const orderBy: Prisma.FeedOrderByWithRelationInput = {};
+    if (sort === 'latest') {
+      orderBy.createdAt = 'desc';
+    } else if (sort === 'like') {
+      orderBy.likeCount = 'desc';
+    } else if (sort === 'view') {
+      orderBy.viewCount = 'desc';
+    } else {
+      orderBy.createdAt = 'asc';
+    }
+
     return await this.prisma.feed.findMany({
       where: {
         authorId: userId,
       },
-      orderBy: [
-        {
-          createdAt: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ],
+      skip: index * size,
+      take: size,
+      orderBy,
       select: {
         id: true,
         title: true,
@@ -323,39 +332,41 @@ export class FeedRepository {
           },
         },
       },
-      take: 12,
     });
   }
 
   async findManyByUserIdWithCursor(
     userId: string,
-    cursor: { lastId: string; lastCreatedAt: string },
+    cursor: {
+      lastId: string;
+      sort: 'latest' | 'like' | 'view' | 'oldest';
+      size: number;
+    },
   ) {
+    let orderBy: Prisma.FeedOrderByWithRelationInput;
+
+    if (cursor.sort === 'latest') {
+      orderBy = {
+        createdAt: 'desc',
+      };
+    } else if (cursor.sort === 'like') {
+      orderBy = {
+        likeCount: 'desc',
+      };
+    } else if (cursor.sort === 'view') {
+      orderBy = {
+        viewCount: 'desc',
+      };
+    } else {
+      orderBy = {
+        createdAt: 'asc',
+      };
+    }
     return await this.prisma.feed.findMany({
       where: {
         authorId: userId,
-        OR: [
-          {
-            createdAt: {
-              lt: new Date(cursor.lastCreatedAt),
-            },
-          },
-          {
-            createdAt: new Date(cursor.lastCreatedAt),
-            id: {
-              lt: cursor.lastId,
-            },
-          },
-        ],
       },
-      orderBy: [
-        {
-          createdAt: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ],
+      orderBy,
       select: {
         id: true,
         title: true,
@@ -488,4 +499,10 @@ type GetFeedsInput = {
   lastId?: string;
   lastCreatedAt?: string;
   tag?: string;
+};
+
+type FindFeedsByUserInput = {
+  sort: 'latest' | 'like' | 'view' | 'oldest';
+  size: number;
+  index: number;
 };
