@@ -57,7 +57,7 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: '피드 목록 조회, 무한스크롤 - Optional Guard',
+    summary: '최신순 그림 목록 조회, 무한스크롤 - Optional Guard',
   })
   @ApiQuery({
     name: 'cursor',
@@ -89,7 +89,8 @@ export class FeedController {
     });
   }
 
-  @ApiOperation({ summary: '오늘의 인기 랭킹 조회' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '오늘의 인기 랭킹 조회 - Optional Guard' })
   @ApiQuery({
     name: 'size',
     required: false,
@@ -104,7 +105,7 @@ export class FeedController {
   })
   @ApiResponse({
     status: 200,
-    description: '핫한 피드 조회 성공',
+    description: '성공',
     type: TodayPopularFeedResponse,
     isArray: true,
   })
