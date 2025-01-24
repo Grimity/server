@@ -384,7 +384,7 @@ export class FeedRepository {
     });
   }
 
-  async findMany({ userId, lastId, lastCreatedAt, tag, size }: GetFeedsInput) {
+  async findMany({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
     const where: Prisma.FeedWhereInput = {};
     if (lastId && lastCreatedAt) {
       where.OR = [
@@ -400,16 +400,6 @@ export class FeedRepository {
           },
         },
       ];
-    }
-
-    if (tag) {
-      where.tags = {
-        some: {
-          tagName: {
-            contains: tag,
-          },
-        },
-      };
     }
 
     const select: Prisma.FeedSelect = {
@@ -532,9 +522,8 @@ type CreateFeedInput = {
 
 type GetFeedsInput = {
   userId?: string | null;
-  lastId?: string;
-  lastCreatedAt?: string;
-  tag?: string;
+  lastId: string | null;
+  lastCreatedAt: Date | null;
   size: number;
 };
 

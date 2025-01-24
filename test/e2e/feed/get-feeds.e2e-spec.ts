@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /feeds', () => {
+describe('GET /feeds/latest - 최신 피드 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -80,19 +80,19 @@ describe('GET /feeds', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get(`/feeds`)
+      .get(`/feeds/latest?size=12`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     const { status: status2, body: body2 } = await request(app.getHttpServer())
-      .get(`/feeds?lastId=${body[11].id}&lastCreatedAt=${body[11].createdAt}`)
+      .get(`/feeds/latest?cursor=${body.nextCursor}`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
     expect(status).toBe(200);
     expect(status2).toBe(200);
-    expect(body).toHaveLength(12);
-    expect(body2).toHaveLength(4);
-    expect(body2[3]).toEqual({
+    expect(body.feeds).toHaveLength(12);
+    expect(body2.feeds).toHaveLength(4);
+    expect(body2.feeds[3]).toEqual({
       id: feed.id,
       title: 'test',
       cards: [],
@@ -107,12 +107,13 @@ describe('GET /feeds', () => {
         image: null,
       },
     });
+    expect(body2.nextCursor).toBeNull();
 
     // cleanup
     spy.mockRestore();
   });
 
-  it('비로그인유저, 태그검색', async () => {
+  it('비로그인유저', async () => {
     // given
     const user = await prisma.user.create({
       data: {
@@ -152,27 +153,12 @@ describe('GET /feeds', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      `/feeds?tag=스트`,
+      `/feeds/latest?size=13`,
     );
 
     // then
     expect(status).toBe(200);
-    expect(body).toEqual([
-      {
-        id: expect.any(String),
-        title: 'test',
-        cards: [],
-        createdAt: expect.any(String),
-        viewCount: 0,
-        likeCount: 0,
-        commentCount: 0,
-        isLike: false,
-        author: {
-          id: user.id,
-          name: 'test',
-          image: null,
-        },
-      },
-    ]);
+    expect(body.cursor).not.toBeNull();
+    expect(body.feeds).toHaveLength(13);
   });
 });
