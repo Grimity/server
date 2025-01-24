@@ -384,7 +384,7 @@ export class FeedRepository {
     });
   }
 
-  async findMany({ userId, lastId, lastCreatedAt, tag, size }: GetFeedsInput) {
+  async findMany({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
     const where: Prisma.FeedWhereInput = {};
     if (lastId && lastCreatedAt) {
       where.OR = [
@@ -400,16 +400,6 @@ export class FeedRepository {
           },
         },
       ];
-    }
-
-    if (tag) {
-      where.tags = {
-        some: {
-          tagName: {
-            contains: tag,
-          },
-        },
-      };
     }
 
     const select: Prisma.FeedSelect = {
@@ -456,17 +446,48 @@ export class FeedRepository {
     });
   }
 
-  async findManyHot() {
-    return await this.prisma.feed.findMany({
-      where: {
-        createdAt: {
-          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+  async findTodayPopular({
+    size,
+    likeCount,
+    feedId,
+  }: {
+    size: number;
+    likeCount: number | null;
+    feedId: string | null;
+  }) {
+    const where: Prisma.FeedWhereInput = {
+      createdAt: {
+        gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+      },
+    };
+
+    // cursor
+    if (likeCount !== null && feedId !== null) {
+      where.OR = [
+        {
+          likeCount: {
+            lt: likeCount,
+          },
         },
-      },
-      orderBy: {
-        likeCount: 'desc',
-      },
-      take: 7,
+        {
+          likeCount,
+          id: {
+            lt: feedId,
+          },
+        },
+      ];
+    }
+    return await this.prisma.feed.findMany({
+      where,
+      orderBy: [
+        {
+          likeCount: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      take: size,
       select: {
         id: true,
         title: true,
@@ -474,6 +495,11 @@ export class FeedRepository {
         createdAt: true,
         viewCount: true,
         likeCount: true,
+        _count: {
+          select: {
+            feedComments: true,
+          },
+        },
         author: {
           select: {
             id: true,
@@ -496,9 +522,8 @@ type CreateFeedInput = {
 
 type GetFeedsInput = {
   userId?: string | null;
-  lastId?: string;
-  lastCreatedAt?: string;
-  tag?: string;
+  lastId: string | null;
+  lastCreatedAt: Date | null;
   size: number;
 };
 

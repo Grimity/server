@@ -16,7 +16,7 @@ export class AuthorSimpleDto {
   image: string | null;
 }
 
-export class GetFeedsResponseDto {
+export class GetFeedsDto {
   @ApiProperty()
   id: string;
 
@@ -43,4 +43,16 @@ export class GetFeedsResponseDto {
 
   @ApiProperty({ type: AuthorSimpleDto })
   author: AuthorSimpleDto;
+}
+
+export class GetLastestFeedsResponse {
+  @ApiProperty({ type: GetFeedsDto, isArray: true })
+  feeds: GetFeedsDto[];
+
+  @ApiProperty({
+    description: 'cursor가 null이면 다음 데이터가 없음',
+    nullable: true,
+    type: 'string',
+  })
+  nextCursor: string | null;
 }

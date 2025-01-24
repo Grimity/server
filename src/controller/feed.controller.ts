@@ -24,9 +24,10 @@ import {
   FeedIdDto,
   FeedDetailDto,
   UpdateFeedDto,
-  GetFeedsQuery,
-  GetFeedsResponseDto,
-  HotFeedDto,
+  GetLatestFeedsQuery,
+  GetLastestFeedsResponse,
+  GetTodayPopularQuery,
+  TodayPopularFeedResponse,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -56,62 +57,66 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: '피드 목록 조회, 무한스크롤 12개씩 - Optional Guard',
+    summary: '최신순 그림 목록 조회, 무한스크롤 - Optional Guard',
   })
   @ApiQuery({
-    name: 'lastId',
+    name: 'cursor',
     required: false,
     type: 'string',
-    description: '없으면 처음부터 12개',
-  })
-  @ApiQuery({
-    name: 'lastCreatedAt',
-    required: false,
-    type: 'string',
-    description: '없으면 처음부터 12개',
+    description: '없으면 처음부터',
   })
   @ApiQuery({
     name: 'size',
     required: false,
     type: 'number',
-    default: 12,
-  })
-  @ApiQuery({
-    name: 'tag',
-    required: false,
-    type: 'string',
-    description: '있으면 태그검색, 이거도 똑같이 커서기반으로 12개씩',
+    default: 20,
   })
   @ApiResponse({
     status: 200,
     description: '피드 목록 조회 성공',
-    type: GetFeedsResponseDto,
+    type: GetLastestFeedsResponse,
     isArray: true,
   })
   @UseGuards(OptionalJwtGuard)
-  @Get()
+  @Get('latest')
   async getFeeds(
     @CurrentUser() userId: string | null,
-    @Query() { lastId, lastCreatedAt, tag, size }: GetFeedsQuery,
-  ): Promise<GetFeedsResponseDto[]> {
+    @Query() { cursor, size }: GetLatestFeedsQuery,
+  ): Promise<GetLastestFeedsResponse> {
     return await this.feedService.getFeeds(userId, {
-      lastId,
-      lastCreatedAt,
-      tag,
-      size: size ?? 12,
+      cursor: cursor ?? null,
+      size: size ?? 20,
     });
   }
 
-  @ApiOperation({ summary: '핫한 피드 조회, 7개만 반환' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '오늘의 인기 랭킹 조회 - Optional Guard' })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 9,
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    type: 'string',
+    description: '없으면 처음부터',
+  })
   @ApiResponse({
     status: 200,
-    description: '핫한 피드 조회 성공',
-    type: HotFeedDto,
+    description: '성공',
+    type: TodayPopularFeedResponse,
     isArray: true,
   })
-  @Get('hot')
-  async getHotFeeds(): Promise<HotFeedDto[]> {
-    return await this.feedService.getHotFeeds();
+  @Get('today-popular')
+  async getHotFeeds(
+    @Query() { size, cursor }: GetTodayPopularQuery,
+  ): Promise<TodayPopularFeedResponse> {
+    return await this.feedService.getTodayPopular({
+      size: size ?? 9,
+      cursor: cursor ?? null,
+    });
   }
 
   @ApiBearerAuth()
