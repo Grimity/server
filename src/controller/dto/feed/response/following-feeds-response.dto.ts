@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-
 import { SimpleAuthorDto } from './simple-author.dto';
 
-export class GetFeedsDto {
+export class FollowingFeedDto {
   @ApiProperty()
   id: string;
 
@@ -11,6 +10,9 @@ export class GetFeedsDto {
 
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.png'] })
   cards: string[];
+
+  @ApiProperty()
+  content: string;
 
   @ApiProperty()
   createdAt: Date;
@@ -24,19 +26,19 @@ export class GetFeedsDto {
   @ApiProperty()
   commentCount: number;
 
-  @ApiProperty({ description: '비 로그인유저면 false 고정' })
-  isLike: boolean;
-
   @ApiProperty({ type: SimpleAuthorDto })
   author: SimpleAuthorDto;
+
+  @ApiProperty({ description: '비 로그인유저면 false 고정' })
+  isLike: boolean;
 }
 
-export class GetLastestFeedsResponse {
-  @ApiProperty({ type: GetFeedsDto, isArray: true })
-  feeds: GetFeedsDto[];
+export class FollowingFeedsResponse {
+  @ApiProperty({ type: FollowingFeedDto, isArray: true })
+  feeds: FollowingFeedDto[];
 
   @ApiProperty({
-    description: 'cursor가 null이면 다음 데이터가 없음',
+    description: 'cursor가 null이면 다음데이터는 없습니다',
     nullable: true,
     type: 'string',
   })

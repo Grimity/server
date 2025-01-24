@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AuthorSimpleDto } from './get-feeds-response.dto';
+import { SimpleAuthorDto } from './simple-author.dto';
 
 export class TodayPopularFeedDto {
   @ApiProperty()
@@ -26,8 +26,8 @@ export class TodayPopularFeedDto {
   @ApiProperty({ description: '비 로그인유저면 false 고정' })
   isLike: boolean;
 
-  @ApiProperty({ type: AuthorSimpleDto })
-  author: AuthorSimpleDto;
+  @ApiProperty({ type: SimpleAuthorDto })
+  author: SimpleAuthorDto;
 }
 
 export class TodayPopularFeedResponse {

@@ -29,6 +29,7 @@ import {
   GetTodayPopularQuery,
   TodayPopularFeedResponse,
   GetFollowingFeedsQuery,
+  FollowingFeedsResponse,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -138,11 +139,16 @@ export class FeedController {
     description: '없으면 처음부터',
   })
   @UseGuards(JwtGuard)
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: FollowingFeedsResponse,
+  })
   @Get('following')
   async getFollowingFeeds(
     @CurrentUser() userId: string,
     @Query() { size, cursor }: GetFollowingFeedsQuery,
-  ) {
+  ): Promise<FollowingFeedsResponse> {
     return await this.feedService.getFollowingFeeds(userId, {
       size: size ?? 10,
       cursor: cursor ?? null,

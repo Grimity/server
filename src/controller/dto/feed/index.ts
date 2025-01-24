@@ -8,3 +8,4 @@ export * from './response/feed-id.dto';
 export * from './response/feed-detail.dto';
 export * from './response/get-feeds-response.dto';
 export * from './response/today-popular-feed.dto';
+export * from './response/following-feeds-response.dto';

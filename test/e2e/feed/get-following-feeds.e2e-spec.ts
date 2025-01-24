@@ -75,17 +75,32 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
       },
     });
 
+    await prisma.feed.createMany({
+      data: [
+        {
+          authorId: user.id,
+          title: 'test',
+          content: 'test',
+        },
+        {
+          authorId: user.id,
+          title: 'test',
+          content: 'test',
+        },
+      ],
+    });
+
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get('/feeds/following')
+      .get('/feeds/following?size=2')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(200);
-    expect(body.nextCursor).toBeNull();
-    expect(body.feeds).toHaveLength(1);
-    console.log(body.feeds);
+
+    expect(body.nextCursor).not.toBeNull();
+    expect(body.feeds).toHaveLength(2);
 
     // cleanup
     spy.mockRestore();
