@@ -23,6 +23,9 @@ export class TodayPopularFeedDto {
   @ApiProperty()
   commentCount: number;
 
+  @ApiProperty({ description: '비 로그인유저면 false 고정' })
+  isLike: boolean;
+
   @ApiProperty({ type: AuthorSimpleDto })
   author: AuthorSimpleDto;
 }

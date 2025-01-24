@@ -66,6 +66,7 @@ describe('GET /feeds/hot', () => {
       createdAt: expect.any(String),
       viewCount: 0,
       commentCount: 0,
+      isLike: false,
       author: {
         id: user.id,
         image: null,

@@ -447,10 +447,12 @@ export class FeedRepository {
   }
 
   async findTodayPopular({
+    userId,
     size,
     likeCount,
     feedId,
   }: {
+    userId: string | null;
     size: number;
     likeCount: number | null;
     feedId: string | null;
@@ -477,6 +479,39 @@ export class FeedRepository {
         },
       ];
     }
+
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      cards: true,
+      createdAt: true,
+      viewCount: true,
+      likeCount: true,
+      _count: {
+        select: {
+          feedComments: true,
+        },
+      },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
     return await this.prisma.feed.findMany({
       where,
       orderBy: [
@@ -488,26 +523,7 @@ export class FeedRepository {
         },
       ],
       take: size,
-      select: {
-        id: true,
-        title: true,
-        cards: true,
-        createdAt: true,
-        viewCount: true,
-        likeCount: true,
-        _count: {
-          select: {
-            feedComments: true,
-          },
-        },
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-      },
+      select,
     });
   }
 }

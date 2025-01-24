@@ -150,9 +150,11 @@ export class FeedService {
   }
 
   async getTodayPopular({
+    userId,
     size,
     cursor,
   }: {
+    userId: string | null;
     size: number;
     cursor: string | null;
   }) {
@@ -165,6 +167,7 @@ export class FeedService {
       parsedCursor = [Number(arr[0]), arr[1]];
     }
     const feeds = await this.feedRepository.findTodayPopular({
+      userId,
       size,
       likeCount: parsedCursor ? parsedCursor[0] : null,
       feedId: parsedCursor ? parsedCursor[1] : null,
@@ -181,6 +184,7 @@ export class FeedService {
           likeCount: feed.likeCount,
           commentCount: feed._count.feedComments,
           author: feed.author,
+          isLike: feed.likes?.length === 1,
         };
       }),
       nextCursor:
