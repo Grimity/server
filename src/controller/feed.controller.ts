@@ -109,11 +109,14 @@ export class FeedController {
     type: TodayPopularFeedResponse,
     isArray: true,
   })
+  @UseGuards(OptionalJwtGuard)
   @Get('today-popular')
   async getHotFeeds(
+    @CurrentUser() userId: string | null,
     @Query() { size, cursor }: GetTodayPopularQuery,
   ): Promise<TodayPopularFeedResponse> {
     return await this.feedService.getTodayPopular({
+      userId,
       size: size ?? 9,
       cursor: cursor ?? null,
     });
