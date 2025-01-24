@@ -77,7 +77,6 @@ export class FeedController {
     status: 200,
     description: '피드 목록 조회 성공',
     type: GetLastestFeedsResponse,
-    isArray: true,
   })
   @UseGuards(OptionalJwtGuard)
   @Get('latest')
@@ -109,7 +108,6 @@ export class FeedController {
     status: 200,
     description: '성공',
     type: TodayPopularFeedResponse,
-    isArray: true,
   })
   @UseGuards(OptionalJwtGuard)
   @Get('today-popular')

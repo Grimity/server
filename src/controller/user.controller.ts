@@ -28,7 +28,7 @@ import {
   MyFollowerDto,
   FollowerDto,
   GetFeedsByUserQuery,
-  UserFeedDto,
+  UserFeedsResponse,
   PopularUserDto,
   UpdateBackgroundImageDto,
 } from 'src/controller/dto/user';
@@ -172,40 +172,40 @@ export class UserController {
 
   @ApiOperation({ summary: '유저별 피드 조회' })
   @ApiQuery({
-    name: 'index',
+    name: 'cursor',
     required: false,
-    default: 0,
-    description: '0부터 시작',
+    description: '없으면 처음부터',
+    type: 'string',
   })
   @ApiQuery({
     name: 'sort',
     required: false,
     default: 'latest',
     description: '정렬 기준 - 대소문자 구분X',
-    enum: ['latest', 'like', 'view', 'oldest'],
+    enum: ['latest', 'like', 'oldest'],
   })
   @ApiQuery({
     name: 'size',
     required: false,
     description: '가져올 피드 개수',
-    default: 12,
+    type: 'number',
+    default: 20,
   })
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: UserFeedDto,
-    isArray: true,
+    type: UserFeedsResponse,
   })
   @Get(':id/feeds')
   async getFeeds(
     @Param('id', ParseUUIDPipe) userId: string,
     @Query() query: GetFeedsByUserQuery,
-  ): Promise<UserFeedDto[]> {
-    const { sort, index, size } = query;
+  ): Promise<UserFeedsResponse> {
+    const { sort, cursor, size } = query;
     return this.userService.getFeedsByUser(userId, {
       sort: sort ?? 'latest',
-      index: index ?? 0,
-      size: size ?? 12,
+      cursor: cursor ?? null,
+      size: size ?? 20,
     });
   }
 

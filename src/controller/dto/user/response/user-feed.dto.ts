@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserFeedDto {
+class UserFeedDto {
   @ApiProperty({ description: '피드 아이디' })
   id: string;
 
@@ -21,4 +21,16 @@ export class UserFeedDto {
 
   @ApiProperty()
   commentCount: number;
+}
+
+export class UserFeedsResponse {
+  @ApiProperty({
+    description: 'null이면 다음데이터 없음',
+    type: 'string',
+    nullable: true,
+  })
+  nextCursor: string | null;
+
+  @ApiProperty({ description: '피드 목록', type: UserFeedDto, isArray: true })
+  feeds: UserFeedDto[];
 }

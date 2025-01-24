@@ -170,23 +170,32 @@ export class UserService {
     });
   }
 
-  async getFeedsByUser(userId: string, getFeedsInput: GetFeedsInput) {
-    const feeds = await this.feedRepository.findManyByUserId(
-      userId,
-      getFeedsInput,
-    );
+  async getFeedsByUser(userId: string, input: GetFeedsInput) {
+    const feeds = await this.feedRepository.findManyByUserId(userId, input);
 
-    return feeds.map((feed) => {
-      return {
-        id: feed.id,
-        title: feed.title,
-        cards: feed.cards,
-        createdAt: feed.createdAt,
-        viewCount: feed.viewCount,
-        likeCount: feed.likeCount,
-        commentCount: feed._count.feedComments,
-      };
-    });
+    let nextCursor: string | null = null;
+    if (feeds.length === input.size) {
+      if (input.sort === 'latest' || input.sort === 'oldest') {
+        nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}_${feeds[feeds.length - 1].id}`;
+      } else {
+        nextCursor = `${feeds[feeds.length - 1].likeCount}_${feeds[feeds.length - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.id,
+          title: feed.title,
+          cards: feed.cards,
+          createdAt: feed.createdAt,
+          viewCount: feed.viewCount,
+          likeCount: feed.likeCount,
+          commentCount: feed._count.feedComments,
+        };
+      }),
+    };
   }
 
   async getPopularUsers() {
@@ -213,7 +222,7 @@ export type UpdateProfileInput = {
 };
 
 type GetFeedsInput = {
-  sort: 'latest' | 'like' | 'view' | 'oldest';
+  sort: 'latest' | 'like' | 'oldest';
   size: number;
-  index: number;
+  cursor: string | null;
 };

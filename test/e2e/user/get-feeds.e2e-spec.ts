@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
 
-describe('GET /users/:id/feeds', () => {
+describe('GET /users/:id/feeds - 유저별 피드조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -43,7 +43,7 @@ describe('GET /users/:id/feeds', () => {
     expect(status).toBe(400);
   });
 
-  it('sort는 latest, like, view, oldest 중 하나여야 한다', async () => {
+  it('sort는 latest, like, oldest 중 하나여야 한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
       .get('/users/00000000-0000-0000-0000-000000000000/feeds?sort=abc')
@@ -76,18 +76,19 @@ describe('GET /users/:id/feeds', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get(`/users/${user.id}/feeds`)
+      .get(`/users/${user.id}/feeds?size=12`)
       .send();
 
     const { status: status2, body: body2 } = await request(app.getHttpServer())
-      .get(`/users/${user.id}/feeds?index=1&size=12`)
+      .get(`/users/${user.id}/feeds?cursor=${body.nextCursor}`)
       .send();
 
     // then
     expect(status).toBe(200);
     expect(status2).toBe(200);
-    expect(body.length).toBe(12);
-    expect(body2.length).toBe(3);
-    expect(body2[0].title).toBe('title2');
+    expect(body.feeds.length).toBe(12);
+    expect(body2.feeds.length).toBe(3);
+    expect(body2.feeds[0].title).toBe('title2');
+    expect(body2.nextCursor).toBeNull();
   });
 });

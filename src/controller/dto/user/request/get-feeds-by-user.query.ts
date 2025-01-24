@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsInt } from 'class-validator';
+import { IsOptional, IsEnum, IsInt, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class GetFeedsByUserQuery {
@@ -7,14 +7,14 @@ export class GetFeedsByUserQuery {
     return value.toLowerCase();
   })
   @IsOptional()
-  @IsEnum(['latest', 'like', 'view', 'oldest'])
-  sort?: 'latest' | 'like' | 'view' | 'oldest';
+  @IsEnum(['latest', 'like', 'oldest'])
+  sort?: 'latest' | 'like' | 'oldest';
 
   @IsOptional()
   @IsInt()
   size?: number;
 
   @IsOptional()
-  @IsInt()
-  index?: number;
+  @IsString()
+  cursor?: string;
 }
