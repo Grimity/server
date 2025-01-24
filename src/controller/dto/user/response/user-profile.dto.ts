@@ -11,6 +11,13 @@ export class UserProfileDto {
   @ApiProperty({ nullable: true, example: 'profile/image.png', type: 'string' })
   image: string | null;
 
+  @ApiProperty({
+    nullable: true,
+    example: 'background/image.png',
+    type: 'string',
+  })
+  backgroundImage: string | null;
+
   @ApiProperty({ description: '빈 문자열 허용' })
   description: string;
 

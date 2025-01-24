@@ -18,6 +18,11 @@ export class UserService {
     return;
   }
 
+  async updateBackgroundImage(userId: string, imageName: string | null) {
+    await this.userRepository.updateBackgroundImage(userId, imageName);
+    return;
+  }
+
   async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
     const { links } = updateProfileInput;
 
@@ -54,6 +59,7 @@ export class UserService {
           link: linkUrl,
         };
       }),
+      backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
       followerCount: user._count.followers,
       followingCount: user._count.followings,
@@ -98,6 +104,7 @@ export class UserService {
       id: targetUser.id,
       name: targetUser.name,
       image: targetUser.image,
+      backgroundImage: targetUser.backgroundImage,
       description: targetUser.description,
       email: targetUser.email.replace(/(.{3})@/, '***@'),
       links: targetUser.links.map((link) => {
@@ -122,6 +129,7 @@ export class UserService {
       name: user.name,
       image: user.image,
       description: user.description,
+      backgroundImage: user.backgroundImage,
       links: user.links.map((link) => {
         const [linkName, linkUrl] = link.split(' ');
         return {

@@ -73,6 +73,18 @@ export class UserRepository {
     return;
   }
 
+  async updateBackgroundImage(userId: string, imageName: string | null) {
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        backgroundImage: imageName,
+      },
+    });
+    return;
+  }
+
   async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
     try {
       await this.prisma.user.update({
@@ -111,6 +123,7 @@ export class UserRepository {
         createdAt: true,
         description: true,
         links: true,
+        backgroundImage: true,
         _count: {
           select: {
             followers: true,
@@ -174,6 +187,7 @@ export class UserRepository {
           id: true,
           name: true,
           image: true,
+          backgroundImage: true,
           description: true,
           links: true,
           email: true,

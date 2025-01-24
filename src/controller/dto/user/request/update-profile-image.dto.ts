@@ -1,7 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsString,
-  IsNotEmpty,
   ValidatorConstraint,
   ValidatorConstraintInterface,
   Validate,
@@ -24,8 +22,6 @@ export class IsProfileImage implements ValidatorConstraintInterface {
 
 export class UpdateProfileImageDto {
   @ApiProperty({ example: 'profile/{UUID}.jpg' })
-  @IsString()
-  @IsNotEmpty()
   @Validate(IsProfileImage)
   imageName: string;
 }
