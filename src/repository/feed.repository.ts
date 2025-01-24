@@ -299,24 +299,98 @@ export class FeedRepository {
 
   async findManyByUserId(
     userId: string,
-    { sort, size, index }: FindFeedsByUserInput,
+    { sort, size, cursor }: FindFeedsByUserInput,
   ) {
-    const orderBy: Prisma.FeedOrderByWithRelationInput = {};
+    let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
+    const where: Prisma.FeedWhereInput = {
+      authorId: userId,
+    };
+    let sortCursor: string | null = null;
+    let idCursor: string | null = null;
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2) {
+        throw new HttpException('invalid cursor', 400);
+      }
+      sortCursor = arr[0];
+      idCursor = arr[1];
+    }
     if (sort === 'latest') {
-      orderBy.createdAt = 'desc';
+      orderBy = [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ];
+      if (sortCursor && idCursor) {
+        where.OR = [
+          {
+            createdAt: {
+              lt: new Date(sortCursor),
+            },
+          },
+          {
+            createdAt: new Date(sortCursor),
+            id: {
+              lt: idCursor,
+            },
+          },
+        ];
+      }
     } else if (sort === 'like') {
-      orderBy.likeCount = 'desc';
-    } else if (sort === 'view') {
-      orderBy.viewCount = 'desc';
+      orderBy = [
+        {
+          likeCount: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ];
+      if (sortCursor && idCursor) {
+        where.OR = [
+          {
+            likeCount: {
+              lt: Number(sortCursor),
+            },
+          },
+          {
+            likeCount: Number(sortCursor),
+            id: {
+              lt: idCursor,
+            },
+          },
+        ];
+      }
     } else {
-      orderBy.createdAt = 'asc';
+      orderBy = [
+        {
+          createdAt: 'asc',
+        },
+        {
+          id: 'desc',
+        },
+      ];
+      if (sortCursor && idCursor) {
+        where.OR = [
+          {
+            createdAt: {
+              gt: new Date(sortCursor),
+            },
+          },
+          {
+            createdAt: new Date(sortCursor),
+            id: {
+              lt: idCursor,
+            },
+          },
+        ];
+      }
     }
 
     return await this.prisma.feed.findMany({
-      where: {
-        authorId: userId,
-      },
-      skip: index * size,
+      where,
       take: size,
       orderBy,
       select: {
@@ -332,55 +406,6 @@ export class FeedRepository {
           },
         },
       },
-    });
-  }
-
-  async findManyByUserIdWithCursor(
-    userId: string,
-    cursor: {
-      lastId: string;
-      sort: 'latest' | 'like' | 'view' | 'oldest';
-      size: number;
-    },
-  ) {
-    let orderBy: Prisma.FeedOrderByWithRelationInput;
-
-    if (cursor.sort === 'latest') {
-      orderBy = {
-        createdAt: 'desc',
-      };
-    } else if (cursor.sort === 'like') {
-      orderBy = {
-        likeCount: 'desc',
-      };
-    } else if (cursor.sort === 'view') {
-      orderBy = {
-        viewCount: 'desc',
-      };
-    } else {
-      orderBy = {
-        createdAt: 'asc',
-      };
-    }
-    return await this.prisma.feed.findMany({
-      where: {
-        authorId: userId,
-      },
-      orderBy,
-      select: {
-        id: true,
-        title: true,
-        cards: true,
-        createdAt: true,
-        viewCount: true,
-        likeCount: true,
-        _count: {
-          select: {
-            feedComments: true,
-          },
-        },
-      },
-      take: 12,
     });
   }
 
@@ -622,7 +647,7 @@ type GetFeedsInput = {
 };
 
 type FindFeedsByUserInput = {
-  sort: 'latest' | 'like' | 'view' | 'oldest';
+  sort: 'latest' | 'like' | 'oldest';
   size: number;
-  index: number;
+  cursor: string | null;
 };
