@@ -85,6 +85,7 @@ describe('GET /users/me', () => {
       email: 'test@test.com',
       name: 'test',
       image: 'profile/test.png',
+      backgroundImage: null,
       description: 'test',
       links: [{ linkName: 'test1', link: 'https://test1.com' }],
       createdAt: expect.any(String),

@@ -123,6 +123,7 @@ export class UserRepository {
         createdAt: true,
         description: true,
         links: true,
+        backgroundImage: true,
         _count: {
           select: {
             followers: true,

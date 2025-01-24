@@ -59,6 +59,7 @@ export class UserService {
           link: linkUrl,
         };
       }),
+      backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
       followerCount: user._count.followers,
       followingCount: user._count.followings,

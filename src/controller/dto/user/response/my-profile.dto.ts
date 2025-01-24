@@ -21,6 +21,13 @@ export class MyProfileDto {
   })
   image: string | null;
 
+  @ApiProperty({
+    description: '배경 이미지',
+    example: 'background/{UUID}.jpg',
+    nullable: true,
+  })
+  backgroundImage: string | null;
+
   @ApiProperty({ description: '자기소개, not null인데 빈문자열 허용' })
   description: string;
 
