@@ -18,6 +18,11 @@ export class UserService {
     return;
   }
 
+  async updateBackgroundImage(userId: string, imageName: string | null) {
+    await this.userRepository.updateBackgroundImage(userId, imageName);
+    return;
+  }
+
   async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
     const { links } = updateProfileInput;
 

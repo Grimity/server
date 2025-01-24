@@ -30,6 +30,7 @@ import {
   GetFeedsByUserQuery,
   UserFeedDto,
   PopularUserDto,
+  UpdateBackgroundImageDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -86,6 +87,31 @@ export class UserController {
   @Delete('me/image')
   async deleteProfileImage(@CurrentUser() userId: string) {
     await this.userService.updateProfileImage(userId, null);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '배경사진 변경' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('me/background')
+  async updateBackgroundImage(
+    @CurrentUser() userId: string,
+    @Body() { imageName }: UpdateBackgroundImageDto,
+  ) {
+    await this.userService.updateBackgroundImage(userId, imageName);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '배경사진 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('me/background')
+  async deleteBackgroundImage(@CurrentUser() userId: string) {
+    await this.userService.updateBackgroundImage(userId, null);
     return;
   }
 

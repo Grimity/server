@@ -3,10 +3,13 @@ import { IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class GetImageUploadUrlDto {
-  @ApiProperty({ enum: ['PROFILE', 'FEED'] })
+  @ApiProperty({
+    enum: ['PROFILE', 'FEED', 'BACKGROUND'],
+    description: '대소문자 구분 없습니다',
+  })
   @Transform(({ value }) => value.toLowerCase())
-  @IsEnum(['profile', 'feed'])
-  type: 'profile' | 'feed';
+  @IsEnum(['profile', 'feed', 'background'])
+  type: 'profile' | 'feed' | 'background';
 
   @ApiProperty({ enum: ['jpg', 'jpeg', 'png', 'gif'] })
   @IsEnum(['jpg', 'jpeg', 'png', 'gif'])
