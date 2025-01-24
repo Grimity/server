@@ -8,14 +8,15 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid()) @db.Uuid
-  provider    String
-  providerId  String
-  email       String
-  name        String   @unique
-  image       String?
-  description String   @default("")
-  links       String[]
+  id              String   @id @default(uuid()) @db.Uuid
+  provider        String
+  providerId      String
+  email           String
+  name            String   @unique
+  image           String?
+  description     String   @default("")
+  backgroundImage String?
+  links           String[]
 
   createdAt DateTime @default(now())
 
