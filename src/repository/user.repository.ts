@@ -187,6 +187,7 @@ export class UserRepository {
           id: true,
           name: true,
           image: true,
+          backgroundImage: true,
           description: true,
           links: true,
           email: true,

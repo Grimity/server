@@ -104,6 +104,7 @@ export class UserService {
       id: targetUser.id,
       name: targetUser.name,
       image: targetUser.image,
+      backgroundImage: targetUser.backgroundImage,
       description: targetUser.description,
       email: targetUser.email.replace(/(.{3})@/, '***@'),
       links: targetUser.links.map((link) => {
@@ -128,6 +129,7 @@ export class UserService {
       name: user.name,
       image: user.image,
       description: user.description,
+      backgroundImage: user.backgroundImage,
       links: user.links.map((link) => {
         const [linkName, linkUrl] = link.split(' ');
         return {
