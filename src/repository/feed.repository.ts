@@ -526,7 +526,85 @@ export class FeedRepository {
       select,
     });
   }
+
+  async findFollowingFeeds({
+    userId,
+    size,
+    lastCreatedAt,
+    lastId,
+  }: FindFollowingFeedsInput) {
+    const where: Prisma.FeedWhereInput = {
+      author: {
+        followers: {
+          some: {
+            followerId: userId,
+          },
+        },
+      },
+    };
+
+    if (lastCreatedAt && lastId) {
+      where.OR = [
+        {
+          createdAt: {
+            lt: lastCreatedAt,
+          },
+        },
+        {
+          createdAt: lastCreatedAt,
+          id: {
+            lt: lastId,
+          },
+        },
+      ];
+    }
+
+    return await this.prisma.feed.findMany({
+      where,
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      take: size,
+      select: {
+        id: true,
+        title: true,
+        cards: true,
+        content: true,
+        createdAt: true,
+        viewCount: true,
+        likeCount: true,
+        _count: {
+          select: {
+            feedComments: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        likes: {
+          where: {
+            userId,
+          },
+        },
+      },
+    });
+  }
 }
+type FindFollowingFeedsInput = {
+  userId: string;
+  size: number;
+  lastCreatedAt: Date | null;
+  lastId: string | null;
+};
 
 type CreateFeedInput = {
   title: string;

@@ -193,6 +193,55 @@ export class FeedService {
           : null,
     };
   }
+
+  async getFollowingFeeds(
+    userId: string,
+    {
+      size,
+      cursor,
+    }: {
+      size: number;
+      cursor: string | null;
+    },
+  ) {
+    let lastCreatedAt: Date | null = null;
+    let lastId: string | null = null;
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2) {
+        throw new HttpException('Invalid cursor', 400);
+      }
+      lastCreatedAt = new Date(arr[0]);
+      lastId = arr[1];
+    }
+    const feeds = await this.feedRepository.findFollowingFeeds({
+      userId,
+      lastCreatedAt,
+      lastId,
+      size,
+    });
+
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.id,
+          title: feed.title,
+          cards: feed.cards,
+          content: feed.content,
+          createdAt: feed.createdAt,
+          viewCount: feed.viewCount,
+          likeCount: feed.likeCount,
+          commentCount: feed._count.feedComments,
+          author: feed.author,
+          isLike: feed.likes?.length === 1,
+        };
+      }),
+    };
+  }
 }
 
 export type CreateFeedInput = {
