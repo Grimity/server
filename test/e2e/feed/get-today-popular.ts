@@ -48,24 +48,33 @@ describe('GET /feeds/hot', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      '/feeds/hot',
+      '/feeds/today-popular?size=8',
     );
+
+    const { status: status2, body: body2 } = await request(
+      app.getHttpServer(),
+    ).get(`/feeds/today-popular?size=20&cursor=${body.nextCursor}`);
 
     // then
     expect(status).toBe(200);
-    expect(body).toHaveLength(7);
-    expect(body[0]).toEqual({
+    expect(body.feeds).toHaveLength(8);
+    expect(body.feeds[0]).toEqual({
       id: expect.any(String),
       title: 'test19',
       likeCount: 19,
       cards: [],
       createdAt: expect.any(String),
       viewCount: 0,
+      commentCount: 0,
       author: {
         id: user.id,
         image: null,
         name: 'test',
       },
     });
+
+    expect(status2).toBe(200);
+    expect(body2.feeds).toHaveLength(12);
+    expect(body2.nextCursor).toBeNull();
   });
 });

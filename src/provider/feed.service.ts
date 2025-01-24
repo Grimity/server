@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { AwsService } from './aws.service';
 
@@ -137,8 +137,45 @@ export class FeedService {
     });
   }
 
-  async getHotFeeds() {
-    return await this.feedRepository.findManyHot();
+  async getTodayPopular({
+    size,
+    cursor,
+  }: {
+    size: number;
+    cursor: string | null;
+  }) {
+    let parsedCursor: [number, string] | null = null;
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2) {
+        throw new HttpException('Invalid cursor', 400);
+      }
+      parsedCursor = [Number(arr[0]), arr[1]];
+    }
+    const feeds = await this.feedRepository.findTodayPopular({
+      size,
+      likeCount: parsedCursor ? parsedCursor[0] : null,
+      feedId: parsedCursor ? parsedCursor[1] : null,
+    });
+
+    return {
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.id,
+          title: feed.title,
+          cards: feed.cards,
+          createdAt: feed.createdAt,
+          viewCount: feed.viewCount,
+          likeCount: feed.likeCount,
+          commentCount: feed._count.feedComments,
+          author: feed.author,
+        };
+      }),
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].likeCount}_${feeds[size - 1].id}`
+          : null,
+    };
   }
 }
 

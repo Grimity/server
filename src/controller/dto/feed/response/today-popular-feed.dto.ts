@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AuthorSimpleDto } from './get-feeds-response.dto';
 
-export class HotFeedDto {
+export class TodayPopularFeedDto {
   @ApiProperty()
   id: string;
 
@@ -20,6 +20,21 @@ export class HotFeedDto {
   @ApiProperty()
   likeCount: number;
 
+  @ApiProperty()
+  commentCount: number;
+
   @ApiProperty({ type: AuthorSimpleDto })
   author: AuthorSimpleDto;
+}
+
+export class TodayPopularFeedResponse {
+  @ApiProperty({ type: TodayPopularFeedDto, isArray: true })
+  feeds: TodayPopularFeedDto[];
+
+  @ApiProperty({
+    type: 'string',
+    nullable: true,
+    description: 'cursor가 null이면 다음데이터는 없습니다',
+  })
+  nextCursor: string | null;
 }

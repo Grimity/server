@@ -26,7 +26,8 @@ import {
   UpdateFeedDto,
   GetFeedsQuery,
   GetFeedsResponseDto,
-  HotFeedDto,
+  GetTodayPopularQuery,
+  TodayPopularFeedResponse,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -102,16 +103,33 @@ export class FeedController {
     });
   }
 
-  @ApiOperation({ summary: '핫한 피드 조회, 7개만 반환' })
+  @ApiOperation({ summary: '오늘의 인기 랭킹 조회' })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 9,
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    type: 'string',
+    description: '없으면 처음부터',
+  })
   @ApiResponse({
     status: 200,
     description: '핫한 피드 조회 성공',
-    type: HotFeedDto,
+    type: TodayPopularFeedResponse,
     isArray: true,
   })
-  @Get('hot')
-  async getHotFeeds(): Promise<HotFeedDto[]> {
-    return await this.feedService.getHotFeeds();
+  @Get('today-popular')
+  async getHotFeeds(
+    @Query() { size, cursor }: GetTodayPopularQuery,
+  ): Promise<TodayPopularFeedResponse> {
+    return await this.feedService.getTodayPopular({
+      size: size ?? 9,
+      cursor: cursor ?? null,
+    });
   }
 
   @ApiBearerAuth()

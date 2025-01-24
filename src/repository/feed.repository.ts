@@ -456,17 +456,48 @@ export class FeedRepository {
     });
   }
 
-  async findManyHot() {
-    return await this.prisma.feed.findMany({
-      where: {
-        createdAt: {
-          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+  async findTodayPopular({
+    size,
+    likeCount,
+    feedId,
+  }: {
+    size: number;
+    likeCount: number | null;
+    feedId: string | null;
+  }) {
+    const where: Prisma.FeedWhereInput = {
+      createdAt: {
+        gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+      },
+    };
+
+    // cursor
+    if (likeCount !== null && feedId !== null) {
+      where.OR = [
+        {
+          likeCount: {
+            lt: likeCount,
+          },
         },
-      },
-      orderBy: {
-        likeCount: 'desc',
-      },
-      take: 7,
+        {
+          likeCount,
+          id: {
+            lt: feedId,
+          },
+        },
+      ];
+    }
+    return await this.prisma.feed.findMany({
+      where,
+      orderBy: [
+        {
+          likeCount: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      take: size,
       select: {
         id: true,
         title: true,
@@ -474,6 +505,11 @@ export class FeedRepository {
         createdAt: true,
         viewCount: true,
         likeCount: true,
+        _count: {
+          select: {
+            feedComments: true,
+          },
+        },
         author: {
           select: {
             id: true,
