@@ -89,8 +89,6 @@ describe('GET /users/me', () => {
       description: 'test',
       links: [{ linkName: 'test1', link: 'https://test1.com' }],
       createdAt: expect.any(String),
-      followerCount: 0,
-      followingCount: 1,
       hasNotification: false,
     });
 

@@ -61,8 +61,6 @@ export class UserService {
       }),
       backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
-      followerCount: user._count.followers,
-      followingCount: user._count.followings,
       hasNotification,
     };
   }
