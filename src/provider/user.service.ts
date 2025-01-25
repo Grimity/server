@@ -146,30 +146,6 @@ export class UserService {
     };
   }
 
-  async getFollowers(userId: string) {
-    const results = await this.userRepository.findFollowers(userId);
-    return results.map((result) => {
-      return {
-        id: result.follower.id,
-        name: result.follower.name,
-        image: result.follower.image,
-        followerCount: result.follower._count.followers,
-      };
-    });
-  }
-
-  async getFollowings(userId: string) {
-    const results = await this.userRepository.findFollowings(userId);
-    return results.map((result) => {
-      return {
-        id: result.following.id,
-        name: result.following.name,
-        image: result.following.image,
-        followerCount: result.following._count.followers,
-      };
-    });
-  }
-
   async getFeedsByUser(userId: string, input: GetFeedsInput) {
     const feeds = await this.feedRepository.findManyByUserId(userId, input);
 

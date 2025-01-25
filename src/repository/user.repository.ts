@@ -241,50 +241,6 @@ export class UserRepository {
     `) as MyFollower[];
   }
 
-  async findFollowers(userId: string) {
-    return await this.prisma.follow.findMany({
-      where: {
-        followingId: userId,
-      },
-      select: {
-        follower: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            _count: {
-              select: {
-                followers: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  async findFollowings(userId: string) {
-    return await this.prisma.follow.findMany({
-      where: {
-        followerId: userId,
-      },
-      select: {
-        following: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            _count: {
-              select: {
-                followers: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
   async findPopular() {
     return await this.prisma.user.findMany({
       orderBy: {
