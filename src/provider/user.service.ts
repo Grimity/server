@@ -90,8 +90,66 @@ export class UserService {
     return this.getUserProfileWithoutLogin(targetUserId);
   }
 
-  async getMyFollowers(userId: string) {
-    return await this.userRepository.findMyFollowers(userId);
+  async getMyFollowers(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const followers = await this.userRepository.findMyFollowers(userId, {
+      cursor,
+      size,
+    });
+
+    return {
+      nextCursor:
+        followers.length === size
+          ? followers[followers.length - 1].follower.id
+          : null,
+      followers: followers.map((follower) => {
+        return {
+          id: follower.follower.id,
+          name: follower.follower.name,
+          image: follower.follower.image,
+          description: follower.follower.description,
+        };
+      }),
+    };
+  }
+
+  async getMyFollowings(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const followings = await this.userRepository.findMyFollowings(userId, {
+      cursor,
+      size,
+    });
+
+    return {
+      nextCursor:
+        followings.length === size
+          ? followings[followings.length - 1].following.id
+          : null,
+      followings: followings.map((following) => {
+        return {
+          id: following.following.id,
+          name: following.following.name,
+          image: following.following.image,
+          description: following.following.description,
+        };
+      }),
+    };
   }
 
   async getUserProfileWithLogin(userId: string, targetUserId: string) {
@@ -144,30 +202,6 @@ export class UserService {
       feedCount: user._count.feeds,
       isFollowing: false,
     };
-  }
-
-  async getFollowers(userId: string) {
-    const results = await this.userRepository.findFollowers(userId);
-    return results.map((result) => {
-      return {
-        id: result.follower.id,
-        name: result.follower.name,
-        image: result.follower.image,
-        followerCount: result.follower._count.followers,
-      };
-    });
-  }
-
-  async getFollowings(userId: string) {
-    const results = await this.userRepository.findFollowings(userId);
-    return results.map((result) => {
-      return {
-        id: result.following.id,
-        name: result.following.name,
-        image: result.following.image,
-        followerCount: result.following._count.followers,
-      };
-    });
   }
 
   async getFeedsByUser(userId: string, input: GetFeedsInput) {
