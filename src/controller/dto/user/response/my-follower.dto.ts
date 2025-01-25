@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class MyFollowerDto {
+class MyFollowerDto {
   @ApiProperty({ description: '팔로워의 ID' })
   id: string;
 
@@ -15,9 +15,18 @@ export class MyFollowerDto {
   })
   image: string | null;
 
-  @ApiProperty({ description: '팔로워의 팔로워 수' })
-  followerCount: number;
+  @ApiProperty({ description: 'not null인데 빈문자열은 허용' })
+  description: string;
+}
 
-  @ApiProperty({ description: '내가 해당 팔로워를 팔로우 중인지 여부' })
-  isFollowing: boolean;
+export class MyFollowerResponse {
+  @ApiProperty({
+    description: '다음 데이터가 있는 경우 다음 페이지의 커서',
+    type: 'string',
+    nullable: true,
+  })
+  nextCursor: string | null;
+
+  @ApiProperty({ description: '팔로워 목록', type: [MyFollowerDto] })
+  followers: MyFollowerDto[];
 }

@@ -90,8 +90,35 @@ export class UserService {
     return this.getUserProfileWithoutLogin(targetUserId);
   }
 
-  async getMyFollowers(userId: string) {
-    return await this.userRepository.findMyFollowers(userId);
+  async getMyFollowers(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const followers = await this.userRepository.findMyFollowers(userId, {
+      cursor,
+      size,
+    });
+
+    return {
+      nextCursor:
+        followers.length === size
+          ? followers[followers.length - 1].follower.id
+          : null,
+      followers: followers.map((follower) => {
+        return {
+          id: follower.follower.id,
+          name: follower.follower.name,
+          image: follower.follower.image,
+          description: follower.follower.description,
+        };
+      }),
+    };
   }
 
   async getUserProfileWithLogin(userId: string, targetUserId: string) {

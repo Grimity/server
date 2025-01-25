@@ -22,10 +22,11 @@ import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   UpdateProfileImageDto,
+  GetMyFollowersQuery,
   UpdateProfileDto,
   MyProfileDto,
   UserProfileDto,
-  MyFollowerDto,
+  MyFollowerResponse,
   GetFeedsByUserQuery,
   UserFeedsResponse,
   PopularUserDto,
@@ -116,18 +117,33 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 조회' })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: '없으면 처음부터',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 20,
+  })
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: MyFollowerDto,
-    isArray: true,
+    type: MyFollowerResponse,
   })
   @UseGuards(JwtGuard)
   @Get('me/followers')
   async getMyFollowers(
     @CurrentUser() userId: string,
-  ): Promise<MyFollowerDto[]> {
-    return this.userService.getMyFollowers(userId);
+    @Query() query: GetMyFollowersQuery,
+  ): Promise<MyFollowerResponse> {
+    return this.userService.getMyFollowers(userId, {
+      cursor: query.cursor ?? null,
+      size: query.size ?? 20,
+    });
   }
 
   @ApiBearerAuth()

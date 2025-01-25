@@ -223,22 +223,41 @@ export class UserRepository {
     return !!follow;
   }
 
-  async findMyFollowers(userId: string) {
-    return (await this.prisma.$queryRaw`
-      select
-        u.id,
-        u.name,
-        u.image,
-        cast((select count(*) from "Follow" where "followingId" = u.id) as integer) as "followerCount",
-        exists (
-          select 1
-          from "Follow"
-          where "followerId" = ${userId}::uuid and "followingId" = u.id
-        ) as "isFollowing"
-      from "User" u
-      join "Follow" f on u.id = f."followerId"
-      where f."followingId" = ${userId}::uuid;
-    `) as MyFollower[];
+  async findMyFollowers(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const where: Prisma.FollowWhereInput = {
+      followingId: userId,
+    };
+    if (cursor) {
+      where.followerId = {
+        lt: cursor,
+      };
+    }
+    return await this.prisma.follow.findMany({
+      where,
+      take: size,
+      orderBy: {
+        followerId: 'desc',
+      },
+      select: {
+        follower: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            description: true,
+          },
+        },
+      },
+    });
   }
 
   async findPopular() {

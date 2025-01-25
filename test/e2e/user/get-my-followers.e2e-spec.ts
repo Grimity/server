@@ -90,14 +90,16 @@ describe('GET /users/me/followers', () => {
 
     // then
     expect(status).toBe(200);
-    expect(body).toHaveLength(2);
-    const test2User = body.find((follower: any) => follower.id === user2.id);
+    expect(body.followers).toHaveLength(2);
+    expect(body.nextCursor).toBeNull();
+    const test2User = body.followers.find(
+      (follower: any) => follower.id === user2.id,
+    );
     expect(test2User).toEqual({
       id: user2.id,
       name: 'test2',
       image: null,
-      followerCount: 1,
-      isFollowing: true,
+      description: '',
     });
 
     // cleanup
