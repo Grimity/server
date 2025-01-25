@@ -29,7 +29,7 @@ export class UpdateProfileDto {
 
   @ApiProperty({ description: '없으면 빈 문자열 주세요' })
   @IsString()
-  @Length(0, 50)
+  @Length(0, 200)
   description: string;
 
   @ApiProperty({
