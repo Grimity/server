@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /users/me/followers - 내 팔로워 조회', () => {
+describe('GET /users/me/followings - 내 팔로잉 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,14 +30,35 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get('/users/me/followers')
+      .get('/users/me/followings')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('팔로워 목록을 가져온다', async () => {
+  it('cursor가 있을때 uuid가 아닌 경우 400을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .get('/users/me/followings?cursor=invalid')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(400);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('200과 함께 팔로잉 목록을 조회한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -46,16 +67,17 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
-    const [user2] = await Promise.all([
+
+    await Promise.all([
       prisma.user.create({
         data: {
           provider: 'KAKAO',
           providerId: 'test2',
           email: 'test@test.com',
           name: 'test2',
-          followings: {
+          followers: {
             create: {
-              followingId: user.id,
+              followerId: user.id,
             },
           },
         },
@@ -66,9 +88,9 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
           providerId: 'test3',
           email: 'test@test.com',
           name: 'test3',
-          followings: {
+          followers: {
             create: {
-              followingId: user.id,
+              followerId: user.id,
             },
           },
         },
@@ -77,23 +99,14 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get('/users/me/followers')
+      .get('/users/me/followings?size=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(200);
-    expect(body.followers).toHaveLength(2);
-    expect(body.nextCursor).toBeNull();
-    const test2User = body.followers.find(
-      (follower: any) => follower.id === user2.id,
-    );
-    expect(test2User).toEqual({
-      id: user2.id,
-      name: 'test2',
-      image: null,
-      description: '',
-    });
+    expect(body.nextCursor).toBeDefined();
+    expect(body.followings).toHaveLength(1);
 
     // cleanup
     spy.mockRestore();
