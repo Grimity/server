@@ -260,6 +260,43 @@ export class UserRepository {
     });
   }
 
+  async findMyFollowings(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const where: Prisma.FollowWhereInput = {
+      followerId: userId,
+    };
+    if (cursor) {
+      where.followingId = {
+        lt: cursor,
+      };
+    }
+    return await this.prisma.follow.findMany({
+      where,
+      take: size,
+      orderBy: {
+        followingId: 'desc',
+      },
+      select: {
+        following: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            description: true,
+          },
+        },
+      },
+    });
+  }
+
   async findPopular() {
     return await this.prisma.user.findMany({
       orderBy: {

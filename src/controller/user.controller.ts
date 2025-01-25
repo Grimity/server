@@ -23,6 +23,7 @@ import { CurrentUser } from 'src/common/decorator';
 import {
   UpdateProfileImageDto,
   GetMyFollowersQuery,
+  GetMyFollowingsQuery,
   UpdateProfileDto,
   MyProfileDto,
   UserProfileDto,
@@ -31,6 +32,7 @@ import {
   UserFeedsResponse,
   PopularUserDto,
   UpdateBackgroundImageDto,
+  MyFollowingResponse,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -141,6 +143,37 @@ export class UserController {
     @Query() query: GetMyFollowersQuery,
   ): Promise<MyFollowerResponse> {
     return this.userService.getMyFollowers(userId, {
+      cursor: query.cursor ?? null,
+      size: query.size ?? 20,
+    });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내 팔로잉 조회' })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: '없으면 처음부터',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 20,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyFollowingResponse,
+  })
+  @UseGuards(JwtGuard)
+  @Get('me/followings')
+  async getMyFollowings(
+    @CurrentUser() userId: string,
+    @Query() query: GetMyFollowingsQuery,
+  ): Promise<MyFollowingResponse> {
+    return this.userService.getMyFollowings(userId, {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
     });

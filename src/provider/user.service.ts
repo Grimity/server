@@ -121,6 +121,37 @@ export class UserService {
     };
   }
 
+  async getMyFollowings(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const followings = await this.userRepository.findMyFollowings(userId, {
+      cursor,
+      size,
+    });
+
+    return {
+      nextCursor:
+        followings.length === size
+          ? followings[followings.length - 1].following.id
+          : null,
+      followings: followings.map((following) => {
+        return {
+          id: following.following.id,
+          name: following.following.name,
+          image: following.following.image,
+          description: following.following.description,
+        };
+      }),
+    };
+  }
+
   async getUserProfileWithLogin(userId: string, targetUserId: string) {
     const [targetUser, isFollowing] = await Promise.all([
       this.userRepository.getUserProfile(targetUserId),
