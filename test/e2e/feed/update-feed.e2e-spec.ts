@@ -98,6 +98,7 @@ describe('PUT /feeds/:id', () => {
           content: 'content1',
           authorId: user.id,
           cards: ['feed/test.jpg', 'feed/test2.jpg'],
+          thumbnail: 'feed/test.jpg',
           tags: {
             createMany: {
               data: [
@@ -115,6 +116,7 @@ describe('PUT /feeds/:id', () => {
           title: 'feed2',
           content: 'content2',
           authorId: user.id,
+          thumbnail: 'feed/test.jpg',
           tags: {
             createMany: {
               data: [
@@ -139,6 +141,7 @@ describe('PUT /feeds/:id', () => {
         isAI: true,
         cards: ['feed/test3.jpg'],
         tags: ['tag1', 'tag2', 'tag3'],
+        thumbnail: 'feed/test3.jpg',
       });
 
     // then
@@ -162,6 +165,7 @@ describe('PUT /feeds/:id', () => {
       'tag3',
     ]);
     expect(tagCount).toBe(7);
+    expect(updatedFeed.thumbnail).toBe('feed/test3.jpg');
 
     // cleanup
     spy.mockRestore();
