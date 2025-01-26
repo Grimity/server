@@ -202,7 +202,7 @@ describe('PUT /users/me', () => {
     const user = await prisma.user.findFirstOrThrow();
     expect(user.name).toBe('test2');
     expect(user.description).toBe('test');
-    expect(user.links).toEqual(['test https://test.com']);
+    expect(user.links).toEqual(['test|~|https://test.com']);
 
     // cleanup
     spy.mockRestore();
@@ -338,7 +338,7 @@ describe('PUT /users/me', () => {
     const user = await prisma.user.findFirstOrThrow();
     expect(user.name).toBe('test2');
     expect(user.description).toBe('test');
-    expect(user.links).toEqual(['test https://test.com']);
+    expect(user.links).toEqual(['t e s t|~|https://test.com']);
 
     // cleanup
     spy.mockRestore();

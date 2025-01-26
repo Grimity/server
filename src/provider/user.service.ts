@@ -29,7 +29,7 @@ export class UserService {
     let transformedLinks: string[] = [];
     if (links.length > 0) {
       transformedLinks = links.map(({ linkName, link }) => {
-        return `${linkName.replaceAll(' ', '')} ${link.trim()}`;
+        return `${linkName.trim()}|~|${link.trim()}`;
       });
     }
     await this.userRepository.updateProfile(userId, {
@@ -53,7 +53,7 @@ export class UserService {
       image: user.image,
       description: user.description,
       links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split(' ');
+        const [linkName, linkUrl] = link.split('|~|');
         return {
           linkName,
           link: linkUrl,
@@ -162,9 +162,8 @@ export class UserService {
       image: targetUser.image,
       backgroundImage: targetUser.backgroundImage,
       description: targetUser.description,
-      email: targetUser.email.replace(/(.{3})@/, '***@'),
       links: targetUser.links.map((link) => {
-        const [linkName, linkUrl] = link.split(' ');
+        const [linkName, linkUrl] = link.split('|~|');
         return {
           linkName,
           link: linkUrl,
@@ -187,14 +186,12 @@ export class UserService {
       description: user.description,
       backgroundImage: user.backgroundImage,
       links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split(' ');
+        const [linkName, linkUrl] = link.split('|~|');
         return {
           linkName,
           link: linkUrl,
         };
       }),
-      // 이메일 골뱅이앞 3자리 별표
-      email: user.email.replace(/(.{3})@/, '***@'),
       followerCount: user._count.followers,
       followingCount: user._count.followings,
       feedCount: user._count.feeds,

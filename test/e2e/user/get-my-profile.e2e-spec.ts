@@ -51,7 +51,7 @@ describe('GET /users/me', () => {
       data: {
         description: 'test',
         image: 'profile/test.png',
-        links: ['test1 https://test1.com'],
+        links: ['test1|~|https://test1.com'],
       },
     });
 

@@ -184,7 +184,6 @@ export class UserRepository {
           backgroundImage: true,
           description: true,
           links: true,
-          email: true,
           _count: {
             select: {
               followers: true,
