@@ -67,6 +67,7 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
         authorId: user.id,
         title: 'test',
         content: 'test',
+        thumbnail: 'test',
         likes: {
           create: {
             userId: me.id,
@@ -81,11 +82,13 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
           authorId: user.id,
           title: 'test',
           content: 'test',
+          thumbnail: 'test',
         },
         {
           authorId: user.id,
           title: 'test',
           content: 'test',
+          thumbnail: 'test',
         },
       ],
     });

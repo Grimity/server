@@ -64,6 +64,7 @@ describe('GET /feeds/:feedId', () => {
         content: 'content',
         isAI: false,
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
         tags: {
           createMany: {
             data: [{ tagName: 'tag1' }, { tagName: 'tag2' }],
@@ -128,6 +129,7 @@ describe('GET /feeds/:feedId', () => {
         content: 'content',
         isAI: false,
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
         tags: {
           createMany: {
             data: [{ tagName: 'tag1' }, { tagName: 'tag2' }],

@@ -42,6 +42,7 @@ describe('GET /feeds/hot', () => {
           content: `test${i}`,
           isAI: false,
           likeCount: i,
+          thumbnail: 'test',
         };
       }),
     });

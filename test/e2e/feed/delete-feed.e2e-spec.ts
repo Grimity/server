@@ -98,6 +98,7 @@ describe('DELETE /feeds/:id', () => {
         content: 'test',
         isAI: false,
         cards: ['feed/test.jpg'],
+        thumbnail: 'test',
       },
     });
 
