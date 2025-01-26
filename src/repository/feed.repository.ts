@@ -604,6 +604,7 @@ export class FeedRepository {
         id: true,
         title: true,
         cards: true,
+        thumbnail: true,
         content: true,
         createdAt: true,
         viewCount: true,

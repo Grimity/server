@@ -233,6 +233,7 @@ export class FeedService {
           id: feed.id,
           title: feed.title,
           cards: feed.cards,
+          thumbnail: feed.thumbnail,
           content: feed.content,
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
