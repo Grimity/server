@@ -239,6 +239,7 @@ describe('POST /feeds', () => {
       content: '',
       isAI: false,
       cards: ['feed/test.jpg'],
+      thumbnail: null,
       tags: [
         {
           feedId: body.id,
