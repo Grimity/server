@@ -225,6 +225,7 @@ export class UserService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           commentCount: feed._count.feedComments,
+          thumbnail: feed.thumbnail,
         };
       }),
     };

@@ -45,7 +45,10 @@ export class UpdateFeedDto {
   @Validate(IsFeedTag, { each: true })
   tags: string[];
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'feed/{UUID}.jpg',
+    description: '썸네일로 사용할 이미지명',
+  })
   @Validate(IsFeedCard)
   thumbnail: string;
 }

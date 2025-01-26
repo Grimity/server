@@ -101,6 +101,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 1,
+      thumbnail: 'test',
       commentCount: 1,
       isLike: true,
       author: {
