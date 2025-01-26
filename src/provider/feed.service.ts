@@ -28,6 +28,7 @@ export class FeedService {
       id: feed.id,
       title: feed.title,
       cards: feed.cards,
+      thumbnail: feed.thumbnail,
       isAI: feed.isAI,
       createdAt: feed.createdAt,
       viewCount: feed.viewCount,
@@ -53,6 +54,7 @@ export class FeedService {
       id: feed.id,
       title: feed.title,
       cards: feed.cards,
+      thumbnail: feed.thumbnail,
       isAI: feed.isAI,
       createdAt: feed.createdAt,
       viewCount: feed.viewCount,
@@ -138,6 +140,7 @@ export class FeedService {
           id: feed.id,
           title: feed.title,
           cards: feed.cards,
+          thumbnail: feed.thumbnail,
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
@@ -179,6 +182,7 @@ export class FeedService {
           id: feed.id,
           title: feed.title,
           cards: feed.cards,
+          thumbnail: feed.thumbnail,
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
@@ -231,6 +235,7 @@ export class FeedService {
           id: feed.id,
           title: feed.title,
           cards: feed.cards,
+          thumbnail: feed.thumbnail,
           content: feed.content,
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
@@ -250,6 +255,7 @@ export type CreateFeedInput = {
   isAI: boolean;
   content: string;
   tags: string[];
+  thumbnail: string;
 };
 
 export type GetFeedsInput = {

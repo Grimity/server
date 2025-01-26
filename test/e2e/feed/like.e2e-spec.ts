@@ -83,6 +83,7 @@ describe('PUT /feeds/:feedId/like', () => {
         content: 'test',
         isAI: false,
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
       },
     });
 
@@ -122,6 +123,7 @@ describe('PUT /feeds/:feedId/like', () => {
         content: 'test',
         isAI: false,
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
       },
     });
 

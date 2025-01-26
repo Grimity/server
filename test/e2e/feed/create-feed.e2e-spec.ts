@@ -220,6 +220,7 @@ describe('POST /feeds', () => {
         isAI: false,
         content: '',
         tags: ['test'],
+        thumbnail: 'feed/test.jpg',
       });
 
     // then
@@ -239,7 +240,7 @@ describe('POST /feeds', () => {
       content: '',
       isAI: false,
       cards: ['feed/test.jpg'],
-      thumbnail: null,
+      thumbnail: 'feed/test.jpg',
       tags: [
         {
           feedId: body.id,

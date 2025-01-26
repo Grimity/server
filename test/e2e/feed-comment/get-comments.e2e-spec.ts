@@ -48,6 +48,7 @@ describe('GET /feed-comments?feedId={feedId}', () => {
       data: {
         authorId: user.id,
         title: 'test',
+        thumbnail: 'test',
       },
     });
 

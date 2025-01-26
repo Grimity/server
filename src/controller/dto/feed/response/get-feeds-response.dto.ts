@@ -12,6 +12,9 @@ export class GetFeedsDto {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.png'] })
   cards: string[];
 
+  @ApiProperty({ example: 'feed/UUID.png' })
+  thumbnail: string;
+
   @ApiProperty()
   createdAt: Date;
 

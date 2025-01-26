@@ -83,6 +83,7 @@ describe('PUT /:feedId/view', () => {
             content: 'test',
             isAI: false,
             cards: ['feed/test.jpg'],
+            thumbnail: 'feed/test.jpg',
           },
         },
       },
@@ -124,6 +125,7 @@ describe('PUT /:feedId/view', () => {
         content: 'test',
         isAI: false,
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
       },
     });
 

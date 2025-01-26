@@ -70,10 +70,12 @@ describe('GET /users/popular', () => {
         {
           authorId: users[0].id,
           title: 'test',
+          thumbnail: 'test',
         },
         {
           authorId: users[0].id,
           title: 'test',
+          thumbnail: 'test',
         },
       ],
     });

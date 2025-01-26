@@ -10,6 +10,9 @@ class UserFeedDto {
   @ApiProperty({ example: ['feed/test.jpg'], type: 'string', isArray: true })
   cards: string[];
 
+  @ApiProperty({ description: '썸네일', example: 'feed/test.jpg' })
+  thumbnail: string;
+
   @ApiProperty({ description: '피드 생성일' })
   createdAt: Date;
 

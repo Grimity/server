@@ -56,7 +56,6 @@ describe('GET /users/:id', () => {
       followingCount: 0,
       feedCount: 0,
       isFollowing: false,
-      email: 'testte***@test.com',
     });
   });
 
@@ -76,6 +75,7 @@ describe('GET /users/:id', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        links: ['test1|~|https://test1.com'],
       },
     });
 
@@ -99,12 +99,11 @@ describe('GET /users/:id', () => {
       image: null,
       backgroundImage: null,
       description: '',
-      links: [],
+      links: [{ linkName: 'test1', link: 'https://test1.com' }],
       followerCount: 1,
       followingCount: 0,
       feedCount: 0,
       isFollowing: true,
-      email: 't***@test.com',
     });
 
     // cleanup

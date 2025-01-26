@@ -45,6 +45,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
         content: 'test',
         isAI: false,
         likeCount: 1,
+        thumbnail: 'test',
         cards: [],
         tags: {
           createMany: {
@@ -72,6 +73,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
           title: 'test',
           content: 'test',
           isAI: false,
+          thumbnail: 'test',
           likeCount: 0,
           cards: [],
         };
@@ -99,6 +101,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 1,
+      thumbnail: 'test',
       commentCount: 1,
       isLike: true,
       author: {
@@ -128,6 +131,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
             isAI: false,
             likeCount: 0,
             cards: [],
+            thumbnail: 'test',
             tags: {
               createMany: {
                 data: [{ tagName: '테스트용 태그임' }],
@@ -146,6 +150,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
           content: 'test2',
           isAI: false,
           likeCount: 0,
+          thumbnail: 'test',
           cards: [],
         };
       }),

@@ -96,6 +96,7 @@ describe('DELETE /feed-comments/:commentId', () => {
         authorId: user.id,
         title: 'test',
         content: 'test',
+        thumbnail: 'test',
       },
     });
     const comment = await prisma.feedComment.create({

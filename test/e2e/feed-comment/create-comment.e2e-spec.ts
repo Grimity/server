@@ -129,6 +129,7 @@ describe('POST /feed-comments', () => {
         authorId: user.id,
         title: 'test',
         cards: ['feed/test.png'],
+        thumbnail: 'feed/test.png',
       },
     });
 
@@ -166,6 +167,7 @@ describe('POST /feed-comments', () => {
         authorId: user.id,
         title: 'test',
         cards: ['feed/test.png'],
+        thumbnail: 'feed/test.png',
       },
     });
     const parentComment = await prisma.feedComment.create({
@@ -241,6 +243,7 @@ describe('POST /feed-comments', () => {
         authorId: user.id,
         title: 'test',
         cards: ['feed/test.png'],
+        thumbnail: 'feed/test.png',
       },
     });
 

@@ -14,6 +14,7 @@ export class FeedRepository {
         content: createFeedInput.content,
         isAI: createFeedInput.isAI,
         cards: createFeedInput.cards,
+        thumbnail: createFeedInput.thumbnail,
         tags: {
           createMany: {
             data: createFeedInput.tags.map((tag) => {
@@ -40,6 +41,7 @@ export class FeedRepository {
           id: true,
           title: true,
           cards: true,
+          thumbnail: true,
           isAI: true,
           createdAt: true,
           viewCount: true,
@@ -80,6 +82,7 @@ export class FeedRepository {
           id: true,
           title: true,
           cards: true,
+          thumbnail: true,
           isAI: true,
           createdAt: true,
           viewCount: true,
@@ -274,6 +277,7 @@ export class FeedRepository {
           content: updateFeedInput.content,
           isAI: updateFeedInput.isAI,
           cards: updateFeedInput.cards,
+          thumbnail: updateFeedInput.thumbnail,
           tags: {
             deleteMany: {},
             createMany: {
@@ -397,6 +401,7 @@ export class FeedRepository {
         id: true,
         title: true,
         cards: true,
+        thumbnail: true,
         createdAt: true,
         viewCount: true,
         likeCount: true,
@@ -431,6 +436,7 @@ export class FeedRepository {
       id: true,
       title: true,
       cards: true,
+      thumbnail: true,
       createdAt: true,
       viewCount: true,
       likeCount: true,
@@ -509,6 +515,7 @@ export class FeedRepository {
       id: true,
       title: true,
       cards: true,
+      thumbnail: true,
       createdAt: true,
       viewCount: true,
       likeCount: true,
@@ -599,6 +606,7 @@ export class FeedRepository {
         id: true,
         title: true,
         cards: true,
+        thumbnail: true,
         content: true,
         createdAt: true,
         viewCount: true,
@@ -637,6 +645,7 @@ type CreateFeedInput = {
   isAI: boolean;
   content: string;
   tags: string[];
+  thumbnail: string;
 };
 
 type GetFeedsInput = {
