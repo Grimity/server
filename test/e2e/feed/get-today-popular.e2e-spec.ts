@@ -64,6 +64,7 @@ describe('GET /feeds/hot', () => {
       title: 'test19',
       likeCount: 19,
       cards: [],
+      thumbnail: 'test',
       createdAt: expect.any(String),
       viewCount: 0,
       commentCount: 0,

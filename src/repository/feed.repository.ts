@@ -513,6 +513,7 @@ export class FeedRepository {
       id: true,
       title: true,
       cards: true,
+      thumbnail: true,
       createdAt: true,
       viewCount: true,
       likeCount: true,
