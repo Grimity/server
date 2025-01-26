@@ -36,6 +36,9 @@ export class FeedDetailDto {
   })
   cards: string[];
 
+  @ApiProperty({ example: 'feed/{UUID}.jpg' })
+  thumbnail: string;
+
   @ApiProperty()
   isAI: boolean;
 
