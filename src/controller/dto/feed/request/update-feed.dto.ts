@@ -44,4 +44,8 @@ export class UpdateFeedDto {
   @ArrayMaxSize(8)
   @Validate(IsFeedTag, { each: true })
   tags: string[];
+
+  @ApiProperty()
+  @Validate(IsFeedCard)
+  thumbnail: string;
 }

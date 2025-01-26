@@ -14,6 +14,7 @@ export class FeedRepository {
         content: createFeedInput.content,
         isAI: createFeedInput.isAI,
         cards: createFeedInput.cards,
+        thumbnail: createFeedInput.thumbnail,
         tags: {
           createMany: {
             data: createFeedInput.tags.map((tag) => {
@@ -274,6 +275,7 @@ export class FeedRepository {
           content: updateFeedInput.content,
           isAI: updateFeedInput.isAI,
           cards: updateFeedInput.cards,
+          thumbnail: updateFeedInput.thumbnail,
           tags: {
             deleteMany: {},
             createMany: {
@@ -637,6 +639,7 @@ type CreateFeedInput = {
   isAI: boolean;
   content: string;
   tags: string[];
+  thumbnail: string;
 };
 
 type GetFeedsInput = {

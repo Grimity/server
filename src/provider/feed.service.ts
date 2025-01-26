@@ -250,6 +250,7 @@ export type CreateFeedInput = {
   isAI: boolean;
   content: string;
   tags: string[];
+  thumbnail: string;
 };
 
 export type GetFeedsInput = {
