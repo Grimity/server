@@ -82,10 +82,29 @@ export class UserService {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    if (userId) {
-      return this.getUserProfileWithLogin(userId, targetUserId);
-    }
-    return this.getUserProfileWithoutLogin(targetUserId);
+    const targetUser = await this.userRepository.getUserProfile(
+      userId,
+      targetUserId,
+    );
+
+    return {
+      id: targetUser.id,
+      name: targetUser.name,
+      image: targetUser.image,
+      backgroundImage: targetUser.backgroundImage,
+      description: targetUser.description,
+      links: targetUser.links.map((link) => {
+        const [linkName, linkUrl] = link.split('|~|');
+        return {
+          linkName,
+          link: linkUrl,
+        };
+      }),
+      followerCount: targetUser._count.followers,
+      followingCount: targetUser._count.followings,
+      feedCount: targetUser._count.feeds,
+      isFollowing: targetUser.followers?.length === 1,
+    };
   }
 
   async getMyFollowers(
@@ -147,55 +166,6 @@ export class UserService {
           description: following.following.description,
         };
       }),
-    };
-  }
-
-  async getUserProfileWithLogin(userId: string, targetUserId: string) {
-    const [targetUser, isFollowing] = await Promise.all([
-      this.userRepository.getUserProfile(targetUserId),
-      this.userRepository.isFollowing(userId, targetUserId),
-    ]);
-
-    return {
-      id: targetUser.id,
-      name: targetUser.name,
-      image: targetUser.image,
-      backgroundImage: targetUser.backgroundImage,
-      description: targetUser.description,
-      links: targetUser.links.map((link) => {
-        const [linkName, linkUrl] = link.split('|~|');
-        return {
-          linkName,
-          link: linkUrl,
-        };
-      }),
-      followerCount: targetUser._count.followers,
-      followingCount: targetUser._count.followings,
-      feedCount: targetUser._count.feeds,
-      isFollowing,
-    };
-  }
-
-  async getUserProfileWithoutLogin(targetUserId: string) {
-    const user = await this.userRepository.getUserProfile(targetUserId);
-
-    return {
-      id: user.id,
-      name: user.name,
-      image: user.image,
-      description: user.description,
-      backgroundImage: user.backgroundImage,
-      links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split('|~|');
-        return {
-          linkName,
-          link: linkUrl,
-        };
-      }),
-      followerCount: user._count.followers,
-      followingCount: user._count.followings,
-      feedCount: user._count.feeds,
-      isFollowing: false,
     };
   }
 
