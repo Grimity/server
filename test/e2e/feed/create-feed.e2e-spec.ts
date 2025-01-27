@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('POST /feeds', () => {
+describe('POST /feeds - 피드 생성', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -51,6 +51,7 @@ describe('POST /feeds', () => {
       .send({
         title: '',
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
         isAI: false,
         content: '',
         tags: [],
@@ -63,7 +64,7 @@ describe('POST /feeds', () => {
     spy.mockRestore();
   });
 
-  it('title이 25글자 이상일 때 400을 반환한다', async () => {
+  it('title이 33글자 이상일 때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -77,8 +78,9 @@ describe('POST /feeds', () => {
       .post('/feeds')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        title: 'a'.repeat(25),
+        title: 'a'.repeat(33),
         cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
         isAI: false,
         content: '',
         tags: [],
@@ -108,6 +110,7 @@ describe('POST /feeds', () => {
         .send({
           title: 'test',
           cards: [],
+          thumbnail: 'feed/test.jpg',
           isAI: false,
           content: '',
           tags: [],
@@ -148,6 +151,7 @@ describe('POST /feeds', () => {
       .send({
         title: 'test',
         cards: ['test'],
+        thumbnail: 'feed/test.jpg',
         isAI: false,
         content: '',
         tags: [],
@@ -160,7 +164,7 @@ describe('POST /feeds', () => {
     spy.mockRestore();
   });
 
-  it('tags는 1글자이상 10글자 이하여야 한다', async () => {
+  it('tags는 1글자이상 20글자 이하여야 한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -177,6 +181,7 @@ describe('POST /feeds', () => {
         .send({
           title: 'test',
           cards: ['feed/test.jpg'],
+          thumbnail: 'feed/test.jpg',
           isAI: false,
           content: '',
           tags: [''],
@@ -187,15 +192,45 @@ describe('POST /feeds', () => {
         .send({
           title: 'test',
           cards: ['feed/test.jpg'],
+          thumbnail: 'feed/test.jpg',
           isAI: false,
           content: '',
-          tags: ['a'.repeat(11)],
+          tags: ['a'.repeat(21)],
         }),
     ]);
 
     // then
     expect(status).toBe(400);
     expect(status2).toBe(400);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('content가 301글자 이상일때 400을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/feeds')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'test',
+        cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
+        isAI: false,
+        content: 'a'.repeat(301),
+        tags: [],
+      });
+
+    // then
+    expect(status).toBe(400);
 
     // cleanup
     spy.mockRestore();

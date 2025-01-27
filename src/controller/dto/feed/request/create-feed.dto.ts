@@ -9,8 +9,8 @@ import {
 import { IsFeedCard, IsFeedTag } from 'src/common/validator';
 
 export class CreateFeedDto {
-  @ApiProperty({ description: '1글자이상 24글자 이하' })
-  @Length(1, 24)
+  @ApiProperty({ description: '1글자이상 32글자 이하' })
+  @Length(1, 32)
   title: string;
 
   @ApiProperty({
@@ -29,19 +29,19 @@ export class CreateFeedDto {
   isAI: boolean;
 
   @ApiProperty({
-    description: '0글자 이상 3000글자 이하, 0글자는 빈 문자열로 주세요',
+    description: '0글자 이상 300글자 이하, 0글자는 빈 문자열로 주세요',
   })
-  @Length(0, 3000)
+  @Length(0, 300)
   content: string;
 
   @ApiProperty({
     isArray: true,
     type: 'string',
     description:
-      '태그, 없으면 빈 배열, 최대 8개, 각 태그는 1글자 이상 10글자 이하',
+      '태그, 없으면 빈 배열, 최대 10개, 각 태그는 1글자 이상 20글자 이하',
     example: ['태그1', '태그2'],
   })
-  @ArrayMaxSize(8)
+  @ArrayMaxSize(10)
   @Validate(IsFeedTag, { each: true })
   tags: string[];
 
