@@ -48,7 +48,7 @@ describe('PUT /feeds/:id', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/000')
+      .put('/feeds/000')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -70,9 +70,16 @@ describe('PUT /feeds/:id', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/00000000-0000-0000-0000-000000000000')
+      .put('/feeds/00000000-0000-0000-0000-000000000000')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send();
+      .send({
+        title: 'updated title',
+        content: 'updated content',
+        isAI: true,
+        cards: ['feed/test3.jpg'],
+        tags: ['tag1', 'tag2', 'tag3'],
+        thumbnail: 'feed/test3.jpg',
+      });
 
     // then
     expect(status).toBe(404);
