@@ -1,11 +1,13 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
+import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 
 @Injectable()
 export class FeedService {
   constructor(
     private feedRepository: FeedRepository,
+    private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
   ) {}
 
@@ -22,7 +24,10 @@ export class FeedService {
   }
 
   async getFeedWithLogin(userId: string, feedId: string) {
-    const feed = await this.feedRepository.getFeedWithLogin(userId, feedId);
+    const feed = await this.feedSelectRepository.getFeedWithLogin(
+      userId,
+      feedId,
+    );
 
     return {
       id: feed.id,
@@ -49,7 +54,7 @@ export class FeedService {
   }
 
   async getFeedWithoutLogin(feedId: string) {
-    const feed = await this.feedRepository.getFeedWithoutLogin(feedId);
+    const feed = await this.feedSelectRepository.getFeedWithoutLogin(feedId);
     return {
       id: feed.id,
       title: feed.title,
@@ -123,7 +128,7 @@ export class FeedService {
       lastCreatedAt = new Date(arr[0]);
       lastId = arr[1];
     }
-    const feeds = await this.feedRepository.findMany({
+    const feeds = await this.feedSelectRepository.findManyLatest({
       userId,
       lastCreatedAt,
       lastId,
@@ -169,7 +174,7 @@ export class FeedService {
       }
       parsedCursor = [Number(arr[0]), arr[1]];
     }
-    const feeds = await this.feedRepository.findTodayPopular({
+    const feeds = await this.feedSelectRepository.findTodayPopular({
       userId,
       size,
       likeCount: parsedCursor ? parsedCursor[0] : null,
@@ -218,7 +223,7 @@ export class FeedService {
       lastCreatedAt = new Date(arr[0]);
       lastId = arr[1];
     }
-    const feeds = await this.feedRepository.findFollowingFeeds({
+    const feeds = await this.feedSelectRepository.findFollowingFeeds({
       userId,
       lastCreatedAt,
       lastId,

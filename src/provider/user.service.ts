@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
-import { FeedRepository } from 'src/repository/feed.repository';
+import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { NotificationRepository } from 'src/repository/notification.repository';
 
@@ -8,7 +8,7 @@ import { NotificationRepository } from 'src/repository/notification.repository';
 export class UserService {
   constructor(
     private userRepository: UserRepository,
-    private feedRepository: FeedRepository,
+    private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
     private notificationRepository: NotificationRepository,
   ) {}
@@ -82,10 +82,29 @@ export class UserService {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    if (userId) {
-      return this.getUserProfileWithLogin(userId, targetUserId);
-    }
-    return this.getUserProfileWithoutLogin(targetUserId);
+    const targetUser = await this.userRepository.getUserProfile(
+      userId,
+      targetUserId,
+    );
+
+    return {
+      id: targetUser.id,
+      name: targetUser.name,
+      image: targetUser.image,
+      backgroundImage: targetUser.backgroundImage,
+      description: targetUser.description,
+      links: targetUser.links.map((link) => {
+        const [linkName, linkUrl] = link.split('|~|');
+        return {
+          linkName,
+          link: linkUrl,
+        };
+      }),
+      followerCount: targetUser._count.followers,
+      followingCount: targetUser._count.followings,
+      feedCount: targetUser._count.feeds,
+      isFollowing: targetUser.followers?.length === 1,
+    };
   }
 
   async getMyFollowers(
@@ -150,57 +169,11 @@ export class UserService {
     };
   }
 
-  async getUserProfileWithLogin(userId: string, targetUserId: string) {
-    const [targetUser, isFollowing] = await Promise.all([
-      this.userRepository.getUserProfile(targetUserId),
-      this.userRepository.isFollowing(userId, targetUserId),
-    ]);
-
-    return {
-      id: targetUser.id,
-      name: targetUser.name,
-      image: targetUser.image,
-      backgroundImage: targetUser.backgroundImage,
-      description: targetUser.description,
-      links: targetUser.links.map((link) => {
-        const [linkName, linkUrl] = link.split('|~|');
-        return {
-          linkName,
-          link: linkUrl,
-        };
-      }),
-      followerCount: targetUser._count.followers,
-      followingCount: targetUser._count.followings,
-      feedCount: targetUser._count.feeds,
-      isFollowing,
-    };
-  }
-
-  async getUserProfileWithoutLogin(targetUserId: string) {
-    const user = await this.userRepository.getUserProfile(targetUserId);
-
-    return {
-      id: user.id,
-      name: user.name,
-      image: user.image,
-      description: user.description,
-      backgroundImage: user.backgroundImage,
-      links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split('|~|');
-        return {
-          linkName,
-          link: linkUrl,
-        };
-      }),
-      followerCount: user._count.followers,
-      followingCount: user._count.followings,
-      feedCount: user._count.feeds,
-      isFollowing: false,
-    };
-  }
-
   async getFeedsByUser(userId: string, input: GetFeedsInput) {
-    const feeds = await this.feedRepository.findManyByUserId(userId, input);
+    const feeds = await this.feedSelectRepository.findManyByUserId(
+      userId,
+      input,
+    );
 
     let nextCursor: string | null = null;
     if (feeds.length === input.size) {
@@ -239,6 +212,47 @@ export class UserService {
         feedCount: result._count.feeds,
       };
     });
+  }
+
+  async getMyLikeFeeds(
+    userId: string,
+    {
+      cursor,
+      size,
+      sort,
+    }: {
+      cursor: string | null;
+      size: number;
+      sort: 'latest';
+    },
+  ) {
+    const feeds = await this.feedSelectRepository.findMyLikeFeeds(userId, {
+      cursor,
+      size,
+      sort,
+    });
+
+    let nextCursor: string | null = null;
+    if (feeds.length === size) {
+      nextCursor = `${feeds[feeds.length - 1].feed.createdAt.toISOString()}_${feeds[feeds.length - 1].feed.id}`;
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.feed.id,
+          title: feed.feed.title,
+          cards: feed.feed.cards,
+          createdAt: feed.feed.createdAt,
+          viewCount: feed.feed.viewCount,
+          likeCount: feed.feed.likeCount,
+          commentCount: feed.feed._count.feedComments,
+          thumbnail: feed.feed.thumbnail,
+          author: feed.feed.author,
+        };
+      }),
+    };
   }
 }
 

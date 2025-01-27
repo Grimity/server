@@ -33,6 +33,8 @@ import {
   PopularUserDto,
   UpdateBackgroundImageDto,
   MyFollowingResponse,
+  GetMyLikeFeedsQuery,
+  MyLikeFeedsResponse,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -191,6 +193,38 @@ export class UserController {
   ) {
     await this.userService.unfollow(targetId, userId);
     return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내 좋아요한 피드 조회' })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: '없으면 처음부터',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 20,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyLikeFeedsResponse,
+  })
+  @UseGuards(JwtGuard)
+  @Get('me/like-feeds')
+  async getMyLikeFeeds(
+    @CurrentUser() userId: string,
+    @Query() query: GetMyLikeFeedsQuery,
+  ): Promise<MyLikeFeedsResponse> {
+    return await this.userService.getMyLikeFeeds(userId, {
+      cursor: query.cursor ?? null,
+      size: query.size ?? 20,
+      sort: query.sort ?? 'latest',
+    });
   }
 
   @ApiOperation({ summary: '인기 유저 조회 - 팔로워 많은 순으로 4명' })
