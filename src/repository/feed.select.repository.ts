@@ -211,7 +211,7 @@ export class FeedSelectRepository {
     });
   }
 
-  async findMany({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
+  async findManyLatest({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
     const where: Prisma.FeedWhereInput = {};
     if (lastId && lastCreatedAt) {
       where.OR = [

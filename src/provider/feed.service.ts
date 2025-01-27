@@ -128,7 +128,7 @@ export class FeedService {
       lastCreatedAt = new Date(arr[0]);
       lastId = arr[1];
     }
-    const feeds = await this.feedSelectRepository.findMany({
+    const feeds = await this.feedSelectRepository.findManyLatest({
       userId,
       lastCreatedAt,
       lastId,
