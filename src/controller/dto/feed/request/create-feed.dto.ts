@@ -38,10 +38,10 @@ export class CreateFeedDto {
     isArray: true,
     type: 'string',
     description:
-      '태그, 없으면 빈 배열, 최대 8개, 각 태그는 1글자 이상 10글자 이하',
+      '태그, 없으면 빈 배열, 최대 10개, 각 태그는 1글자 이상 20글자 이하',
     example: ['태그1', '태그2'],
   })
-  @ArrayMaxSize(8)
+  @ArrayMaxSize(10)
   @Validate(IsFeedTag, { each: true })
   tags: string[];
 

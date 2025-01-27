@@ -19,10 +19,10 @@ export class IsFeedCard implements ValidatorConstraintInterface {
 @ValidatorConstraint({ name: 'IsFeedTag', async: false })
 export class IsFeedTag implements ValidatorConstraintInterface {
   validate(tag: string) {
-    return typeof tag === 'string' && tag.length <= 10 && tag.length > 0;
+    return typeof tag === 'string' && tag.length <= 20 && tag.length > 0;
   }
 
   defaultMessage() {
-    return '태그는 1글자 이상 10글자 이하여야 합니다';
+    return '태그는 1글자 이상 20글자 이하여야 합니다';
   }
 }
