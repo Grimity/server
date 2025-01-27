@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
-import { FeedRepository } from 'src/repository/feed.repository';
+import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { NotificationRepository } from 'src/repository/notification.repository';
 
@@ -8,7 +8,7 @@ import { NotificationRepository } from 'src/repository/notification.repository';
 export class UserService {
   constructor(
     private userRepository: UserRepository,
-    private feedRepository: FeedRepository,
+    private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
     private notificationRepository: NotificationRepository,
   ) {}
@@ -200,7 +200,10 @@ export class UserService {
   }
 
   async getFeedsByUser(userId: string, input: GetFeedsInput) {
-    const feeds = await this.feedRepository.findManyByUserId(userId, input);
+    const feeds = await this.feedSelectRepository.findManyByUserId(
+      userId,
+      input,
+    );
 
     let nextCursor: string | null = null;
     if (feeds.length === input.size) {
