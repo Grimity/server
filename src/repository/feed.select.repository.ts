@@ -428,6 +428,91 @@ export class FeedSelectRepository {
       },
     });
   }
+
+  async findMyLikeFeeds(
+    userId: string,
+    {
+      cursor,
+      sort,
+      size,
+    }: {
+      cursor: string | null;
+      sort: 'latest';
+      size: number;
+    },
+  ) {
+    const where: Prisma.LikeWhereInput = {
+      userId,
+    };
+
+    let orderBy: Prisma.LikeOrderByWithRelationInput[] = [];
+
+    if (sort === 'latest') {
+      orderBy = [
+        {
+          feed: {
+            createdAt: 'desc',
+          },
+        },
+        {
+          feed: {
+            id: 'desc',
+          },
+        },
+      ];
+      if (cursor) {
+        const [createdAt, id] = cursor.split('_');
+        where.OR = [
+          {
+            feed: {
+              createdAt: {
+                lt: new Date(createdAt),
+              },
+            },
+          },
+          {
+            feed: {
+              createdAt: new Date(createdAt),
+              id: {
+                lt: id,
+              },
+            },
+          },
+        ];
+      }
+    }
+
+    return await this.prisma.like.findMany({
+      where,
+      orderBy,
+      take: size,
+      select: {
+        feed: {
+          select: {
+            id: true,
+            title: true,
+            cards: true,
+            thumbnail: true,
+            createdAt: true,
+            viewCount: true,
+            likeCount: true,
+            _count: {
+              select: {
+                feedComments: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
 
 type FindFollowingFeedsInput = {

@@ -213,6 +213,47 @@ export class UserService {
       };
     });
   }
+
+  async getMyLikeFeeds(
+    userId: string,
+    {
+      cursor,
+      size,
+      sort,
+    }: {
+      cursor: string | null;
+      size: number;
+      sort: 'latest';
+    },
+  ) {
+    const feeds = await this.feedSelectRepository.findMyLikeFeeds(userId, {
+      cursor,
+      size,
+      sort,
+    });
+
+    let nextCursor: string | null = null;
+    if (feeds.length === size) {
+      nextCursor = `${feeds[feeds.length - 1].feed.createdAt.toISOString()}_${feeds[feeds.length - 1].feed.id}`;
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.feed.id,
+          title: feed.feed.title,
+          cards: feed.feed.cards,
+          createdAt: feed.feed.createdAt,
+          viewCount: feed.feed.viewCount,
+          likeCount: feed.feed.likeCount,
+          commentCount: feed.feed._count.feedComments,
+          thumbnail: feed.feed.thumbnail,
+          author: feed.feed.author,
+        };
+      }),
+    };
+  }
 }
 
 export type UpdateProfileInput = {
