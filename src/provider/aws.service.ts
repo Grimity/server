@@ -17,7 +17,7 @@ export class AwsService {
   }
 
   async getUploadUrl(
-    type: 'profile' | 'feed' | 'background',
+    type: 'profile' | 'feed' | 'background' | 'post',
     ext: 'jpg' | 'jpeg' | 'png' | 'gif',
   ) {
     const key = `${type}/${uuidv4()}.${ext}`;
@@ -75,6 +75,6 @@ export type CommentEvent = {
 };
 
 type GetUplodateUrlInput = {
-  type: 'profile' | 'feed' | 'background';
+  type: 'profile' | 'feed' | 'background' | 'post';
   ext: 'jpg' | 'jpeg' | 'png' | 'gif';
 };
