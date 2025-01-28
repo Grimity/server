@@ -208,6 +208,12 @@ export class UserController {
     type: 'number',
     default: 20,
   })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    enum: ['latest'],
+    default: 'latest',
+  })
   @ApiResponse({
     status: 200,
     description: '성공',
