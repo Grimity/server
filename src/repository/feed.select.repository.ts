@@ -441,7 +441,7 @@ export class FeedSelectRepository {
       size: number;
     },
   ) {
-    const where: Prisma.LikeWhereInput = {
+    let where: Prisma.LikeWhereInput = {
       userId,
     };
 
@@ -450,35 +450,16 @@ export class FeedSelectRepository {
     if (sort === 'latest') {
       orderBy = [
         {
-          feed: {
-            createdAt: 'desc',
-          },
-        },
-        {
-          feed: {
-            id: 'desc',
-          },
+          createdAt: 'desc',
         },
       ];
       if (cursor) {
-        const [createdAt, id] = cursor.split('_');
-        where.OR = [
-          {
-            feed: {
-              createdAt: {
-                lt: new Date(createdAt),
-              },
-            },
+        where = {
+          ...where,
+          createdAt: {
+            lt: new Date(cursor),
           },
-          {
-            feed: {
-              createdAt: new Date(createdAt),
-              id: {
-                lt: id,
-              },
-            },
-          },
-        ];
+        };
       }
     }
 
@@ -487,6 +468,7 @@ export class FeedSelectRepository {
       orderBy,
       take: size,
       select: {
+        createdAt: true,
         feed: {
           select: {
             id: true,

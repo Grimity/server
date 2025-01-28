@@ -201,19 +201,6 @@ export class UserService {
     };
   }
 
-  async getPopularUsers() {
-    const results = await this.userRepository.findPopular();
-    return results.map((result) => {
-      return {
-        id: result.id,
-        name: result.name,
-        image: result.image,
-        followerCount: result._count.followers,
-        feedCount: result._count.feeds,
-      };
-    });
-  }
-
   async getMyLikeFeeds(
     userId: string,
     {
@@ -234,7 +221,7 @@ export class UserService {
 
     let nextCursor: string | null = null;
     if (feeds.length === size) {
-      nextCursor = `${feeds[feeds.length - 1].feed.createdAt.toISOString()}_${feeds[feeds.length - 1].feed.id}`;
+      nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}`;
     }
 
     return {

@@ -54,15 +54,17 @@ describe('GET /users/me/like-feeds', () => {
           content: `test${index}`,
           title: `title${index}`,
           thumbnail: `thumbnail${index}.png`,
+          createdAt: new Date(new Date().getTime() - index * 1000),
         };
       }),
     });
 
-    for await (const feed of feeds) {
+    for await (const [index, feed] of feeds.entries()) {
       await prisma.like.create({
         data: {
           userId: user.id,
           feedId: feed.id,
+          createdAt: new Date(new Date().getTime() - index * 1000),
         },
       });
     }

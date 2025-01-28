@@ -289,34 +289,6 @@ export class UserRepository {
       },
     });
   }
-
-  async findPopular() {
-    return await this.prisma.user.findMany({
-      orderBy: {
-        followers: {
-          _count: 'desc',
-        },
-      },
-      take: 4,
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        _count: {
-          select: {
-            followers: true,
-            feeds: {
-              where: {
-                createdAt: {
-                  gt: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-  }
 }
 
 type UpdateProfileInput = {

@@ -30,7 +30,6 @@ import {
   MyFollowerResponse,
   GetFeedsByUserQuery,
   UserFeedsResponse,
-  PopularUserDto,
   UpdateBackgroundImageDto,
   MyFollowingResponse,
   GetMyLikeFeedsQuery,
@@ -209,6 +208,12 @@ export class UserController {
     type: 'number',
     default: 20,
   })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    enum: ['latest'],
+    default: 'latest',
+  })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -225,18 +230,6 @@ export class UserController {
       size: query.size ?? 20,
       sort: query.sort ?? 'latest',
     });
-  }
-
-  @ApiOperation({ summary: '인기 유저 조회 - 팔로워 많은 순으로 4명' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: PopularUserDto,
-    isArray: true,
-  })
-  @Get('popular')
-  async getPopularUsers(): Promise<PopularUserDto[]> {
-    return this.userService.getPopularUsers();
   }
 
   @ApiBearerAuth()
