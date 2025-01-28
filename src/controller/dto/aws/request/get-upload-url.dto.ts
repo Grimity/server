@@ -4,7 +4,7 @@ import { Transform } from 'class-transformer';
 
 export class GetImageUploadUrlDto {
   @ApiProperty({
-    enum: ['PROFILE', 'FEED', 'BACKGROUND'],
+    enum: ['PROFILE', 'FEED', 'BACKGROUND', 'POST'],
     description: '대소문자 구분 없습니다',
   })
   @Transform(({ value }) => value.toLowerCase())
