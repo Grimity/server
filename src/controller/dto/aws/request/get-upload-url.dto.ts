@@ -8,8 +8,8 @@ export class GetImageUploadUrlDto {
     description: '대소문자 구분 없습니다',
   })
   @Transform(({ value }) => value.toLowerCase())
-  @IsEnum(['profile', 'feed', 'background'])
-  type: 'profile' | 'feed' | 'background';
+  @IsEnum(['profile', 'feed', 'background', 'post'])
+  type: 'profile' | 'feed' | 'background' | 'post';
 
   @ApiProperty({ enum: ['jpg', 'jpeg', 'png', 'gif'] })
   @IsEnum(['jpg', 'jpeg', 'png', 'gif'])

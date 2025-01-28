@@ -26,7 +26,6 @@ export class AwsController {
 
   @ApiOperation({ summary: '이미지 업로드 URL 생성' })
   @ApiResponse({ status: 201, description: '성공', type: UrlDto })
-  @UseGuards(JwtGuard)
   @Post('image-upload-url')
   async getImageUploadUrl(
     @Body() { type, ext }: GetImageUploadUrlDto,
