@@ -54,6 +54,7 @@ describe('GET /users/me/like-feeds', () => {
           content: `test${index}`,
           title: `title${index}`,
           thumbnail: `thumbnail${index}.png`,
+          createdAt: new Date(new Date().getTime() - index * 1000),
         };
       }),
     });
