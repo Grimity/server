@@ -234,7 +234,7 @@ export class UserService {
 
     let nextCursor: string | null = null;
     if (feeds.length === size) {
-      nextCursor = `${feeds[feeds.length - 1].feed.createdAt.toISOString()}_${feeds[feeds.length - 1].feed.id}`;
+      nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}`;
     }
 
     return {
