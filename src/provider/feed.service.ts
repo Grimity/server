@@ -257,6 +257,11 @@ export class FeedService {
     await this.feedRepository.createSave(userId, feedId);
     return;
   }
+
+  async unsave(userId: string, feedId: string) {
+    await this.feedRepository.deleteSave(userId, feedId);
+    return;
+  }
 }
 
 export type CreateFeedInput = {

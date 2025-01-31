@@ -229,6 +229,27 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async deleteSave(userId: string, feedId: string) {
+    try {
+      await this.prisma.save.delete({
+        where: {
+          userId_feedId: {
+            userId,
+            feedId,
+          },
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('SAVE', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedInput = {
