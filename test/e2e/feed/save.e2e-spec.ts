@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
+describe('PUT /feeds/:id/save - 피드 저장', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feeds/1/like')
+      .put('/feeds/1/save')
       .send();
 
     // then
@@ -48,7 +48,7 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feeds/1/like')
+      .put('/feeds/1/save')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -59,7 +59,7 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
     spy.mockRestore();
   });
 
-  it('204와 함께 like를 한다', async () => {
+  it('204와 함께 save를 한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -89,24 +89,19 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/like`)
+      .put(`/feeds/${feed.id}/save`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
     expect(status).toBe(204);
-    const like = await prisma.like.findFirstOrThrow({
-      include: {
-        user: true,
-        feed: true,
-      },
-    });
-    expect(like.userId).not.toBe(user.id);
+    const saved = await prisma.save.findFirstOrThrow();
+    expect(saved.userId).toBeDefined();
 
     // cleanup
     spy.mockRestore();
   });
 
-  it('이미 like한 경우 409를 반환한다', async () => {
+  it('이미 save한 경우 409를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -129,23 +124,20 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     // when
     await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/like`)
+      .put(`/feeds/${feed.id}/save`)
       .set('Authorization', `Bearer ${accessToken}`);
     const { status } = await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/like`)
+      .put(`/feeds/${feed.id}/save`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
     expect(status).toBe(409);
 
-    const afterFeed = await prisma.feed.findFirstOrThrow();
-    expect(afterFeed.likeCount).toBe(1);
-
     // cleanup
     spy.mockRestore();
   });
 
-  it('없는 피드일때 404를 반환한다', async () => {
+  it('피드가 없는 경우 404를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -156,7 +148,7 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feeds/0bc1f834-add1-4627-a695-85898cedad4d/like')
+      .put('/feeds/00000000-0000-0000-0000-000000000000/save')
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then

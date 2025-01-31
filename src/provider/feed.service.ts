@@ -252,6 +252,11 @@ export class FeedService {
       }),
     };
   }
+
+  async save(userId: string, feedId: string) {
+    await this.feedRepository.createSave(userId, feedId);
+    return;
+  }
 }
 
 export type CreateFeedInput = {

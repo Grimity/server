@@ -208,6 +208,27 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async createSave(userId: string, feedId: string) {
+    try {
+      await this.prisma.save.create({
+        data: {
+          userId,
+          feedId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new HttpException('SAVE', 409);
+        } else if (e.code === 'P2003') {
+          throw new HttpException('FEED', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedInput = {
