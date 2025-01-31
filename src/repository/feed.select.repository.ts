@@ -68,6 +68,17 @@ export class FeedSelectRepository {
             where: {
               userId,
             },
+            select: {
+              userId: true,
+            },
+          },
+          saves: {
+            where: {
+              userId,
+            },
+            select: {
+              userId: true,
+            },
           },
           author: {
             select: {

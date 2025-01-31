@@ -50,6 +50,7 @@ export class FeedService {
           feed.author.followers[0].followerId === userId,
       },
       isLike: feed.likes.length === 1 && feed.likes[0].userId === userId,
+      isSave: feed.saves.length === 1 && feed.saves[0].userId === userId,
     };
   }
 
@@ -74,6 +75,7 @@ export class FeedService {
         isFollowing: false,
       },
       isLike: false,
+      isSave: false,
     };
   }
 

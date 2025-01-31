@@ -47,7 +47,7 @@ describe('GET /feeds/:feedId', () => {
     expect(status).toBe(404);
   });
 
-  it('200과 함께 피드를 반환한다', async () => {
+  it('200과 함께 피드를 반환한다 (비 로그인 상태)', async () => {
     const user = await prisma.user.create({
       data: {
         provider: 'KAKAO',
@@ -99,6 +99,7 @@ describe('GET /feeds/:feedId', () => {
         isFollowing: false,
       },
       isLike: false,
+      isSave: false,
     });
   });
 
@@ -146,6 +147,9 @@ describe('GET /feeds/:feedId', () => {
       request(app.getHttpServer())
         .put(`/users/${user2.id}/follow`)
         .set('Authorization', `Bearer ${accessToken}`),
+      request(app.getHttpServer())
+        .put(`/feeds/${feed.id}/save`)
+        .set('Authorization', `Bearer ${accessToken}`),
     ]);
 
     // when
@@ -174,6 +178,7 @@ describe('GET /feeds/:feedId', () => {
         isFollowing: true,
       },
       isLike: true,
+      isSave: true,
     });
 
     // cleanup

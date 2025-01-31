@@ -66,4 +66,7 @@ export class FeedDetailDto {
 
   @ApiProperty({ description: '좋아요 여부' })
   isLike: boolean;
+
+  @ApiProperty({ description: '저장 여부' })
+  isSave: boolean;
 }
