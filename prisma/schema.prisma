@@ -26,6 +26,7 @@ model User {
   likes        Like[]
   feedComments FeedComment[]
   views        View[]
+  saves        Save[]
 
   @@unique([provider, providerId])
 }
@@ -58,6 +59,7 @@ model Feed {
   likes        Like[]
   feedComments FeedComment[]
   views        View[]
+  saves        Save[]
 
   @@index([authorId])
   @@index([createdAt(sort: Desc)])
@@ -84,6 +86,17 @@ model Like {
 }
 
 model View {
+  userId    String   @db.Uuid
+  feedId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+
+  @@id([userId, feedId])
+}
+
+model Save {
   userId    String   @db.Uuid
   feedId    String   @db.Uuid
   createdAt DateTime @default(now())
