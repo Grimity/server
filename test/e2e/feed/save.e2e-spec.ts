@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
+describe('PUT /feeds/:id/save - 피드 저장', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/1/like')
+      .put('/feeds/1/save')
       .send();
 
     // then
@@ -48,7 +48,7 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/1/like')
+      .put('/feeds/1/save')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -59,7 +59,49 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
     spy.mockRestore();
   });
 
-  it('204와 함께 unlike를 한다', async () => {
+  it('204와 함께 save를 한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        email: 'test@test.com',
+        name: 'test2',
+      },
+    });
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: user.id,
+        title: 'test',
+        content: 'test',
+        isAI: false,
+        cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put(`/feeds/${feed.id}/save`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(204);
+    const saved = await prisma.save.findFirstOrThrow();
+    expect(saved.userId).toBeDefined();
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('이미 save한 경우 409를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -80,39 +122,22 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
       },
     });
 
-    await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
     // when
-
+    await request(app.getHttpServer())
+      .put(`/feeds/${feed.id}/save`)
+      .set('Authorization', `Bearer ${accessToken}`);
     const { status } = await request(app.getHttpServer())
-      .delete(`/feeds/${feed.id}/like`)
+      .put(`/feeds/${feed.id}/save`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
-    expect(status).toBe(204);
-    const [like, afterFeed] = await Promise.all([
-      prisma.like.findFirst({
-        where: {
-          userId: user.id,
-        },
-      }),
-      prisma.feed.findUnique({
-        where: {
-          id: feed.id,
-        },
-      }),
-    ]);
-    expect(like).toBeNull();
-    expect(afterFeed?.likeCount).toBe(0);
+    expect(status).toBe(409);
 
     // cleanup
     spy.mockRestore();
   });
 
-  it('없는 피드에 unlike를 하면 404를 반환한다', async () => {
+  it('피드가 없는 경우 404를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -123,9 +148,8 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/00000000-0000-0000-0000-000000000000/like')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
+      .put('/feeds/00000000-0000-0000-0000-000000000000/save')
+      .set('Authorization', `Bearer ${accessToken}`);
 
     // then
     expect(status).toBe(404);

@@ -233,6 +233,37 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'save' })
+  @ApiResponse({ status: 204, description: '저장 성공' })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiResponse({ status: 409, description: '이미 저장함' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put(':id/save')
+  async save(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.save(userId, feedId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'unsave' })
+  @ApiResponse({ status: 204, description: '저장 취소 성공' })
+  @ApiResponse({ status: 404, description: '저장을 안했음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id/save')
+  async unsave(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) feedId: string,
+  ) {
+    await this.feedService.unsave(userId, feedId);
+    return;
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: '피드 조회수 증가용 api - Optional Guard' })
   @ApiResponse({ status: 204, description: '조회 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })

@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /feeds/:feedId/like', () => {
+describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
