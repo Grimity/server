@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /users/:id', () => {
+describe('GET /users/:id - 유저 프로필 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
