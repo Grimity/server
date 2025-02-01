@@ -24,6 +24,9 @@ class UserFeedDto {
 
   @ApiProperty()
   commentCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
 }
 
 export class UserFeedsResponse {

@@ -245,7 +245,8 @@ export class UserController {
     return this.userService.getUserProfile(userId, targetId);
   }
 
-  @ApiOperation({ summary: '유저별 피드 조회' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '유저별 피드 조회 - Optional Guard' })
   @ApiQuery({
     name: 'cursor',
     required: false,
@@ -271,16 +272,20 @@ export class UserController {
     description: '성공',
     type: UserFeedsResponse,
   })
+  @UseGuards(OptionalJwtGuard)
   @Get(':id/feeds')
   async getFeeds(
-    @Param('id', ParseUUIDPipe) userId: string,
+    @CurrentUser() userId: string | null,
+    @Param('id', ParseUUIDPipe) targetId: string,
     @Query() query: GetFeedsByUserQuery,
   ): Promise<UserFeedsResponse> {
     const { sort, cursor, size } = query;
-    return this.userService.getFeedsByUser(userId, {
+    return this.userService.getFeedsByUser({
       sort: sort ?? 'latest',
       cursor: cursor ?? null,
       size: size ?? 20,
+      targetId,
+      userId,
     });
   }
 

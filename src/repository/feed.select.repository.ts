@@ -109,13 +109,16 @@ export class FeedSelectRepository {
     }
   }
 
-  async findManyByUserId(
-    userId: string,
-    { sort, size, cursor }: FindFeedsByUserInput,
-  ) {
+  async findManyByUserId({
+    sort,
+    size,
+    cursor,
+    targetId,
+    userId,
+  }: FindFeedsByUserInput) {
     let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
     const where: Prisma.FeedWhereInput = {
-      authorId: userId,
+      authorId: targetId,
     };
     let sortCursor: string | null = null;
     let idCursor: string | null = null;
@@ -201,24 +204,37 @@ export class FeedSelectRepository {
       }
     }
 
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      cards: true,
+      thumbnail: true,
+      createdAt: true,
+      viewCount: true,
+      likeCount: true,
+      _count: {
+        select: {
+          feedComments: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
     return await this.prisma.feed.findMany({
       where,
       take: size,
       orderBy,
-      select: {
-        id: true,
-        title: true,
-        cards: true,
-        thumbnail: true,
-        createdAt: true,
-        viewCount: true,
-        likeCount: true,
-        _count: {
-          select: {
-            feedComments: true,
-          },
-        },
-      },
+      select,
     });
   }
 
@@ -526,4 +542,6 @@ type FindFeedsByUserInput = {
   sort: 'latest' | 'like' | 'oldest';
   size: number;
   cursor: string | null;
+  targetId: string;
+  userId: string | null;
 };
