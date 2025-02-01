@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('POST /feed-comments', () => {
+describe('POST /feed-comments - 피드 댓글 생성', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -141,6 +141,7 @@ describe('POST /feed-comments', () => {
         content: 'test',
         feedId: feed.id,
         parentCommentId: null,
+        mentionedUserId: user.id,
       });
 
     // then

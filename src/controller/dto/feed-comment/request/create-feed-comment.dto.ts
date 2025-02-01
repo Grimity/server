@@ -27,4 +27,14 @@ export class CreateFeedCommentDto {
   @IsString()
   @Length(1, 1000)
   content: string;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description: '언급된 사용자의 UUID',
+  })
+  @ValidateIf((o) => o.mentionedUserId !== null)
+  @IsOptional()
+  @IsUUID()
+  mentionedUserId?: string | null;
 }

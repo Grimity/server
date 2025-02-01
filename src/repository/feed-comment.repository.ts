@@ -14,18 +14,7 @@ export class FeedCommentRepository {
           feedId: input.feedId,
           parentId: input.parentCommentId ?? null,
           content: input.content,
-        },
-        select: {
-          feed: {
-            select: {
-              authorId: true,
-            },
-          },
-          parent: {
-            select: {
-              writerId: true,
-            },
-          },
+          mentionedUserId: input.mentionedUserId ?? null,
         },
       });
     } catch (e) {
@@ -38,43 +27,96 @@ export class FeedCommentRepository {
     }
   }
 
-  async findAllByFeedId(feedId: string) {
+  async findAllParentsByFeedId(userId: string | null, feedId: string) {
+    const select: Prisma.FeedCommentSelect = {
+      id: true,
+      content: true,
+      createdAt: true,
+      writer: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      likeCount: true,
+      _count: {
+        select: {
+          childComments: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
     return await this.prisma.feedComment.findMany({
       where: {
         feedId,
         parentId: null,
       },
-      select: {
-        id: true,
-        parentId: true,
-        content: true,
-        createdAt: true,
-        writer: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        childComments: {
-          select: {
-            id: true,
-            parentId: true,
-            content: true,
-            createdAt: true,
-            writer: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
+      select,
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
+  async findAllChildComments(
+    userId: string | null,
+    {
+      feedId,
+      parentId,
+    }: {
+      feedId: string;
+      parentId: string;
+    },
+  ) {
+    const select: Prisma.FeedCommentSelect = {
+      id: true,
+      content: true,
+      createdAt: true,
+      writer: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
         },
       },
+      likeCount: true,
+      mentionedUser: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
+    return await this.prisma.feedComment.findMany({
+      where: {
+        feedId,
+        parentId,
+      },
+      select,
       orderBy: {
         createdAt: 'asc',
       },
@@ -107,10 +149,77 @@ export class FeedCommentRepository {
       throw e;
     }
   }
+
+  async createLike(userId: string, commentId: string) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.feedCommentLike.create({
+          data: {
+            userId,
+            feedCommentId: commentId,
+          },
+        }),
+        this.prisma.feedComment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            likeCount: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new HttpException('LIKE', 409);
+        } else if (e.code === 'P2003') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
+  async deleteLike(userId: string, commentId: string) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.feedCommentLike.delete({
+          where: {
+            feedCommentId_userId: {
+              feedCommentId: commentId,
+              userId,
+            },
+          },
+        }),
+        this.prisma.feedComment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            likeCount: {
+              decrement: 1,
+            },
+          },
+        }),
+      ]);
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedCommentInput = {
   feedId: string;
   parentCommentId?: string | null;
   content: string;
+  mentionedUserId?: string | null;
 };
