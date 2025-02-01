@@ -42,5 +42,5 @@ export type CreateFeedCommentInput = {
   feedId: string;
   parentCommentId?: string | null;
   content: string;
-  mentionedUserId?: string;
+  mentionedUserId?: string | null;
 };
