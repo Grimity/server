@@ -289,6 +289,45 @@ export class UserRepository {
       },
     });
   }
+
+  async getPopularUsers(userId: string | null) {
+    const select: Prisma.UserSelect = {
+      id: true,
+      name: true,
+      image: true,
+      _count: {
+        select: {
+          followers: true,
+        },
+      },
+      feeds: {
+        select: {
+          thumbnail: true,
+        },
+        take: 2,
+      },
+    };
+
+    if (userId) {
+      select.followers = {
+        select: {
+          followerId: true,
+        },
+        where: {
+          followerId: userId,
+        },
+      };
+    }
+    return await this.prisma.user.findMany({
+      take: 20,
+      orderBy: {
+        followers: {
+          _count: 'desc',
+        },
+      },
+      select,
+    });
+  }
 }
 
 type UpdateProfileInput = {

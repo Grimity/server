@@ -34,6 +34,7 @@ import {
   MyFollowingResponse,
   GetMyLikeFeedsQuery,
   MyLikeFeedsResponse,
+  PopularUserDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -230,6 +231,22 @@ export class UserController {
       size: query.size ?? 20,
       sort: query.sort ?? 'latest',
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '인기 유저 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: PopularUserDto,
+    isArray: true,
+  })
+  @UseGuards(OptionalJwtGuard)
+  @Get('popular')
+  async getPopularUsers(
+    @CurrentUser() userId: string | null,
+  ): Promise<PopularUserDto[]> {
+    return this.userService.getPopularUsers(userId);
   }
 
   @ApiBearerAuth()

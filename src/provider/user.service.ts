@@ -239,6 +239,23 @@ export class UserService {
       }),
     };
   }
+
+  async getPopularUsers(userId: string | null) {
+    const users = await this.userRepository.getPopularUsers(userId);
+
+    return users.map((user) => {
+      return {
+        id: user.id,
+        name: user.name,
+        image: user.image,
+        followerCount: user._count.followers,
+        isFollowing: user.followers?.length === 1,
+        thumbnails: user.feeds.map((feed) => {
+          return feed.thumbnail;
+        }),
+      };
+    });
+  }
 }
 
 export type UpdateProfileInput = {

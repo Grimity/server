@@ -12,3 +12,4 @@ export * from './response/my-follower.dto';
 export * from './response/user-feed.dto';
 export * from './response/my-following.response';
 export * from './response/my-like-feeds.response';
+export * from './response/popular-user.dto';
