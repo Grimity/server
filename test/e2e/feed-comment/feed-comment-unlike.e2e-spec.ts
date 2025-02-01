@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
+describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -32,7 +32,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feed-comments/1/like')
+      .delete('/feed-comments/1/like')
       .send();
 
     // then
@@ -50,7 +50,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feed-comments/1/like')
+      .delete('/feed-comments/1/like')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -61,7 +61,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
     spy.mockRestore();
   });
 
-  it('없는 댓글일 때 404를 반환한다', async () => {
+  it('좋아요가 존재하지 않을 때 404를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -72,7 +72,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/feed-comments/00000000-0000-0000-0000-000000000000/like')
+      .delete('/feed-comments/00000000-0000-0000-0000-000000000000/like')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -83,7 +83,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
     spy.mockRestore();
   });
 
-  it('204와 함께 좋아요를 한다', async () => {
+  it('204와 함께 좋아요를 취소한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -116,69 +116,23 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
       },
     });
 
+    await request(app.getHttpServer())
+      .put(`/feed-comments/${comment.id}/like`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/feed-comments/${comment.id}/like`)
+      .delete(`/feed-comments/${comment.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(204);
     const like = await prisma.feedCommentLike.findFirst();
-    expect(like).not.toBeNull();
+    expect(like).toBeNull();
     const afterComment = await prisma.feedComment.findFirstOrThrow();
-    expect(afterComment.likeCount).toBe(1);
-
-    // cleanup
-    spy.mockRestore();
-  });
-
-  it('이미 좋아요를 했을 경우 409를 반환한다', async () => {
-    // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-      },
-    });
-    const feed = await prisma.feed.create({
-      data: {
-        title: 'test',
-        content: 'test',
-        authorId: user.id,
-        thumbnail: 'feed/test.png',
-      },
-    });
-    const comment = await prisma.feedComment.create({
-      data: {
-        writerId: user.id,
-        feedId: feed.id,
-        content: 'test',
-      },
-    });
-
-    // when
-    await request(app.getHttpServer())
-      .put(`/feed-comments/${comment.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    const { status } = await request(app.getHttpServer())
-      .put(`/feed-comments/${comment.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(409);
+    expect(afterComment.likeCount).toBe(0);
 
     // cleanup
     spy.mockRestore();

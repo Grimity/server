@@ -129,6 +129,39 @@ export class FeedCommentRepository {
       throw e;
     }
   }
+
+  async deleteLike(userId: string, commentId: string) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.feedCommentLike.delete({
+          where: {
+            feedCommentId_userId: {
+              feedCommentId: commentId,
+              userId,
+            },
+          },
+        }),
+        this.prisma.feedComment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            likeCount: {
+              decrement: 1,
+            },
+          },
+        }),
+      ]);
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedCommentInput = {

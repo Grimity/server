@@ -91,4 +91,19 @@ export class FeedCommentController {
     await this.feedCommentService.like(userId, commentId);
     return;
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 댓글 좋아요 취소' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id/like')
+  async unlike(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) commentId: string,
+  ) {
+    await this.feedCommentService.unlike(userId, commentId);
+    return;
+  }
 }
