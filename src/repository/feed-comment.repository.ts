@@ -70,6 +70,59 @@ export class FeedCommentRepository {
     });
   }
 
+  async findAllChildComments(
+    userId: string | null,
+    {
+      feedId,
+      parentId,
+    }: {
+      feedId: string;
+      parentId: string;
+    },
+  ) {
+    const select: Prisma.FeedCommentSelect = {
+      id: true,
+      content: true,
+      createdAt: true,
+      writer: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      likeCount: true,
+      mentionedUser: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
+    return await this.prisma.feedComment.findMany({
+      where: {
+        feedId,
+        parentId,
+      },
+      select,
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+  }
+
   async countByFeedId(feedId: string) {
     return await this.prisma.feedComment.count({
       where: {

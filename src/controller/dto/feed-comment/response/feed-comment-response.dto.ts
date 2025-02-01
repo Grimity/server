@@ -1,20 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-
-class WriterDto {
-  @ApiProperty({ description: '작성자 ID' })
-  id: string;
-
-  @ApiProperty({ description: '작성자 이름' })
-  name: string;
-
-  @ApiProperty({
-    description: '작성자 이미지',
-    nullable: true,
-    type: 'string',
-    example: 'profile/{UUID}.jpg',
-  })
-  image: string | null;
-}
+import { SimpleWriterDto } from './simple-writer.dto';
 
 class FeedCommentParentDto {
   @ApiProperty({ description: '댓글 ID' })
@@ -35,8 +20,8 @@ class FeedCommentParentDto {
   @ApiProperty()
   childCommentCount: number;
 
-  @ApiProperty({ description: '댓글 작성자', type: WriterDto })
-  writer: WriterDto;
+  @ApiProperty({ description: '댓글 작성자', type: SimpleWriterDto })
+  writer: SimpleWriterDto;
 }
 
 export class FeedCommentResponseDto {

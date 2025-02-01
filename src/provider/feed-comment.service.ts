@@ -46,6 +46,35 @@ export class FeedCommentService {
     };
   }
 
+  async getChildComments(
+    userId: string | null,
+    input: {
+      feedId: string;
+      parentId: string;
+    },
+  ) {
+    const comments = await this.feedCommentRepository.findAllChildComments(
+      userId,
+      input,
+    );
+
+    return comments.map((comment) => {
+      return {
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        writer: {
+          id: comment.writer.id,
+          name: comment.writer.name,
+          image: comment.writer.image,
+        },
+        likeCount: comment.likeCount,
+        isLike: comment.likes?.length === 1,
+        mentionedUser: comment.mentionedUser,
+      };
+    });
+  }
+
   async deleteOne(userId: string, commentId: string) {
     await this.feedCommentRepository.deleteOne(userId, commentId);
     return;

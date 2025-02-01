@@ -24,6 +24,8 @@ import { CurrentUser } from 'src/common/decorator';
 import {
   CreateFeedCommentDto,
   FeedCommentResponseDto,
+  GetChildCommentsQuery,
+  ChildCommentDto,
 } from './dto/feed-comment';
 
 @ApiTags('/feed-comments')
@@ -62,6 +64,25 @@ export class FeedCommentController {
     @Query('feedId', ParseUUIDPipe) feedId: string,
   ): Promise<FeedCommentResponseDto> {
     return await this.feedCommentService.getAllByFeedId(userId, feedId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 자식 댓글 조회' })
+  @ApiQuery({ name: 'parentId', type: 'string' })
+  @ApiQuery({ name: 'feedId', type: 'string' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: ChildCommentDto,
+    isArray: true,
+  })
+  @UseGuards(OptionalJwtGuard)
+  @Get('child-comments')
+  async findChildComments(
+    @CurrentUser() userId: string | null,
+    @Query() query: GetChildCommentsQuery,
+  ): Promise<ChildCommentDto[]> {
+    return await this.feedCommentService.getChildComments(userId, query);
   }
 
   @ApiBearerAuth()
