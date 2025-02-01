@@ -141,6 +141,7 @@ describe('POST /feed-comments', () => {
         content: 'test',
         feedId: feed.id,
         parentCommentId: null,
+        mentionedUserId: user.id,
       });
 
     // then

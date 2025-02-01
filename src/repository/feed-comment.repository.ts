@@ -14,18 +14,7 @@ export class FeedCommentRepository {
           feedId: input.feedId,
           parentId: input.parentCommentId ?? null,
           content: input.content,
-        },
-        select: {
-          feed: {
-            select: {
-              authorId: true,
-            },
-          },
-          parent: {
-            select: {
-              writerId: true,
-            },
-          },
+          mentionedUserId: input.mentionedUserId ?? null,
         },
       });
     } catch (e) {
@@ -113,4 +102,5 @@ type CreateFeedCommentInput = {
   feedId: string;
   parentCommentId?: string | null;
   content: string;
+  mentionedUserId?: string;
 };

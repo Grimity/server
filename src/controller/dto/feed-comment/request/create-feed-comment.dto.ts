@@ -27,4 +27,9 @@ export class CreateFeedCommentDto {
   @IsString()
   @Length(1, 1000)
   content: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsUUID()
+  mentionedUserId?: string;
 }

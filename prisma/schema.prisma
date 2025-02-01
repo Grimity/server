@@ -110,20 +110,20 @@ model Save {
 }
 
 model FeedComment {
-  id        String   @id @default(uuid()) @db.Uuid
-  feedId    String   @db.Uuid
-  writerId  String   @db.Uuid
-  parentId  String?  @db.Uuid
-  content   String
-  mention   String?  @db.Uuid
-  createdAt DateTime @default(now())
-  likeCount Int      @default(0)
+  id              String   @id @default(uuid()) @db.Uuid
+  feedId          String   @db.Uuid
+  writerId        String   @db.Uuid
+  parentId        String?  @db.Uuid
+  content         String
+  mentionedUserId String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  likeCount       Int      @default(0)
 
   writer        User              @relation("FeedCommentWrite", fields: [writerId], references: [id], onDelete: Cascade)
   feed          Feed              @relation(fields: [feedId], references: [id], onDelete: Cascade)
   parent        FeedComment?      @relation("ChildComments", fields: [parentId], references: [id], onDelete: Cascade)
   childComments FeedComment[]     @relation("ChildComments")
-  mentionedUser User?             @relation("MentionedUser", fields: [mention], references: [id], onDelete: SetNull)
+  mentionedUser User?             @relation("MentionedUser", fields: [mentionedUserId], references: [id], onDelete: SetNull)
   likes         FeedCommentLike[]
 
   @@index([feedId])
