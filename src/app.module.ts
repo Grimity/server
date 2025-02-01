@@ -8,6 +8,7 @@ import { AwsModule } from './module/aws.module';
 import { FeedModule } from './module/feed.module';
 import { FeedCommentModule } from './module/feed-comment.module';
 import { NotificationModule } from './module/notification.module';
+import { TagModule } from './module/tag.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationModule } from './module/notification.module';
     FeedModule,
     FeedCommentModule,
     NotificationModule,
+    TagModule,
   ],
   providers: [globalPipe],
 })

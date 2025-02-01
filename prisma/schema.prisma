@@ -74,6 +74,7 @@ model Tag {
   feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
 
   @@id([feedId, tagName])
+  @@index([tagName])
 }
 
 model Like {
