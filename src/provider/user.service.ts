@@ -169,11 +169,8 @@ export class UserService {
     };
   }
 
-  async getFeedsByUser(userId: string, input: GetFeedsInput) {
-    const feeds = await this.feedSelectRepository.findManyByUserId(
-      userId,
-      input,
-    );
+  async getFeedsByUser(input: GetFeedsInput) {
+    const feeds = await this.feedSelectRepository.findManyByUserId(input);
 
     let nextCursor: string | null = null;
     if (feeds.length === input.size) {
@@ -196,6 +193,7 @@ export class UserService {
           likeCount: feed.likeCount,
           commentCount: feed._count.feedComments,
           thumbnail: feed.thumbnail,
+          isLike: feed.likes?.length === 1,
         };
       }),
     };
@@ -256,4 +254,6 @@ type GetFeedsInput = {
   sort: 'latest' | 'like' | 'oldest';
   size: number;
   cursor: string | null;
+  targetId: string;
+  userId: string | null;
 };

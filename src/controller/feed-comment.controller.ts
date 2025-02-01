@@ -50,7 +50,7 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 최상위 댓글 조회' })
+  @ApiOperation({ summary: '피드 최상위 댓글 조회 - Optional Guard' })
   @ApiQuery({ name: 'feedId', type: 'string' })
   @ApiResponse({
     status: 200,
@@ -67,7 +67,7 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 자식 댓글 조회' })
+  @ApiOperation({ summary: '피드 자식 댓글 조회 - Optional Guard' })
   @ApiQuery({ name: 'parentId', type: 'string' })
   @ApiQuery({ name: 'feedId', type: 'string' })
   @ApiResponse({
