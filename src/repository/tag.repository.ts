@@ -6,7 +6,7 @@ export class TagRepository {
   constructor(private prisma: PrismaService) {}
 
   async findPopularTags() {
-    return await this.prisma.$queryRaw`
+    return (await this.prisma.$queryRaw`
       with top_tags as (
         SELECT 
           "tagName",
@@ -34,6 +34,6 @@ export class TagRepository {
         thumbnail
       from
         random_feed_per_tag
-    `;
+    `) as { tagName: string; thumbnail: string }[];
   }
 }
