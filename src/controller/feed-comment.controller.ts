@@ -9,6 +9,7 @@ import {
   Delete,
   Param,
   HttpCode,
+  Put,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -72,6 +73,22 @@ export class FeedCommentController {
     @Param('id', ParseUUIDPipe) commentId: string,
   ) {
     await this.feedCommentService.deleteOne(userId, commentId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 댓글 좋아요' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put(':id/like')
+  async like(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) commentId: string,
+  ) {
+    await this.feedCommentService.like(userId, commentId);
     return;
   }
 }

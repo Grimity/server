@@ -96,6 +96,39 @@ export class FeedCommentRepository {
       throw e;
     }
   }
+
+  async createLike(userId: string, commentId: string) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.feedCommentLike.create({
+          data: {
+            userId,
+            feedCommentId: commentId,
+          },
+        }),
+        this.prisma.feedComment.update({
+          where: {
+            id: commentId,
+          },
+          data: {
+            likeCount: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new HttpException('LIKE', 409);
+        } else if (e.code === 'P2003') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateFeedCommentInput = {

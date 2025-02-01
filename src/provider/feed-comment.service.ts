@@ -36,6 +36,11 @@ export class FeedCommentService {
     await this.feedCommentRepository.deleteOne(userId, commentId);
     return;
   }
+
+  async like(userId: string, commentId: string) {
+    await this.feedCommentRepository.createLike(userId, commentId);
+    return;
+  }
 }
 
 export type CreateFeedCommentInput = {
