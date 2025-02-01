@@ -253,7 +253,7 @@ describe('POST /feeds - 피드 생성', () => {
         title: 'test',
         cards: ['feed/test.jpg'],
         isAI: false,
-        content: '',
+        content: 'test',
         tags: ['test'],
         thumbnail: 'feed/test.jpg',
       });
@@ -272,7 +272,7 @@ describe('POST /feeds - 피드 생성', () => {
       id: body.id,
       authorId: expect.any(String),
       title: 'test',
-      content: '',
+      content: 'test',
       isAI: false,
       cards: ['feed/test.jpg'],
       thumbnail: 'feed/test.jpg',

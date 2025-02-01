@@ -29,9 +29,9 @@ export class UpdateFeedDto {
   isAI: boolean;
 
   @ApiProperty({
-    description: '0글자 이상 300글자 이하, 0글자는 빈 문자열로 주세요',
+    description: '1글자 이상 300글자 이하',
   })
-  @Length(0, 300)
+  @Length(1, 300)
   content: string;
 
   @ApiProperty({
