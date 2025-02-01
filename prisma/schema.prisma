@@ -20,13 +20,15 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers    Follow[]      @relation("following")
-  followings   Follow[]      @relation("follower")
-  feeds        Feed[]
-  likes        Like[]
-  feedComments FeedComment[]
-  views        View[]
-  saves        Save[]
+  followers           Follow[]          @relation("following")
+  followings          Follow[]          @relation("follower")
+  feeds               Feed[]
+  likes               Like[]
+  feedComments        FeedComment[]     @relation("FeedCommentWrite")
+  views               View[]
+  saves               Save[]
+  feedCommentMentions FeedComment[]     @relation("MentionedUser")
+  feedCommentLikes    FeedCommentLike[]
 
   @@unique([provider, providerId])
 }
@@ -113,12 +115,16 @@ model FeedComment {
   writerId  String   @db.Uuid
   parentId  String?  @db.Uuid
   content   String
+  mention   String?  @db.Uuid
   createdAt DateTime @default(now())
+  likeCount Int      @default(0)
 
-  writer        User          @relation(fields: [writerId], references: [id], onDelete: Cascade)
-  feed          Feed          @relation(fields: [feedId], references: [id], onDelete: Cascade)
-  parent        FeedComment?  @relation("ChildComments", fields: [parentId], references: [id], onDelete: Cascade)
-  childComments FeedComment[] @relation("ChildComments")
+  writer        User              @relation("FeedCommentWrite", fields: [writerId], references: [id], onDelete: Cascade)
+  feed          Feed              @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  parent        FeedComment?      @relation("ChildComments", fields: [parentId], references: [id], onDelete: Cascade)
+  childComments FeedComment[]     @relation("ChildComments")
+  mentionedUser User?             @relation("MentionedUser", fields: [mention], references: [id], onDelete: SetNull)
+  likes         FeedCommentLike[]
 
   @@index([feedId])
 }
@@ -134,4 +140,14 @@ model Notification {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+model FeedCommentLike {
+  feedCommentId String @db.Uuid
+  userId        String @db.Uuid
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedComment FeedComment @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
+
+  @@id([feedCommentId, userId])
 }
