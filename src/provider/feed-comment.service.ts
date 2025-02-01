@@ -20,14 +20,28 @@ export class FeedCommentService {
     return;
   }
 
-  async getAllByFeedId(feedId: string) {
+  async getAllByFeedId(userId: string | null, feedId: string) {
     const [comments, commentCount] = await Promise.all([
-      this.feedCommentRepository.findAllByFeedId(feedId),
+      this.feedCommentRepository.findAllParentsByFeedId(userId, feedId),
       this.feedCommentRepository.countByFeedId(feedId),
     ]);
 
     return {
-      comments,
+      comments: comments.map((comment) => {
+        return {
+          id: comment.id,
+          content: comment.content,
+          createdAt: comment.createdAt,
+          writer: {
+            id: comment.writer.id,
+            name: comment.writer.name,
+            image: comment.writer.image,
+          },
+          likeCount: comment.likeCount,
+          isLike: comment.likes?.length === 1,
+          childCommentCount: comment._count.childComments,
+        };
+      }),
       commentCount,
     };
   }

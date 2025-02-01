@@ -19,7 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { FeedCommentService } from 'src/provider/feed-comment.service';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   CreateFeedCommentDto,
@@ -47,18 +47,21 @@ export class FeedCommentController {
     return;
   }
 
-  @ApiOperation({ summary: '피드 댓글 조회' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 최상위 댓글 조회' })
   @ApiQuery({ name: 'feedId', type: 'string' })
   @ApiResponse({
     status: 200,
     description: '성공',
     type: FeedCommentResponseDto,
   })
+  @UseGuards(OptionalJwtGuard)
   @Get()
   async findAll(
+    @CurrentUser() userId: string | null,
     @Query('feedId', ParseUUIDPipe) feedId: string,
   ): Promise<FeedCommentResponseDto> {
-    return await this.feedCommentService.getAllByFeedId(feedId);
+    return await this.feedCommentService.getAllByFeedId(userId, feedId);
   }
 
   @ApiBearerAuth()

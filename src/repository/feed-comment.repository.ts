@@ -27,43 +27,43 @@ export class FeedCommentRepository {
     }
   }
 
-  async findAllByFeedId(feedId: string) {
+  async findAllParentsByFeedId(userId: string | null, feedId: string) {
+    const select: Prisma.FeedCommentSelect = {
+      id: true,
+      content: true,
+      createdAt: true,
+      writer: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      likeCount: true,
+      _count: {
+        select: {
+          childComments: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
     return await this.prisma.feedComment.findMany({
       where: {
         feedId,
         parentId: null,
       },
-      select: {
-        id: true,
-        parentId: true,
-        content: true,
-        createdAt: true,
-        writer: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        childComments: {
-          select: {
-            id: true,
-            parentId: true,
-            content: true,
-            createdAt: true,
-            writer: {
-              select: {
-                id: true,
-                name: true,
-                image: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
+      select,
       orderBy: {
         createdAt: 'asc',
       },

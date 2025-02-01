@@ -88,7 +88,6 @@ describe('GET /feed-comments?feedId={feedId}', () => {
       comments: [
         {
           id: parentComment.id,
-          parentId: null,
           content: 'test',
           createdAt: expect.any(String),
           writer: {
@@ -96,23 +95,12 @@ describe('GET /feed-comments?feedId={feedId}', () => {
             name: 'test',
             image: null,
           },
-          childComments: [
-            {
-              id: expect.any(String),
-              parentId: parentComment.id,
-              content: 'test3',
-              createdAt: expect.any(String),
-              writer: {
-                id: user.id,
-                name: 'test',
-                image: null,
-              },
-            },
-          ],
+          childCommentCount: 1,
+          isLike: false,
+          likeCount: 0,
         },
         {
           id: expect.any(String),
-          parentId: null,
           content: 'test2',
           createdAt: expect.any(String),
           writer: {
@@ -120,7 +108,9 @@ describe('GET /feed-comments?feedId={feedId}', () => {
             name: 'test',
             image: null,
           },
-          childComments: [],
+          childCommentCount: 0,
+          isLike: false,
+          likeCount: 0,
         },
       ],
       commentCount: 3,
