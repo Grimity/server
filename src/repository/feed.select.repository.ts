@@ -539,6 +539,79 @@ export class FeedSelectRepository {
       },
     });
   }
+
+  async findManyByTag({ tag, cursor, size, sort }: SearchInput) {
+    const where: Prisma.FeedWhereInput = {
+      tags: {
+        some: {
+          tagName: {
+            startsWith: tag,
+          },
+        },
+      },
+    };
+
+    let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
+
+    if (sort === 'latest') {
+      orderBy = [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ];
+
+      if (cursor) {
+        const [firstCursor, secondCursor] = cursor.split('_');
+        where.OR = [
+          {
+            createdAt: {
+              lt: new Date(firstCursor),
+            },
+          },
+          {
+            createdAt: new Date(firstCursor),
+            id: {
+              lt: secondCursor,
+            },
+          },
+        ];
+      }
+    }
+    return await this.prisma.feed.findMany({
+      where,
+      take: size,
+      orderBy,
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        cards: true,
+        thumbnail: true,
+        viewCount: true,
+        likeCount: true,
+        _count: {
+          select: {
+            feedComments: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        tags: {
+          select: {
+            tagName: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 type FindFollowingFeedsInput = {
@@ -561,4 +634,11 @@ type FindFeedsByUserInput = {
   cursor: string | null;
   targetId: string;
   userId: string | null;
+};
+
+type SearchInput = {
+  tag: string;
+  cursor: string | null;
+  size: number;
+  sort: 'latest';
 };

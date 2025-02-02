@@ -273,6 +273,35 @@ export class FeedService {
     await this.feedRepository.deleteSave(userId, feedId);
     return;
   }
+
+  async search(input: SearchInput) {
+    const feeds = await this.feedSelectRepository.findManyByTag(input);
+
+    let nextCursor: string | null = null;
+    if (feeds.length === input.size) {
+      if (input.sort === 'latest') {
+        nextCursor = `${feeds[input.size - 1].createdAt.toISOString()}_${feeds[input.size - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.id,
+          title: feed.title,
+          cards: feed.cards,
+          thumbnail: feed.thumbnail,
+          createdAt: feed.createdAt,
+          viewCount: feed.viewCount,
+          likeCount: feed.likeCount,
+          commentCount: feed._count.feedComments,
+          author: feed.author,
+          tags: feed.tags.map(({ tagName }) => tagName),
+        };
+      }),
+    };
+  }
 }
 
 export type CreateFeedInput = {
@@ -287,4 +316,11 @@ export type CreateFeedInput = {
 export type GetFeedsInput = {
   cursor: string | null;
   size: number;
+};
+
+export type SearchInput = {
+  tag: string;
+  cursor: string | null;
+  size: number;
+  sort: 'latest';
 };

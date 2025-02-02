@@ -30,6 +30,8 @@ import {
   TodayPopularFeedResponse,
   GetFollowingFeedsQuery,
   FollowingFeedsResponse,
+  FeedSearchQuery,
+  FeedSearchResponse,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -55,6 +57,48 @@ export class FeedController {
     @Body() createFeedDto: CreateFeedDto,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
+  }
+
+  @ApiOperation({ summary: '태그로 피드 검색' })
+  @ApiQuery({
+    name: 'tag',
+    required: true,
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    type: 'string',
+    description: '없으면 처음부터',
+  })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 20,
+  })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    type: 'string',
+    enum: ['latest'],
+    default: 'latest',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: FeedSearchResponse,
+  })
+  @Get('search')
+  async search(
+    @Query() { tag, cursor, size, sort }: FeedSearchQuery,
+  ): Promise<FeedSearchResponse> {
+    return await this.feedService.search({
+      tag,
+      cursor: cursor ?? null,
+      size: size ?? 20,
+      sort: sort ?? 'latest',
+    });
   }
 
   @ApiBearerAuth()
