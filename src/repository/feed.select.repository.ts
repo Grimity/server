@@ -435,6 +435,7 @@ export class FeedSelectRepository {
         createdAt: true,
         viewCount: true,
         likeCount: true,
+        isAI: true,
         _count: {
           select: {
             feedComments: true,
@@ -450,6 +451,22 @@ export class FeedSelectRepository {
         likes: {
           where: {
             userId,
+          },
+          select: {
+            userId: true,
+          },
+        },
+        saves: {
+          where: {
+            userId,
+          },
+          select: {
+            userId: true,
+          },
+        },
+        tags: {
+          select: {
+            tagName: true,
           },
         },
       },
