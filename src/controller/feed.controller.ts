@@ -32,6 +32,8 @@ import {
   FollowingFeedsResponse,
   FeedSearchQuery,
   FeedSearchResponse,
+  GetPopularQuery,
+  PopularFeedResponse,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -166,6 +168,38 @@ export class FeedController {
     return await this.feedService.getTodayPopular({
       userId,
       size: size ?? 9,
+      cursor: cursor ?? null,
+    });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '인기 그림 목록 조회 - Optional Guard' })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 20,
+  })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    type: 'string',
+    description: '없으면 처음부터',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: PopularFeedResponse,
+  })
+  @UseGuards(OptionalJwtGuard)
+  @Get('popular')
+  async getPopularFeeds(
+    @CurrentUser() userId: string | null,
+    @Query() { size, cursor }: GetPopularQuery,
+  ): Promise<PopularFeedResponse> {
+    return await this.feedService.getPopularFeeds({
+      userId,
+      size: size ?? 20,
       cursor: cursor ?? null,
     });
   }

@@ -639,7 +639,79 @@ export class FeedSelectRepository {
       select,
     });
   }
+
+  async findPopular({ userId, size, cursor }: FindPopularInput) {
+    const where: Prisma.FeedWhereInput = {
+      likeCount: {
+        gt: 0,
+      },
+    };
+
+    if (cursor) {
+      const [firstCursor, secondCursor] = cursor.split('_');
+      where.OR = [
+        {
+          createdAt: {
+            lt: new Date(firstCursor),
+          },
+        },
+        {
+          createdAt: new Date(firstCursor),
+          id: {
+            lt: secondCursor,
+          },
+        },
+      ];
+    }
+
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      thumbnail: true,
+      createdAt: true,
+      likeCount: true,
+      viewCount: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
+    return await this.prisma.feed.findMany({
+      where,
+      take: size,
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      select,
+    });
+  }
 }
+
+type FindPopularInput = {
+  userId: string | null;
+  size: number;
+  cursor: string | null;
+};
 
 type FindFollowingFeedsInput = {
   userId: string;

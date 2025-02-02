@@ -4,6 +4,7 @@ export * from './request/get-latest-feeds.query';
 export * from './request/get-today-popular.query';
 export * from './request/get-following-feeds.query';
 export * from './request/feed-search.query';
+export * from './request/get-popular.query';
 
 export * from './response/feed-id.dto';
 export * from './response/feed-detail.dto';
@@ -11,3 +12,4 @@ export * from './response/get-feeds-response.dto';
 export * from './response/today-popular-feed.dto';
 export * from './response/following-feeds-response.dto';
 export * from './response/feed-search.response';
+export * from './response/popular-feed.response';
