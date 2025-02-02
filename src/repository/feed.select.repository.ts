@@ -528,7 +528,7 @@ export class FeedSelectRepository {
     });
   }
 
-  async findManyByTag({ tag, cursor, size, sort }: SearchInput) {
+  async findManyByTag({ tag, cursor, size, sort, userId }: SearchInput) {
     const where: Prisma.FeedWhereInput = {
       tags: {
         some: {
@@ -594,36 +594,49 @@ export class FeedSelectRepository {
         ];
       }
     }
+
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      createdAt: true,
+      cards: true,
+      thumbnail: true,
+      viewCount: true,
+      likeCount: true,
+      _count: {
+        select: {
+          feedComments: true,
+        },
+      },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      tags: {
+        select: {
+          tagName: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
     return await this.prisma.feed.findMany({
       where,
       take: size,
       orderBy,
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        cards: true,
-        thumbnail: true,
-        viewCount: true,
-        likeCount: true,
-        _count: {
-          select: {
-            feedComments: true,
-          },
-        },
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        tags: {
-          select: {
-            tagName: true,
-          },
-        },
-      },
+      select,
     });
   }
 }
@@ -650,6 +663,7 @@ type FindFeedsByUserInput = {
 };
 
 type SearchInput = {
+  userId: string | null;
   tag: string;
   cursor: string | null;
   size: number;

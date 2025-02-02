@@ -27,6 +27,9 @@ class SearchedFeedDto {
   commentCount: number;
 
   @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty()
   tags: string[];
 
   @ApiProperty({ type: SimpleAuthorDto })

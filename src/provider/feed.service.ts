@@ -298,6 +298,7 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           commentCount: feed._count.feedComments,
+          isLike: feed.likes?.length === 1,
           author: feed.author,
           tags: feed.tags.map(({ tagName }) => tagName),
         };
@@ -321,6 +322,7 @@ export type GetFeedsInput = {
 };
 
 export type SearchInput = {
+  userId: string | null;
   tag: string;
   cursor: string | null;
   size: number;

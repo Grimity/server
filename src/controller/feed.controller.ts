@@ -59,7 +59,8 @@ export class FeedController {
     return await this.feedService.create(userId, createFeedDto);
   }
 
-  @ApiOperation({ summary: '태그로 피드 검색' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '태그로 피드 검색 - Optional Guard' })
   @ApiQuery({
     name: 'tag',
     required: true,
@@ -89,11 +90,14 @@ export class FeedController {
     description: '성공',
     type: FeedSearchResponse,
   })
+  @UseGuards(OptionalJwtGuard)
   @Get('search')
   async search(
+    @CurrentUser() userId: string | null,
     @Query() { tag, cursor, size, sort }: FeedSearchQuery,
   ): Promise<FeedSearchResponse> {
     return await this.feedService.search({
+      userId,
       tag,
       cursor: cursor ?? null,
       size: size ?? 20,
