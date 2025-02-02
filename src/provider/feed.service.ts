@@ -298,14 +298,49 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           commentCount: feed._count.feedComments,
+          isLike: feed.likes?.length === 1,
           author: feed.author,
           tags: feed.tags.map(({ tagName }) => tagName),
         };
       }),
     };
   }
+
+  async getPopularFeeds({ userId, size, cursor }: GetPopularFeedsInput) {
+    const feeds = await this.feedSelectRepository.findPopular({
+      userId,
+      size,
+      cursor,
+    });
+
+    let nextCursor: string | null = null;
+    if (feeds.length === size) {
+      nextCursor = `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`;
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.id,
+          title: feed.title,
+          thumbnail: feed.thumbnail,
+          createdAt: feed.createdAt,
+          viewCount: feed.viewCount,
+          likeCount: feed.likeCount,
+          author: feed.author,
+          isLike: feed.likes?.length === 1,
+        };
+      }),
+    };
+  }
 }
 
+export type GetPopularFeedsInput = {
+  userId: string | null;
+  size: number;
+  cursor: string | null;
+};
 export type CreateFeedInput = {
   title: string;
   cards: string[];
@@ -321,6 +356,7 @@ export type GetFeedsInput = {
 };
 
 export type SearchInput = {
+  userId: string | null;
   tag: string;
   cursor: string | null;
   size: number;

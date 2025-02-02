@@ -114,7 +114,6 @@ export class FeedSelectRepository {
     size,
     cursor,
     targetId,
-    userId,
   }: FindFeedsByUserInput) {
     let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
     const where: Prisma.FeedWhereInput = {
@@ -218,17 +217,6 @@ export class FeedSelectRepository {
         },
       },
     };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
 
     return await this.prisma.feed.findMany({
       where,
@@ -540,7 +528,7 @@ export class FeedSelectRepository {
     });
   }
 
-  async findManyByTag({ tag, cursor, size, sort }: SearchInput) {
+  async findManyByTag({ tag, cursor, size, sort, userId }: SearchInput) {
     const where: Prisma.FeedWhereInput = {
       tags: {
         some: {
@@ -606,39 +594,124 @@ export class FeedSelectRepository {
         ];
       }
     }
+
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      createdAt: true,
+      cards: true,
+      thumbnail: true,
+      viewCount: true,
+      likeCount: true,
+      _count: {
+        select: {
+          feedComments: true,
+        },
+      },
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      tags: {
+        select: {
+          tagName: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
     return await this.prisma.feed.findMany({
       where,
       take: size,
       orderBy,
-      select: {
-        id: true,
-        title: true,
-        createdAt: true,
-        cards: true,
-        thumbnail: true,
-        viewCount: true,
-        likeCount: true,
-        _count: {
-          select: {
-            feedComments: true,
+      select,
+    });
+  }
+
+  async findPopular({ userId, size, cursor }: FindPopularInput) {
+    const where: Prisma.FeedWhereInput = {
+      likeCount: {
+        gt: 0,
+      },
+    };
+
+    if (cursor) {
+      const [firstCursor, secondCursor] = cursor.split('_');
+      where.OR = [
+        {
+          createdAt: {
+            lt: new Date(firstCursor),
           },
         },
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
+        {
+          createdAt: new Date(firstCursor),
+          id: {
+            lt: secondCursor,
           },
         },
-        tags: {
-          select: {
-            tagName: true,
-          },
+      ];
+    }
+
+    const select: Prisma.FeedSelect = {
+      id: true,
+      title: true,
+      thumbnail: true,
+      createdAt: true,
+      likeCount: true,
+      viewCount: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
         },
       },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
+    return await this.prisma.feed.findMany({
+      where,
+      take: size,
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ],
+      select,
     });
   }
 }
+
+type FindPopularInput = {
+  userId: string | null;
+  size: number;
+  cursor: string | null;
+};
 
 type FindFollowingFeedsInput = {
   userId: string;
@@ -659,10 +732,10 @@ type FindFeedsByUserInput = {
   size: number;
   cursor: string | null;
   targetId: string;
-  userId: string | null;
 };
 
 type SearchInput = {
+  userId: string | null;
   tag: string;
   cursor: string | null;
   size: number;

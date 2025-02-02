@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SimpleAuthorDto } from './simple-author.dto';
 
-class SearchedFeedDto {
+class PopularFeedDto {
   @ApiProperty()
   id: string;
 
@@ -10,9 +10,6 @@ class SearchedFeedDto {
 
   @ApiProperty({ example: 'feed/UUID.jpg' })
   thumbnail: string;
-
-  @ApiProperty({ type: 'string', isArray: true })
-  cards: string[];
 
   @ApiProperty()
   createdAt: Date;
@@ -24,22 +21,16 @@ class SearchedFeedDto {
   likeCount: number;
 
   @ApiProperty()
-  commentCount: number;
-
-  @ApiProperty()
   isLike: boolean;
-
-  @ApiProperty()
-  tags: string[];
 
   @ApiProperty({ type: SimpleAuthorDto })
   author: SimpleAuthorDto;
 }
 
-export class FeedSearchResponse {
+export class PopularFeedResponse {
   @ApiProperty({ type: 'string', nullable: true })
   nextCursor: string | null;
 
-  @ApiProperty({ type: SearchedFeedDto, isArray: true })
-  feeds: SearchedFeedDto[];
+  @ApiProperty({ type: PopularFeedDto, isArray: true })
+  feeds: PopularFeedDto[];
 }

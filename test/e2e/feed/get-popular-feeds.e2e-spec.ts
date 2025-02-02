@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
 
-describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
+describe('GET /feeds/popular - 인기 그림 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -23,7 +23,7 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
     await prisma.user.deleteMany();
   });
 
-  it('200과 함께 인기 피드 목록을 반환한다', async () => {
+  it('200과 함께 인기 피드 목록을 조회한다', async () => {
     // given
     const user = await prisma.user.create({
       data: {
@@ -40,44 +40,29 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
           authorId: user.id,
           title: `test${i}`,
           content: `test${i}`,
-          isAI: false,
           likeCount: i,
           thumbnail: 'test',
+          createdAt: new Date(Date.now() - i * 1000),
         };
       }),
     });
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      '/feeds/today-popular?size=8',
+      '/feeds/popular?size=10',
     );
 
     const { status: status2, body: body2 } = await request(
       app.getHttpServer(),
-    ).get(`/feeds/today-popular?size=20&cursor=${body.nextCursor}`);
+    ).get(`/feeds/popular?size=10&cursor=${body.nextCursor}`);
 
     // then
     expect(status).toBe(200);
-    expect(body.feeds).toHaveLength(8);
-    expect(body.feeds[0]).toEqual({
-      id: expect.any(String),
-      title: 'test19',
-      likeCount: 19,
-      cards: [],
-      thumbnail: 'test',
-      createdAt: expect.any(String),
-      viewCount: 0,
-      commentCount: 0,
-      isLike: false,
-      author: {
-        id: user.id,
-        image: null,
-        name: 'test',
-      },
-    });
-
+    expect(body.feeds.length).toBe(10);
+    expect(body.feeds[0].likeCount).toBe(1);
+    expect(body.nextCursor).not.toBeNull();
     expect(status2).toBe(200);
-    expect(body2.feeds).toHaveLength(12);
+    expect(body2.feeds.length).toBe(9);
     expect(body2.nextCursor).toBeNull();
   });
 });
