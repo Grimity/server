@@ -128,7 +128,7 @@ export class FeedController {
     name: 'size',
     required: false,
     type: 'number',
-    default: 10,
+    default: 4,
   })
   @ApiQuery({
     name: 'cursor',
@@ -148,7 +148,7 @@ export class FeedController {
     @Query() { size, cursor }: GetFollowingFeedsQuery,
   ): Promise<FollowingFeedsResponse> {
     return await this.feedService.getFollowingFeeds(userId, {
-      size: size ?? 10,
+      size: size ?? 4,
       cursor: cursor ?? null,
     });
   }

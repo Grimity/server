@@ -65,9 +65,10 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
     await prisma.feed.create({
       data: {
         authorId: user.id,
-        title: 'test',
+        title: 'test5',
         content: 'test',
         thumbnail: 'test',
+        createdAt: new Date('2020-01-01'),
         likes: {
           create: {
             userId: me.id,
@@ -83,12 +84,28 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
           title: 'test',
           content: 'test',
           thumbnail: 'test',
+          createdAt: new Date('2021-01-01'),
         },
         {
           authorId: user.id,
-          title: 'test',
+          title: 'test2',
           content: 'test',
           thumbnail: 'test',
+          createdAt: new Date('2021-01-02'),
+        },
+        {
+          authorId: user.id,
+          title: 'test3',
+          content: 'test',
+          thumbnail: 'test',
+          createdAt: new Date('2021-01-03'),
+        },
+        {
+          authorId: user.id,
+          title: 'test4',
+          content: 'test',
+          thumbnail: 'test',
+          createdAt: new Date('2021-01-04'),
         },
       ],
     });
@@ -99,11 +116,22 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
+    const { status: status2, body: body2 } = await request(app.getHttpServer())
+      .get(`/feeds/following?size=2&cursor=${body.nextCursor}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
     // then
     expect(status).toBe(200);
+    expect(status2).toBe(200);
 
     expect(body.nextCursor).not.toBeNull();
     expect(body.feeds).toHaveLength(2);
+    expect(body.feeds[0].title).toBe('test4');
+    expect(body.feeds[1].title).toBe('test3');
+    expect(body2.feeds).toHaveLength(2);
+    expect(body2.feeds[0].title).toBe('test2');
+    expect(body2.feeds[1].title).toBe('test');
 
     // cleanup
     spy.mockRestore();

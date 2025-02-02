@@ -29,11 +29,20 @@ export class FollowingFeedDto {
   @ApiProperty()
   commentCount: number;
 
+  @ApiProperty()
+  isAI: boolean;
+
   @ApiProperty({ type: SimpleAuthorDto })
   author: SimpleAuthorDto;
 
-  @ApiProperty({ description: '비 로그인유저면 false 고정' })
+  @ApiProperty()
   isLike: boolean;
+
+  @ApiProperty()
+  isSave: boolean;
+
+  @ApiProperty()
+  tags: string[];
 }
 
 export class FollowingFeedsResponse {
