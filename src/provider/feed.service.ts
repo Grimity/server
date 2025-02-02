@@ -12,7 +12,13 @@ export class FeedService {
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
-    return await this.feedRepository.create(userId, createFeedInput);
+    const trimmedTags = createFeedInput.tags.map((tag) =>
+      tag.replaceAll(' ', ''),
+    );
+    return await this.feedRepository.create(userId, {
+      ...createFeedInput,
+      tags: trimmedTags,
+    });
   }
 
   async getFeed(userId: string | null, feedId: string) {
