@@ -579,6 +579,32 @@ export class FeedSelectRepository {
           },
         ];
       }
+    } else if (sort === 'popular') {
+      orderBy = [
+        {
+          likeCount: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ];
+
+      if (cursor) {
+        const [firstCursor, secondCursor] = cursor.split('_');
+        where.OR = [
+          {
+            likeCount: {
+              lt: Number(firstCursor),
+            },
+          },
+          {
+            likeCount: Number(firstCursor),
+            id: {
+              lt: secondCursor,
+            },
+          },
+        ];
+      }
     }
     return await this.prisma.feed.findMany({
       where,
@@ -640,5 +666,5 @@ type SearchInput = {
   tag: string;
   cursor: string | null;
   size: number;
-  sort: 'latest';
+  sort: 'latest' | 'popular';
 };

@@ -12,6 +12,6 @@ export class FeedSearchQuery {
   size?: number;
 
   @IsOptional()
-  @IsEnum(['latest'])
-  sort?: 'latest';
+  @IsEnum(['latest', 'popular'])
+  sort?: 'latest' | 'popular';
 }

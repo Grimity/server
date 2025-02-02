@@ -281,6 +281,8 @@ export class FeedService {
     if (feeds.length === input.size) {
       if (input.sort === 'latest') {
         nextCursor = `${feeds[input.size - 1].createdAt.toISOString()}_${feeds[input.size - 1].id}`;
+      } else if (input.sort === 'popular') {
+        nextCursor = `${feeds[input.size - 1].likeCount}_${feeds[input.size - 1].id}`;
       }
     }
 
@@ -322,5 +324,5 @@ export type SearchInput = {
   tag: string;
   cursor: string | null;
   size: number;
-  sort: 'latest';
+  sort: 'latest' | 'popular';
 };

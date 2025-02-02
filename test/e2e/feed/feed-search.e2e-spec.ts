@@ -33,7 +33,7 @@ describe('GET /feeds/search - 피드 검색', () => {
     expect(status).toBe(400);
   });
 
-  it('200과 함께 피드를 반환한다', async () => {
+  it('200과 함께 피드를 반환한다 - 최신순', async () => {
     // given
     const user = await prisma.user.create({
       data: {
@@ -78,5 +78,56 @@ describe('GET /feeds/search - 피드 검색', () => {
     expect(status2).toBe(200);
     expect(body2.nextCursor).toBeNull();
     expect(body2.feeds.length).toBe(5);
+  });
+
+  it('200과 함께 피드를 반환한다 - 인기순', async () => {
+    // given
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test',
+        name: 'test',
+        email: 'test@test.com',
+      },
+    });
+
+    for (let i = 0; i < 15; i++) {
+      await prisma.feed.create({
+        data: {
+          title: `title${i}`,
+          thumbnail: `feed/${i}.jpg`,
+          cards: ['card1', 'card2'],
+          content: 'content',
+          authorId: user.id,
+          tags: {
+            createMany: {
+              data: [{ tagName: `tag${i}` }, { tagName: `태그` }],
+            },
+          },
+          likeCount: i,
+        },
+      });
+    }
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get('/feeds/search?tag=tag&size=10&sort=popular')
+      .send();
+    const { status: status2, body: body2 } = await request(app.getHttpServer())
+      .get(
+        `/feeds/search?tag=tag&size=10&sort=popular&cursor=${body.nextCursor}`,
+      )
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.nextCursor).not.toBeNull();
+    expect(body.feeds.length).toBe(10);
+    expect(body.feeds[0].likeCount).toBe(14);
+    expect(status2).toBe(200);
+    expect(body2.nextCursor).toBeNull();
+    expect(body2.feeds.length).toBe(5);
+    expect(body2.feeds[0].likeCount).toBe(4);
+    expect(body2.feeds[4].likeCount).toBe(0);
   });
 });

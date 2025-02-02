@@ -81,7 +81,7 @@ export class FeedController {
     name: 'sort',
     required: false,
     type: 'string',
-    enum: ['latest'],
+    enum: ['latest', 'popular'],
     default: 'latest',
   })
   @ApiResponse({
