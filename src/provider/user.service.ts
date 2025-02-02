@@ -193,7 +193,6 @@ export class UserService {
           likeCount: feed.likeCount,
           commentCount: feed._count.feedComments,
           thumbnail: feed.thumbnail,
-          isLike: feed.likes?.length === 1,
         };
       }),
     };
@@ -272,5 +271,4 @@ type GetFeedsInput = {
   size: number;
   cursor: string | null;
   targetId: string;
-  userId: string | null;
 };

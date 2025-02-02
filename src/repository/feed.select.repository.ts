@@ -114,7 +114,6 @@ export class FeedSelectRepository {
     size,
     cursor,
     targetId,
-    userId,
   }: FindFeedsByUserInput) {
     let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
     const where: Prisma.FeedWhereInput = {
@@ -218,17 +217,6 @@ export class FeedSelectRepository {
         },
       },
     };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
 
     return await this.prisma.feed.findMany({
       where,
@@ -659,7 +647,6 @@ type FindFeedsByUserInput = {
   size: number;
   cursor: string | null;
   targetId: string;
-  userId: string | null;
 };
 
 type SearchInput = {
