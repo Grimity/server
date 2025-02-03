@@ -17,6 +17,7 @@ model User {
   description     String   @default("")
   backgroundImage String?
   links           String[]
+  followerCount   Int      @default(0)
 
   createdAt DateTime @default(now())
 
