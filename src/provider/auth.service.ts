@@ -1,5 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
+import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -7,6 +8,7 @@ export class AuthService {
   constructor(
     private userRepository: UserRepository,
     private jwtService: JwtService,
+    private userSelectRepository: UserSelectRepository,
   ) {}
 
   async login(provider: string, providerAccessToken: string) {
@@ -20,7 +22,7 @@ export class AuthService {
       providerId = kakaoProfile.kakaoId;
     }
 
-    const user = await this.userRepository.findOneByProviderOrThrow(
+    const user = await this.userSelectRepository.findOneByProviderOrThrow(
       provider,
       providerId,
     );
