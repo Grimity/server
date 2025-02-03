@@ -100,7 +100,7 @@ export class UserService {
           link: linkUrl,
         };
       }),
-      followerCount: targetUser._count.followers,
+      followerCount: targetUser.followerCount,
       followingCount: targetUser._count.followings,
       feedCount: targetUser._count.feeds,
       isFollowing: targetUser.followers?.length === 1,
