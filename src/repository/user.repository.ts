@@ -320,11 +320,7 @@ export class UserRepository {
       id: true,
       name: true,
       image: true,
-      _count: {
-        select: {
-          followers: true,
-        },
-      },
+      followerCount: true,
       feeds: {
         select: {
           thumbnail: true,
@@ -346,9 +342,7 @@ export class UserRepository {
     return await this.prisma.user.findMany({
       take: 20,
       orderBy: {
-        followers: {
-          _count: 'desc',
-        },
+        followerCount: 'desc',
       },
       select,
     });

@@ -4,12 +4,14 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
+import { UserService } from 'src/provider/user.service';
 import { register } from '../helper';
 
 describe('GET /users/popular - 인기 유저 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
+  let userService: UserService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,6 +21,7 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+    userService = module.get<UserService>(UserService);
 
     await app.init();
   });
@@ -60,26 +63,12 @@ describe('GET /users/popular - 인기 유저 조회', () => {
       ],
     });
 
-    await prisma.follow.createMany({
-      data: [
-        {
-          followerId: users[2].id,
-          followingId: users[0].id,
-        },
-        {
-          followerId: users[2].id,
-          followingId: users[1].id,
-        },
-        {
-          followerId: users[1].id,
-          followingId: users[0].id,
-        },
-        {
-          followerId: me.id,
-          followingId: users[0].id,
-        },
-      ],
-    });
+    await Promise.all([
+      userService.follow(users[2].id, users[0].id),
+      userService.follow(users[2].id, users[1].id),
+      userService.follow(users[1].id, users[0].id),
+      userService.follow(me.id, users[0].id),
+    ]);
 
     await prisma.feed.createMany({
       data: [
