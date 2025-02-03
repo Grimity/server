@@ -323,11 +323,6 @@ export class FeedSelectRepository {
       createdAt: true,
       viewCount: true,
       likeCount: true,
-      _count: {
-        select: {
-          feedComments: true,
-        },
-      },
       author: {
         select: {
           id: true,

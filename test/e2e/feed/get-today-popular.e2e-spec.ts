@@ -67,7 +67,6 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
       thumbnail: 'test',
       createdAt: expect.any(String),
       viewCount: 0,
-      commentCount: 0,
       isLike: false,
       author: {
         id: user.id,

@@ -23,9 +23,6 @@ export class TodayPopularFeedDto {
   @ApiProperty()
   likeCount: number;
 
-  @ApiProperty()
-  commentCount: number;
-
   @ApiProperty({ description: '비 로그인유저면 false 고정' })
   isLike: boolean;
 

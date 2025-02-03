@@ -199,7 +199,6 @@ export class FeedService {
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
-          commentCount: feed._count.feedComments,
           author: feed.author,
           isLike: feed.likes?.length === 1,
         };
