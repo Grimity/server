@@ -15,3 +15,11 @@ export class SimpleAuthorDto {
   })
   image: string | null;
 }
+
+export class IdAndNameDto {
+  @ApiProperty({ description: '작성자 ID' })
+  id: string;
+
+  @ApiProperty({ description: '작성자 이름' })
+  name: string;
+}

@@ -17,12 +17,11 @@ export class TagService {
         title: feed.title,
         thumbnail: feed.thumbnail,
         likeCount: feed.likeCount,
-        commentCount: feed._count.feedComments,
+        viewCount: feed.viewCount,
         isLike: feed.likes?.length === 1,
         author: {
           id: feed.author.id,
           name: feed.author.name,
-          image: feed.author.image,
         },
       };
     });

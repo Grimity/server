@@ -239,21 +239,14 @@ export class FeedSelectRepository {
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
-      cards: true,
       thumbnail: true,
       createdAt: true,
       viewCount: true,
       likeCount: true,
-      _count: {
-        select: {
-          feedComments: true,
-        },
-      },
       author: {
         select: {
           id: true,
           name: true,
-          image: true,
         },
       },
     };
@@ -318,21 +311,14 @@ export class FeedSelectRepository {
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
-      cards: true,
       thumbnail: true,
       createdAt: true,
       viewCount: true,
       likeCount: true,
-      _count: {
-        select: {
-          feedComments: true,
-        },
-      },
       author: {
         select: {
           id: true,
           name: true,
-          image: true,
         },
       },
     };

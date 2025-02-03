@@ -51,16 +51,11 @@ export class TagRepository {
       title: true,
       thumbnail: true,
       likeCount: true,
-      _count: {
-        select: {
-          feedComments: true,
-        },
-      },
+      viewCount: true,
       author: {
         select: {
           id: true,
           name: true,
-          image: true,
         },
       },
     };

@@ -63,15 +63,12 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
       id: expect.any(String),
       title: 'test19',
       likeCount: 19,
-      cards: [],
       thumbnail: 'test',
       createdAt: expect.any(String),
       viewCount: 0,
-      commentCount: 0,
       isLike: false,
       author: {
         id: user.id,
-        image: null,
         name: 'test',
       },
     });

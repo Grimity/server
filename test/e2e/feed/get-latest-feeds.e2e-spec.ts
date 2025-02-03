@@ -97,17 +97,14 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
     expect(body2.feeds[3]).toEqual({
       id: feed.id,
       title: 'test',
-      cards: [],
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 1,
       thumbnail: 'test',
-      commentCount: 1,
       isLike: true,
       author: {
         id: user.id,
         name: 'test',
-        image: null,
       },
     });
     expect(body2.nextCursor).toBeNull();
