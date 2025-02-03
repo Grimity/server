@@ -193,12 +193,14 @@ export class FeedService {
         return {
           id: feed.id,
           title: feed.title,
-          cards: feed.cards,
           thumbnail: feed.thumbnail,
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
-          author: feed.author,
+          author: {
+            id: feed.author.id,
+            name: feed.author.name,
+          },
           isLike: feed.likes?.length === 1,
         };
       }),
