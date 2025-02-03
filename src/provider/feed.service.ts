@@ -125,7 +125,7 @@ export class FeedService {
     return;
   }
 
-  async getFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
+  async getLatestFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
     let lastCreatedAt: Date | null = null;
     let lastId: string | null = null;
     if (cursor) {
@@ -157,7 +157,6 @@ export class FeedService {
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
-          commentCount: feed._count.feedComments,
           author: feed.author,
           isLike: feed.likes?.length === 1,
         };

@@ -25,7 +25,7 @@ import {
   FeedDetailDto,
   UpdateFeedDto,
   GetLatestFeedsQuery,
-  GetLastestFeedsResponse,
+  LatestFeedsResponse,
   GetTodayPopularQuery,
   TodayPopularFeedResponse,
   GetFollowingFeedsQuery,
@@ -126,15 +126,15 @@ export class FeedController {
   @ApiResponse({
     status: 200,
     description: '피드 목록 조회 성공',
-    type: GetLastestFeedsResponse,
+    type: LatestFeedsResponse,
   })
   @UseGuards(OptionalJwtGuard)
   @Get('latest')
   async getFeeds(
     @CurrentUser() userId: string | null,
     @Query() { cursor, size }: GetLatestFeedsQuery,
-  ): Promise<GetLastestFeedsResponse> {
-    return await this.feedService.getFeeds(userId, {
+  ): Promise<LatestFeedsResponse> {
+    return await this.feedService.getLatestFeeds(userId, {
       cursor: cursor ?? null,
       size: size ?? 20,
     });

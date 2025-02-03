@@ -102,7 +102,6 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       viewCount: 0,
       likeCount: 1,
       thumbnail: 'test',
-      commentCount: 1,
       isLike: true,
       author: {
         id: user.id,
