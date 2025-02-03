@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SimpleAuthorDto } from '../../feed/response/simple-author.dto';
+import { IdAndNameDto } from '../../feed/response/simple-author.dto';
 export class SearchedFeedByTagsDto {
   @ApiProperty()
   id: string;
@@ -14,11 +14,11 @@ export class SearchedFeedByTagsDto {
   likeCount: number;
 
   @ApiProperty()
-  commentCount: number;
+  viewCount: number;
 
   @ApiProperty()
   isLike: boolean;
 
-  @ApiProperty({ type: SimpleAuthorDto })
-  author: SimpleAuthorDto;
+  @ApiProperty({ type: IdAndNameDto })
+  author: IdAndNameDto;
 }
