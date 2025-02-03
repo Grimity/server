@@ -7,7 +7,7 @@ import { AuthService } from 'src/provider/auth.service';
 import { UserService } from 'src/provider/user.service';
 import { register } from '../helper';
 
-describe('GET /users/popular - 인기 유저 조회', () => {
+describe('GET /users/search - 유저 검색', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,7 +30,7 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     await prisma.user.deleteMany();
   });
 
-  it('200과 함께 인기 유저 목록을 조회한다', async () => {
+  it('200과 함께 유저를 검색한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -39,7 +39,6 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     const accessToken = await register(app, 'test');
 
     const me = await prisma.user.findFirstOrThrow();
-
     const users = await prisma.user.createManyAndReturn({
       data: [
         {
@@ -60,6 +59,12 @@ describe('GET /users/popular - 인기 유저 조회', () => {
           email: 'test@test.com',
           name: 'test3',
         },
+        {
+          provider: 'KAKAO',
+          providerId: 'test4',
+          email: 'test@test.com',
+          name: 'test4',
+        },
       ],
     });
 
@@ -70,47 +75,34 @@ describe('GET /users/popular - 인기 유저 조회', () => {
       userService.follow(me.id, users[0].id),
     ]);
 
-    await prisma.feed.createMany({
-      data: [
-        {
-          authorId: users[0].id,
-          content: 'test',
-          title: 'test',
-          thumbnail: 'test1',
-        },
-        {
-          authorId: users[0].id,
-          content: 'test',
-          title: 'test2',
-          thumbnail: 'test2',
-        },
-      ],
-    });
-
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get('/users/popular')
-      .set('Authorization', `Bearer ${accessToken}`);
+      .get('/users/search')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .query({ name: 'es', size: 3 });
+
+    const { status: status2, body: body2 } = await request(app.getHttpServer())
+      .get('/users/search')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .query({ name: 'es', size: 3, cursor: body.nextCursor });
 
     // then
     expect(status).toBe(200);
-    expect(body).toHaveLength(4);
-    expect(body[0]).toEqual({
+    expect(body.users).toHaveLength(3);
+    expect(body.nextCursor).toBeDefined();
+    expect(body.users[0]).toEqual({
       id: users[0].id,
-      image: null,
-      name: 'test1',
+      name: users[0].name,
+      description: users[0].description,
+      image: users[0].image,
+      backgroundImage: users[0].backgroundImage,
       followerCount: 3,
       isFollowing: true,
-      thumbnails: expect.arrayContaining(['test1', 'test2']),
     });
-    expect(body[1]).toEqual({
-      id: users[1].id,
-      image: null,
-      name: 'test2',
-      followerCount: 1,
-      isFollowing: false,
-      thumbnails: [],
-    });
+
+    expect(status2).toBe(200);
+    expect(body2.users).toHaveLength(2);
+    expect(body2.nextCursor).toBeNull();
 
     // cleanup
     spy.mockRestore();

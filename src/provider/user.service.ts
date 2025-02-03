@@ -3,6 +3,7 @@ import { UserRepository } from 'src/repository/user.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { NotificationRepository } from 'src/repository/notification.repository';
+import { UserSelectRepository } from 'src/repository/user.select.repository';
 
 @Injectable()
 export class UserService {
@@ -11,6 +12,7 @@ export class UserService {
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
     private notificationRepository: NotificationRepository,
+    private userSelectRepository: UserSelectRepository,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -41,7 +43,7 @@ export class UserService {
 
   async getMyProfile(userId: string) {
     const [user, hasNotification] = await Promise.all([
-      this.userRepository.getMyProfile(userId),
+      this.userSelectRepository.getMyProfile(userId),
       this.notificationRepository.hasUnread(userId),
     ]);
 
@@ -82,7 +84,7 @@ export class UserService {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    const targetUser = await this.userRepository.getUserProfile(
+    const targetUser = await this.userSelectRepository.getUserProfile(
       userId,
       targetUserId,
     );
@@ -100,7 +102,7 @@ export class UserService {
           link: linkUrl,
         };
       }),
-      followerCount: targetUser._count.followers,
+      followerCount: targetUser.followerCount,
       followingCount: targetUser._count.followings,
       feedCount: targetUser._count.feeds,
       isFollowing: targetUser.followers?.length === 1,
@@ -117,7 +119,7 @@ export class UserService {
       size: number;
     },
   ) {
-    const followers = await this.userRepository.findMyFollowers(userId, {
+    const followers = await this.userSelectRepository.findMyFollowers(userId, {
       cursor,
       size,
     });
@@ -148,10 +150,13 @@ export class UserService {
       size: number;
     },
   ) {
-    const followings = await this.userRepository.findMyFollowings(userId, {
-      cursor,
-      size,
-    });
+    const followings = await this.userSelectRepository.findMyFollowings(
+      userId,
+      {
+        cursor,
+        size,
+      },
+    );
 
     return {
       nextCursor:
@@ -240,14 +245,14 @@ export class UserService {
   }
 
   async getPopularUsers(userId: string | null) {
-    const users = await this.userRepository.getPopularUsers(userId);
+    const users = await this.userSelectRepository.getPopularUsers(userId);
 
     return users.map((user) => {
       return {
         id: user.id,
         name: user.name,
         image: user.image,
-        followerCount: user._count.followers,
+        followerCount: user.followerCount,
         isFollowing: user.followers?.length === 1,
         thumbnails: user.feeds.map((feed) => {
           return feed.thumbnail;
@@ -255,7 +260,41 @@ export class UserService {
       };
     });
   }
+
+  async searchUsers(input: SearchUserInput) {
+    const users = await this.userSelectRepository.findManyByName(input);
+
+    let nextCursor: string | null = null;
+    if (users.length === input.size) {
+      if (input.sort === 'popular') {
+        nextCursor = `${users[users.length - 1].followerCount}_${users[users.length - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      users: users.map((user) => {
+        return {
+          id: user.id,
+          name: user.name,
+          image: user.image,
+          description: user.description,
+          backgroundImage: user.backgroundImage,
+          followerCount: user.followerCount,
+          isFollowing: user.followers?.length === 1,
+        };
+      }),
+    };
+  }
 }
+
+export type SearchUserInput = {
+  userId: string | null;
+  name: string;
+  cursor: string | null;
+  size: number;
+  sort: 'popular';
+};
 
 export type UpdateProfileInput = {
   name: string;

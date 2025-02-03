@@ -67,8 +67,6 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
     });
     const accessToken = await register(app, 'test');
 
-    const user = await prisma.user.findFirstOrThrow();
-
     const targetUser = await prisma.user.create({
       data: {
         provider: 'KAKAO',
@@ -79,12 +77,10 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
       },
     });
 
-    await prisma.follow.create({
-      data: {
-        followerId: user.id,
-        followingId: targetUser.id,
-      },
-    });
+    await request(app.getHttpServer())
+      .put(`/users/${targetUser.id}/follow`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
 
     // when
     const { status, body } = await request(app.getHttpServer())
