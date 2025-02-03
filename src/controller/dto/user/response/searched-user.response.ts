@@ -7,13 +7,13 @@ class SearchedUserDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string', nullable: true })
   image: string | null;
 
   @ApiProperty({ description: 'not null인데 공백일수도' })
   description: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string', nullable: true })
   backgroundImage: string | null;
 
   @ApiProperty()
@@ -21,7 +21,7 @@ class SearchedUserDto {
 }
 
 export class SearchedUserResponse {
-  @ApiProperty()
+  @ApiProperty({ type: 'string', nullable: true })
   nextCursor: string | null;
 
   @ApiProperty({ type: SearchedUserDto, isArray: true })
