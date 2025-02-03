@@ -136,12 +136,24 @@ export class UserRepository {
 
   async follow(userId: string, targetUserId: string) {
     try {
-      await this.prisma.follow.create({
-        data: {
-          followerId: userId,
-          followingId: targetUserId,
-        },
-      });
+      await this.prisma.$transaction([
+        this.prisma.follow.create({
+          data: {
+            followerId: userId,
+            followingId: targetUserId,
+          },
+        }),
+        this.prisma.user.update({
+          where: {
+            id: targetUserId,
+          },
+          data: {
+            followerCount: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
       return;
     } catch (e) {
       if (
@@ -160,14 +172,27 @@ export class UserRepository {
   }
 
   async unfollow(userId: string, targetUserId: string) {
-    await this.prisma.follow.delete({
-      where: {
-        followerId_followingId: {
-          followerId: userId,
-          followingId: targetUserId,
+    await this.prisma.$transaction([
+      this.prisma.follow.delete({
+        where: {
+          followerId_followingId: {
+            followerId: userId,
+            followingId: targetUserId,
+          },
         },
-      },
-    });
+      }),
+      this.prisma.user.update({
+        where: {
+          id: targetUserId,
+        },
+        data: {
+          followerCount: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
+
     return;
   }
 
