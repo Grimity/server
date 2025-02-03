@@ -255,7 +255,41 @@ export class UserService {
       };
     });
   }
+
+  async searchUsers(input: SearchUserInput) {
+    const users = await this.userRepository.findManyByName(input);
+
+    let nextCursor: string | null = null;
+    if (users.length === input.size) {
+      if (input.sort === 'popular') {
+        nextCursor = `${users[users.length - 1].followerCount}_${users[users.length - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      users: users.map((user) => {
+        return {
+          id: user.id,
+          name: user.name,
+          image: user.image,
+          description: user.description,
+          backgroundImage: user.backgroundImage,
+          followerCount: user.followerCount,
+          isFollowing: user.followers?.length === 1,
+        };
+      }),
+    };
+  }
 }
+
+export type SearchUserInput = {
+  userId: string | null;
+  name: string;
+  cursor: string | null;
+  size: number;
+  sort: 'popular';
+};
 
 export type UpdateProfileInput = {
   name: string;

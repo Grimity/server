@@ -347,7 +347,86 @@ export class UserRepository {
       select,
     });
   }
+
+  async findManyByName({
+    name,
+    cursor,
+    size,
+    userId,
+    sort,
+  }: FindManyByNameInput) {
+    const where: Prisma.UserWhereInput = {
+      name: {
+        contains: name,
+      },
+    };
+
+    let orderBy: Prisma.UserOrderByWithRelationInput[] = [];
+
+    if (sort === 'popular') {
+      orderBy = [
+        {
+          followerCount: 'desc',
+        },
+        {
+          id: 'desc',
+        },
+      ];
+
+      if (cursor) {
+        const [followerCount, id] = cursor.split('_');
+        where.OR = [
+          {
+            followerCount: {
+              lt: Number(followerCount),
+            },
+          },
+          {
+            followerCount: Number(followerCount),
+            id: {
+              lt: id,
+            },
+          },
+        ];
+      }
+    }
+
+    const select: Prisma.UserSelect = {
+      id: true,
+      name: true,
+      image: true,
+      backgroundImage: true,
+      followerCount: true,
+      description: true,
+    };
+
+    if (userId) {
+      select.followers = {
+        select: {
+          followerId: true,
+        },
+        where: {
+          followerId: userId,
+        },
+      };
+    }
+
+    return await this.prisma.user.findMany({
+      where,
+      take: size,
+      orderBy,
+      select,
+    });
+  }
 }
+
+type FindManyByNameInput = {
+  name: string;
+  cursor: string | null;
+  size: number;
+  userId: string | null;
+  sort: 'popular';
+};
 
 type UpdateProfileInput = {
   name: string;
