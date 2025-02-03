@@ -1,15 +1,6 @@
-import { IsOptional, IsString, IsInt, IsEnum } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsOptional, IsString, IsInt } from 'class-validator';
 
 export class GetMyLikeFeedsQuery {
-  @Transform(({ value }) => {
-    if (!value || typeof value !== 'string') return undefined;
-    return value.toLowerCase();
-  })
-  @IsOptional()
-  @IsEnum(['latest'])
-  sort?: 'latest';
-
   @IsOptional()
   @IsString()
   cursor?: string;

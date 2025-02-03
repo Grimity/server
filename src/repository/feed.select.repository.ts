@@ -443,11 +443,9 @@ export class FeedSelectRepository {
     userId: string,
     {
       cursor,
-      sort,
       size,
     }: {
       cursor: string | null;
-      sort: 'latest';
       size: number;
     },
   ) {
@@ -455,27 +453,20 @@ export class FeedSelectRepository {
       userId,
     };
 
-    let orderBy: Prisma.LikeOrderByWithRelationInput[] = [];
-
-    if (sort === 'latest') {
-      orderBy = [
-        {
-          createdAt: 'desc',
+    if (cursor) {
+      where = {
+        ...where,
+        createdAt: {
+          lt: new Date(cursor),
         },
-      ];
-      if (cursor) {
-        where = {
-          ...where,
-          createdAt: {
-            lt: new Date(cursor),
-          },
-        };
-      }
+      };
     }
 
     return await this.prisma.like.findMany({
       where,
-      orderBy,
+      orderBy: {
+        createdAt: 'desc',
+      },
       take: size,
       select: {
         createdAt: true,
@@ -485,7 +476,6 @@ export class FeedSelectRepository {
             title: true,
             cards: true,
             thumbnail: true,
-            createdAt: true,
             viewCount: true,
             likeCount: true,
             _count: {
@@ -497,7 +487,62 @@ export class FeedSelectRepository {
               select: {
                 id: true,
                 name: true,
-                image: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async findMySaveFeeds(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    let where: Prisma.SaveWhereInput = {
+      userId,
+    };
+
+    if (cursor) {
+      where = {
+        ...where,
+        createdAt: {
+          lt: new Date(cursor),
+        },
+      };
+    }
+
+    return await this.prisma.save.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: size,
+      select: {
+        createdAt: true,
+        feed: {
+          select: {
+            id: true,
+            title: true,
+            cards: true,
+            thumbnail: true,
+            viewCount: true,
+            likeCount: true,
+            _count: {
+              select: {
+                feedComments: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                name: true,
               },
             },
           },

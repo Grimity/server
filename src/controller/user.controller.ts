@@ -211,12 +211,6 @@ export class UserController {
     type: 'number',
     default: 20,
   })
-  @ApiQuery({
-    name: 'sort',
-    required: false,
-    enum: ['latest'],
-    default: 'latest',
-  })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -231,7 +225,37 @@ export class UserController {
     return await this.userService.getMyLikeFeeds(userId, {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
-      sort: query.sort ?? 'latest',
+    });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내가 저장한 피드 조회' })
+  @ApiQuery({
+    name: 'cursor',
+    required: false,
+    description: '없으면 처음부터',
+    type: 'string',
+  })
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: 'number',
+    default: 20,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyLikeFeedsResponse,
+  })
+  @UseGuards(JwtGuard)
+  @Get('me/save-feeds')
+  async getMySaveFeeds(
+    @CurrentUser() userId: string,
+    @Query() query: GetMyLikeFeedsQuery,
+  ): Promise<MyLikeFeedsResponse> {
+    return await this.userService.getMySaveFeeds(userId, {
+      cursor: query.cursor ?? null,
+      size: query.size ?? 20,
     });
   }
 
