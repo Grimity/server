@@ -208,17 +208,14 @@ export class UserService {
     {
       cursor,
       size,
-      sort,
     }: {
       cursor: string | null;
       size: number;
-      sort: 'latest';
     },
   ) {
     const feeds = await this.feedSelectRepository.findMyLikeFeeds(userId, {
       cursor,
       size,
-      sort,
     });
 
     let nextCursor: string | null = null;
@@ -233,7 +230,45 @@ export class UserService {
           id: feed.feed.id,
           title: feed.feed.title,
           cards: feed.feed.cards,
-          createdAt: feed.feed.createdAt,
+          createdAt: feed.createdAt,
+          viewCount: feed.feed.viewCount,
+          likeCount: feed.feed.likeCount,
+          commentCount: feed.feed._count.feedComments,
+          thumbnail: feed.feed.thumbnail,
+          author: feed.feed.author,
+        };
+      }),
+    };
+  }
+
+  async getMySaveFeeds(
+    userId: string,
+    {
+      cursor,
+      size,
+    }: {
+      cursor: string | null;
+      size: number;
+    },
+  ) {
+    const feeds = await this.feedSelectRepository.findMySaveFeeds(userId, {
+      cursor,
+      size,
+    });
+
+    let nextCursor: string | null = null;
+    if (feeds.length === size) {
+      nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}`;
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => {
+        return {
+          id: feed.feed.id,
+          title: feed.feed.title,
+          cards: feed.feed.cards,
+          createdAt: feed.createdAt,
           viewCount: feed.feed.viewCount,
           likeCount: feed.feed.likeCount,
           commentCount: feed.feed._count.feedComments,

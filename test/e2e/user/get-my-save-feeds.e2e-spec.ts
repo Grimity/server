@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /users/me/like-feeds - 내가 좋아요한 그림 조회', () => {
+describe('GET /users/me/save-feeds', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -30,14 +30,14 @@ describe('GET /users/me/like-feeds - 내가 좋아요한 그림 조회', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get('/users/me/like-feeds')
+      .get('/users/me/save-feeds')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('200과 함께 내가 좋아요 한 피드를 반환한다', async () => {
+  it('200과 함께 내가 저장 한 피드를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -60,7 +60,7 @@ describe('GET /users/me/like-feeds - 내가 좋아요한 그림 조회', () => {
     });
 
     for await (const [index, feed] of feeds.entries()) {
-      await prisma.like.create({
+      await prisma.save.create({
         data: {
           userId: user.id,
           feedId: feed.id,
@@ -71,12 +71,12 @@ describe('GET /users/me/like-feeds - 내가 좋아요한 그림 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get('/users/me/like-feeds?size=20')
+      .get('/users/me/save-feeds?size=20')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     const { status: status2, body: body2 } = await request(app.getHttpServer())
-      .get(`/users/me/like-feeds?size=20&cursor=${body.nextCursor}`)
+      .get(`/users/me/save-feeds?size=20&cursor=${body.nextCursor}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -87,6 +87,7 @@ describe('GET /users/me/like-feeds - 내가 좋아요한 그림 조회', () => {
     expect(status2).toBe(200);
     expect(body2.feeds.length).toBe(10);
     expect(body2.nextCursor).toBeNull();
+    expect(body2.feeds[9].id).toBe(feeds[29].id);
 
     // clean up
     spy.mockRestore();

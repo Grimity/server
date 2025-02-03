@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SimpleAuthorDto } from '../../feed/response/simple-author.dto';
+import { IdAndNameDto } from '../../feed/response/simple-author.dto';
 
 class MyLikeFeedDto {
   @ApiProperty()
@@ -23,11 +23,11 @@ class MyLikeFeedDto {
   @ApiProperty()
   commentCount: number;
 
-  @ApiProperty()
+  @ApiProperty({ description: '내가 좋아요/저장 한 시간' })
   createdAt: Date;
 
-  @ApiProperty({ type: SimpleAuthorDto })
-  author: SimpleAuthorDto;
+  @ApiProperty({ type: IdAndNameDto })
+  author: IdAndNameDto;
 }
 
 export class MyLikeFeedsResponse {
