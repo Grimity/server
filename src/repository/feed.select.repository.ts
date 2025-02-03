@@ -28,11 +28,7 @@ export class FeedSelectRepository {
               id: true,
               name: true,
               image: true,
-              _count: {
-                select: {
-                  followers: true,
-                },
-              },
+              followerCount: true,
             },
           },
         },
