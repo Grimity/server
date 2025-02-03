@@ -50,7 +50,7 @@ export class FeedService {
         id: feed.author.id,
         name: feed.author.name,
         image: feed.author.image,
-        followerCount: feed.author._count.followers,
+        followerCount: feed.author.followerCount,
         isFollowing:
           feed.author.followers.length === 1 &&
           feed.author.followers[0].followerId === userId,
