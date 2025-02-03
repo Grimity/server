@@ -239,7 +239,6 @@ export class FeedSelectRepository {
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
-      cards: true,
       thumbnail: true,
       createdAt: true,
       viewCount: true,
@@ -248,7 +247,6 @@ export class FeedSelectRepository {
         select: {
           id: true,
           name: true,
-          image: true,
         },
       },
     };

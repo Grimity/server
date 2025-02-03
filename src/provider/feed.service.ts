@@ -152,7 +152,6 @@ export class FeedService {
         return {
           id: feed.id,
           title: feed.title,
-          cards: feed.cards,
           thumbnail: feed.thumbnail,
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
