@@ -77,16 +77,18 @@ export class UserService {
   async follow(userId: string, targetUserId: string) {
     await this.userRepository.follow(userId, targetUserId);
 
-    await this.awsService.pushEvent({
-      type: 'FOLLOW',
-      actorId: userId,
-      userId: targetUserId,
-    });
+    // await this.awsService.pushEvent({
+    //   type: 'FOLLOW',
+    //   actorId: userId,
+    //   userId: targetUserId,
+    // });
+    await this.awsService.pushOpensearchQueue('USER', targetUserId);
     return;
   }
 
   async unfollow(userId: string, targetUserId: string) {
     await this.userRepository.unfollow(userId, targetUserId);
+    await this.awsService.pushOpensearchQueue('USER', targetUserId);
     return;
   }
 

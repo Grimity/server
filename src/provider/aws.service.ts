@@ -53,6 +53,18 @@ export class AwsService {
     await this.sqsClient.send(command);
     return;
   }
+
+  async pushOpensearchQueue(type: 'FEED' | 'USER', id: string) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
+    const command = new SendMessageCommand({
+      QueueUrl: this.configService.get('AWS_OPENSEARCH_SQS_URL'),
+      MessageBody: JSON.stringify({ type, id }),
+      MessageGroupId: type,
+      MessageDeduplicationId: `${type}_${id}`,
+    });
+    await this.sqsClient.send(command);
+    return;
+  }
 }
 
 export type LikeEvent = {
