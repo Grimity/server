@@ -4,6 +4,7 @@ import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { NotificationRepository } from 'src/repository/notification.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
+import { OpenSearchService } from './opensearch.service';
 
 @Injectable()
 export class UserService {
@@ -13,6 +14,7 @@ export class UserService {
     private awsService: AwsService,
     private notificationRepository: NotificationRepository,
     private userSelectRepository: UserSelectRepository,
+    private openSearchService: OpenSearchService,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -38,6 +40,11 @@ export class UserService {
       ...updateProfileInput,
       links: transformedLinks,
     });
+    await this.openSearchService.updateUser(
+      userId,
+      updateProfileInput.name,
+      updateProfileInput.description,
+    );
     return;
   }
 
