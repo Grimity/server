@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { JwtService } from '@nestjs/jwt';
+import { OpenSearchService } from './opensearch.service';
 
 @Injectable()
 export class AuthService {
@@ -9,6 +10,7 @@ export class AuthService {
     private userRepository: UserRepository,
     private jwtService: JwtService,
     private userSelectRepository: UserSelectRepository,
+    private openSearchService: OpenSearchService,
   ) {}
 
   async login(provider: string, providerAccessToken: string) {
@@ -58,6 +60,8 @@ export class AuthService {
       email,
       name,
     });
+
+    await this.openSearchService.createUser(user.id, name);
 
     const accessToken = this.jwtService.sign({ id: user.id });
     return { accessToken, id: user.id };
