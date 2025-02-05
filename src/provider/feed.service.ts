@@ -98,16 +98,18 @@ export class FeedService {
 
   async like(userId: string, feedId: string) {
     await this.feedRepository.like(userId, feedId);
-    await this.awsService.pushEvent({
-      type: 'LIKE',
-      actorId: userId,
-      feedId,
-    });
+    // await this.awsService.pushEvent({
+    //   type: 'LIKE',
+    //   actorId: userId,
+    //   feedId,
+    // });
+    await this.awsService.pushOpensearchQueue('FEED', feedId);
     return;
   }
 
   async unlike(userId: string, feedId: string) {
     await this.feedRepository.unlike(userId, feedId);
+    await this.awsService.pushOpensearchQueue('FEED', feedId);
     return;
   }
 
