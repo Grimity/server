@@ -298,34 +298,57 @@ export class FeedService {
   }
 
   async search(input: SearchInput) {
-    const feeds = await this.feedSelectRepository.findManyByTag(input);
+    const currentCursor = input.cursor ? Number(input.cursor) : 0;
+    const searchedFeedIds = await this.openSearchService.searchFeed({
+      keyword: input.keyword,
+      cursor: currentCursor,
+      size: input.size,
+      sort: input.sort,
+    });
 
     let nextCursor: string | null = null;
+
+    if (searchedFeedIds === undefined || searchedFeedIds.length === 0) {
+      return {
+        nextCursor,
+        feeds: [],
+      };
+    }
+
+    const feeds = await this.feedSelectRepository.findManyByIds(
+      input.userId,
+      searchedFeedIds,
+    );
+
     if (feeds.length === input.size) {
-      if (input.sort === 'latest') {
-        nextCursor = `${feeds[input.size - 1].createdAt.toISOString()}_${feeds[input.size - 1].id}`;
-      } else if (input.sort === 'popular') {
-        nextCursor = `${feeds[input.size - 1].likeCount}_${feeds[input.size - 1].id}`;
+      nextCursor = `${currentCursor + 1}`;
+    }
+
+    const returnFeeds = [];
+
+    for (const searchedId of searchedFeedIds) {
+      const feed = feeds.find((feed) => feed.id === searchedId);
+
+      if (!feed) {
+        continue;
       }
+
+      returnFeeds.push({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        commentCount: feed._count.feedComments,
+        isLike: feed.likes?.length === 1,
+        author: feed.author,
+        tags: feed.tags.map(({ tagName }) => tagName),
+      });
     }
 
     return {
       nextCursor,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.id,
-          title: feed.title,
-          cards: feed.cards,
-          thumbnail: feed.thumbnail,
-          createdAt: feed.createdAt,
-          viewCount: feed.viewCount,
-          likeCount: feed.likeCount,
-          commentCount: feed._count.feedComments,
-          isLike: feed.likes?.length === 1,
-          author: feed.author,
-          tags: feed.tags.map(({ tagName }) => tagName),
-        };
-      }),
+      feeds: returnFeeds,
     };
   }
 
@@ -380,8 +403,8 @@ export type GetFeedsInput = {
 
 export type SearchInput = {
   userId: string | null;
-  tag: string;
+  keyword: string;
   cursor: string | null;
   size: number;
-  sort: 'latest' | 'popular';
+  sort: 'latest' | 'popular' | 'accuracy';
 };

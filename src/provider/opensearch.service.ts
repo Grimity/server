@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Client } from '@opensearch-project/opensearch';
 import { ConfigService } from '@nestjs/config';
-import { QueryContainer } from '@opensearch-project/opensearch/api/_types/_common.query_dsl';
 import { SortOptions } from '@opensearch-project/opensearch/api/_types/_common';
 
 @Injectable()
@@ -91,28 +90,6 @@ export class OpenSearchService {
   async searchUser({ keyword, cursor, size, sort }: SearchUserInput) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
 
-    const must: QueryContainer[] = [
-      {
-        bool: {
-          should: [
-            {
-              wildcard: {
-                name: {
-                  value: `*${keyword}*`,
-                  boost: 3,
-                },
-              },
-            },
-            {
-              match: {
-                description: keyword,
-              },
-            },
-          ],
-        },
-      },
-    ];
-
     let sortQuery: SortOptions[] = [];
 
     if (sort === 'popular') {
@@ -140,23 +117,75 @@ export class OpenSearchService {
       body: {
         query: {
           bool: {
-            must,
+            should: [
+              {
+                wildcard: {
+                  name: {
+                    value: `*${keyword}*`,
+                    boost: 3,
+                  },
+                },
+              },
+              {
+                match: {
+                  description: keyword,
+                },
+              },
+            ],
           },
         },
         size,
         sort: sortQuery,
-        from: cursor ? size * cursor : 0,
+        from: size * cursor,
       },
     });
 
     const hits = response.body.hits.hits as UserHitData[];
 
-    return hits.map((hit) => {
-      return {
-        id: hit._id,
-        followerCount: hit._source.followerCount,
-      };
+    return hits.map((hit) => hit._id);
+  }
+
+  async searchFeed({ keyword, cursor, size, sort }: SearchFeedInput) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
+
+    const sortQuery: SortOptions[] = [];
+
+    if (sort === 'latest') {
+      sortQuery.push({
+        createdAt: 'desc',
+      });
+    } else if (sort === 'popular') {
+      sortQuery.push({
+        likeCount: 'desc',
+      });
+    } else {
+      sortQuery.push({
+        _score: 'desc',
+      });
+    }
+
+    sortQuery.push({
+      id: 'desc',
     });
+
+    const response = await this.client.search({
+      index: 'feed',
+      body: {
+        query: {
+          multi_match: {
+            query: keyword,
+            fields: ['title', 'tag'],
+          },
+        },
+        size,
+        sort: sortQuery,
+        from: cursor * size,
+      },
+    });
+
+    const hits = response.body.hits.hits as FeedHitData[];
+
+    return hits.map((hit) => hit._id);
   }
 }
 
@@ -167,6 +196,13 @@ export type SearchUserInput = {
   sort: 'popular' | 'accuracy';
 };
 
+export type SearchFeedInput = {
+  keyword: string;
+  cursor: number;
+  size: number;
+  sort: 'popular' | 'accuracy' | 'latest';
+};
+
 type UserHitData = {
   _index: string;
   _id: string;
@@ -175,5 +211,17 @@ type UserHitData = {
     name: string;
     description: string;
     followerCount: number;
+  };
+};
+
+type FeedHitData = {
+  _index: string;
+  _id: string;
+  _score: number;
+  _source: {
+    title: string;
+    tag: string;
+    likeCount: number;
+    createdAt: string;
   };
 };

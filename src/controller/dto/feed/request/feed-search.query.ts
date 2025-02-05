@@ -6,7 +6,7 @@ export class FeedSearchQuery {
     if (typeof value === 'string') return value.trim().toLowerCase();
   })
   @Length(1, 100)
-  tag: string;
+  keyword: string;
 
   @IsOptional()
   cursor?: string;
@@ -20,6 +20,6 @@ export class FeedSearchQuery {
     return value;
   })
   @IsOptional()
-  @IsEnum(['latest', 'popular'])
-  sort?: 'latest' | 'popular';
+  @IsEnum(['latest', 'popular', 'accuracy'])
+  sort?: 'latest' | 'popular' | 'accuracy';
 }

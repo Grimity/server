@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { SimpleAuthorDto } from './simple-author.dto';
+import { IdAndNameDto } from './simple-author.dto';
 
 class SearchedFeedDto {
   @ApiProperty()
@@ -10,12 +10,6 @@ class SearchedFeedDto {
 
   @ApiProperty({ example: 'feed/UUID.jpg' })
   thumbnail: string;
-
-  @ApiProperty({ type: 'string', isArray: true })
-  cards: string[];
-
-  @ApiProperty()
-  createdAt: Date;
 
   @ApiProperty()
   viewCount: number;
@@ -32,8 +26,8 @@ class SearchedFeedDto {
   @ApiProperty()
   tags: string[];
 
-  @ApiProperty({ type: SimpleAuthorDto })
-  author: SimpleAuthorDto;
+  @ApiProperty({ type: IdAndNameDto })
+  author: IdAndNameDto;
 }
 
 export class FeedSearchResponse {
