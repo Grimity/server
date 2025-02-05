@@ -261,10 +261,10 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })
-  @ApiQuery({ name: 'name' })
+  @ApiQuery({ name: 'keyword' })
   @ApiQuery({ name: 'cursor', required: false, description: '없으면 처음부터' })
   @ApiQuery({ name: 'size', required: false, default: 10 })
-  @ApiQuery({ name: 'sort', enum: ['popular'], required: false })
+  @ApiQuery({ name: 'sort', enum: ['popular', 'accuracy'], required: false })
   @ApiResponse({ status: 200, description: '성공', type: SearchedUserResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('search')
@@ -273,7 +273,7 @@ export class UserController {
     @CurrentUser() userId: string | null,
   ): Promise<SearchedUserResponse> {
     return await this.userService.searchUsers({
-      name: query.name,
+      keyword: query.keyword,
       cursor: query.cursor ?? null,
       size: query.size ?? 10,
       sort: query.sort ?? 'popular',
