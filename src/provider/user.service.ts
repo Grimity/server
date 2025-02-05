@@ -296,6 +296,7 @@ export class UserService {
         id: user.id,
         name: user.name,
         image: user.image,
+        description: user.description,
         followerCount: user.followerCount,
         isFollowing: user.followers?.length === 1,
         thumbnails: user.feeds.map((feed) => {
