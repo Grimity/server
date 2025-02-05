@@ -306,19 +306,28 @@ export class UserService {
   }
 
   async searchUsers(input: SearchUserInput) {
-    const users = await this.userSelectRepository.findManyByName(input);
+    const searchedUsers = await this.openSearchService.searchUser(input);
 
     let nextCursor: string | null = null;
-    if (users.length === input.size) {
-      if (input.sort === 'popular') {
-        nextCursor = `${users[users.length - 1].followerCount}_${users[users.length - 1].id}`;
-      }
+
+    if (searchedUsers === undefined || searchedUsers.length === 0) {
+      return {
+        nextCursor,
+        users: [],
+      };
     }
 
-    return {
-      nextCursor,
-      users: users.map((user) => {
-        return {
+    const users = await this.userSelectRepository.findManyByUserIds(
+      input.userId,
+      searchedUsers.map((user) => user.id),
+    );
+
+    const returnUsers = [];
+
+    for (const searchedUser of searchedUsers) {
+      const user = users.find((user) => user.id === searchedUser.id);
+      if (user) {
+        returnUsers.push({
           id: user.id,
           name: user.name,
           image: user.image,
@@ -326,18 +335,31 @@ export class UserService {
           backgroundImage: user.backgroundImage,
           followerCount: user.followerCount,
           isFollowing: user.followers?.length === 1,
-        };
-      }),
+        });
+      }
+    }
+
+    if (searchedUsers.length === input.size) {
+      if (input.sort === 'popular') {
+        nextCursor = `${searchedUsers[searchedUsers.length - 1].followerCount}_${searchedUsers[searchedUsers.length - 1].id}`;
+      } else {
+        nextCursor = `${searchedUsers[searchedUsers.length - 1].score}_${searchedUsers[searchedUsers.length - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      users: returnUsers,
     };
   }
 }
 
 export type SearchUserInput = {
   userId: string | null;
-  name: string;
+  keyword: string;
   cursor: string | null;
   size: number;
-  sort: 'popular';
+  sort: 'popular' | 'accuracy';
 };
 
 export type UpdateProfileInput = {

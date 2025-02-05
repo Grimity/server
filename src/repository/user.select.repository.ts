@@ -204,82 +204,34 @@ export class UserSelectRepository {
     });
   }
 
-  async findManyByName({
-    name,
-    cursor,
-    size,
-    userId,
-    sort,
-  }: FindManyByNameInput) {
-    const where: Prisma.UserWhereInput = {
-      name: {
-        contains: name,
-      },
-    };
-
-    let orderBy: Prisma.UserOrderByWithRelationInput[] = [];
-
-    if (sort === 'popular') {
-      orderBy = [
-        {
-          followerCount: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-
-      if (cursor) {
-        const [followerCount, id] = cursor.split('_');
-        where.OR = [
-          {
-            followerCount: {
-              lt: Number(followerCount),
-            },
-          },
-          {
-            followerCount: Number(followerCount),
-            id: {
-              lt: id,
-            },
-          },
-        ];
-      }
-    }
-
+  async findManyByUserIds(myId: string | null, userIds: string[]) {
     const select: Prisma.UserSelect = {
       id: true,
       name: true,
       image: true,
       backgroundImage: true,
-      followerCount: true,
       description: true,
+      followerCount: true,
     };
 
-    if (userId) {
+    if (myId) {
       select.followers = {
         select: {
           followerId: true,
         },
         where: {
-          followerId: userId,
+          followerId: myId,
         },
       };
     }
 
     return await this.prisma.user.findMany({
-      where,
-      take: size,
-      orderBy,
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
       select,
     });
   }
 }
-
-type FindManyByNameInput = {
-  name: string;
-  cursor: string | null;
-  size: number;
-  userId: string | null;
-  sort: 'popular';
-};
