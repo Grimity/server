@@ -38,14 +38,7 @@ export class TagRepository {
     `) as { tagName: string; thumbnail: string }[];
   }
 
-  async searchTags(userId: string | null, tagNames: string[]) {
-    const some: Prisma.TagWhereInput = {
-      OR: tagNames.map((tagName) => ({
-        tagName: {
-          startsWith: tagName,
-        },
-      })),
-    };
+  async findFeedsByIds(userId: string | null, feedIds: string[]) {
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
@@ -59,24 +52,25 @@ export class TagRepository {
         },
       },
     };
+
     if (userId) {
       select.likes = {
-        where: {
-          userId,
-        },
         select: {
           userId: true,
         },
+        where: {
+          userId,
+        },
       };
     }
+
     return await this.prisma.feed.findMany({
       where: {
-        tags: {
-          some,
+        id: {
+          in: feedIds,
         },
       },
       select,
-      take: 8,
     });
   }
 }
