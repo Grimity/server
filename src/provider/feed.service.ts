@@ -126,7 +126,13 @@ export class FeedService {
   }
 
   async deleteOne(userId: string, feedId: string) {
-    await this.feedRepository.deleteOne(userId, feedId);
+    const feed = await this.feedRepository.deleteOne(userId, feedId);
+
+    if (!feed) {
+      throw new HttpException('FEED', 404);
+    }
+
+    await this.openSearchService.deleteFeed(feedId);
     return;
   }
 

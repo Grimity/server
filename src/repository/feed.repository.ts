@@ -153,13 +153,12 @@ export class FeedRepository {
 
   async deleteOne(userId: string, feedId: string) {
     try {
-      await this.prisma.feed.delete({
+      return await this.prisma.feed.delete({
         where: {
           id: feedId,
           authorId: userId,
         },
       });
-      return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {

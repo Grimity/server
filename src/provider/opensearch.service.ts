@@ -87,6 +87,14 @@ export class OpenSearchService {
     });
   }
 
+  async deleteFeed(id: string) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
+    return await this.client.delete({
+      index: 'feed',
+      id,
+    });
+  }
+
   async searchUser({ keyword, cursor, size, sort }: SearchUserInput) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
 
