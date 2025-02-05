@@ -42,7 +42,8 @@ export class TagController {
     if (!tagNames) {
       throw new HttpException('태그를 입력해주세요.', 400);
     }
-    const tags = tagNames.split(',');
+    const trimmedTag = new Set(tagNames.split(',').map((tag) => tag.trim()));
+    const tags = [...trimmedTag];
     if (tags.length === 0 || tags.length > 10) {
       throw new HttpException('태그는 1개 이상 10개 이하로 입력해주세요.', 400);
     }

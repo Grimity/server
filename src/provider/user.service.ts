@@ -307,11 +307,17 @@ export class UserService {
   }
 
   async searchUsers(input: SearchUserInput) {
-    const searchedUsers = await this.openSearchService.searchUser(input);
+    const currentCursor = input.cursor ? Number(input.cursor) : 0;
+    const searchedUserIds = await this.openSearchService.searchUser({
+      keyword: input.keyword,
+      cursor: currentCursor,
+      size: input.size,
+      sort: input.sort,
+    });
 
     let nextCursor: string | null = null;
 
-    if (searchedUsers === undefined || searchedUsers.length === 0) {
+    if (searchedUserIds === undefined || searchedUserIds.length === 0) {
       return {
         nextCursor,
         users: [],
@@ -320,13 +326,13 @@ export class UserService {
 
     const users = await this.userSelectRepository.findManyByUserIds(
       input.userId,
-      searchedUsers.map((user) => user.id),
+      searchedUserIds,
     );
 
     const returnUsers = [];
 
-    for (const searchedUser of searchedUsers) {
-      const user = users.find((user) => user.id === searchedUser.id);
+    for (const searchedId of searchedUserIds) {
+      const user = users.find((user) => user.id === searchedId);
       if (user) {
         returnUsers.push({
           id: user.id,
@@ -340,12 +346,8 @@ export class UserService {
       }
     }
 
-    if (searchedUsers.length === input.size) {
-      if (input.sort === 'popular') {
-        nextCursor = `${searchedUsers[searchedUsers.length - 1].followerCount}_${searchedUsers[searchedUsers.length - 1].id}`;
-      } else {
-        nextCursor = `${searchedUsers[searchedUsers.length - 1].score}_${searchedUsers[searchedUsers.length - 1].id}`;
-      }
+    if (searchedUserIds.length === input.size) {
+      nextCursor = String(currentCursor + 1);
     }
 
     return {

@@ -64,7 +64,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '태그로 피드 검색 - Optional Guard' })
   @ApiQuery({
-    name: 'tag',
+    name: 'keyword',
     required: true,
     type: 'string',
   })
@@ -84,7 +84,7 @@ export class FeedController {
     name: 'sort',
     required: false,
     type: 'string',
-    enum: ['latest', 'popular'],
+    enum: ['latest', 'popular', 'accuracy'],
     default: 'latest',
   })
   @ApiResponse({
@@ -96,11 +96,11 @@ export class FeedController {
   @Get('search')
   async search(
     @CurrentUser() userId: string | null,
-    @Query() { tag, cursor, size, sort }: FeedSearchQuery,
+    @Query() { keyword, cursor, size, sort }: FeedSearchQuery,
   ): Promise<FeedSearchResponse> {
     return await this.feedService.search({
       userId,
-      tag,
+      keyword,
       cursor: cursor ?? null,
       size: size ?? 20,
       sort: sort ?? 'latest',

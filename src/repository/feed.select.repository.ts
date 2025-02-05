@@ -551,96 +551,27 @@ export class FeedSelectRepository {
     });
   }
 
-  async findManyByTag({ tag, cursor, size, sort, userId }: SearchInput) {
-    const where: Prisma.FeedWhereInput = {
-      tags: {
-        some: {
-          tagName: {
-            startsWith: tag,
-          },
-        },
-      },
-    };
-
-    let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
-
-    if (sort === 'latest') {
-      orderBy = [
-        {
-          createdAt: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-
-      if (cursor) {
-        const [firstCursor, secondCursor] = cursor.split('_');
-        where.OR = [
-          {
-            createdAt: {
-              lt: new Date(firstCursor),
-            },
-          },
-          {
-            createdAt: new Date(firstCursor),
-            id: {
-              lt: secondCursor,
-            },
-          },
-        ];
-      }
-    } else if (sort === 'popular') {
-      orderBy = [
-        {
-          likeCount: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-
-      if (cursor) {
-        const [firstCursor, secondCursor] = cursor.split('_');
-        where.OR = [
-          {
-            likeCount: {
-              lt: Number(firstCursor),
-            },
-          },
-          {
-            likeCount: Number(firstCursor),
-            id: {
-              lt: secondCursor,
-            },
-          },
-        ];
-      }
-    }
-
+  async findManyByIds(userId: string | null, feedIds: string[]) {
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
-      createdAt: true,
-      cards: true,
       thumbnail: true,
-      viewCount: true,
       likeCount: true,
-      _count: {
+      viewCount: true,
+      tags: {
         select: {
-          feedComments: true,
+          tagName: true,
         },
       },
       author: {
         select: {
           id: true,
           name: true,
-          image: true,
         },
       },
-      tags: {
+      _count: {
         select: {
-          tagName: true,
+          feedComments: true,
         },
       },
     };
@@ -655,10 +586,13 @@ export class FeedSelectRepository {
         },
       };
     }
+
     return await this.prisma.feed.findMany({
-      where,
-      take: size,
-      orderBy,
+      where: {
+        id: {
+          in: feedIds,
+        },
+      },
       select,
     });
   }
@@ -755,12 +689,4 @@ type FindFeedsByUserInput = {
   size: number;
   cursor: string | null;
   targetId: string;
-};
-
-type SearchInput = {
-  userId: string | null;
-  tag: string;
-  cursor: string | null;
-  size: number;
-  sort: 'latest' | 'popular';
 };
