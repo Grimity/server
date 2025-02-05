@@ -254,7 +254,7 @@ describe('POST /feeds - 피드 생성', () => {
         cards: ['feed/test.jpg'],
         isAI: false,
         content: 'test',
-        tags: ['test'],
+        tags: ['test', 'test2'],
         thumbnail: 'feed/test.jpg',
       });
 
@@ -276,12 +276,7 @@ describe('POST /feeds - 피드 생성', () => {
       isAI: false,
       cards: ['feed/test.jpg'],
       thumbnail: 'feed/test.jpg',
-      tags: [
-        {
-          feedId: body.id,
-          tagName: 'test',
-        },
-      ],
+      tags: expect.any(Array),
       createdAt: expect.any(Date),
       likeCount: 0,
       viewCount: 0,

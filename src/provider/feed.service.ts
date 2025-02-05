@@ -12,12 +12,13 @@ export class FeedService {
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
-    const trimmedTags = createFeedInput.tags.map((tag) =>
-      tag.replaceAll(' ', ''),
+    const trimmedSet = new Set(
+      createFeedInput.tags.map((tag) => tag.replaceAll(' ', '')),
     );
+
     return await this.feedRepository.create(userId, {
       ...createFeedInput,
-      tags: trimmedTags,
+      tags: [...trimmedSet],
     });
   }
 
@@ -121,7 +122,13 @@ export class FeedService {
     userId: string,
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
-    await this.feedRepository.updateOne(userId, updateFeedInput);
+    const trimmedSet = new Set(
+      updateFeedInput.tags.map((tag) => tag.replaceAll(' ', '')),
+    );
+    await this.feedRepository.updateOne(userId, {
+      ...updateFeedInput,
+      tags: [...trimmedSet],
+    });
     return;
   }
 
