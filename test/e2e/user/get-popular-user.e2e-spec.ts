@@ -100,6 +100,7 @@ describe('GET /users/popular - 인기 유저 조회', () => {
       image: null,
       name: 'test1',
       followerCount: 3,
+      description: '',
       isFollowing: true,
       thumbnails: expect.arrayContaining(['test1', 'test2']),
     });
@@ -107,6 +108,7 @@ describe('GET /users/popular - 인기 유저 조회', () => {
       id: users[1].id,
       image: null,
       name: 'test2',
+      description: '',
       followerCount: 1,
       isFollowing: false,
       thumbnails: [],

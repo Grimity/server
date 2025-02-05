@@ -177,6 +177,7 @@ export class UserSelectRepository {
       name: true,
       image: true,
       followerCount: true,
+      description: true,
       feeds: {
         select: {
           thumbnail: true,
