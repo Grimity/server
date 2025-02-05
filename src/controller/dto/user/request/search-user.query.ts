@@ -2,6 +2,9 @@ import { IsOptional, IsInt, Length, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class SearchUserQuery {
+  @Transform(({ value }) => {
+    if (typeof value === 'string') return value.trim().toLowerCase();
+  })
   @Length(1, 20)
   keyword: string;
 
