@@ -43,6 +43,51 @@ export class OpenSearchService {
     });
   }
 
+  async createFeed({
+    id,
+    title,
+    tag,
+  }: {
+    id: string;
+    title: string;
+    tag: string;
+  }) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
+    return await this.client.index({
+      index: 'feed',
+      id,
+      body: {
+        title,
+        tag,
+        id,
+        createdAt: new Date().toISOString(),
+        likeCount: 0,
+      },
+    });
+  }
+
+  async updateFeed({
+    id,
+    title,
+    tag,
+  }: {
+    id: string;
+    title: string;
+    tag: string;
+  }) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
+    return await this.client.update({
+      index: 'feed',
+      id,
+      body: {
+        doc: {
+          title,
+          tag,
+        },
+      },
+    });
+  }
+
   async searchUser({ keyword, cursor, size, sort }: SearchUserInput) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
 

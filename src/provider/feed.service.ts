@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
+import { OpenSearchService } from './opensearch.service';
 
 @Injectable()
 export class FeedService {
@@ -9,6 +10,7 @@ export class FeedService {
     private feedRepository: FeedRepository,
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
+    private openSearchService: OpenSearchService,
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
@@ -16,10 +18,18 @@ export class FeedService {
       createFeedInput.tags.map((tag) => tag.replaceAll(' ', '')),
     );
 
-    return await this.feedRepository.create(userId, {
+    const { id } = await this.feedRepository.create(userId, {
       ...createFeedInput,
       tags: [...trimmedSet],
     });
+
+    await this.openSearchService.createFeed({
+      id,
+      title: createFeedInput.title,
+      tag: [...trimmedSet].join(' '),
+    });
+
+    return { id };
   }
 
   async getFeed(userId: string | null, feedId: string) {
@@ -128,6 +138,11 @@ export class FeedService {
     await this.feedRepository.updateOne(userId, {
       ...updateFeedInput,
       tags: [...trimmedSet],
+    });
+    await this.openSearchService.updateFeed({
+      id: updateFeedInput.feedId,
+      title: updateFeedInput.title,
+      tag: [...trimmedSet].join(' '),
     });
     return;
   }
