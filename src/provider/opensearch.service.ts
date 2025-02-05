@@ -24,6 +24,7 @@ export class OpenSearchService {
         name,
         description: '',
         followerCount: 0,
+        id,
       },
     });
   }
