@@ -307,7 +307,13 @@ export class UserService {
   }
 
   async searchUsers(input: SearchUserInput) {
-    const searchedUsers = await this.openSearchService.searchUser(input);
+    const currentCursor = input.cursor ? Number(input.cursor) : 0;
+    const searchedUsers = await this.openSearchService.searchUser({
+      keyword: input.keyword,
+      cursor: currentCursor,
+      size: input.size,
+      sort: input.sort,
+    });
 
     let nextCursor: string | null = null;
 
@@ -341,11 +347,7 @@ export class UserService {
     }
 
     if (searchedUsers.length === input.size) {
-      if (input.sort === 'popular') {
-        nextCursor = `${searchedUsers[searchedUsers.length - 1].followerCount}_${searchedUsers[searchedUsers.length - 1].id}`;
-      } else {
-        nextCursor = `${searchedUsers[searchedUsers.length - 1].score}_${searchedUsers[searchedUsers.length - 1].id}`;
-      }
+      nextCursor = String(currentCursor + 1);
     }
 
     return {

@@ -124,42 +124,6 @@ export class OpenSearchService {
           id: 'desc',
         },
       ];
-
-      if (cursor) {
-        const [followerCount, id] = cursor.split('_');
-
-        must.push({
-          bool: {
-            should: [
-              {
-                range: {
-                  followerCount: {
-                    lt: Number(followerCount),
-                  },
-                },
-              },
-              {
-                bool: {
-                  should: [
-                    {
-                      term: {
-                        followerCount: Number(followerCount),
-                      },
-                    },
-                    {
-                      range: {
-                        id: {
-                          lt: id,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        });
-      }
     } else {
       sortQuery = [
         {
@@ -169,47 +133,6 @@ export class OpenSearchService {
           id: 'desc',
         },
       ];
-
-      if (cursor) {
-        const [score, id] = cursor.split('_');
-
-        must.push({
-          bool: {
-            should: [
-              {
-                range: {
-                  _score: {
-                    lt: Number(score),
-                    boost: 0,
-                  },
-                },
-              },
-              {
-                bool: {
-                  should: [
-                    {
-                      range: {
-                        _score: {
-                          lte: Number(score),
-                          boost: 0,
-                        },
-                      },
-                    },
-                    {
-                      range: {
-                        id: {
-                          lt: id,
-                          boost: 0,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            ],
-          },
-        });
-      }
     }
 
     const response = await this.client.search({
@@ -222,6 +145,7 @@ export class OpenSearchService {
         },
         size,
         sort: sortQuery,
+        from: cursor ? size * cursor : 0,
       },
     });
 
@@ -230,7 +154,6 @@ export class OpenSearchService {
     return hits.map((hit) => {
       return {
         id: hit._id,
-        score: hit._score,
         followerCount: hit._source.followerCount,
       };
     });
@@ -239,7 +162,7 @@ export class OpenSearchService {
 
 export type SearchUserInput = {
   keyword: string;
-  cursor: string | null;
+  cursor: number;
   size: number;
   sort: 'popular' | 'accuracy';
 };
