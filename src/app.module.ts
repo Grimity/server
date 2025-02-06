@@ -9,6 +9,7 @@ import { FeedModule } from './module/feed.module';
 import { FeedCommentModule } from './module/feed-comment.module';
 import { NotificationModule } from './module/notification.module';
 import { TagModule } from './module/tag.module';
+import { PostModule } from './module/post.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TagModule } from './module/tag.module';
     FeedCommentModule,
     NotificationModule,
     TagModule,
+    PostModule,
   ],
   providers: [globalPipe],
 })

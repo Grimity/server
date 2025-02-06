@@ -24,12 +24,18 @@ model User {
   followers           Follow[]          @relation("following")
   followings          Follow[]          @relation("follower")
   feeds               Feed[]
-  likes               Like[]
+  feedLikes           Like[]
   feedComments        FeedComment[]     @relation("FeedCommentWrite")
-  views               View[]
-  saves               Save[]
+  feedViews           View[]
+  feedSaves           Save[]
   feedCommentMentions FeedComment[]     @relation("MentionedUser")
   feedCommentLikes    FeedCommentLike[]
+  posts               Post[]
+  postLikes           PostLike[]
+  postSaves           PostSave[]
+  postComments        PostComment[]     @relation("PostCommentWrite")
+  postCommentMentions PostComment[]     @relation("MentionedUser")
+  PostCommentLike     PostCommentLike[]
 
   @@unique([provider, providerId])
 }
@@ -58,11 +64,11 @@ model Feed {
   content   String   @default("")
   tags      Tag[]
 
-  author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likes        Like[]
-  feedComments FeedComment[]
-  views        View[]
-  saves        Save[]
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes    Like[]
+  comments FeedComment[]
+  views    View[]
+  saves    Save[]
 
   @@index([authorId])
   @@index([createdAt(sort: Desc)])
@@ -152,4 +158,76 @@ model FeedCommentLike {
   feedComment FeedComment @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
 
   @@id([feedCommentId, userId])
+}
+
+model Post {
+  id           String   @id @default(uuid()) @db.Uuid
+  authorId     String   @db.Uuid
+  title        String
+  content      String
+  type         Int      @db.SmallInt
+  hasImage     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  viewCount    Int      @default(0)
+  commentCount Int      @default(0)
+
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes    PostLike[]
+  saves    PostSave[]
+  comments PostComment[]
+
+  @@index([authorId])
+  @@index([createdAt(sort: Desc)])
+  @@index([type(sort: Asc), createdAt(sort: Desc)])
+}
+
+model PostLike {
+  postId String @db.Uuid
+  userId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+}
+
+model PostSave {
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model PostComment {
+  id              String   @id @default(uuid()) @db.Uuid
+  postId          String   @db.Uuid
+  writerId        String   @db.Uuid
+  parentId        String?  @db.Uuid
+  content         String
+  mentionedUserId String?  @db.Uuid
+  createdAt       DateTime @default(now())
+  likeCount       Int      @default(0)
+
+  writer        User              @relation("PostCommentWrite", fields: [writerId], references: [id], onDelete: Cascade)
+  post          Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent        PostComment?      @relation("ChildComments", fields: [parentId], references: [id], onDelete: Cascade)
+  childComments PostComment[]     @relation("ChildComments")
+  mentionedUser User?             @relation("MentionedUser", fields: [mentionedUserId], references: [id], onDelete: SetNull)
+  likes         PostCommentLike[]
+
+  @@index([postId])
+}
+
+model PostCommentLike {
+  postCommentId String @db.Uuid
+  userId        String @db.Uuid
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postComment PostComment @relation(fields: [postCommentId], references: [id], onDelete: Cascade)
+
+  @@id([postCommentId, userId])
 }

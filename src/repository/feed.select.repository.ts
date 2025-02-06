@@ -205,7 +205,7 @@ export class FeedSelectRepository {
       likeCount: true,
       _count: {
         select: {
-          feedComments: true,
+          comments: true,
         },
       },
     };
@@ -404,7 +404,7 @@ export class FeedSelectRepository {
         isAI: true,
         _count: {
           select: {
-            feedComments: true,
+            comments: true,
           },
         },
         author: {
@@ -480,7 +480,7 @@ export class FeedSelectRepository {
             likeCount: true,
             _count: {
               select: {
-                feedComments: true,
+                comments: true,
               },
             },
             author: {
@@ -536,7 +536,7 @@ export class FeedSelectRepository {
             likeCount: true,
             _count: {
               select: {
-                feedComments: true,
+                comments: true,
               },
             },
             author: {
@@ -571,7 +571,7 @@ export class FeedSelectRepository {
       },
       _count: {
         select: {
-          feedComments: true,
+          comments: true,
         },
       },
     };

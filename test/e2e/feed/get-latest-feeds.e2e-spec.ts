@@ -57,7 +57,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
             userId: user.id,
           },
         },
-        feedComments: {
+        comments: {
           create: {
             writerId: user.id,
             content: 'test',
