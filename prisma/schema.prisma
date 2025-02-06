@@ -24,10 +24,10 @@ model User {
   followers           Follow[]          @relation("following")
   followings          Follow[]          @relation("follower")
   feeds               Feed[]
-  likes               Like[]
+  feedLikes           Like[]
   feedComments        FeedComment[]     @relation("FeedCommentWrite")
-  views               View[]
-  saves               Save[]
+  feedViews           View[]
+  feedSaves           Save[]
   feedCommentMentions FeedComment[]     @relation("MentionedUser")
   feedCommentLikes    FeedCommentLike[]
   posts               Post[]
@@ -61,11 +61,11 @@ model Feed {
   content   String   @default("")
   tags      Tag[]
 
-  author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likes        Like[]
-  feedComments FeedComment[]
-  views        View[]
-  saves        Save[]
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes    Like[]
+  comments FeedComment[]
+  views    View[]
+  saves    Save[]
 
   @@index([authorId])
   @@index([createdAt(sort: Desc)])
@@ -167,9 +167,9 @@ model Post {
   createdAt DateTime @default(now())
   viewCount Int      @default(0)
 
-  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  likes     PostLike[]
-  postSaves PostSave[]
+  author User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes  PostLike[]
+  saves  PostSave[]
 
   @@index([authorId])
   @@index([createdAt(sort: Desc)])

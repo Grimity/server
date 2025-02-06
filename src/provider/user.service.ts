@@ -205,7 +205,7 @@ export class UserService {
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
-          commentCount: feed._count.feedComments,
+          commentCount: feed._count.comments,
           thumbnail: feed.thumbnail,
         };
       }),
@@ -242,7 +242,7 @@ export class UserService {
           createdAt: feed.createdAt,
           viewCount: feed.feed.viewCount,
           likeCount: feed.feed.likeCount,
-          commentCount: feed.feed._count.feedComments,
+          commentCount: feed.feed._count.comments,
           thumbnail: feed.feed.thumbnail,
           author: feed.feed.author,
         };
@@ -280,7 +280,7 @@ export class UserService {
           createdAt: feed.createdAt,
           viewCount: feed.feed.viewCount,
           likeCount: feed.feed.likeCount,
-          commentCount: feed.feed._count.feedComments,
+          commentCount: feed.feed._count.comments,
           thumbnail: feed.feed.thumbnail,
           author: feed.feed.author,
         };
