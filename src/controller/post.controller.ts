@@ -35,6 +35,12 @@ export class PostController {
 
   @Get('notices')
   @ApiOperation({ summary: '공지사항 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '공지사항 조회 성공',
+    type: NoticePostDto,
+    isArray: true,
+  })
   async getNotices(): Promise<NoticePostDto[]> {
     return await this.postService.getNotices();
   }
