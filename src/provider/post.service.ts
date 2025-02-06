@@ -27,6 +27,10 @@ export class PostService {
       hasImage,
     });
   }
+
+  async getNotices() {
+    return await this.postRepository.findAllNotices();
+  }
 }
 
 type CreateInput = {

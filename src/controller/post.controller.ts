@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Get } from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -8,7 +8,7 @@ import {
 import { PostService } from 'src/provider/post.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { CreatePostDto, PostIdDto } from './dto/post';
+import { CreatePostDto, PostIdDto, NoticePostDto } from './dto/post';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -31,5 +31,11 @@ export class PostController {
     @Body() dto: CreatePostDto,
   ): Promise<PostIdDto> {
     return await this.postService.create(userId, dto);
+  }
+
+  @Get('notices')
+  @ApiOperation({ summary: '공지사항 조회' })
+  async getNotices(): Promise<NoticePostDto[]> {
+    return await this.postService.getNotices();
   }
 }

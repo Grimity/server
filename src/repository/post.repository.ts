@@ -19,6 +19,32 @@ export class PostRepository {
       },
     });
   }
+
+  async findAllNotices() {
+    return await this.prisma.post.findMany({
+      where: {
+        type: 0,
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        commentCount: true,
+        viewCount: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }
 
 type CreateInput = {
