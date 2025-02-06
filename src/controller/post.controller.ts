@@ -1,14 +1,21 @@
-import { Controller, Post, UseGuards, Body, Get } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Get, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
   ApiOperation,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { PostService } from 'src/provider/post.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { CreatePostDto, PostIdDto, NoticePostDto } from './dto/post';
+import {
+  CreatePostDto,
+  PostIdDto,
+  NoticePostDto,
+  GetPostsQuery,
+  GetPostsResponse,
+} from './dto/post';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -31,6 +38,26 @@ export class PostController {
     @Body() dto: CreatePostDto,
   ): Promise<PostIdDto> {
     return await this.postService.create(userId, dto);
+  }
+
+  @ApiOperation({ summary: '게시글 조회' })
+  @ApiQuery({ name: 'type', enum: ['ALL', 'QUESTION', 'FEEDBACK'] })
+  @ApiQuery({ name: 'page', required: false, default: 0 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 조회 성공',
+    type: GetPostsResponse,
+  })
+  @Get()
+  async getPosts(
+    @Query() { type, page, size }: GetPostsQuery,
+  ): Promise<GetPostsResponse> {
+    return await this.postService.getPosts({
+      type,
+      page: page ?? 0,
+      size: size ?? 10,
+    });
   }
 
   @Get('notices')

@@ -72,6 +72,7 @@ describe('GET /posts/notices - 공지사항 조회', () => {
       hasImage: false,
       commentCount: 0,
       viewCount: 0,
+      type: 'NOTICE',
       createdAt: expect.any(String),
       author: {
         id: user.id,
