@@ -42,8 +42,8 @@ export class PostController {
 
   @ApiOperation({ summary: '게시글 조회' })
   @ApiQuery({ name: 'type', enum: ['ALL', 'QUESTION', 'FEEDBACK'] })
-  @ApiQuery({ name: 'page', required: false, default: 0 })
-  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 20 })
   @ApiResponse({
     status: 200,
     description: '게시글 조회 성공',
@@ -56,7 +56,7 @@ export class PostController {
     return await this.postService.getPosts({
       type,
       page: page ?? 0,
-      size: size ?? 10,
+      size: size ?? 20,
     });
   }
 

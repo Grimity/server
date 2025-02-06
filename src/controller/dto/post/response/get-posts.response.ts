@@ -33,6 +33,7 @@ class PostDto {
 export class GetPostsResponse {
   @ApiProperty({
     description: '전체 게시글 수 - page가 1일 때만 반환, 그 외에는 null',
+    type: 'number',
     nullable: true,
   })
   totalCount: number | null;
