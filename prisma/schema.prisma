@@ -162,7 +162,7 @@ model Post {
   authorId  String   @db.Uuid
   title     String
   content   String
-  type      Int      @default(0) @db.SmallInt
+  type      Int      @db.SmallInt
   hasImage  Boolean  @default(false)
   createdAt DateTime @default(now())
   viewCount Int      @default(0)
