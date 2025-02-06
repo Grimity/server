@@ -111,4 +111,35 @@ describe('POST /posts - 게시글 생성', () => {
     // then
     expect(status).toBe(400);
   });
+
+  it('201과 함께 id를 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const htmlText =
+      '<p>test</p><img src="test.jpg" ><p>test</p><br /><p><strong>te st</strong></p>';
+    const { status, body } = await request(app.getHttpServer())
+      .post('/posts')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'test',
+        content: htmlText,
+        type: 'NORMAL',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const post = await prisma.post.findFirstOrThrow();
+    expect(post).toEqual({
+      id: body.id,
+      authorId: expect.any(String),
+      title: 'test',
+      content: htmlText,
+      type: 1,
+      hasImage: true,
+      createdAt: expect.any(Date),
+      viewCount: 0,
+    });
+  });
 });

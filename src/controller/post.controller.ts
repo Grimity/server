@@ -1,9 +1,8 @@
 import { Controller, Post, UseGuards, Body } from '@nestjs/common';
 import { PostService } from 'src/provider/post.service';
-import { PostType } from 'src/common/constants';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { CreatePostDto } from './dto/post';
+import { CreatePostDto, PostIdDto } from './dto/post';
 
 @Controller('posts')
 export class PostController {
@@ -11,7 +10,10 @@ export class PostController {
 
   @Post()
   @UseGuards(JwtGuard)
-  async create(@CurrentUser() userId: string, @Body() dto: CreatePostDto) {
-    console.log(userId, dto);
+  async create(
+    @CurrentUser() userId: string,
+    @Body() dto: CreatePostDto,
+  ): Promise<PostIdDto> {
+    return await this.postService.create(userId, dto);
   }
 }
