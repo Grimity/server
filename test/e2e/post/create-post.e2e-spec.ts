@@ -140,6 +140,7 @@ describe('POST /posts - 게시글 생성', () => {
       hasImage: true,
       createdAt: expect.any(Date),
       viewCount: 0,
+      commentCount: 0,
     });
   });
 });
