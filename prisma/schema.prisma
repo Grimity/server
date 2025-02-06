@@ -30,6 +30,9 @@ model User {
   saves               Save[]
   feedCommentMentions FeedComment[]     @relation("MentionedUser")
   feedCommentLikes    FeedCommentLike[]
+  posts               Post[]
+  postLikes           PostLike[]
+  postSaves           PostSave[]
 
   @@unique([provider, providerId])
 }
@@ -152,4 +155,44 @@ model FeedCommentLike {
   feedComment FeedComment @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
 
   @@id([feedCommentId, userId])
+}
+
+model Post {
+  id        String   @id @default(uuid()) @db.Uuid
+  authorId  String   @db.Uuid
+  title     String
+  content   String
+  type      Int      @default(0) @db.SmallInt
+  hasImage  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  viewCount Int      @default(0)
+
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes     PostLike[]
+  postSaves PostSave[]
+
+  @@index([authorId])
+  @@index([createdAt(sort: Desc)])
+  @@index([type(sort: Asc), createdAt(sort: Desc)])
+}
+
+model PostLike {
+  postId String @db.Uuid
+  userId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+}
+
+model PostSave {
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
 }
