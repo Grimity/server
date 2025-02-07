@@ -1,4 +1,16 @@
-import { Controller, Post, UseGuards, Body, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Body,
+  Get,
+  Query,
+  Put,
+  Param,
+  ParseUUIDPipe,
+  HttpCode,
+  Delete,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -7,7 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { PostService } from 'src/provider/post.service';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   CreatePostDto,
@@ -15,6 +27,7 @@ import {
   NoticePostDto,
   GetPostsQuery,
   GetPostsResponse,
+  PostDetailDto,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -70,5 +83,76 @@ export class PostController {
   })
   async getNotices(): Promise<NoticePostDto[]> {
     return await this.postService.getNotices();
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 상세 조회 - Optional Guard' })
+  @ApiResponse({ status: 200, description: '성공', type: PostDetailDto })
+  @ApiResponse({ status: 404, description: '게시글 없음' })
+  @UseGuards(OptionalJwtGuard)
+  @Get(':id')
+  async getPost(
+    @CurrentUser() userId: string | null,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ): Promise<PostDetailDto> {
+    return await this.postService.getPost(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 좋아요' })
+  @ApiResponse({ status: 204, description: '좋아요 성공' })
+  @ApiResponse({ status: 404, description: '좋아요할 게시글 없음' })
+  @ApiResponse({ status: 409, description: '이미 좋아요한 게시글' })
+  @UseGuards(JwtGuard)
+  @Put(':id/like')
+  @HttpCode(204)
+  async like(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.like(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 좋아요 취소' })
+  @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
+  @ApiResponse({ status: 404, description: '좋아요 한 적이 없음' })
+  @UseGuards(JwtGuard)
+  @Delete(':id/like')
+  @HttpCode(204)
+  async unlike(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.unlike(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 저장' })
+  @ApiResponse({ status: 204, description: '게시글 저장 성공' })
+  @ApiResponse({ status: 404, description: '저장할 게시글 없음' })
+  @ApiResponse({ status: 409, description: '이미 저장한 게시글' })
+  @UseGuards(JwtGuard)
+  @Put(':id/save')
+  @HttpCode(204)
+  async save(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.save(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 저장 취소' })
+  @ApiResponse({ status: 204, description: '게시글 저장 취소 성공' })
+  @ApiResponse({ status: 404, description: '저장한 적이 없음' })
+  @UseGuards(JwtGuard)
+  @Delete(':id/save')
+  @HttpCode(204)
+  async unsave(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.unsave(userId, postId);
   }
 }

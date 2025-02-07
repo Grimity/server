@@ -2,7 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post.repository';
 import { PostType } from 'src/common/constants';
 import * as striptags from 'striptags';
-import { PostTypeEnum } from 'src/common/constants';
+import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 
 @Injectable()
@@ -38,7 +38,7 @@ export class PostService {
     return posts.map((post) => {
       return {
         ...post,
-        type: 'NOTICE',
+        type: 'NOTICE' as const,
       };
     });
   }
@@ -68,19 +68,56 @@ export class PostService {
     return {
       totalCount: returnTotalCount,
       posts: returnPosts.map((post) => {
-        let type: 'NORMAL' | 'QUESTION' | 'FEEDBACK';
-        if (post.type === 1) {
-          type = 'NORMAL';
-        } else if (post.type === 2) {
-          type = 'QUESTION';
-        } else {
-          type = 'FEEDBACK';
-        }
         return {
           ...post,
-          type,
+          type: convertPostTypeFromNumber(post.type),
         };
       }),
+    };
+  }
+
+  async like(userId: string, postId: string) {
+    await this.postRepository.createLike(userId, postId);
+    return;
+  }
+
+  async unlike(userId: string, postId: string) {
+    await this.postRepository.deleteLike(userId, postId);
+    return;
+  }
+
+  async save(userId: string, postId: string) {
+    await this.postRepository.createSave(userId, postId);
+    return;
+  }
+
+  async unsave(userId: string, postId: string) {
+    await this.postRepository.deleteSave(userId, postId);
+    return;
+  }
+
+  async getPost(userId: string | null, postId: string) {
+    const [post] = await Promise.all([
+      this.postSelectRepository.findOneById(userId, postId),
+      this.postRepository.increaseViewCount(postId),
+    ]);
+
+    return {
+      id: post.id,
+      type: convertPostTypeFromNumber(post.type),
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      likeCount: post._count.likes,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        name: post.author.name,
+      },
+      isLike: post.likes?.length === 1,
+      isSave: post.saves?.length === 1,
     };
   }
 }

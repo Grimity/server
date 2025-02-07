@@ -1,12 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IdAndNameDto } from '../../feed/response/simple-author.dto';
+import { PostTypes, PostType } from 'src/common/constants';
 
-export class NoticePostDto {
+export class PostDetailDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({ enum: ['NOTICE'] })
-  type: 'NOTICE';
+  @ApiProperty({ enum: PostTypes })
+  type: PostType;
 
   @ApiProperty()
   title: string;
@@ -24,8 +25,17 @@ export class NoticePostDto {
   viewCount: number;
 
   @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty({ type: IdAndNameDto })
   author: IdAndNameDto;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty()
+  isSave: boolean;
 }

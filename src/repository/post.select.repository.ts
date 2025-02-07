@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 
@@ -77,6 +77,65 @@ export class PostSelectRepository {
         createdAt: 'desc',
       },
     });
+  }
+
+  async findOneById(userId: string | null, postId: string) {
+    const select: Prisma.PostSelect = {
+      id: true,
+      type: true,
+      title: true,
+      content: true,
+      hasImage: true,
+      commentCount: true,
+      viewCount: true,
+      createdAt: true,
+      _count: {
+        select: {
+          likes: true,
+        },
+      },
+      author: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+      select.saves = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
+    try {
+      return await this.prisma.post.findUniqueOrThrow({
+        where: {
+          id: postId,
+        },
+        select,
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('POST', 404);
+        }
+      }
+      throw e;
+    }
   }
 }
 
