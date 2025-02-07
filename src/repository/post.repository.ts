@@ -121,6 +121,25 @@ export class PostRepository {
       return;
     }
   }
+
+  async deleteOne(userId: string, postId: string) {
+    try {
+      await this.prisma.post.delete({
+        where: {
+          id: postId,
+          authorId: userId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('POST', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateInput = {

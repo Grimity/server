@@ -120,6 +120,11 @@ export class PostService {
       isSave: post.saves?.length === 1,
     };
   }
+
+  async deleteOne(userId: string, postId: string) {
+    await this.postRepository.deleteOne(userId, postId);
+    return;
+  }
 }
 
 type CreateInput = {

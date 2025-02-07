@@ -99,6 +99,20 @@ export class PostController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 삭제' })
+  @ApiResponse({ status: 204, description: '삭제 성공' })
+  @ApiResponse({ status: 404, description: '게시글 없음' })
+  @UseGuards(JwtGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  async delete(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.deleteOne(userId, postId);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 좋아요' })
   @ApiResponse({ status: 204, description: '좋아요 성공' })
   @ApiResponse({ status: 404, description: '좋아요할 게시글 없음' })
