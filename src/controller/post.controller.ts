@@ -28,6 +28,7 @@ import {
   GetPostsQuery,
   GetPostsResponse,
   PostDetailDto,
+  TodayPopularDto,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -73,7 +74,6 @@ export class PostController {
     });
   }
 
-  @Get('notices')
   @ApiOperation({ summary: '공지사항 조회' })
   @ApiResponse({
     status: 200,
@@ -81,8 +81,21 @@ export class PostController {
     type: NoticePostDto,
     isArray: true,
   })
+  @Get('notices')
   async getNotices(): Promise<NoticePostDto[]> {
     return await this.postService.getNotices();
+  }
+
+  @ApiOperation({ summary: '오늘의 인기글 조회 - 최대 12개' })
+  @ApiResponse({
+    status: 200,
+    description: '오늘의 인기글 조회 성공',
+    type: TodayPopularDto,
+    isArray: true,
+  })
+  @Get('today-popular')
+  async getTodayPopularPosts(): Promise<TodayPopularDto[]> {
+    return await this.postService.getTodayPopularPosts();
   }
 
   @ApiBearerAuth()

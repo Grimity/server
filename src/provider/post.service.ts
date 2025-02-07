@@ -125,6 +125,17 @@ export class PostService {
     await this.postRepository.deleteOne(userId, postId);
     return;
   }
+
+  async getTodayPopularPosts() {
+    const posts = await this.postSelectRepository.findTodayPopular();
+
+    return posts.map((post) => {
+      return {
+        ...post,
+        type: convertPostTypeFromNumber(post.type),
+      };
+    });
+  }
 }
 
 type CreateInput = {
