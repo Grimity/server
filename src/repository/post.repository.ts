@@ -104,6 +104,23 @@ export class PostRepository {
       throw e;
     }
   }
+
+  async increaseViewCount(postId: string) {
+    try {
+      await this.prisma.post.update({
+        where: {
+          id: postId,
+        },
+        data: {
+          viewCount: {
+            increment: 1,
+          },
+        },
+      });
+    } catch {
+      return;
+    }
+  }
 }
 
 type CreateInput = {
