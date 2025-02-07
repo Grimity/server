@@ -62,6 +62,27 @@ export class PostRepository {
       throw e;
     }
   }
+
+  async createSave(userId: string, postId: string) {
+    try {
+      await this.prisma.postSave.create({
+        data: {
+          userId,
+          postId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new HttpException('SAVE', 409);
+        } else if (e.code === 'P2003') {
+          throw new HttpException('POST', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateInput = {

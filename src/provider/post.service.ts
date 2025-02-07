@@ -93,6 +93,11 @@ export class PostService {
     await this.postRepository.deleteLike(userId, postId);
     return;
   }
+
+  async save(userId: string, postId: string) {
+    await this.postRepository.createSave(userId, postId);
+    return;
+  }
 }
 
 type CreateInput = {

@@ -112,4 +112,19 @@ export class PostController {
   ) {
     await this.postService.unlike(userId, postId);
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 저장' })
+  @ApiResponse({ status: 204, description: '게시글 저장 성공' })
+  @ApiResponse({ status: 404, description: '저장할 게시글 없음' })
+  @ApiResponse({ status: 409, description: '이미 저장한 게시글' })
+  @UseGuards(JwtGuard)
+  @Put(':id/save')
+  @HttpCode(204)
+  async save(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.save(userId, postId);
+  }
 }
