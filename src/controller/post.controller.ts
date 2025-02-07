@@ -1,4 +1,15 @@
-import { Controller, Post, UseGuards, Body, Get, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Body,
+  Get,
+  Query,
+  Put,
+  Param,
+  ParseUUIDPipe,
+  HttpCode,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -70,5 +81,20 @@ export class PostController {
   })
   async getNotices(): Promise<NoticePostDto[]> {
     return await this.postService.getNotices();
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 좋아요' })
+  @ApiResponse({ status: 204, description: '좋아요 성공' })
+  @ApiResponse({ status: 404, description: '좋아요할 게시글 없음' })
+  @ApiResponse({ status: 409, description: '이미 좋아요한 게시글' })
+  @UseGuards(JwtGuard)
+  @Put(':id/like')
+  @HttpCode(204)
+  async like(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.like(userId, postId);
   }
 }

@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PostRepository {
@@ -18,6 +19,27 @@ export class PostRepository {
         id: true,
       },
     });
+  }
+
+  async createLike(userId: string, postId: string) {
+    try {
+      await this.prisma.postLike.create({
+        data: {
+          userId,
+          postId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2002') {
+          throw new HttpException('LIKE', 409);
+        } else if (e.code === 'P2003') {
+          throw new HttpException('POST', 404);
+        }
+      }
+      throw e;
+    }
   }
 }
 

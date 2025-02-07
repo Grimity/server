@@ -83,6 +83,11 @@ export class PostService {
       }),
     };
   }
+
+  async like(userId: string, postId: string) {
+    await this.postRepository.createLike(userId, postId);
+    return;
+  }
 }
 
 type CreateInput = {
