@@ -127,4 +127,18 @@ export class PostController {
   ) {
     await this.postService.save(userId, postId);
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 저장 취소' })
+  @ApiResponse({ status: 204, description: '게시글 저장 취소 성공' })
+  @ApiResponse({ status: 404, description: '저장한 적이 없음' })
+  @UseGuards(JwtGuard)
+  @Delete(':id/save')
+  @HttpCode(204)
+  async unsave(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.unsave(userId, postId);
+  }
 }

@@ -83,6 +83,27 @@ export class PostRepository {
       throw e;
     }
   }
+
+  async deleteSave(userId: string, postId: string) {
+    try {
+      await this.prisma.postSave.delete({
+        where: {
+          userId_postId: {
+            userId,
+            postId,
+          },
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('SAVE', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateInput = {
