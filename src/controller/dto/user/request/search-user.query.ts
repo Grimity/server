@@ -5,7 +5,7 @@ export class SearchUserQuery {
   @Transform(({ value }) => {
     if (typeof value === 'string') return value.trim().toLowerCase();
   })
-  @Length(1, 20)
+  @Length(2, 20)
   keyword: string;
 
   @IsOptional()

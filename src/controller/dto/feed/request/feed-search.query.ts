@@ -5,7 +5,7 @@ export class FeedSearchQuery {
   @Transform(({ value }) => {
     if (typeof value === 'string') return value.trim().toLowerCase();
   })
-  @Length(1, 100)
+  @Length(2, 100)
   keyword: string;
 
   @IsOptional()

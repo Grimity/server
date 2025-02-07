@@ -261,7 +261,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })
-  @ApiQuery({ name: 'keyword' })
+  @ApiQuery({ name: 'keyword', description: '최소 2글자' })
   @ApiQuery({ name: 'cursor', required: false, description: '없으면 처음부터' })
   @ApiQuery({ name: 'size', required: false, default: 10 })
   @ApiQuery({ name: 'sort', enum: ['popular', 'accuracy'], required: false })

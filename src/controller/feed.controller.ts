@@ -67,6 +67,7 @@ export class FeedController {
     name: 'keyword',
     required: true,
     type: 'string',
+    description: '최소 2글자',
   })
   @ApiQuery({
     name: 'cursor',
