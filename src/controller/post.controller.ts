@@ -19,7 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { PostService } from 'src/provider/post.service';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   CreatePostDto,
@@ -27,6 +27,7 @@ import {
   NoticePostDto,
   GetPostsQuery,
   GetPostsResponse,
+  PostDetailDto,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -82,6 +83,19 @@ export class PostController {
   })
   async getNotices(): Promise<NoticePostDto[]> {
     return await this.postService.getNotices();
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 상세 조회 - Optional Guard' })
+  @ApiResponse({ status: 200, description: '성공', type: PostDetailDto })
+  @ApiResponse({ status: 404, description: '게시글 없음' })
+  @UseGuards(OptionalJwtGuard)
+  @Get(':id')
+  async getPost(
+    @CurrentUser() userId: string | null,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ): Promise<PostDetailDto> {
+    return await this.postService.getPost(userId, postId);
   }
 
   @ApiBearerAuth()

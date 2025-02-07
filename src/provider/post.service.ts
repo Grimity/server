@@ -103,6 +103,30 @@ export class PostService {
     await this.postRepository.deleteSave(userId, postId);
     return;
   }
+
+  async getPost(userId: string | null, postId: string) {
+    const [post] = await Promise.all([
+      this.postSelectRepository.findOneById(userId, postId),
+      this.postRepository.increaseViewCount(postId),
+    ]);
+
+    return {
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      likeCount: post._count.likes,
+      createdAt: post.createdAt,
+      author: {
+        id: post.author.id,
+        name: post.author.name,
+      },
+      isLike: post.likes?.length === 1,
+      isSave: post.saves?.length === 1,
+    };
+  }
 }
 
 type CreateInput = {
