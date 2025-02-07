@@ -41,6 +41,27 @@ export class PostRepository {
       throw e;
     }
   }
+
+  async deleteLike(userId: string, postId: string) {
+    try {
+      await this.prisma.postLike.delete({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('LIKE', 404);
+        }
+      }
+      throw e;
+    }
+  }
 }
 
 type CreateInput = {

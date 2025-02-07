@@ -9,6 +9,7 @@ import {
   Param,
   ParseUUIDPipe,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -96,5 +97,19 @@ export class PostController {
     @Param('id', new ParseUUIDPipe()) postId: string,
   ) {
     await this.postService.like(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 좋아요 취소' })
+  @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
+  @ApiResponse({ status: 404, description: '좋아요 한 적이 없음' })
+  @UseGuards(JwtGuard)
+  @Delete(':id/like')
+  @HttpCode(204)
+  async unlike(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+  ) {
+    await this.postService.unlike(userId, postId);
   }
 }

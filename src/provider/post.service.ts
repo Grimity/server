@@ -88,6 +88,11 @@ export class PostService {
     await this.postRepository.createLike(userId, postId);
     return;
   }
+
+  async unlike(userId: string, postId: string) {
+    await this.postRepository.deleteLike(userId, postId);
+    return;
+  }
 }
 
 type CreateInput = {
