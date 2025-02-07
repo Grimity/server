@@ -137,6 +137,36 @@ export class PostSelectRepository {
       throw e;
     }
   }
+
+  async findTodayPopular() {
+    return await this.prisma.post.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+        },
+      },
+      take: 12,
+      orderBy: {
+        viewCount: 'desc',
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        commentCount: true,
+        viewCount: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 type FindManyInput = {
