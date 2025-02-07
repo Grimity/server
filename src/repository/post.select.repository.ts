@@ -82,6 +82,7 @@ export class PostSelectRepository {
   async findOneById(userId: string | null, postId: string) {
     const select: Prisma.PostSelect = {
       id: true,
+      type: true,
       title: true,
       content: true,
       hasImage: true,

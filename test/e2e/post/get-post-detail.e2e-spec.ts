@@ -99,6 +99,7 @@ describe('GET /posts/:id - 게시글 상세 조회', () => {
     expect(res1.status).toBe(200);
     expect(res1.body).toEqual({
       id: post.id,
+      type: 'NORMAL',
       title: post.title,
       content: post.content,
       hasImage: post.hasImage,

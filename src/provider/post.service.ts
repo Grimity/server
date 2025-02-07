@@ -2,7 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post.repository';
 import { PostType } from 'src/common/constants';
 import * as striptags from 'striptags';
-import { PostTypeEnum } from 'src/common/constants';
+import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 
 @Injectable()
@@ -68,17 +68,9 @@ export class PostService {
     return {
       totalCount: returnTotalCount,
       posts: returnPosts.map((post) => {
-        let type: 'NORMAL' | 'QUESTION' | 'FEEDBACK';
-        if (post.type === 1) {
-          type = 'NORMAL';
-        } else if (post.type === 2) {
-          type = 'QUESTION';
-        } else {
-          type = 'FEEDBACK';
-        }
         return {
           ...post,
-          type,
+          type: convertPostTypeFromNumber(post.type),
         };
       }),
     };
@@ -112,6 +104,7 @@ export class PostService {
 
     return {
       id: post.id,
+      type: convertPostTypeFromNumber(post.type),
       title: post.title,
       content: post.content,
       hasImage: post.hasImage,
