@@ -5,6 +5,9 @@ export class NoticePostDto {
   @ApiProperty()
   id: string;
 
+  @ApiProperty({ enum: ['NOTICE'] })
+  type: 'NOTICE';
+
   @ApiProperty()
   title: string;
 

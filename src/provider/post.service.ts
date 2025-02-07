@@ -38,7 +38,7 @@ export class PostService {
     return posts.map((post) => {
       return {
         ...post,
-        type: 'NOTICE',
+        type: 'NOTICE' as const,
       };
     });
   }
