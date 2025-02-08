@@ -1,4 +1,12 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Query,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiResponse,
@@ -6,7 +14,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { PostCommentService } from 'src/provider/post-comment.service';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import { CreatePostCommentDto } from './dto/post-comment';
 
@@ -31,5 +39,16 @@ export class PostCommentController {
       userId,
     });
     return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시판 댓글 조회' })
+  @Get()
+  @UseGuards(OptionalJwtGuard)
+  async getPostComments(
+    @CurrentUser() userId: string | null,
+    @Query('postId', ParseUUIDPipe) postId: string,
+  ) {
+    console.log(userId, postId);
   }
 }
