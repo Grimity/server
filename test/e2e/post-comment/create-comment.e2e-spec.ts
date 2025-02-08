@@ -111,4 +111,67 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
     // then
     expect(status).toBe(400);
   });
+
+  it('게시글이 없는 경우 404를 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/post-comments')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        postId: '00000000-0000-0000-0000-000000000000',
+        content: 'content',
+      });
+
+    // then
+    expect(status).toBe(404);
+  });
+
+  it('201과 함께 댓글을 생성한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.findFirstOrThrow();
+    const post = await prisma.post.create({
+      data: {
+        authorId: user.id,
+        type: 1,
+        title: 'title',
+        content: 'content',
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/post-comments')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        postId: post.id,
+        content: 'content',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const afterPost = await prisma.post.findFirstOrThrow({
+      select: {
+        commentCount: true,
+        comments: true,
+      },
+    });
+
+    expect(afterPost.commentCount).toBe(1);
+    expect(afterPost.comments[0]).toEqual({
+      id: expect.any(String),
+      writerId: user.id,
+      postId: post.id,
+      parentId: null,
+      mentionedUserId: null,
+      content: 'content',
+      createdAt: expect.any(Date),
+      isDeleted: false,
+      likeCount: 0,
+    });
+  });
 });

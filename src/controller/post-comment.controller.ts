@@ -18,6 +18,10 @@ export class PostCommentController {
     @CurrentUser() userId: string,
     @Body() createPostCommentDto: CreatePostCommentDto,
   ) {
-    console.log(userId, createPostCommentDto);
+    await this.postCommentService.createPostComment({
+      ...createPostCommentDto,
+      userId,
+    });
+    return;
   }
 }
