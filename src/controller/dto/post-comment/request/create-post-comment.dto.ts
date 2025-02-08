@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Length, IsUUID, ValidateIf, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
-export class CreateFeedCommentDto {
+export class CreatePostCommentDto {
   @ApiProperty()
   @IsUUID()
-  feedId: string;
+  postId: string;
 
   @ApiProperty({
     required: false,
@@ -13,11 +14,12 @@ export class CreateFeedCommentDto {
     type: 'string',
   })
   @ValidateIf((o) => o.parentCommentId !== null)
-  @IsUUID()
   @IsOptional()
+  @IsUUID()
   parentCommentId?: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ description: '1~1000자' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @Length(1, 1000)
   content: string;
 
