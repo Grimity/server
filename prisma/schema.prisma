@@ -205,14 +205,15 @@ model PostSave {
 model PostComment {
   id              String   @id @default(uuid()) @db.Uuid
   postId          String   @db.Uuid
-  writerId        String   @db.Uuid
+  writerId        String?  @db.Uuid
   parentId        String?  @db.Uuid
   content         String
   mentionedUserId String?  @db.Uuid
   createdAt       DateTime @default(now())
   likeCount       Int      @default(0)
+  isDeleted       Boolean  @default(false)
 
-  writer        User              @relation("PostCommentWrite", fields: [writerId], references: [id], onDelete: Cascade)
+  writer        User?             @relation("PostCommentWrite", fields: [writerId], references: [id], onDelete: SetNull)
   post          Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent        PostComment?      @relation("ChildComments", fields: [parentId], references: [id], onDelete: Cascade)
   childComments PostComment[]     @relation("ChildComments")
