@@ -1,5 +1,10 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { PostCommentService } from 'src/provider/post-comment.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -12,6 +17,9 @@ import { CreatePostCommentDto } from './dto/post-comment';
 export class PostCommentController {
   constructor(private postCommentService: PostCommentService) {}
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 댓글 생성' })
+  @ApiResponse({ status: 201, description: '성공' })
   @Post()
   @UseGuards(JwtGuard)
   async createPostComment(

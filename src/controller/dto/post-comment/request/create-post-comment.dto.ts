@@ -27,6 +27,7 @@ export class CreatePostCommentDto {
     required: false,
     nullable: true,
     description: '언급된 사용자의 UUID',
+    type: 'string',
   })
   @ValidateIf((o) => o.mentionedUserId !== null)
   @IsOptional()
