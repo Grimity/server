@@ -86,28 +86,14 @@ export class PostService {
   async getPosts({ type, page, size }: GetPostsInput) {
     const typeNumber = type === 'ALL' ? null : PostTypeEnum[type];
 
-    let returnTotalCount: number | null = null;
-    let returnPosts;
-
-    if (page <= 1) {
-      const [totalCount, posts] = await Promise.all([
-        this.postSelectRepository.getPostCount(typeNumber),
-        this.postSelectRepository.findMany({ type: typeNumber, page, size }),
-      ]);
-
-      returnTotalCount = totalCount;
-      returnPosts = posts;
-    } else {
-      returnPosts = await this.postSelectRepository.findMany({
-        type: typeNumber,
-        page,
-        size,
-      });
-    }
+    const [totalCount, posts] = await Promise.all([
+      this.postSelectRepository.getPostCount(typeNumber),
+      this.postSelectRepository.findMany({ type: typeNumber, page, size }),
+    ]);
 
     return {
-      totalCount: returnTotalCount,
-      posts: returnPosts.map((post) => {
+      totalCount,
+      posts: posts.map((post) => {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
