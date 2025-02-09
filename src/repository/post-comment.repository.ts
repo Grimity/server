@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 export class PostCommentRepository {
   constructor(private prisma: PrismaService) {}
 
-  async createPostComment({
+  async create({
     userId,
     postId,
     parentCommentId,
@@ -36,6 +36,85 @@ export class PostCommentRepository {
         }
       }
     }
+  }
+
+  async findManyByPostId(userId: string | null, postId: string) {
+    const select: Prisma.PostCommentSelect & {
+      childComments: {
+        select: Prisma.PostCommentSelect;
+        where: Prisma.PostCommentWhereInput;
+        orderBy: Prisma.PostCommentOrderByWithRelationInput;
+      };
+    } = {
+      id: true,
+      content: true,
+      createdAt: true,
+      likeCount: true,
+      isDeleted: true,
+      writer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      childComments: {
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          likeCount: true,
+          writer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          mentionedUser: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        where: {
+          postId,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      },
+    };
+
+    if (userId) {
+      select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+
+      select.childComments!.select.likes = {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+      };
+    }
+
+    return await this.prisma.postComment.findMany({
+      where: {
+        postId,
+        parentId: null,
+      },
+      select,
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 }
 

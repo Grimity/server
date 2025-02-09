@@ -34,7 +34,7 @@ export class PostCommentController {
     @CurrentUser() userId: string,
     @Body() createPostCommentDto: CreatePostCommentDto,
   ) {
-    await this.postCommentService.createPostComment({
+    await this.postCommentService.create({
       ...createPostCommentDto,
       userId,
     });
@@ -49,6 +49,6 @@ export class PostCommentController {
     @CurrentUser() userId: string | null,
     @Query('postId', ParseUUIDPipe) postId: string,
   ) {
-    console.log(userId, postId);
+    return await this.postCommentService.getComments(userId, postId);
   }
 }
