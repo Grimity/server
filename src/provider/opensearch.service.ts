@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Client } from '@opensearch-project/opensearch';
 import { ConfigService } from '@nestjs/config';
 import { SortOptions } from '@opensearch-project/opensearch/api/_types/_common';
+import { TotalHits } from '@opensearch-project/opensearch/api/_types/_core.search';
 
 @Injectable()
 export class OpenSearchService {
@@ -297,6 +298,47 @@ export class OpenSearchService {
       return [];
     }
   }
+
+  async searchPost({ keyword, page, size }: SearchPostInput) {
+    if (this.configService.get('NODE_ENV') !== 'production')
+      return {
+        totalCount: 0,
+        ids: [],
+      };
+
+    try {
+      const response = await this.client.search({
+        index: 'post',
+        body: {
+          query: {
+            multi_match: {
+              query: keyword,
+              fields: ['title', 'content'],
+            },
+          },
+          size,
+          from: (page - 1) * size,
+          sort: {
+            createdAt: 'desc',
+          },
+        },
+      });
+
+      const totalCount = (response.body.hits.total as TotalHits).value;
+      const hits = response.body.hits.hits as PostHitData[];
+
+      return {
+        totalCount,
+        ids: hits.map((hit) => hit._id),
+      };
+    } catch (e) {
+      this.logger.error(e);
+      return {
+        totalCount: 0,
+        ids: [],
+      };
+    }
+  }
 }
 
 export type SearchUserInput = {
@@ -311,6 +353,12 @@ export type SearchFeedInput = {
   cursor: number;
   size: number;
   sort: 'popular' | 'accuracy' | 'latest';
+};
+
+type SearchPostInput = {
+  keyword: string;
+  page: number;
+  size: number;
 };
 
 type UserHitData = {
@@ -332,6 +380,16 @@ type FeedHitData = {
     title: string;
     tag: string;
     likeCount: number;
+    createdAt: string;
+  };
+};
+
+type PostHitData = {
+  _index: string;
+  _id: string;
+  _source: {
+    title: string;
+    content: string;
     createdAt: string;
   };
 };

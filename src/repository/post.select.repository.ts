@@ -168,23 +168,19 @@ export class PostSelectRepository {
     });
   }
 
-  async countByAuthorName(name: string, count: boolean) {
-    const userSelect: Prisma.UserSelect = {
-      id: true,
-    };
-
-    if (count) {
-      userSelect._count = {
-        select: {
-          posts: true,
-        },
-      };
-    }
+  async countByAuthorName(name: string) {
     return await this.prisma.user.findUnique({
       where: {
         name,
       },
-      select: userSelect,
+      select: {
+        id: true,
+        _count: {
+          select: {
+            posts: true,
+          },
+        },
+      },
     });
   }
 
@@ -208,6 +204,35 @@ export class PostSelectRepository {
       },
       skip: (page - 1) * size,
       take: size,
+    });
+  }
+
+  async findManyByIds(ids: string[]) {
+    return await this.prisma.post.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        commentCount: true,
+        viewCount: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }

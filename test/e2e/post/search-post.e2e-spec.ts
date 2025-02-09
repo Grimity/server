@@ -110,7 +110,7 @@ describe('GET /posts/search - 게시글 검색', () => {
     });
 
     expect(response2.status).toBe(200);
-    expect(response2.body.totalCount).toBeNull();
+    expect(response2.body.totalCount).toBe(15);
     expect(response2.body.posts).toHaveLength(5);
 
     expect(response3.status).toBe(200);

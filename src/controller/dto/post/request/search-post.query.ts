@@ -14,6 +14,6 @@ export class SearchPostQuery {
   @IsInt()
   size?: number;
 
-  @IsEnum(['title-content', 'name'])
-  searchBy: 'title-content' | 'name';
+  @IsEnum(['combined', 'name'])
+  searchBy: 'combined' | 'name';
 }

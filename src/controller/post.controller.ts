@@ -31,6 +31,7 @@ import {
   TodayPopularDto,
   UpdatePostDto,
   SearchPostQuery,
+  SearchPostResponse,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -92,17 +93,24 @@ export class PostController {
   @ApiQuery({ name: 'keyword', required: true, description: '최소 2글자' })
   @ApiQuery({ name: 'page', required: false, default: 1 })
   @ApiQuery({ name: 'size', required: false, default: 10 })
-  @ApiQuery({ name: 'searchBy', enum: ['title-content', 'name'] })
+  @ApiQuery({ name: 'searchBy', enum: ['combined', 'name'] })
   @ApiResponse({
     status: 200,
     description: '게시글 검색 성공',
+    type: SearchPostResponse,
   })
   @Get('search')
   async searchPosts(
     @Query() { keyword, page, size, searchBy }: SearchPostQuery,
-  ) {
+  ): Promise<SearchPostResponse> {
     if (searchBy === 'name') {
       return await this.postService.searchByAuthorName({
+        keyword,
+        page: page ?? 1,
+        size: size ?? 10,
+      });
+    } else {
+      return await this.postService.searchByTitleAndContent({
         keyword,
         page: page ?? 1,
         size: size ?? 10,

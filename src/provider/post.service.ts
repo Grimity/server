@@ -179,10 +179,7 @@ export class PostService {
   }
 
   async searchByAuthorName({ keyword, page, size }: SearchPostInput) {
-    const user = await this.postSelectRepository.countByAuthorName(
-      keyword,
-      page === 1,
-    );
+    const user = await this.postSelectRepository.countByAuthorName(keyword);
 
     if (!user) {
       return {
@@ -191,8 +188,6 @@ export class PostService {
       };
     }
 
-    const totalCount = user._count?.posts ?? null;
-
     const posts = await this.postSelectRepository.findManyByAuthor({
       authorId: user.id,
       page,
@@ -200,7 +195,7 @@ export class PostService {
     });
 
     return {
-      totalCount,
+      totalCount: user._count.posts,
       posts: posts.map((post) => {
         return {
           ...post,
@@ -209,6 +204,25 @@ export class PostService {
             id: user.id,
             name: keyword,
           },
+        };
+      }),
+    };
+  }
+
+  async searchByTitleAndContent({ keyword, page, size }: SearchPostInput) {
+    const { totalCount, ids } = await this.openSearchService.searchPost({
+      keyword,
+      page,
+      size,
+    });
+
+    const posts = await this.postSelectRepository.findManyByIds(ids);
+    return {
+      totalCount,
+      posts: posts.map((post) => {
+        return {
+          ...post,
+          type: convertPostTypeFromNumber(post.type),
         };
       }),
     };
