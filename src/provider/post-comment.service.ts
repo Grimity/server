@@ -6,8 +6,7 @@ export class PostCommentService {
   constructor(private postCommentRepository: PostCommentRepository) {}
 
   async create(input: CreateInput) {
-    await this.postCommentRepository.create(input);
-    return;
+    return await this.postCommentRepository.create(input);
   }
 
   async getComments(userId: string | null, postId: string) {

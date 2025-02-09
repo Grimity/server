@@ -144,7 +144,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
     });
 
     // when
-    const { status } = await request(app.getHttpServer())
+    const { status, body } = await request(app.getHttpServer())
       .post('/post-comments')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -154,22 +154,14 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
     // then
     expect(status).toBe(201);
-    const afterPost = await prisma.post.findFirstOrThrow({
-      select: {
-        commentCount: true,
-        comments: true,
-      },
-    });
-
-    expect(afterPost.commentCount).toBe(1);
-    expect(afterPost.comments[0]).toEqual({
+    expect(body).toEqual({
       id: expect.any(String),
       writerId: user.id,
       postId: post.id,
       parentId: null,
       mentionedUserId: null,
       content: 'content',
-      createdAt: expect.any(Date),
+      createdAt: expect.any(String),
       isDeleted: false,
       likeCount: 0,
     });

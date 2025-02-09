@@ -14,7 +14,7 @@ export class PostCommentRepository {
     content,
   }: CreateInput) {
     try {
-      await this.prisma.$transaction([
+      const [post] = await this.prisma.$transaction([
         this.prisma.postComment.create({
           data: {
             writerId: userId,
@@ -29,6 +29,7 @@ export class PostCommentRepository {
           data: { commentCount: { increment: 1 } },
         }),
       ]);
+      return post;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2003') {
