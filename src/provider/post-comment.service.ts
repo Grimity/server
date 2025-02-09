@@ -49,6 +49,27 @@ export class PostCommentService {
     await this.postCommentRepository.deleteLike(userId, commentId);
     return;
   }
+
+  async deleteOne(userId: string, commentId: string) {
+    const comment = await this.postCommentRepository.findOneById(commentId);
+
+    if (comment.parentId) {
+      // 대댓글 삭제
+      await this.postCommentRepository.deleteChild({
+        userId,
+        commentId,
+        postId: comment.postId,
+      });
+    } else {
+      // 상위댓글 삭제
+      await this.postCommentRepository.deleteParent({
+        userId,
+        commentId,
+        postId: comment.postId,
+      });
+    }
+    return;
+  }
 }
 
 type CreateInput = {

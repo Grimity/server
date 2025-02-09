@@ -30,7 +30,7 @@ export class PostCommentController {
   constructor(private postCommentService: PostCommentService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '게시글 댓글 생성' })
+  @ApiOperation({ summary: '댓글 생성' })
   @ApiResponse({ status: 201, description: '성공' })
   @Post()
   @UseGuards(JwtGuard)
@@ -46,7 +46,7 @@ export class PostCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '게시판 댓글 조회 - Optional Guard' })
+  @ApiOperation({ summary: '댓글 조회 - Optional Guard' })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -63,7 +63,22 @@ export class PostCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '게시판 댓글 좋아요' })
+  @ApiOperation({ summary: '댓글 삭제' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '없는 댓글' })
+  @UseGuards(JwtGuard)
+  @Delete(':id')
+  @HttpCode(204)
+  async deletePostComment(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.postCommentService.deleteOne(userId, id);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '댓글 좋아요' })
   @ApiResponse({ status: 204, description: '성공' })
   @ApiResponse({ status: 404, description: '없는 댓글' })
   @ApiResponse({ status: 409, description: '이미 좋아요한 댓글' })
@@ -79,9 +94,12 @@ export class PostCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '게시판 댓글 좋아요 취소' })
+  @ApiOperation({ summary: '댓글 좋아요 취소' })
   @ApiResponse({ status: 204, description: '성공' })
-  @ApiResponse({ status: 404, description: '없는 댓글' })
+  @ApiResponse({
+    status: 404,
+    description: '없는 댓글이거나 좋아요한적이 없을때',
+  })
   @UseGuards(JwtGuard)
   @Delete(':id/like')
   @HttpCode(204)

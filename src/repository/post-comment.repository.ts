@@ -35,6 +35,7 @@ export class PostCommentRepository {
           throw new HttpException('POST', 404);
         }
       }
+      throw e;
     }
   }
 
@@ -140,6 +141,7 @@ export class PostCommentRepository {
           throw new HttpException('COMMENT', 404);
         }
       }
+      throw e;
     }
   }
 
@@ -166,6 +168,130 @@ export class PostCommentRepository {
           throw new HttpException('LIKE', 404);
         }
       }
+      throw e;
+    }
+  }
+
+  async findOneById(commentId: string) {
+    try {
+      return await this.prisma.postComment.findUniqueOrThrow({
+        where: { id: commentId },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
+  async deleteParent({
+    userId,
+    postId,
+    commentId,
+  }: {
+    userId: string;
+    postId: string;
+    commentId: string;
+  }) {
+    try {
+      const [deleteComment] = await this.prisma.$transaction([
+        this.prisma.postComment.update({
+          where: {
+            id: commentId,
+            writerId: userId,
+            parentId: null,
+            isDeleted: false,
+          },
+          data: { isDeleted: true, content: '', writerId: null },
+          select: {
+            _count: {
+              select: {
+                childComments: {
+                  where: { postId },
+                },
+              },
+            },
+          },
+        }),
+        this.prisma.post.update({
+          where: { id: postId },
+          data: { commentCount: { decrement: 1 } },
+        }),
+      ]);
+
+      if (deleteComment._count.childComments === 0) {
+        await this.prisma.postComment.delete({
+          where: { id: commentId },
+        });
+      }
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2003') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
+  async deleteChild({
+    userId,
+    postId,
+    commentId,
+  }: {
+    userId: string;
+    postId: string;
+    commentId: string;
+  }) {
+    try {
+      const [deleteComment] = await this.prisma.$transaction([
+        this.prisma.postComment.delete({
+          where: {
+            id: commentId,
+            writerId: userId,
+          },
+          select: {
+            parent: {
+              select: {
+                id: true,
+                isDeleted: true,
+                _count: {
+                  select: {
+                    childComments: {
+                      where: { postId },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
+        this.prisma.post.update({
+          where: { id: postId },
+          data: { commentCount: { decrement: 1 } },
+        }),
+      ]);
+
+      if (
+        deleteComment.parent?.isDeleted &&
+        deleteComment.parent?._count.childComments === 0
+      ) {
+        await this.prisma.postComment.delete({
+          where: { id: deleteComment.parent.id },
+        });
+      }
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2003') {
+          throw new HttpException('COMMENT', 404);
+        }
+      }
+      throw e;
     }
   }
 }
