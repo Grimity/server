@@ -6,6 +6,9 @@ import {
   Get,
   Query,
   ParseUUIDPipe,
+  Put,
+  Param,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -56,5 +59,21 @@ export class PostCommentController {
     @Query('postId', ParseUUIDPipe) postId: string,
   ): Promise<PostParentCommentDto[]> {
     return await this.postCommentService.getComments(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시판 댓글 좋아요' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '없는 댓글' })
+  @ApiResponse({ status: 409, description: '이미 좋아요한 댓글' })
+  @UseGuards(JwtGuard)
+  @Put(':id/like')
+  @HttpCode(204)
+  async likePostComment(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.postCommentService.like(userId, id);
+    return;
   }
 }

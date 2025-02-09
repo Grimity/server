@@ -39,6 +39,11 @@ export class PostCommentService {
       };
     });
   }
+
+  async like(userId: string, commentId: string) {
+    await this.postCommentRepository.createLike(userId, commentId);
+    return;
+  }
 }
 
 type CreateInput = {
