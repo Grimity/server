@@ -44,6 +44,11 @@ export class PostCommentService {
     await this.postCommentRepository.createLike(userId, commentId);
     return;
   }
+
+  async unlike(userId: string, commentId: string) {
+    await this.postCommentRepository.deleteLike(userId, commentId);
+    return;
+  }
 }
 
 type CreateInput = {

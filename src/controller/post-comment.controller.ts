@@ -9,6 +9,7 @@ import {
   Put,
   Param,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -74,6 +75,21 @@ export class PostCommentController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     await this.postCommentService.like(userId, id);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시판 댓글 좋아요 취소' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '없는 댓글' })
+  @UseGuards(JwtGuard)
+  @Delete(':id/like')
+  @HttpCode(204)
+  async unlikePostComment(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.postCommentService.unlike(userId, id);
     return;
   }
 }
