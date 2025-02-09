@@ -4,12 +4,14 @@ import { PostType } from 'src/common/constants';
 import * as striptags from 'striptags';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
+import { OpenSearchService } from './opensearch.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private postRepository: PostRepository,
     private postSelectRepository: PostSelectRepository,
+    private openSearchService: OpenSearchService,
   ) {}
 
   async create(userId: string, { title, content, type }: CreateInput) {
@@ -23,13 +25,20 @@ export class PostService {
 
     const typeNumber = PostTypeEnum[type];
 
-    return await this.postRepository.create({
+    const { id } = await this.postRepository.create({
       userId,
       title,
       content,
       type: typeNumber,
       hasImage,
     });
+
+    await this.openSearchService.insertPost({
+      id,
+      title,
+      content: parsedContent,
+    });
+    return { id };
   }
 
   async update(
@@ -53,6 +62,12 @@ export class PostService {
       content,
       type: typeNumber,
       hasImage,
+    });
+
+    await this.openSearchService.updatePost({
+      id: postId,
+      title,
+      content: parsedContent,
     });
     return;
   }
@@ -148,6 +163,7 @@ export class PostService {
 
   async deleteOne(userId: string, postId: string) {
     await this.postRepository.deleteOne(userId, postId);
+    await this.openSearchService.deletePost(postId);
     return;
   }
 
