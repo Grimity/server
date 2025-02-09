@@ -167,10 +167,84 @@ export class PostSelectRepository {
       },
     });
   }
+
+  async countByAuthorName(name: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        name,
+      },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            posts: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
+    return await this.prisma.post.findMany({
+      where: {
+        authorId,
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        commentCount: true,
+        viewCount: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * size,
+      take: size,
+    });
+  }
+
+  async findManyByIds(ids: string[]) {
+    return await this.prisma.post.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        commentCount: true,
+        viewCount: true,
+        createdAt: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }
 
 type FindManyInput = {
   type: 2 | 3 | null;
   page: number;
   size: number;
+};
+
+type SearchByAuthorInput = {
+  authorId: string;
+  size: number;
+  page: number;
 };

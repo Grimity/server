@@ -1,16 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IdAndNameDto } from '../../feed/response/simple-author.dto';
-import { PostType } from 'src/common/constants';
+import { PostType, PostTypes } from 'src/common/constants';
 
-class PostDto {
+class SearchedPostDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({ enum: ['NORMAL', 'QUESTION', 'FEEDBACK'] })
+  @ApiProperty({ enum: PostTypes })
   type: PostType;
 
   @ApiProperty()
   title: string;
+
+  @ApiProperty()
+  createdAt: Date;
 
   @ApiProperty()
   content: string;
@@ -19,22 +22,19 @@ class PostDto {
   hasImage: boolean;
 
   @ApiProperty()
-  commentCount: number;
-
-  @ApiProperty()
   viewCount: number;
 
   @ApiProperty()
-  createdAt: Date;
+  commentCount: number;
 
   @ApiProperty({ type: IdAndNameDto })
   author: IdAndNameDto;
 }
 
-export class GetPostsResponse {
-  @ApiProperty({ description: '전체 게시글 수', type: 'number' })
+export class SearchPostResponse {
+  @ApiProperty()
   totalCount: number;
 
-  @ApiProperty({ type: PostDto, isArray: true })
-  posts: PostDto[];
+  @ApiProperty({ type: SearchedPostDto, isArray: true })
+  posts: SearchedPostDto[];
 }

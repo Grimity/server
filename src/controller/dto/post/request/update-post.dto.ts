@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Length, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class CreatePostDto {
+export class UpdatePostDto {
   @ApiProperty({ minLength: 1, maxLength: 32 })
   @Transform(({ value }) => value.trim())
   @Length(1, 32)

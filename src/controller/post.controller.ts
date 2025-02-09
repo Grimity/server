@@ -29,6 +29,9 @@ import {
   GetPostsResponse,
   PostDetailDto,
   TodayPopularDto,
+  UpdatePostDto,
+  SearchPostQuery,
+  SearchPostResponse,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -86,6 +89,35 @@ export class PostController {
     return await this.postService.getNotices();
   }
 
+  @ApiOperation({ summary: '게시글 검색' })
+  @ApiQuery({ name: 'keyword', required: true, description: '최소 2글자' })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiQuery({ name: 'searchBy', enum: ['combined', 'name'] })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 검색 성공',
+    type: SearchPostResponse,
+  })
+  @Get('search')
+  async searchPosts(
+    @Query() { keyword, page, size, searchBy }: SearchPostQuery,
+  ): Promise<SearchPostResponse> {
+    if (searchBy === 'name') {
+      return await this.postService.searchByAuthorName({
+        keyword,
+        page: page ?? 1,
+        size: size ?? 10,
+      });
+    } else {
+      return await this.postService.searchByTitleAndContent({
+        keyword,
+        page: page ?? 1,
+        size: size ?? 10,
+      });
+    }
+  }
+
   @ApiOperation({ summary: '오늘의 인기글 조회 - 최대 12개' })
   @ApiResponse({
     status: 200,
@@ -109,6 +141,22 @@ export class PostController {
     @Param('id', new ParseUUIDPipe()) postId: string,
   ): Promise<PostDetailDto> {
     return await this.postService.getPost(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 수정' })
+  @ApiResponse({ status: 204, description: '수정 성공' })
+  @ApiResponse({ status: 404, description: '게시글 없음' })
+  @UseGuards(JwtGuard)
+  @Put(':id')
+  @HttpCode(204)
+  async update(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+    @Body() dto: UpdatePostDto,
+  ) {
+    await this.postService.update(userId, { postId, ...dto });
+    return;
   }
 
   @ApiBearerAuth()

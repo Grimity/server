@@ -107,7 +107,7 @@ describe('GET /posts - 게시글 조회', () => {
     });
 
     expect(status2).toBe(200);
-    expect(body2.totalCount).toBe(null);
+    expect(body2.totalCount).toBe(21);
     expect(body2.posts.length).toBe(6);
 
     expect(status3).toBe(200);

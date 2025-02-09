@@ -21,6 +21,31 @@ export class PostRepository {
     });
   }
 
+  async update(input: UpdateInput) {
+    try {
+      await this.prisma.post.update({
+        where: {
+          id: input.postId,
+          authorId: input.userId,
+        },
+        data: {
+          title: input.title,
+          content: input.content,
+          type: input.type,
+          hasImage: input.hasImage,
+        },
+      });
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('POST', 404);
+        }
+      }
+      throw e;
+    }
+  }
+
   async createLike(userId: string, postId: string) {
     try {
       await this.prisma.postLike.create({
@@ -144,6 +169,15 @@ export class PostRepository {
 
 type CreateInput = {
   userId: string;
+  title: string;
+  content: string;
+  type: number;
+  hasImage: boolean;
+};
+
+type UpdateInput = {
+  userId: string;
+  postId: string;
   title: string;
   content: string;
   type: number;
