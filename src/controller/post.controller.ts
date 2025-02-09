@@ -29,6 +29,7 @@ import {
   GetPostsResponse,
   PostDetailDto,
   TodayPopularDto,
+  UpdatePostDto,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -109,6 +110,22 @@ export class PostController {
     @Param('id', new ParseUUIDPipe()) postId: string,
   ): Promise<PostDetailDto> {
     return await this.postService.getPost(userId, postId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 수정' })
+  @ApiResponse({ status: 204, description: '수정 성공' })
+  @ApiResponse({ status: 404, description: '게시글 없음' })
+  @UseGuards(JwtGuard)
+  @Put(':id')
+  @HttpCode(204)
+  async update(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) postId: string,
+    @Body() dto: UpdatePostDto,
+  ) {
+    await this.postService.update(userId, { postId, ...dto });
+    return;
   }
 
   @ApiBearerAuth()

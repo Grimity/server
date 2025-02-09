@@ -13,7 +13,7 @@ export class PostService {
   ) {}
 
   async create(userId: string, { title, content, type }: CreateInput) {
-    const parsedContent = striptags(content);
+    const parsedContent = striptags(content).trim();
 
     if (parsedContent.length < 1) {
       throw new HttpException('내용을 입력해주세요', 400);
@@ -30,6 +30,31 @@ export class PostService {
       type: typeNumber,
       hasImage,
     });
+  }
+
+  async update(
+    userId: string,
+    { postId, title, content, type }: CreateInput & { postId: string },
+  ) {
+    const parsedContent = striptags(content).trim();
+
+    if (parsedContent.length < 1) {
+      throw new HttpException('내용을 입력해주세요', 400);
+    }
+
+    const hasImage = content.includes('<img');
+
+    const typeNumber = PostTypeEnum[type];
+
+    await this.postRepository.update({
+      userId,
+      postId,
+      title,
+      content,
+      type: typeNumber,
+      hasImage,
+    });
+    return;
   }
 
   async getNotices() {
@@ -141,7 +166,7 @@ export class PostService {
 type CreateInput = {
   title: string;
   content: string;
-  type: PostType;
+  type: Exclude<PostType, 'NOTICE'>;
 };
 
 type GetPostsInput = {
