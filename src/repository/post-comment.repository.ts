@@ -278,7 +278,7 @@ export class PostCommentRepository {
 
       if (
         deleteComment.parent?.isDeleted &&
-        deleteComment.parent?._count.childComments === 0
+        deleteComment.parent?._count.childComments === 1
       ) {
         await this.prisma.postComment.delete({
           where: { id: deleteComment.parent.id },
