@@ -167,10 +167,59 @@ export class PostSelectRepository {
       },
     });
   }
+
+  async countByAuthorName(name: string, count: boolean) {
+    const userSelect: Prisma.UserSelect = {
+      id: true,
+    };
+
+    if (count) {
+      userSelect._count = {
+        select: {
+          posts: true,
+        },
+      };
+    }
+    return await this.prisma.user.findUnique({
+      where: {
+        name,
+      },
+      select: userSelect,
+    });
+  }
+
+  async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
+    return await this.prisma.post.findMany({
+      where: {
+        authorId,
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        commentCount: true,
+        viewCount: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * size,
+      take: size,
+    });
+  }
 }
 
 type FindManyInput = {
   type: 2 | 3 | null;
   page: number;
   size: number;
+};
+
+type SearchByAuthorInput = {
+  authorId: string;
+  size: number;
+  page: number;
 };

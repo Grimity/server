@@ -1,6 +1,7 @@
 export * from './request/create-post.dto';
 export * from './request/get-posts.query';
 export * from './request/update-post.dto';
+export * from './request/search-post.query';
 
 export * from './response/post-id.dto';
 export * from './response/notice-post.dto';

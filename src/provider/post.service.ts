@@ -177,6 +177,42 @@ export class PostService {
       };
     });
   }
+
+  async searchByAuthorName({ keyword, page, size }: SearchPostInput) {
+    const user = await this.postSelectRepository.countByAuthorName(
+      keyword,
+      page === 1,
+    );
+
+    if (!user) {
+      return {
+        totalCount: 0,
+        posts: [],
+      };
+    }
+
+    const totalCount = user._count?.posts ?? null;
+
+    const posts = await this.postSelectRepository.findManyByAuthor({
+      authorId: user.id,
+      page,
+      size,
+    });
+
+    return {
+      totalCount,
+      posts: posts.map((post) => {
+        return {
+          ...post,
+          type: convertPostTypeFromNumber(post.type),
+          author: {
+            id: user.id,
+            name: keyword,
+          },
+        };
+      }),
+    };
+  }
 }
 
 type CreateInput = {
@@ -187,6 +223,12 @@ type CreateInput = {
 
 type GetPostsInput = {
   type: 'ALL' | 'QUESTION' | 'FEEDBACK';
+  page: number;
+  size: number;
+};
+
+type SearchPostInput = {
+  keyword: string;
   page: number;
   size: number;
 };

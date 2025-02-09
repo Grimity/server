@@ -30,6 +30,7 @@ import {
   PostDetailDto,
   TodayPopularDto,
   UpdatePostDto,
+  SearchPostQuery,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -85,6 +86,28 @@ export class PostController {
   @Get('notices')
   async getNotices(): Promise<NoticePostDto[]> {
     return await this.postService.getNotices();
+  }
+
+  @ApiOperation({ summary: '게시글 검색' })
+  @ApiQuery({ name: 'keyword', required: true, description: '최소 2글자' })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiQuery({ name: 'searchBy', enum: ['title-content', 'name'] })
+  @ApiResponse({
+    status: 200,
+    description: '게시글 검색 성공',
+  })
+  @Get('search')
+  async searchPosts(
+    @Query() { keyword, page, size, searchBy }: SearchPostQuery,
+  ) {
+    if (searchBy === 'name') {
+      return await this.postService.searchByAuthorName({
+        keyword,
+        page: page ?? 1,
+        size: size ?? 10,
+      });
+    }
   }
 
   @ApiOperation({ summary: '오늘의 인기글 조회 - 최대 12개' })
