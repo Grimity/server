@@ -142,4 +142,46 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
     const afterPost = await prisma.post.findFirstOrThrow();
     expect(afterPost.commentCount).toBe(1);
   });
+
+  it('204와 함께 상위댓글을 삭제한다 - 하위 댓글이 없을 때', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.findFirstOrThrow();
+    const post = await prisma.post.create({
+      data: {
+        authorId: user.id,
+        title: 'test',
+        content: 'test',
+        type: 1,
+      },
+    });
+
+    const parent = await prisma.postComment.create({
+      data: {
+        postId: post.id,
+        writerId: user.id,
+        content: 'parent',
+      },
+    });
+
+    await prisma.post.update({
+      where: { id: post.id },
+      data: { commentCount: 1 },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .delete(`/post-comments/${parent.id}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(204);
+    const { body } = await request(app.getHttpServer()).get(
+      `/post-comments?postId=${post.id}`,
+    );
+    expect(body).toEqual([]);
+    const afterPost = await prisma.post.findFirstOrThrow();
+    expect(afterPost.commentCount).toBe(0);
+  });
 });
