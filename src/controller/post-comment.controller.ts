@@ -35,7 +35,7 @@ export class PostCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 생성' })
-  @ApiResponse({ status: 201, description: '성공' })
+  @ApiResponse({ status: 201, description: '성공', type: CreatedCommentDto })
   @Post()
   @UseGuards(JwtGuard)
   async createPostComment(
