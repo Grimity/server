@@ -16,7 +16,7 @@ import {
 import { PostCommentService } from 'src/provider/post-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { CreatePostCommentDto } from './dto/post-comment';
+import { CreatePostCommentDto, PostParentCommentDto } from './dto/post-comment';
 
 @ApiTags('/post-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -42,13 +42,19 @@ export class PostCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '게시판 댓글 조회' })
+  @ApiOperation({ summary: '게시판 댓글 조회 - Optional Guard' })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: PostParentCommentDto,
+    isArray: true,
+  })
   @Get()
   @UseGuards(OptionalJwtGuard)
   async getPostComments(
     @CurrentUser() userId: string | null,
     @Query('postId', ParseUUIDPipe) postId: string,
-  ) {
+  ): Promise<PostParentCommentDto[]> {
     return await this.postCommentService.getComments(userId, postId);
   }
 }
