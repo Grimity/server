@@ -97,13 +97,20 @@ export class FeedService {
   }
 
   async like(userId: string, feedId: string) {
-    await this.feedRepository.like(userId, feedId);
-    // await this.awsService.pushEvent({
-    //   type: 'LIKE',
-    //   actorId: userId,
-    //   feedId,
-    // });
-    await this.awsService.pushOpensearchQueue('FEED', feedId);
+    const { likeCount } = await this.feedRepository.like(userId, feedId);
+
+    if ([1, 5, 10, 20, 50, 100].includes(likeCount)) {
+      await Promise.all([
+        this.awsService.pushEvent({
+          type: 'LIKE',
+          feedId,
+          likeCount,
+        }),
+        this.awsService.pushOpensearchQueue('FEED', feedId),
+      ]);
+    } else {
+      await this.awsService.pushOpensearchQueue('FEED', feedId);
+    }
     return;
   }
 
