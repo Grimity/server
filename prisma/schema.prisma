@@ -71,7 +71,7 @@ model Feed {
   views    View[]
   saves    Save[]
 
-  @@index([authorId])
+  @@index([authorId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
 }
 
@@ -94,6 +94,7 @@ model Like {
   feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
 
   @@id([userId, feedId])
+  @@index([feedId])
 }
 
 model View {
@@ -145,7 +146,7 @@ model Notification {
   createdAt DateTime @default(now())
   data      Json
 
-  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model FeedCommentLike {
@@ -174,7 +175,7 @@ model Post {
   saves    PostSave[]
   comments PostComment[]
 
-  @@index([authorId])
+  @@index([authorId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
   @@index([type(sort: Asc), createdAt(sort: Desc)])
 }
