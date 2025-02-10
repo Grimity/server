@@ -379,6 +379,10 @@ export class UserService {
     await this.userRepository.unsubscribe(userId, type);
     return;
   }
+
+  async getSubscription(userId: string) {
+    return await this.userSelectRepository.getSubscription(userId);
+  }
 }
 
 export type SearchUserInput = {

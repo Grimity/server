@@ -40,6 +40,7 @@ import {
   SearchUserQuery,
   SearchedUserResponse,
   SubscribeQuery,
+  SubscriptionDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -122,6 +123,15 @@ export class UserController {
   async deleteBackgroundImage(@CurrentUser() userId: string) {
     await this.userService.updateBackgroundImage(userId, null);
     return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '알림 구독 여부 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: SubscriptionDto })
+  @UseGuards(JwtGuard)
+  @Get('me/subscribe')
+  async getSubscriptions(@CurrentUser() userId: string) {
+    return this.userService.getSubscription(userId);
   }
 
   @ApiBearerAuth()
