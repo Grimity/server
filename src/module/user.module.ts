@@ -7,9 +7,16 @@ import { FeedModule } from './feed.module';
 import { AwsModule } from './aws.module';
 import { NotificationModule } from './notification.module';
 import { OpenSearchModule } from './opensearch.module';
+import { PostModule } from './post.module';
 
 @Module({
-  imports: [FeedModule, AwsModule, NotificationModule, OpenSearchModule],
+  imports: [
+    FeedModule,
+    AwsModule,
+    NotificationModule,
+    OpenSearchModule,
+    PostModule,
+  ],
   controllers: [UserController],
   providers: [UserRepository, UserService, UserSelectRepository],
   exports: [UserRepository, UserSelectRepository],

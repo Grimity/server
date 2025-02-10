@@ -235,6 +235,37 @@ export class PostSelectRepository {
       },
     });
   }
+
+  async findManyByUserId({
+    userId,
+    page,
+    size,
+  }: {
+    userId: string;
+    page: number;
+    size: number;
+  }) {
+    return await this.prisma.post.findMany({
+      where: {
+        authorId: userId,
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        content: true,
+        hasImage: true,
+        createdAt: true,
+        commentCount: true,
+        viewCount: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * size,
+      take: size,
+    });
+  }
 }
 
 type FindManyInput = {

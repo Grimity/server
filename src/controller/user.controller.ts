@@ -11,6 +11,7 @@ import {
   Query,
   Patch,
   ValidationPipe,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -41,6 +42,8 @@ import {
   SearchedUserResponse,
   SubscribeQuery,
   SubscriptionDto,
+  GetMyPostsQuery,
+  MyPostDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -414,6 +417,36 @@ export class UserController {
       cursor: cursor ?? null,
       size: size ?? 20,
       targetId,
+    });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      '유저별 게시글 조회 - 일관성을 위해서 경로는 이렇게하지만 accT는 있어야합니다',
+  })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyPostDto,
+    isArray: true,
+  })
+  @UseGuards(JwtGuard)
+  @Get(':id/posts')
+  async getPosts(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+    @Query() { page, size }: GetMyPostsQuery,
+  ): Promise<MyPostDto[]> {
+    if (userId !== targetId) {
+      throw new HttpException('Forbidden', 403);
+    }
+    return this.userService.getMyPosts({
+      userId,
+      page: page ?? 1,
+      size: size ?? 10,
     });
   }
 

@@ -9,5 +9,6 @@ import { OpenSearchModule } from './opensearch.module';
   imports: [OpenSearchModule],
   controllers: [PostController],
   providers: [PostService, PostRepository, PostSelectRepository],
+  exports: [PostSelectRepository],
 })
 export class PostModule {}
