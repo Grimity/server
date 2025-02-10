@@ -74,7 +74,7 @@ type FollowEvent = {
 };
 
 type FeedLikeEvent = {
-  type: 'LIKE';
+  type: 'FEED_LIKE';
   feedId: string;
   likeCount: number;
 };

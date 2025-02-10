@@ -102,7 +102,7 @@ export class FeedService {
     if ([1, 5, 10, 20, 50, 100].includes(likeCount)) {
       await Promise.all([
         this.awsService.pushEvent({
-          type: 'LIKE',
+          type: 'FEED_LIKE',
           feedId,
           likeCount,
         }),
