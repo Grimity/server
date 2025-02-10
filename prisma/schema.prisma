@@ -18,6 +18,7 @@ model User {
   backgroundImage String?
   links           String[]
   followerCount   Int      @default(0)
+  subscription    String[] @default(["FOLLOW", "FEED_LIKE", "FEED_COMMENT", "FEED_ANSWER", "POST_COMMENT", "POST_ANSWER"])
 
   createdAt DateTime @default(now())
 
@@ -140,12 +141,9 @@ model FeedComment {
 model Notification {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @db.Uuid
-  type      String
-  actorId   String   @db.Uuid
-  actorName String
-  feedId    String?  @db.Uuid
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+  data      Json
 
   @@index([userId])
 }
