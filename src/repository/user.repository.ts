@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
+import { notificationTypesArray } from 'src/common/constants';
 
 @Injectable()
 export class UserRepository {
@@ -151,6 +152,71 @@ export class UserRepository {
     ]);
 
     return;
+  }
+
+  async subscribe(userId: string, type: string) {
+    if (type === 'ALL') {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            set: notificationTypesArray,
+          },
+        },
+      });
+    } else {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            push: type,
+          },
+        },
+      });
+    }
+  }
+
+  async unsubscribe(userId: string, type: string) {
+    if (type === 'ALL') {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            set: [],
+          },
+        },
+      });
+    } else {
+      const { subscription } = await this.prisma.user.findUniqueOrThrow({
+        where: {
+          id: userId,
+        },
+        select: {
+          subscription: true,
+        },
+      });
+
+      const newSubscription = subscription.filter(
+        (subscriptionType) => subscriptionType !== type,
+      );
+
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            set: newSubscription,
+          },
+        },
+      });
+    }
   }
 }
 

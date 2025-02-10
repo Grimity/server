@@ -18,7 +18,7 @@ model User {
   backgroundImage String?
   links           String[]
   followerCount   Int      @default(0)
-  subscription    String[] @default(["FOLLOW", "FEED_LIKE", "FEED_COMMENT", "FEED_ANSWER", "POST_COMMENT", "POST_ANSWER"])
+  subscription    String[] @default(["FOLLOW", "FEED_LIKE", "FEED_COMMENT", "FEED_REPLY", "POST_COMMENT", "POST_REPLY"])
 
   createdAt DateTime @default(now())
 

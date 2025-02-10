@@ -21,7 +21,7 @@ export class FeedCommentService {
       });
     } else if (input.parentCommentId) {
       await this.awsService.pushEvent({
-        type: 'FEED_ANSWER',
+        type: 'FEED_REPLY',
         actorId: userId,
         feedId: input.feedId,
         parentId: input.parentCommentId,

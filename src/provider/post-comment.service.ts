@@ -10,7 +10,7 @@ export class PostCommentService {
   ) {}
 
   async create(input: CreateInput) {
-    await this.postCommentRepository.create(input);
+    const comment = await this.postCommentRepository.create(input);
 
     if (input.mentionedUserId && input.parentCommentId) {
       await this.awsService.pushEvent({
@@ -21,7 +21,7 @@ export class PostCommentService {
       });
     } else if (input.parentCommentId) {
       await this.awsService.pushEvent({
-        type: 'POST_ANSWER',
+        type: 'POST_REPLY',
         actorId: input.userId,
         postId: input.postId,
         parentId: input.parentCommentId,
@@ -33,7 +33,7 @@ export class PostCommentService {
         postId: input.postId,
       });
     }
-    return;
+    return comment;
   }
 
   async getComments(userId: string | null, postId: string) {

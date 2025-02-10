@@ -3,10 +3,10 @@ import {
   FollowData,
   FeedLikeData,
   FeedCommentData,
-  FeedAnswerData,
+  FeedReplyData,
   FeedMentionData,
   PostCommentData,
-  PostAnswerData,
+  PostReplyData,
   PostMentionData,
 } from 'src/common/constants';
 
@@ -14,10 +14,10 @@ import {
   FollowData,
   FeedLikeData,
   FeedCommentData,
-  FeedAnswerData,
+  FeedReplyData,
   FeedMentionData,
   PostCommentData,
-  PostAnswerData,
+  PostReplyData,
   PostMentionData,
 )
 export class NotificationDto {
@@ -35,10 +35,10 @@ export class NotificationDto {
       { $ref: getSchemaPath(FollowData) },
       { $ref: getSchemaPath(FeedLikeData) },
       { $ref: getSchemaPath(FeedCommentData) },
-      { $ref: getSchemaPath(FeedAnswerData) },
+      { $ref: getSchemaPath(FeedReplyData) },
       { $ref: getSchemaPath(FeedMentionData) },
       { $ref: getSchemaPath(PostCommentData) },
-      { $ref: getSchemaPath(PostAnswerData) },
+      { $ref: getSchemaPath(PostReplyData) },
       { $ref: getSchemaPath(PostMentionData) },
     ],
   })
@@ -46,9 +46,9 @@ export class NotificationDto {
     | FollowData
     | FeedLikeData
     | FeedCommentData
-    | FeedAnswerData
+    | FeedReplyData
     | FeedMentionData
     | PostCommentData
-    | PostAnswerData
+    | PostReplyData
     | PostMentionData;
 }

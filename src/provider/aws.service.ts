@@ -85,8 +85,8 @@ type FeedCommentEvent = {
   actorId: string;
 };
 
-type FeedAnswerEvent = {
-  type: 'FEED_ANSWER';
+type FeedReplyEvent = {
+  type: 'FEED_REPLY';
   feedId: string;
   actorId: string;
   parentId: string;
@@ -105,8 +105,8 @@ type PostCommentEvent = {
   actorId: string;
 };
 
-type PostAnswerEvent = {
-  type: 'POST_ANSWER';
+type PostReplyEvent = {
+  type: 'POST_REPLY';
   postId: string;
   actorId: string;
   parentId: string;
@@ -123,10 +123,10 @@ type Event =
   | FollowEvent
   | FeedLikeEvent
   | FeedCommentEvent
-  | FeedAnswerEvent
+  | FeedReplyEvent
   | FeedMentionEvent
   | PostCommentEvent
-  | PostAnswerEvent
+  | PostReplyEvent
   | PostMentionEvent;
 
 type GetUplodateUrlInput = {

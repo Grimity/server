@@ -6,6 +6,7 @@ export * from './request/get-my-followers.query';
 export * from './request/get-my-followings.query';
 export * from './request/get-my-like-feeds.query';
 export * from './request/search-user.query';
+export * from './request/subscribe.query';
 
 export * from './response/my-profile.dto';
 export * from './response/user-profile.dto';

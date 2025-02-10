@@ -5,6 +5,7 @@ import { AwsService } from './aws.service';
 import { NotificationRepository } from 'src/repository/notification.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { OpenSearchService } from './opensearch.service';
+import { NotificationType } from 'src/common/constants';
 
 @Injectable()
 export class UserService {
@@ -361,6 +362,22 @@ export class UserService {
       nextCursor,
       users: returnUsers,
     };
+  }
+
+  async subscribe(
+    userId: string,
+    type: Exclude<NotificationType, 'FEED_MENTION' | 'POST_MENTION'> | 'ALL',
+  ) {
+    await this.userRepository.subscribe(userId, type);
+    return;
+  }
+
+  async unsubscribe(
+    userId: string,
+    type: Exclude<NotificationType, 'FEED_MENTION' | 'POST_MENTION'> | 'ALL',
+  ) {
+    await this.userRepository.unsubscribe(userId, type);
+    return;
   }
 }
 

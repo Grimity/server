@@ -4,22 +4,22 @@ export type NotificationType =
   | 'FOLLOW'
   | 'FEED_LIKE'
   | 'FEED_COMMENT'
-  | 'FEED_ANSWER'
+  | 'FEED_REPLY'
   | 'FEED_MENTION'
   | 'POST_COMMENT'
-  | 'POST_ANSWER'
+  | 'POST_REPLY'
   | 'POST_MENTION';
 
 export const notificationTypesArray = [
   'FOLLOW',
   'FEED_LIKE',
   'FEED_COMMENT',
-  'FEED_ANSWER',
+  'FEED_REPLY',
   'FEED_MENTION',
   'POST_COMMENT',
-  'POST_ANSWER',
+  'POST_REPLY',
   'POST_MENTION',
-] as const;
+];
 
 class Actor {
   @ApiProperty()
@@ -62,9 +62,9 @@ export class FeedCommentData {
   actor: Actor;
 }
 
-export class FeedAnswerData {
-  @ApiProperty({ enum: ['FEED_ANSWER'] })
-  type: 'FEED_ANSWER';
+export class FeedReplyData {
+  @ApiProperty({ enum: ['FEED_REPLY'] })
+  type: 'FEED_REPLY';
 
   @ApiProperty()
   feedId: string;
@@ -95,9 +95,9 @@ export class PostCommentData {
   actor: Actor;
 }
 
-export class PostAnswerData {
-  @ApiProperty({ enum: ['POST_ANSWER'] })
-  type: 'POST_ANSWER';
+export class PostReplyData {
+  @ApiProperty({ enum: ['POST_REPLY'] })
+  type: 'POST_REPLY';
 
   @ApiProperty()
   postId: string;
@@ -121,8 +121,8 @@ export type NotificationData =
   | typeof FollowData
   | typeof FeedLikeData
   | typeof FeedCommentData
-  | typeof FeedAnswerData
+  | typeof FeedReplyData
   | typeof FeedMentionData
   | typeof PostCommentData
-  | typeof PostAnswerData
+  | typeof PostReplyData
   | typeof PostMentionData;
