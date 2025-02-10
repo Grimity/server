@@ -122,6 +122,7 @@ export class UserService {
       followerCount: targetUser.followerCount,
       followingCount: targetUser._count.followings,
       feedCount: targetUser._count.feeds,
+      postCount: targetUser._count.posts,
       isFollowing: targetUser.followers?.length === 1,
     };
   }
