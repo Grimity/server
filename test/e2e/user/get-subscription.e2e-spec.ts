@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /users/:targetId/follow - 언팔로우', () => {
+describe('GET /users/me/subscribe - 구독 정보 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -20,6 +20,11 @@ describe('DELETE /users/:targetId/follow - 언팔로우', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -29,52 +34,34 @@ describe('DELETE /users/:targetId/follow - 언팔로우', () => {
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
-    const { status } = await request(app.getHttpServer())
-      .put('/users/test/follow')
-      .send();
+    const { status } = await request(app.getHttpServer()).get(
+      '/users/me/subscribe',
+    );
 
     // then
     expect(status).toBe(401);
   });
 
-  it('204와 함께 언팔로우 한다', async () => {
+  it('200과 함께 구독 정보를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-
-    const targetUser = await prisma.user.create({
+    await prisma.user.updateMany({
       data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-      },
-    });
-
-    await prisma.follow.create({
-      data: {
-        followerId: user.id,
-        followingId: targetUser.id,
+        subscription: {
+          set: ['FOLLOW', 'FEED_LIKE', 'FEED_COMMENT'],
+        },
       },
     });
 
     // when
-    const { status } = await request(app.getHttpServer())
-      .delete(`/users/${targetUser.id}/follow`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
+    const { status, body } = await request(app.getHttpServer())
+      .get('/users/me/subscribe')
+      .set('Authorization', `Bearer ${accessToken}`);
 
     // then
-    expect(status).toBe(204);
-    const follow = await prisma.follow.findFirst();
-    expect(follow).toBeNull();
-
-    // cleanup
-    spy.mockRestore();
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      subscription: ['FOLLOW', 'FEED_LIKE', 'FEED_COMMENT'],
+    });
   });
 });

@@ -9,6 +9,8 @@ import {
   Param,
   Get,
   Query,
+  Patch,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,6 +39,8 @@ import {
   PopularUserDto,
   SearchUserQuery,
   SearchedUserResponse,
+  SubscribeQuery,
+  SubscriptionDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -118,6 +122,68 @@ export class UserController {
   @Delete('me/background')
   async deleteBackgroundImage(@CurrentUser() userId: string) {
     await this.userService.updateBackgroundImage(userId, null);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '알림 구독 여부 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: SubscriptionDto })
+  @UseGuards(JwtGuard)
+  @Get('me/subscribe')
+  async getSubscriptions(@CurrentUser() userId: string) {
+    return this.userService.getSubscription(userId);
+  }
+
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'type',
+    enum: [
+      'ALL',
+      'FOLLOW',
+      'FEED_LIKE',
+      'FEED_COMMENT',
+      'FEED_REPLY',
+      'POST_COMMENT',
+      'POST_REPLY',
+    ],
+  })
+  @ApiOperation({ summary: '알림 구독' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Patch('me/subscribe')
+  async subscribe(
+    @CurrentUser() userId: string,
+    @Query() { type }: SubscribeQuery,
+  ) {
+    await this.userService.subscribe(userId, type);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiQuery({
+    name: 'type',
+    enum: [
+      'ALL',
+      'FOLLOW',
+      'FEED_LIKE',
+      'FEED_COMMENT',
+      'FEED_REPLY',
+      'POST_COMMENT',
+      'POST_REPLY',
+    ],
+  })
+  @ApiOperation({ summary: '알림 구독 취소' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('me/subscribe')
+  async unsubscribe(
+    @CurrentUser() userId: string,
+    @Query()
+    { type }: SubscribeQuery,
+  ) {
+    await this.userService.unsubscribe(userId, type);
     return;
   }
 

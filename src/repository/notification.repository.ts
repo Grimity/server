@@ -13,12 +13,9 @@ export class NotificationRepository {
       },
       select: {
         id: true,
-        type: true,
-        actorId: true,
-        actorName: true,
-        feedId: true,
         isRead: true,
         createdAt: true,
+        data: true,
       },
       orderBy: {
         createdAt: 'desc',

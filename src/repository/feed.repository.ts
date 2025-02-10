@@ -50,11 +50,11 @@ export class FeedRepository {
             },
           },
           select: {
-            authorId: true,
+            likeCount: true,
           },
         }),
       ]);
-      return feed.authorId;
+      return feed;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {

@@ -90,7 +90,7 @@ export class UserRepository {
 
   async follow(userId: string, targetUserId: string) {
     try {
-      await this.prisma.$transaction([
+      const [_, user] = await this.prisma.$transaction([
         this.prisma.follow.create({
           data: {
             followerId: userId,
@@ -106,9 +106,12 @@ export class UserRepository {
               increment: 1,
             },
           },
+          select: {
+            subscription: true,
+          },
         }),
       ]);
-      return;
+      return user.subscription;
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -148,6 +151,78 @@ export class UserRepository {
     ]);
 
     return;
+  }
+
+  async subscribe(userId: string, type: string) {
+    if (type === 'ALL') {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            set: [
+              'FOLLOW',
+              'FEED_LIKE',
+              'FEED_COMMENT',
+              'FEED_REPLY',
+              'POST_COMMENT',
+              'POST_REPLY',
+            ],
+          },
+        },
+      });
+    } else {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            push: type,
+          },
+        },
+      });
+    }
+  }
+
+  async unsubscribe(userId: string, type: string) {
+    if (type === 'ALL') {
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            set: [],
+          },
+        },
+      });
+    } else {
+      const { subscription } = await this.prisma.user.findUniqueOrThrow({
+        where: {
+          id: userId,
+        },
+        select: {
+          subscription: true,
+        },
+      });
+
+      const newSubscription = subscription.filter(
+        (subscriptionType) => subscriptionType !== type,
+      );
+
+      await this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          subscription: {
+            set: newSubscription,
+          },
+        },
+      });
+    }
   }
 }
 

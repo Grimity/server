@@ -235,4 +235,15 @@ export class UserSelectRepository {
       select,
     });
   }
+
+  async getSubscription(userId: string) {
+    return await this.prisma.user.findUniqueOrThrow({
+      where: {
+        id: userId,
+      },
+      select: {
+        subscription: true,
+      },
+    });
+  }
 }
