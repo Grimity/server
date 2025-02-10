@@ -95,10 +95,15 @@ describe('PUT /notifications/:id - 개별 알림 읽음 처리', () => {
       data: {
         id: uuid(),
         userId: user.id,
-        type: 'LIKE',
-        actorId: uuid(),
-        actorName: 'test',
-        feedId: uuid(),
+        data: {
+          type: 'FEED_COMMENT',
+          feedId: uuid(),
+          actor: {
+            id: uuid(),
+            name: 'test',
+            image: 'test',
+          },
+        },
       },
     });
 

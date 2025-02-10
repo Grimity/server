@@ -54,18 +54,28 @@ describe('PUT /notifications - 전체 알림 읽음 처리', () => {
         {
           id: uuid(),
           userId: user.id,
-          type: 'LIKE',
-          actorId: uuid(),
-          actorName: 'test',
-          feedId: uuid(),
+          data: {
+            type: 'FEED_COMMENT',
+            feedId: uuid(),
+            actor: {
+              id: uuid(),
+              name: 'test',
+              image: 'test',
+            },
+          },
         },
         {
           id: uuid(),
           userId: user.id,
-          type: 'COMMENT',
-          actorId: uuid(),
-          actorName: 'test',
-          feedId: uuid(),
+          data: {
+            type: 'FEED_ANSWER',
+            feedId: uuid(),
+            actor: {
+              id: uuid(),
+              name: 'test',
+              image: 'test',
+            },
+          },
         },
       ],
     });

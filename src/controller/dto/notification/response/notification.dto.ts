@@ -1,17 +1,28 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, getSchemaPath, ApiExtraModels } from '@nestjs/swagger';
+import {
+  FollowData,
+  FeedLikeData,
+  FeedCommentData,
+  FeedAnswerData,
+  FeedMentionData,
+  PostCommentData,
+  PostAnswerData,
+  PostMentionData,
+} from 'src/common/constants';
 
+@ApiExtraModels(
+  FollowData,
+  FeedLikeData,
+  FeedCommentData,
+  FeedAnswerData,
+  FeedMentionData,
+  PostCommentData,
+  PostAnswerData,
+  PostMentionData,
+)
 export class NotificationDto {
-  @ApiProperty({ enum: ['LIKE', 'COMMENT', 'FOLLOW'] })
-  type: string;
-
   @ApiProperty({ description: '알림 아이디' })
   id: string;
-
-  @ApiProperty()
-  actorId: string;
-
-  @ApiProperty()
-  actorName: string;
 
   @ApiProperty()
   createdAt: Date;
@@ -20,10 +31,24 @@ export class NotificationDto {
   isRead: boolean;
 
   @ApiProperty({
-    required: false,
-    nullable: true,
-    type: 'string',
-    description: 'LIKE, COMMENT 일때만 있음',
+    oneOf: [
+      { $ref: getSchemaPath(FollowData) },
+      { $ref: getSchemaPath(FeedLikeData) },
+      { $ref: getSchemaPath(FeedCommentData) },
+      { $ref: getSchemaPath(FeedAnswerData) },
+      { $ref: getSchemaPath(FeedMentionData) },
+      { $ref: getSchemaPath(PostCommentData) },
+      { $ref: getSchemaPath(PostAnswerData) },
+      { $ref: getSchemaPath(PostMentionData) },
+    ],
   })
-  feedId: string | null;
+  data:
+    | FollowData
+    | FeedLikeData
+    | FeedCommentData
+    | FeedAnswerData
+    | FeedMentionData
+    | PostCommentData
+    | PostAnswerData
+    | PostMentionData;
 }

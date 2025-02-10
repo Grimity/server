@@ -54,18 +54,24 @@ describe('GET /notifications - 알림 목록 조회', () => {
         {
           id: uuid(),
           userId: user.id,
-          type: 'LIKE',
-          actorId: uuid(),
-          actorName: 'test',
-          feedId: uuid(),
+          data: {
+            type: 'FEED_COMMENT',
+            feedId: uuid(),
+            actor: {
+              id: uuid(),
+              name: 'test',
+              image: 'test',
+            },
+          },
         },
         {
           id: uuid(),
           userId: user.id,
-          type: 'COMMENT',
-          actorId: uuid(),
-          actorName: 'test',
-          feedId: uuid(),
+          data: {
+            type: 'FEED_LIKE',
+            feedId: uuid(),
+            likeCount: 5,
+          },
         },
       ],
     });

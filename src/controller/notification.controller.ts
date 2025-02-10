@@ -36,7 +36,7 @@ export class NotificationController {
     description: '성공',
   })
   @Get()
-  async getAll(@CurrentUser() userId: string): Promise<NotificationDto[]> {
+  async getAll(@CurrentUser() userId: string) {
     return this.notificationService.getAll(userId);
   }
 
