@@ -44,7 +44,7 @@ export class AwsService {
     return await getSignedUrl(this.s3Client, command, { expiresIn: 60 });
   }
 
-  async pushEvent(event: LikeEvent | FollowEvent | CommentEvent) {
+  async pushEvent(event: Event) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     const command = new SendMessageCommand({
       QueueUrl: this.configService.get('AWS_SQS_URL'),
@@ -67,24 +67,67 @@ export class AwsService {
   }
 }
 
-export type LikeEvent = {
-  type: 'LIKE';
-  actorId: string;
-  feedId: string;
-};
-
-export type FollowEvent = {
+type FollowEvent = {
   type: 'FOLLOW';
   actorId: string;
   userId: string;
 };
 
-export type CommentEvent = {
-  type: 'COMMENT';
-  actorId: string;
+type FeedLikeEvent = {
+  type: 'LIKE';
   feedId: string;
-  parentCommentId?: string | null;
+  likeCount: number;
 };
+
+type FeedCommentEvent = {
+  type: 'FEED_COMMENT';
+  feedId: string;
+  actorId: string;
+};
+
+type FeedAnswerEvent = {
+  type: 'FEED_ANSWER';
+  feedId: string;
+  actorId: string;
+  parentId: string;
+};
+
+type FeedMentionEvent = {
+  type: 'FEED_MENTION';
+  feedId: string;
+  actorId: string;
+  mentionedUserId: string;
+};
+
+type PostCommentEvent = {
+  type: 'POST_COMMENT';
+  postId: string;
+  actorId: string;
+};
+
+type PostAnswerEvent = {
+  type: 'POST_ANSWER';
+  postId: string;
+  actorId: string;
+  parentId: string;
+};
+
+type PostMentionEvent = {
+  type: 'POST_MENTION';
+  postId: string;
+  actorId: string;
+  mentionedUserId: string;
+};
+
+type Event =
+  | FollowEvent
+  | FeedLikeEvent
+  | FeedCommentEvent
+  | FeedAnswerEvent
+  | FeedMentionEvent
+  | PostCommentEvent
+  | PostAnswerEvent
+  | PostMentionEvent;
 
 type GetUplodateUrlInput = {
   type: 'profile' | 'feed' | 'background' | 'post';

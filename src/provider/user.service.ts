@@ -75,14 +75,21 @@ export class UserService {
   }
 
   async follow(userId: string, targetUserId: string) {
-    await this.userRepository.follow(userId, targetUserId);
+    const subscription = await this.userRepository.follow(userId, targetUserId);
 
-    // await this.awsService.pushEvent({
-    //   type: 'FOLLOW',
-    //   actorId: userId,
-    //   userId: targetUserId,
-    // });
-    await this.awsService.pushOpensearchQueue('USER', targetUserId);
+    if (subscription.includes('FOLLOW')) {
+      await Promise.all([
+        this.awsService.pushEvent({
+          type: 'FOLLOW',
+          actorId: userId,
+          userId: targetUserId,
+        }),
+        this.awsService.pushOpensearchQueue('USER', targetUserId),
+      ]);
+    } else {
+      await this.awsService.pushOpensearchQueue('USER', targetUserId);
+    }
+
     return;
   }
 

@@ -90,7 +90,7 @@ export class UserRepository {
 
   async follow(userId: string, targetUserId: string) {
     try {
-      await this.prisma.$transaction([
+      const [_, user] = await this.prisma.$transaction([
         this.prisma.follow.create({
           data: {
             followerId: userId,
@@ -106,9 +106,12 @@ export class UserRepository {
               increment: 1,
             },
           },
+          select: {
+            subscription: true,
+          },
         }),
       ]);
-      return;
+      return user.subscription;
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
