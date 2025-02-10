@@ -11,11 +11,28 @@ export class FeedCommentService {
 
   async create(userId: string, input: CreateFeedCommentInput) {
     await this.feedCommentRepository.create(userId, input);
-    await this.awsService.pushEvent({
-      type: 'FEED_COMMENT',
-      actorId: userId,
-      feedId: input.feedId,
-    });
+
+    if (input.mentionedUserId && input.parentCommentId) {
+      await this.awsService.pushEvent({
+        type: 'FEED_MENTION',
+        actorId: userId,
+        feedId: input.feedId,
+        mentionedUserId: input.mentionedUserId,
+      });
+    } else if (input.parentCommentId) {
+      await this.awsService.pushEvent({
+        type: 'FEED_ANSWER',
+        actorId: userId,
+        feedId: input.feedId,
+        parentId: input.parentCommentId,
+      });
+    } else {
+      await this.awsService.pushEvent({
+        type: 'FEED_COMMENT',
+        actorId: userId,
+        feedId: input.feedId,
+      });
+    }
     return;
   }
 
