@@ -1,7 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
-import { notificationTypesArray } from 'src/common/constants';
 
 @Injectable()
 export class UserRepository {
@@ -162,7 +161,14 @@ export class UserRepository {
         },
         data: {
           subscription: {
-            set: notificationTypesArray,
+            set: [
+              'FOLLOW',
+              'FEED_LIKE',
+              'FEED_COMMENT',
+              'FEED_REPLY',
+              'POST_COMMENT',
+              'POST_REPLY',
+            ],
           },
         },
       });

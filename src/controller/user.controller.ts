@@ -10,6 +10,7 @@ import {
   Get,
   Query,
   Patch,
+  ValidationPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -169,7 +170,8 @@ export class UserController {
   @Delete('me/subscribe')
   async unsubscribe(
     @CurrentUser() userId: string,
-    @Query() { type }: SubscribeQuery,
+    @Query()
+    { type }: SubscribeQuery,
   ) {
     await this.userService.unsubscribe(userId, type);
     return;

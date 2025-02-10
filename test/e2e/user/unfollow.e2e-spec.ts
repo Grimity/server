@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /users/:targetId/follow', () => {
+describe('DELETE /users/:targetId/follow - 언팔로우', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
