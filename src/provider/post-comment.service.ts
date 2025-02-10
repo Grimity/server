@@ -1,12 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { PostCommentRepository } from 'src/repository/post-comment.repository';
+import { AwsService } from './aws.service';
 
 @Injectable()
 export class PostCommentService {
-  constructor(private postCommentRepository: PostCommentRepository) {}
+  constructor(
+    private postCommentRepository: PostCommentRepository,
+    private awsService: AwsService,
+  ) {}
 
   async create(input: CreateInput) {
-    return await this.postCommentRepository.create(input);
+    await this.postCommentRepository.create(input);
+
+    if (input.mentionedUserId && input.parentCommentId) {
+      await this.awsService.pushEvent({
+        type: 'POST_MENTION',
+        actorId: input.userId,
+        postId: input.postId,
+        mentionedUserId: input.mentionedUserId,
+      });
+    } else if (input.parentCommentId) {
+      await this.awsService.pushEvent({
+        type: 'POST_ANSWER',
+        actorId: input.userId,
+        postId: input.postId,
+        parentId: input.parentCommentId,
+      });
+    } else {
+      await this.awsService.pushEvent({
+        type: 'POST_COMMENT',
+        actorId: input.userId,
+        postId: input.postId,
+      });
+    }
+    return;
   }
 
   async getComments(userId: string | null, postId: string) {
