@@ -45,6 +45,7 @@ import {
   GetMyPostsQuery,
   MyPostDto,
   GetMySavePostsResponse,
+  UpdateSubscriptionDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -139,55 +140,18 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiQuery({
-    name: 'type',
-    enum: [
-      'ALL',
-      'FOLLOW',
-      'FEED_LIKE',
-      'FEED_COMMENT',
-      'FEED_REPLY',
-      'POST_COMMENT',
-      'POST_REPLY',
-    ],
-  })
-  @ApiOperation({ summary: '알림 구독' })
+  @ApiOperation({ summary: '알림 구독 여부 수정' })
   @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)
+  @Put('me/subscribe')
   @HttpCode(204)
-  @Patch('me/subscribe')
-  async subscribe(
+  async updateSubscriptions(
     @CurrentUser() userId: string,
-    @Query() { type }: SubscribeQuery,
+    @Body() { subscription }: UpdateSubscriptionDto,
   ) {
-    await this.userService.subscribe(userId, type);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiQuery({
-    name: 'type',
-    enum: [
-      'ALL',
-      'FOLLOW',
-      'FEED_LIKE',
-      'FEED_COMMENT',
-      'FEED_REPLY',
-      'POST_COMMENT',
-      'POST_REPLY',
-    ],
-  })
-  @ApiOperation({ summary: '알림 구독 취소' })
-  @ApiResponse({ status: 204, description: '성공' })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Delete('me/subscribe')
-  async unsubscribe(
-    @CurrentUser() userId: string,
-    @Query()
-    { type }: SubscribeQuery,
-  ) {
-    await this.userService.unsubscribe(userId, type);
+    await this.userService.updateSubscription(userId, [
+      ...new Set(subscription),
+    ]);
     return;
   }
 
