@@ -11,6 +11,7 @@ import {
   Query,
   Patch,
   ValidationPipe,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -41,6 +42,9 @@ import {
   SearchedUserResponse,
   SubscribeQuery,
   SubscriptionDto,
+  GetMyPostsQuery,
+  MyPostDto,
+  GetMySavePostsResponse,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -326,6 +330,28 @@ export class UserController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: '내가 저장한 게시글 조회' })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: GetMySavePostsResponse,
+  })
+  @UseGuards(JwtGuard)
+  @Get('me/save-posts')
+  async getMySavePosts(
+    @CurrentUser() userId: string,
+    @Query() { page, size }: GetMyPostsQuery,
+  ): Promise<GetMySavePostsResponse> {
+    return await this.userService.getMySavePosts({
+      userId,
+      page: page ?? 1,
+      size: size ?? 10,
+    });
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })
   @ApiQuery({ name: 'keyword', description: '최소 2글자' })
   @ApiQuery({ name: 'cursor', required: false, description: '없으면 처음부터' })
@@ -414,6 +440,36 @@ export class UserController {
       cursor: cursor ?? null,
       size: size ?? 20,
       targetId,
+    });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      '유저별 게시글 조회 - 일관성을 위해서 경로는 이렇게하지만 accT는 있어야합니다',
+  })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: MyPostDto,
+    isArray: true,
+  })
+  @UseGuards(JwtGuard)
+  @Get(':id/posts')
+  async getPosts(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+    @Query() { page, size }: GetMyPostsQuery,
+  ): Promise<MyPostDto[]> {
+    if (userId !== targetId) {
+      throw new HttpException('Forbidden', 403);
+    }
+    return this.userService.getMyPosts({
+      userId,
+      page: page ?? 1,
+      size: size ?? 10,
     });
   }
 

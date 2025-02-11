@@ -33,6 +33,9 @@ export class UserProfileDto {
   @ApiProperty()
   feedCount: number;
 
+  @ApiProperty()
+  postCount: number;
+
   @ApiProperty({ description: '비 로그인유저면 false만 반환함 ' })
   isFollowing: boolean;
 }

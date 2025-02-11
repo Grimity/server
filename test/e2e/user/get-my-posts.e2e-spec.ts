@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /feeds/:id - 피드 삭제', () => {
+describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -19,6 +19,10 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
 
     await app.init();
   });
@@ -30,89 +34,77 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/00000000-0000-0000-0000-000000000000')
+      .get('/users/1/posts')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
+  it('userId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/1')
+      .get('/users/1/posts')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
-  it('없는 피드를 삭제할때 404를 반환한다', async () => {
+  it('로그인 유저와 조회할 유저가 다를 경우 403을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/feeds/00000000-0000-0000-0000-000000000000')
+      .get('/users/00000000-0000-0000-0000-000000000000/posts')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
-    expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
+    expect(status).toBe(403);
   });
 
-  it('204와 함께 feed를 삭제한다', async () => {
+  it('200과 함께 게시글을 조회한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const feed = await prisma.feed.create({
-      data: {
-        authorId: user.id,
-        title: 'test',
-        content: 'test',
-        isAI: false,
-        cards: ['feed/test.jpg'],
-        thumbnail: 'test',
-      },
+    const { id } = await prisma.user.findFirstOrThrow();
+    await prisma.post.createMany({
+      data: Array.from({ length: 15 }).map((_, index) => {
+        return {
+          authorId: id,
+          title: `title${index}`,
+          content: `content${index}`,
+          type: 1,
+          hasImage: false,
+          commentCount: 0,
+          viewCount: 0,
+          createdAt: new Date(Date.now() - index * 1000),
+        };
+      }),
     });
 
     // when
-    const { status } = await request(app.getHttpServer())
-      .delete(`/feeds/${feed.id}`)
-      .set('Authorization', `Bearer ${accessToken}`);
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/users/${id}/posts?page=1&size=10`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+    const { status: status2, body: body2 } = await request(app.getHttpServer())
+      .get(`/users/${id}/posts?page=2&size=10`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
 
     // then
-    expect(status).toBe(204);
-    const afterFeed = await prisma.feed.findFirst();
-    expect(afterFeed).toBeNull();
+    expect(status).toBe(200);
+    expect(body).toHaveLength(10);
+    expect(body[0].title).toBe('title0');
 
-    // cleanup
-    spy.mockRestore();
+    expect(status2).toBe(200);
+    expect(body2).toHaveLength(5);
+    expect(body2[0].title).toBe('title10');
   });
 });

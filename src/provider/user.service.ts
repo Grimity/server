@@ -6,6 +6,9 @@ import { NotificationRepository } from 'src/repository/notification.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { OpenSearchService } from './opensearch.service';
 import { NotificationType } from 'src/common/constants';
+import { PostSelectRepository } from 'src/repository/post.select.repository';
+import { convertPostTypeFromNumber } from 'src/common/constants';
+import { title } from 'process';
 
 @Injectable()
 export class UserService {
@@ -16,6 +19,7 @@ export class UserService {
     private notificationRepository: NotificationRepository,
     private userSelectRepository: UserSelectRepository,
     private openSearchService: OpenSearchService,
+    private postSelectRepository: PostSelectRepository,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -122,6 +126,7 @@ export class UserService {
       followerCount: targetUser.followerCount,
       followingCount: targetUser._count.followings,
       feedCount: targetUser._count.feeds,
+      postCount: targetUser._count.posts,
       isFollowing: targetUser.followers?.length === 1,
     };
   }
@@ -382,6 +387,66 @@ export class UserService {
 
   async getSubscription(userId: string) {
     return await this.userSelectRepository.getSubscription(userId);
+  }
+
+  async getMyPosts({
+    userId,
+    page,
+    size,
+  }: {
+    userId: string;
+    page: number;
+    size: number;
+  }) {
+    const posts = await this.postSelectRepository.findManyByUserId({
+      userId,
+      page,
+      size,
+    });
+
+    return posts.map((post) => {
+      return {
+        id: post.id,
+        type: convertPostTypeFromNumber(post.type),
+        title: post.title,
+        content: post.content,
+        hasImage: post.hasImage,
+        commentCount: post.commentCount,
+        viewCount: post.viewCount,
+        createdAt: post.createdAt,
+      };
+    });
+  }
+
+  async getMySavePosts({
+    userId,
+    size,
+    page,
+  }: {
+    userId: string;
+    size: number;
+    page: number;
+  }) {
+    const [totalCount, posts] = await Promise.all([
+      this.postSelectRepository.countSavedPosts(userId),
+      this.postSelectRepository.findManySavedPosts({ userId, size, page }),
+    ]);
+
+    return {
+      totalCount,
+      posts: posts.map(({ post }) => {
+        return {
+          id: post.id,
+          type: convertPostTypeFromNumber(post.type),
+          title: post.title,
+          content: post.content,
+          hasImage: post.hasImage,
+          commentCount: post.commentCount,
+          viewCount: post.viewCount,
+          createdAt: post.createdAt,
+        };
+      }),
+    };
   }
 }
 

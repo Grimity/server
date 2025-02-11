@@ -66,6 +66,7 @@ export class UserSelectRepository {
           select: {
             followings: true,
             feeds: true,
+            posts: true,
           },
         },
       };
