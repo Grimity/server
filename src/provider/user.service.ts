@@ -369,19 +369,8 @@ export class UserService {
     };
   }
 
-  async subscribe(
-    userId: string,
-    type: Exclude<NotificationType, 'FEED_MENTION' | 'POST_MENTION'> | 'ALL',
-  ) {
-    await this.userRepository.subscribe(userId, type);
-    return;
-  }
-
-  async unsubscribe(
-    userId: string,
-    type: Exclude<NotificationType, 'FEED_MENTION' | 'POST_MENTION'> | 'ALL',
-  ) {
-    await this.userRepository.unsubscribe(userId, type);
+  async updateSubscription(userId: string, subscription: string[]) {
+    await this.userRepository.updateSubscription(userId, subscription);
     return;
   }
 

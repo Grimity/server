@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /users/me/image', () => {
+describe('PUT /users/me/image - 프로필 이미지 수정', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;

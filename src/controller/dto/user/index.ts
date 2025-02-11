@@ -8,6 +8,7 @@ export * from './request/get-my-like-feeds.query';
 export * from './request/search-user.query';
 export * from './request/subscribe.query';
 export * from './request/get-my-posts.query';
+export * from './request/update-subscription.dto';
 
 export * from './response/my-profile.dto';
 export * from './response/user-profile.dto';

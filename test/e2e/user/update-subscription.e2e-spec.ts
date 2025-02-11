@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('DELETE /users/me/subscribe - 구독 취소', () => {
+describe('PUT /users/me/subscribe - 구독 설정 수정', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -35,93 +35,58 @@ describe('DELETE /users/me/subscribe - 구독 취소', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/users/me/subscribe')
+      .put('/users/me/subscribe')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('리스트에 없는 type을 보내면 400을 반환한다', async () => {
+  it('subscription이 없을 때 400을 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/users/me/subscribe')
+      .put('/users/me/subscribe')
       .set('Authorization', `Bearer ${accessToken}`)
-      .query({
-        type: 'INVALID',
+      .send();
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('subscription이 유효하지 않을 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/subscribe')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        subscription: ['INVALID'],
       });
 
     // then
     expect(status).toBe(400);
   });
 
-  it('204와 함께 구독을 취소한다', async () => {
+  it('204와 함께 subscription을 수정한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
-    await prisma.user.updateMany({
-      data: {
-        subscription: [
-          'FOLLOW',
-          'FEED_LIKE',
-          'FEED_COMMENT',
-          'FEED_REPLY',
-          'POST_COMMENT',
-          'POST_REPLY',
-        ],
-      },
-    });
-
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/users/me/subscribe')
+      .put('/users/me/subscribe')
       .set('Authorization', `Bearer ${accessToken}`)
-      .query({
-        type: 'FEED_LIKE',
+      .send({
+        subscription: ['FOLLOW', 'FEED_LIKE'],
       });
 
     // then
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
-    expect(user.subscription).toEqual([
-      'FOLLOW',
-      'FEED_COMMENT',
-      'FEED_REPLY',
-      'POST_COMMENT',
-      'POST_REPLY',
-    ]);
-  });
-
-  it('ALL을 보내면 모든 구독을 취소한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-    await prisma.user.updateMany({
-      data: {
-        subscription: [
-          'FOLLOW',
-          'FEED_LIKE',
-          'FEED_COMMENT',
-          'FEED_REPLY',
-          'POST_COMMENT',
-          'POST_REPLY',
-        ],
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete('/users/me/subscribe')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .query({
-        type: 'ALL',
-      });
-
-    // then
-    expect(status).toBe(204);
-    const user = await prisma.user.findFirstOrThrow();
-    expect(user.subscription).toEqual([]);
+    expect(user.subscription).toEqual(['FOLLOW', 'FEED_LIKE']);
   });
 });

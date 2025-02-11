@@ -153,76 +153,17 @@ export class UserRepository {
     return;
   }
 
-  async subscribe(userId: string, type: string) {
-    if (type === 'ALL') {
-      await this.prisma.user.update({
-        where: {
-          id: userId,
+  async updateSubscription(userId: string, subscription: string[]) {
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        subscription: {
+          set: subscription,
         },
-        data: {
-          subscription: {
-            set: [
-              'FOLLOW',
-              'FEED_LIKE',
-              'FEED_COMMENT',
-              'FEED_REPLY',
-              'POST_COMMENT',
-              'POST_REPLY',
-            ],
-          },
-        },
-      });
-    } else {
-      await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          subscription: {
-            push: type,
-          },
-        },
-      });
-    }
-  }
-
-  async unsubscribe(userId: string, type: string) {
-    if (type === 'ALL') {
-      await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          subscription: {
-            set: [],
-          },
-        },
-      });
-    } else {
-      const { subscription } = await this.prisma.user.findUniqueOrThrow({
-        where: {
-          id: userId,
-        },
-        select: {
-          subscription: true,
-        },
-      });
-
-      const newSubscription = subscription.filter(
-        (subscriptionType) => subscriptionType !== type,
-      );
-
-      await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          subscription: {
-            set: newSubscription,
-          },
-        },
-      });
-    }
+      },
+    });
   }
 }
 
