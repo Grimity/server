@@ -23,4 +23,9 @@ export class NotificationService {
     await this.notificationRepository.readOne(userId, notificationId);
     return;
   }
+
+  async deleteOne(userId: string, notificationId: string) {
+    await this.notificationRepository.deleteOne(userId, notificationId);
+    return;
+  }
 }

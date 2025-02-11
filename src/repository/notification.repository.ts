@@ -63,6 +63,7 @@ export class NotificationRepository {
       ) {
         throw new HttpException('NOTIFICATION', 404);
       }
+      throw e;
     }
   }
 
@@ -74,5 +75,25 @@ export class NotificationRepository {
       },
     });
     return !!notification;
+  }
+
+  async deleteOne(userId: string, notificationId: string) {
+    try {
+      await this.prisma.notification.delete({
+        where: {
+          userId,
+          id: notificationId,
+        },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('NOTIFICATION', 404);
+      }
+      throw e;
+    }
   }
 }
