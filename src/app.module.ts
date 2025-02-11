@@ -12,6 +12,8 @@ import { TagModule } from './module/tag.module';
 import { PostModule } from './module/post.module';
 import { PostCommentModule } from './module/post-comment.module';
 import { ReportModule } from './module/report.module';
+import { GlobalFilter } from './common/filter';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -40,6 +42,12 @@ import { ReportModule } from './module/report.module';
     PostCommentModule,
     ReportModule,
   ],
-  providers: [globalPipe],
+  providers: [
+    globalPipe,
+    {
+      provide: APP_FILTER,
+      useClass: GlobalFilter,
+    },
+  ],
 })
 export class AppModule {}
