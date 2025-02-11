@@ -11,6 +11,11 @@ export class ReportController {
 
   @Post()
   async create(@CurrentUser() userId: string, @Body() dto: CreateReportDto) {
-    console.log(userId, dto);
+    await this.reportService.create({
+      userId,
+      ...dto,
+      content: dto.content ? dto.content : null,
+    });
+    return;
   }
 }

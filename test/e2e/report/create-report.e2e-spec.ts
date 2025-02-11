@@ -98,4 +98,119 @@ describe('POST /reports - 신고하기', () => {
     // then
     expect(status).toBe(400);
   });
+
+  it('201과 함께 신고를 생성한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/reports')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        type: 1,
+        refType: 'FEED',
+        refId: '00000000-0000-0000-0000-000000000000',
+        content: 'test',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const report = await prisma.report.findFirstOrThrow();
+    expect(report).toEqual({
+      id: expect.any(String),
+      userId: expect.any(String),
+      type: 1,
+      refType: 'FEED',
+      refId: '00000000-0000-0000-0000-000000000000',
+      content: 'test',
+      createdAt: expect.any(Date),
+    });
+  });
+
+  it('content가 없어도 동작한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/reports')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        type: 1,
+        refType: 'FEED',
+        refId: '00000000-0000-0000-0000-000000000000',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const report = await prisma.report.findFirstOrThrow();
+    expect(report).toEqual({
+      id: expect.any(String),
+      userId: expect.any(String),
+      type: 1,
+      refType: 'FEED',
+      refId: '00000000-0000-0000-0000-000000000000',
+      content: null,
+      createdAt: expect.any(Date),
+    });
+  });
+
+  it('content가 null이어도 동작한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/reports')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        type: 1,
+        refType: 'FEED',
+        refId: '00000000-0000-0000-0000-000000000000',
+        content: null,
+      });
+
+    // then
+    expect(status).toBe(201);
+    const report = await prisma.report.findFirstOrThrow();
+    expect(report).toEqual({
+      id: expect.any(String),
+      userId: expect.any(String),
+      type: 1,
+      refType: 'FEED',
+      refId: '00000000-0000-0000-0000-000000000000',
+      content: null,
+      createdAt: expect.any(Date),
+    });
+  });
+
+  it('content가 공백이면 null로 저장한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/reports')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        type: 1,
+        refType: 'FEED',
+        refId: '00000000-0000-0000-0000-000000000000',
+        content: '',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const report = await prisma.report.findFirstOrThrow();
+    expect(report).toEqual({
+      id: expect.any(String),
+      userId: expect.any(String),
+      type: 1,
+      refType: 'FEED',
+      refId: '00000000-0000-0000-0000-000000000000',
+      content: null,
+      createdAt: expect.any(Date),
+    });
+  });
 });

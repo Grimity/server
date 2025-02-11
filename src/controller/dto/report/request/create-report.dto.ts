@@ -12,8 +12,8 @@ export class CreateReportDto {
   @IsUUID()
   refId: string;
 
-  @Transform(({ value }) => (!value ? null : value.trim()))
-  @ValidateIf(({ content }) => content !== null)
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : null))
+  @ValidateIf(({ content }) => content !== null && content !== undefined)
   @MaxLength(1000)
   content: string | null;
 }
