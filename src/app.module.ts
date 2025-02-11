@@ -11,6 +11,7 @@ import { NotificationModule } from './module/notification.module';
 import { TagModule } from './module/tag.module';
 import { PostModule } from './module/post.module';
 import { PostCommentModule } from './module/post-comment.module';
+import { ReportModule } from './module/report.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PostCommentModule } from './module/post-comment.module';
     TagModule,
     PostModule,
     PostCommentModule,
+    ReportModule,
   ],
   providers: [globalPipe],
 })
