@@ -231,3 +231,13 @@ model PostCommentLike {
 
   @@id([postCommentId, userId])
 }
+
+model Report {
+  id        String   @id @default(uuid()) @db.Uuid
+  type      Int      @db.SmallInt
+  userId    String   @db.Uuid
+  refType   String
+  refId     String   @db.Uuid
+  content   String?
+  createdAt DateTime @default(now())
+}
