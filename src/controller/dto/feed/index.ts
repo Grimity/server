@@ -13,3 +13,4 @@ export * from './response/today-popular-feed.dto';
 export * from './response/following-feeds-response.dto';
 export * from './response/feed-search.response';
 export * from './response/popular-feed.response';
+export * from './response/like-user.dto';

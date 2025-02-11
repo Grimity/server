@@ -662,6 +662,24 @@ export class FeedSelectRepository {
       select,
     });
   }
+
+  async findLikesById(feedId: string) {
+    return await this.prisma.like.findMany({
+      where: {
+        feedId,
+      },
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            description: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 type FindPopularInput = {

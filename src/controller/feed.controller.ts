@@ -34,6 +34,7 @@ import {
   FeedSearchResponse,
   GetPopularQuery,
   PopularFeedResponse,
+  LikeUserDto,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -282,6 +283,17 @@ export class FeedController {
   ) {
     await this.feedService.deleteOne(userId, feedId);
     return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '좋아요 누른 유저 목록 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: [LikeUserDto] })
+  @UseGuards(JwtGuard)
+  @Get(':id/like')
+  async getLikeUsers(
+    @Param('id', new ParseUUIDPipe()) feedId: string,
+  ): Promise<LikeUserDto[]> {
+    return await this.feedService.getLikes(feedId);
   }
 
   @ApiBearerAuth()
