@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /users/me/save-feeds', () => {
+describe('GET /users/me/save-feeds - 내가 저장한 피드 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;

@@ -44,6 +44,7 @@ import {
   SubscriptionDto,
   GetMyPostsQuery,
   MyPostDto,
+  GetMySavePostsResponse,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -325,6 +326,28 @@ export class UserController {
     return await this.userService.getMySaveFeeds(userId, {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
+    });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내가 저장한 게시글 조회' })
+  @ApiQuery({ name: 'page', required: false, default: 1 })
+  @ApiQuery({ name: 'size', required: false, default: 10 })
+  @ApiResponse({
+    status: 200,
+    description: '성공',
+    type: GetMySavePostsResponse,
+  })
+  @UseGuards(JwtGuard)
+  @Get('me/save-posts')
+  async getMySavePosts(
+    @CurrentUser() userId: string,
+    @Query() { page, size }: GetMyPostsQuery,
+  ): Promise<GetMySavePostsResponse> {
+    return await this.userService.getMySavePosts({
+      userId,
+      page: page ?? 1,
+      size: size ?? 10,
     });
   }
 

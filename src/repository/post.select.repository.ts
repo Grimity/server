@@ -236,15 +236,7 @@ export class PostSelectRepository {
     });
   }
 
-  async findManyByUserId({
-    userId,
-    page,
-    size,
-  }: {
-    userId: string;
-    page: number;
-    size: number;
-  }) {
+  async findManyByUserId({ userId, page, size }: UserAndPageInput) {
     return await this.prisma.post.findMany({
       where: {
         authorId: userId,
@@ -266,6 +258,41 @@ export class PostSelectRepository {
       take: size,
     });
   }
+
+  async countSavedPosts(userId: string) {
+    return await this.prisma.postSave.count({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  async findManySavedPosts({ userId, page, size }: UserAndPageInput) {
+    return await this.prisma.postSave.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        post: {
+          select: {
+            id: true,
+            type: true,
+            title: true,
+            content: true,
+            hasImage: true,
+            commentCount: true,
+            viewCount: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * size,
+      take: size,
+    });
+  }
 }
 
 type FindManyInput = {
@@ -278,4 +305,10 @@ type SearchByAuthorInput = {
   authorId: string;
   size: number;
   page: number;
+};
+
+type UserAndPageInput = {
+  userId: string;
+  page: number;
+  size: number;
 };

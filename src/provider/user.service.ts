@@ -8,6 +8,7 @@ import { OpenSearchService } from './opensearch.service';
 import { NotificationType } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
+import { title } from 'process';
 
 @Injectable()
 export class UserService {
@@ -415,6 +416,37 @@ export class UserService {
         createdAt: post.createdAt,
       };
     });
+  }
+
+  async getMySavePosts({
+    userId,
+    size,
+    page,
+  }: {
+    userId: string;
+    size: number;
+    page: number;
+  }) {
+    const [totalCount, posts] = await Promise.all([
+      this.postSelectRepository.countSavedPosts(userId),
+      this.postSelectRepository.findManySavedPosts({ userId, size, page }),
+    ]);
+
+    return {
+      totalCount,
+      posts: posts.map(({ post }) => {
+        return {
+          id: post.id,
+          type: convertPostTypeFromNumber(post.type),
+          title: post.title,
+          content: post.content,
+          hasImage: post.hasImage,
+          commentCount: post.commentCount,
+          viewCount: post.viewCount,
+          createdAt: post.createdAt,
+        };
+      }),
+    };
   }
 }
 
