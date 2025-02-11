@@ -49,6 +49,12 @@ export class FeedLikeData {
 
   @ApiProperty()
   likeCount: number;
+
+  @ApiProperty()
+  thumbnail: string;
+
+  @ApiProperty()
+  title: string;
 }
 
 export class FeedCommentData {
