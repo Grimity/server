@@ -26,6 +26,10 @@ describe('POST /auth/register', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('google과 kakao가 아닐 때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

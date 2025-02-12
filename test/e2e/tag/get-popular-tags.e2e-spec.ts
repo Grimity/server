@@ -23,6 +23,10 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('인기 태그를 조회한다', async () => {
     // given
     const user = await prisma.user.create({
