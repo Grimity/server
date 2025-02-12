@@ -16,6 +16,7 @@ jobs:
       JWT_EXPIRES_IN: 1d
       AWS_IMAGE_BUCKET_NAME: grimity-image-dev
       AWS_REGION: ap-northeast-2
+      REDIS_HOST: localhost
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +30,9 @@ jobs:
 
       - name: Start PostgreSQL
         run: docker run --name postgres -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 postgres:16
+
+      - name: Start Redis
+        run: docker run --name redis -d -p 6379:6379 redis
 
       - name: Install dependencies
         run: |
