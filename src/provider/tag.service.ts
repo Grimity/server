@@ -14,6 +14,7 @@ export class TagService {
   async findPopularTags() {
     const cachedTags = await this.redisRepository.getPopularTags();
     if (cachedTags) {
+      console.log('cache hit');
       return cachedTags;
     }
     const tags = await this.tagRepository.findPopularTags();
