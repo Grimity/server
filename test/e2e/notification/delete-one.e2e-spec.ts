@@ -34,6 +34,10 @@ describe('DELETE /notifications/:id - 개별 알림 삭제', () => {
     await prisma.notification.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('accessToken이 없을때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer()).delete(

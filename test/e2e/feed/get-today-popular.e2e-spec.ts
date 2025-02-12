@@ -23,6 +23,10 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('200과 함께 인기 피드 목록을 반환한다', async () => {
     // given
     const user = await prisma.user.create({

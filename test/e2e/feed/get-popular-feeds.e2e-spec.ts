@@ -23,6 +23,10 @@ describe('GET /feeds/popular - 인기 그림 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('200과 함께 인기 피드 목록을 조회한다', async () => {
     // given
     const user = await prisma.user.create({

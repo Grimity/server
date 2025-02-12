@@ -27,6 +27,10 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('로그인유저, 좋아요유무, 커서', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({

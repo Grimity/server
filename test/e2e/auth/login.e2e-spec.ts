@@ -26,6 +26,10 @@ describe('POST /auth/login', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('provider는 google과 kakao 중 하나여야 한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

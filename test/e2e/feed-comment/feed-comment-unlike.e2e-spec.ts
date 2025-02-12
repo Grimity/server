@@ -29,6 +29,10 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
     await prisma.feedCommentLike.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

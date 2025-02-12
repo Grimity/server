@@ -27,6 +27,10 @@ describe('PUT /:feedId/view', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

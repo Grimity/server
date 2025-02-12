@@ -23,6 +23,10 @@ describe('GET /posts/search - 게시글 검색', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('keyword가 2글자 미만일 경우 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

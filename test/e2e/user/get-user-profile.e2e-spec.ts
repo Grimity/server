@@ -27,6 +27,10 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('로그인하지 않은 유저도 200과 함께 유저 정보를 반환한다', async () => {
     // given
     const user = await prisma.user.create({

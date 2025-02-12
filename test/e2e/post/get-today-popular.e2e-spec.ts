@@ -23,6 +23,10 @@ describe('GET /posts/today-popular - 오늘의 인기 게시글 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('200과 함께 오늘의 인기 게시글 목록을 조회한다', async () => {
     // given
     const user = await prisma.user.create({
