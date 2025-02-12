@@ -27,6 +27,10 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

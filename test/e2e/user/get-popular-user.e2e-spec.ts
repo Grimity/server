@@ -30,6 +30,10 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('200과 함께 인기 유저 목록을 조회한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({

@@ -31,6 +31,10 @@ describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

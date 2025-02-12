@@ -23,6 +23,10 @@ describe('GET /posts - 게시글 조회', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('type은 ALL, QUESTION, FEEDBACK 중 하나여야 한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

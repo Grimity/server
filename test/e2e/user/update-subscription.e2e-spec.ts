@@ -32,6 +32,10 @@ describe('PUT /users/me/subscribe - 구독 설정 수정', () => {
     await prisma.user.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())

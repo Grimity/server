@@ -28,6 +28,10 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
     await prisma.feedComment.deleteMany();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
