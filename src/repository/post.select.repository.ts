@@ -1,10 +1,14 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
+import { RedisService } from 'src/provider/redis.service';
 
 @Injectable()
 export class PostSelectRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async findAllNotices() {
     return await this.prisma.post.findMany({
@@ -166,6 +170,18 @@ export class PostSelectRepository {
         },
       },
     });
+  }
+
+  async getCachedTodayPopular(): Promise<ReturnType<
+    typeof PostSelectRepository.prototype.findTodayPopular
+  > | null> {
+    const result = await this.redis.get('todayPopularPosts');
+
+    if (result === null) return null;
+
+    return JSON.parse(result) as ReturnType<
+      typeof PostSelectRepository.prototype.findTodayPopular
+    >;
   }
 
   async countByAuthorName(name: string) {
