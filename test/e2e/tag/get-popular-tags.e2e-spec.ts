@@ -3,12 +3,14 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
-import { RedisRepository } from 'src/repository/redis.repository';
+import { RedisService } from 'src/provider/redis.service';
+import { TagRepository } from 'src/repository/tag.repository';
 
 describe('GET /tags/popular - 인기 태그 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let redisRepository: RedisRepository;
+  let redis: RedisService;
+  let tagRepository: TagRepository;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -17,14 +19,15 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    redisRepository = module.get<RedisRepository>(RedisRepository);
+    redis = module.get<RedisService>(RedisService);
+    tagRepository = module.get<TagRepository>(TagRepository);
 
     await app.init();
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
-    await redisRepository.deleteAll();
+    await redis.flushall();
   });
 
   afterAll(async () => {
@@ -33,8 +36,8 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
 
   it('인기 태그를 조회한다', async () => {
     // given
-    const spySet = jest.spyOn(redisRepository, 'setPopularTags');
-    const spyGet = jest.spyOn(redisRepository, 'getPopularTags');
+    const spySet = jest.spyOn(tagRepository, 'cachePopularTags');
+    const spyGet = jest.spyOn(tagRepository, 'getCachedPopularTags');
 
     const user = await prisma.user.create({
       data: {

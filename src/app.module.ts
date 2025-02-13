@@ -14,6 +14,7 @@ import { PostCommentModule } from './module/post-comment.module';
 import { ReportModule } from './module/report.module';
 import { GlobalFilter } from './common/filter';
 import { APP_FILTER } from '@nestjs/core';
+import { RedisModule } from './module/redis.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { APP_FILTER } from '@nestjs/core';
     PostModule,
     PostCommentModule,
     ReportModule,
+    RedisModule,
   ],
   providers: [
     globalPipe,

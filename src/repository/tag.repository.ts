@@ -1,10 +1,14 @@
 import { PrismaService } from 'src/provider/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { RedisService } from 'src/provider/redis.service';
 
 @Injectable()
 export class TagRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async findPopularTags() {
     return (await this.prisma.$queryRaw`
@@ -72,5 +76,16 @@ export class TagRepository {
       },
       select,
     });
+  }
+
+  async cachePopularTags(items: { tagName: string; thumbnail: string }[]) {
+    // 30분 동안 유지
+    await this.redis.set('popularTags', JSON.stringify(items), 'EX', 60 * 30);
+  }
+
+  async getCachedPopularTags() {
+    const result = await this.redis.get('popularTags');
+    if (result === null) return null;
+    return JSON.parse(result) as { tagName: string; thumbnail: string }[];
   }
 }
