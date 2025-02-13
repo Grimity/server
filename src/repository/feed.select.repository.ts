@@ -96,12 +96,6 @@ export class FeedSelectRepository {
               id: true,
               name: true,
               image: true,
-              followerCount: true,
-              followers: {
-                where: {
-                  followerId: userId,
-                },
-              },
             },
           },
         },
