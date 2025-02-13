@@ -83,7 +83,7 @@ export class FeedService {
       viewCount: feed.viewCount,
       likeCount: feed.likeCount,
       content: feed.content,
-      tags: feed.tags.map(({ tagName }) => tagName),
+      tags: feed.tags,
       author: {
         id: feed.author.id,
         name: feed.author.name,

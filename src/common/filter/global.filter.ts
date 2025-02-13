@@ -43,19 +43,17 @@ export class GlobalFilter implements ExceptionFilter {
         message: 'Internal Server Error',
       };
 
-      if (process.env.NODE_ENV !== 'test') {
-        this.logger.error(
-          {
-            method: request.method,
-            url: request.url,
-            params: request.params,
-            query: request.query,
-            body: request.body,
-            user: request.user || '',
-          },
-          exception.stack,
-        );
-      }
+      this.logger.error(
+        {
+          method: request.method,
+          url: request.url,
+          params: request.params,
+          query: request.query,
+          body: request.body,
+          user: request.user || '',
+        },
+        exception.stack,
+      );
     }
 
     response.status(status).json(responseBody);
