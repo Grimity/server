@@ -19,6 +19,9 @@ export class UserSelectRepository {
             providerId,
           },
         },
+        select: {
+          id: true,
+        },
       });
     } catch (e) {
       if (

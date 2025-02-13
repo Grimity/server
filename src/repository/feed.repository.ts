@@ -25,9 +25,7 @@ export class FeedRepository {
           },
         },
       },
-      select: {
-        id: true,
-      },
+      select: { id: true },
     });
   }
 
@@ -158,6 +156,7 @@ export class FeedRepository {
           id: feedId,
           authorId: userId,
         },
+        select: { id: true },
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
