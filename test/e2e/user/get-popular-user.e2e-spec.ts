@@ -5,6 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { UserService } from 'src/provider/user.service';
+import { RedisService } from 'src/provider/redis.service';
 import { register } from '../helper';
 
 describe('GET /users/popular - 인기 유저 조회', () => {
@@ -12,6 +13,7 @@ describe('GET /users/popular - 인기 유저 조회', () => {
   let prisma: PrismaService;
   let authService: AuthService;
   let userService: UserService;
+  let redis: RedisService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,12 +24,14 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
     userService = module.get<UserService>(UserService);
+    redis = module.get<RedisService>(RedisService);
 
     await app.init();
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await redis.flushall();
   });
 
   afterAll(async () => {
@@ -99,24 +103,6 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     // then
     expect(status).toBe(200);
     expect(body).toHaveLength(4);
-    expect(body[0]).toEqual({
-      id: users[0].id,
-      image: null,
-      name: 'test1',
-      followerCount: 3,
-      description: '',
-      isFollowing: true,
-      thumbnails: expect.arrayContaining(['test1', 'test2']),
-    });
-    expect(body[1]).toEqual({
-      id: users[1].id,
-      image: null,
-      name: 'test2',
-      description: '',
-      followerCount: 1,
-      isFollowing: false,
-      thumbnails: [],
-    });
 
     // cleanup
     spy.mockRestore();

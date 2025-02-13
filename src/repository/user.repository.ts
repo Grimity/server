@@ -1,10 +1,14 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
+import { RedisService } from 'src/provider/redis.service';
 
 @Injectable()
 export class UserRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async create({
     provider,
@@ -164,6 +168,11 @@ export class UserRepository {
         },
       },
     });
+  }
+
+  async cachePopularUserIds(ids: string[]) {
+    await this.redis.set('popularUserIds', JSON.stringify(ids), 'EX', 60 * 30);
+    return;
   }
 }
 
