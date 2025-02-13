@@ -302,7 +302,17 @@ export class UserService {
   }
 
   async getPopularUsers(userId: string | null) {
-    const users = await this.userSelectRepository.getPopularUsers(userId);
+    let userIds = await this.userSelectRepository.getCachedPopularUserIds();
+
+    if (userIds === null) {
+      userIds = await this.userSelectRepository.findPopularUserIds();
+      await this.userRepository.cachePopularUserIds(userIds);
+    }
+
+    const users = await this.userSelectRepository.findPopularUsersByIds(
+      userId,
+      userIds,
+    );
 
     return users.map((user) => {
       return {

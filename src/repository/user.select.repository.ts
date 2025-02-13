@@ -1,10 +1,14 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
+import { RedisService } from 'src/provider/redis.service';
 
 @Injectable()
 export class UserSelectRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async findOneByProviderOrThrow(provider: string, providerId: string) {
     try {
@@ -172,7 +176,20 @@ export class UserSelectRepository {
     });
   }
 
-  async getPopularUsers(userId: string | null) {
+  async findPopularUserIds() {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+      },
+      orderBy: {
+        followerCount: 'desc',
+      },
+      take: 20,
+    });
+    return users.map((user) => user.id);
+  }
+
+  async findPopularUsersByIds(userId: string | null, userIds: string[]) {
     const select: Prisma.UserSelect = {
       id: true,
       name: true,
@@ -198,12 +215,19 @@ export class UserSelectRepository {
       };
     }
     return await this.prisma.user.findMany({
-      take: 20,
-      orderBy: {
-        followerCount: 'desc',
+      where: {
+        id: {
+          in: userIds,
+        },
       },
       select,
     });
+  }
+
+  async getCachedPopularUserIds() {
+    const result = await this.redis.get('popularUserIds');
+    if (result === null) return null;
+    return JSON.parse(result) as string[];
   }
 
   async findManyByUserIds(myId: string | null, userIds: string[]) {
