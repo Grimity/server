@@ -155,13 +155,16 @@ export class PostService {
 
   async getTodayPopularPosts() {
     let resultPosts = [];
-    const cachedPosts = await this.postSelectRepository.getCachedTodayPopular();
-    if (cachedPosts) {
-      resultPosts = cachedPosts;
+    const cachedIds = await this.postSelectRepository.getCachedTodayPopular();
+    if (cachedIds) {
+      resultPosts =
+        await this.postSelectRepository.findTodayPopularByIds(cachedIds);
     } else {
       resultPosts = await this.postSelectRepository.findTodayPopular();
 
-      await this.postRepository.cacheTodayPopular(resultPosts);
+      await this.postRepository.cacheTodayPopular(
+        resultPosts.map((post) => post.id),
+      );
     }
 
     return resultPosts.map((post) => {

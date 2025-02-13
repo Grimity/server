@@ -170,10 +170,10 @@ export class PostRepository {
     }
   }
 
-  async cacheTodayPopular(posts: CachedPost[]) {
+  async cacheTodayPopular(ids: string[]) {
     await this.redis.set(
       'todayPopularPosts',
-      JSON.stringify(posts),
+      JSON.stringify(ids),
       'EX',
       60 * 30,
     );
