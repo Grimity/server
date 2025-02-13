@@ -1,24 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { TagRepository } from 'src/repository/tag.repository';
 import { OpenSearchService } from './opensearch.service';
-import { RedisRepository } from 'src/repository/redis.repository';
 
 @Injectable()
 export class TagService {
   constructor(
     private tagRepository: TagRepository,
     private openSearchService: OpenSearchService,
-    private redisRepository: RedisRepository,
   ) {}
 
   async findPopularTags() {
-    const cachedTags = await this.redisRepository.getPopularTags();
+    const cachedTags = await this.tagRepository.getCachedPopularTags();
     if (cachedTags) {
       return cachedTags;
     }
     const tags = await this.tagRepository.findPopularTags();
-    await this.redisRepository.setPopularTags(tags);
-    console.log('cached', tags);
+    await this.tagRepository.cachePopularTags(tags);
+
     return tags;
   }
 

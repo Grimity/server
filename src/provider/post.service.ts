@@ -154,9 +154,20 @@ export class PostService {
   }
 
   async getTodayPopularPosts() {
-    const posts = await this.postSelectRepository.findTodayPopular();
+    let resultPosts = [];
+    const cachedIds = await this.postSelectRepository.getCachedTodayPopular();
+    if (cachedIds) {
+      resultPosts =
+        await this.postSelectRepository.findTodayPopularByIds(cachedIds);
+    } else {
+      resultPosts = await this.postSelectRepository.findTodayPopular();
 
-    return posts.map((post) => {
+      await this.postRepository.cacheTodayPopular(
+        resultPosts.map((post) => post.id),
+      );
+    }
+
+    return resultPosts.map((post) => {
       return {
         ...post,
         type: convertPostTypeFromNumber(post.type),

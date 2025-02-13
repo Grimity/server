@@ -1,10 +1,14 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
+import { RedisService } from 'src/provider/redis.service';
 
 @Injectable()
 export class PostRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async create(input: CreateInput) {
     return await this.prisma.post.create({
@@ -165,6 +169,16 @@ export class PostRepository {
       throw e;
     }
   }
+
+  async cacheTodayPopular(ids: string[]) {
+    await this.redis.set(
+      'todayPopularPosts',
+      JSON.stringify(ids),
+      'EX',
+      60 * 30,
+    );
+    return;
+  }
 }
 
 type CreateInput = {
@@ -182,4 +196,19 @@ type UpdateInput = {
   content: string;
   type: number;
   hasImage: boolean;
+};
+
+type CachedPost = {
+  createdAt: Date;
+  id: string;
+  title: string;
+  content: string;
+  type: number;
+  hasImage: boolean;
+  viewCount: number;
+  commentCount: number;
+  author: {
+    id: string;
+    name: string;
+  };
 };
