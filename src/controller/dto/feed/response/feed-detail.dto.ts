@@ -14,12 +14,6 @@ export class AuthorDto {
     type: 'string',
   })
   image: string | null;
-
-  @ApiProperty()
-  followerCount: number;
-
-  @ApiProperty({ description: '팔로잉 여부 - 비 로그인유저면 false만 반환함' })
-  isFollowing: boolean;
 }
 
 export class FeedDetailDto {

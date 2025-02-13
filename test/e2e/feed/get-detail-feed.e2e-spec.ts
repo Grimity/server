@@ -178,8 +178,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         id: user2.id,
         name: 'test2',
         image: null,
-        followerCount: 1,
-        isFollowing: true,
       },
       isLike: true,
       isSave: true,

@@ -20,6 +20,11 @@ describe('POST /feeds - 피드 생성', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -41,11 +46,6 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('title이 없을 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -63,18 +63,10 @@ describe('POST /feeds - 피드 생성', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('title이 33글자 이상일 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -92,18 +84,10 @@ describe('POST /feeds - 피드 생성', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('cards는 하나이상, 10개 이하여야 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -134,18 +118,10 @@ describe('POST /feeds - 피드 생성', () => {
     // then
     expect(status).toBe(400);
     expect(status2).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('card는 feed/로 시작하고 확장자를 포함해야한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -163,18 +139,10 @@ describe('POST /feeds - 피드 생성', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('tags는 1글자이상 20글자 이하여야 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -206,18 +174,10 @@ describe('POST /feeds - 피드 생성', () => {
     // then
     expect(status).toBe(400);
     expect(status2).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('content가 301글자 이상일때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -235,18 +195,10 @@ describe('POST /feeds - 피드 생성', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('201와 함께 feed를 생성한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -285,8 +237,5 @@ describe('POST /feeds - 피드 생성', () => {
       likeCount: 0,
       viewCount: 0,
     });
-
-    // cleanup
-    spy.mockRestore();
   });
 });

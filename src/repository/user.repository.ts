@@ -29,6 +29,7 @@ export class UserRepository {
           email,
           name,
         },
+        select: { id: true },
       });
     } catch (e) {
       if (

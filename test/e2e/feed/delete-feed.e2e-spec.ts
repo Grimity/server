@@ -20,6 +20,11 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,11 +48,6 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
 
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -58,18 +58,10 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('없는 피드를 삭제할때 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -80,18 +72,10 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 feed를 삭제한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -115,8 +99,5 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
     expect(status).toBe(204);
     const afterFeed = await prisma.feed.findFirst();
     expect(afterFeed).toBeNull();
-
-    // cleanup
-    spy.mockRestore();
   });
 });
