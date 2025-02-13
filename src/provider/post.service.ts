@@ -160,7 +160,7 @@ export class PostService {
       resultPosts = cachedPosts;
     } else {
       resultPosts = await this.postSelectRepository.findTodayPopular();
-      console.log('cached', resultPosts);
+
       await this.postRepository.cacheTodayPopular(resultPosts);
     }
 

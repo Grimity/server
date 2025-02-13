@@ -172,9 +172,7 @@ export class PostSelectRepository {
     });
   }
 
-  async getCachedTodayPopular(): Promise<ReturnType<
-    typeof PostSelectRepository.prototype.findTodayPopular
-  > | null> {
+  async getCachedTodayPopular() {
     const result = await this.redis.get('todayPopularPosts');
 
     if (result === null) return null;

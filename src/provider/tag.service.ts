@@ -16,7 +16,7 @@ export class TagService {
     }
     const tags = await this.tagRepository.findPopularTags();
     await this.tagRepository.cachePopularTags(tags);
-    console.log('cached', tags);
+
     return tags;
   }
 
