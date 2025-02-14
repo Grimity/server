@@ -200,58 +200,60 @@ export class FeedSelectRepository {
   }
 
   async findManyLatest({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
-    const where: Prisma.FeedWhereInput = {};
-    if (lastId && lastCreatedAt) {
-      where.OR = [
-        {
-          createdAt: {
-            lt: new Date(lastCreatedAt),
-          },
-        },
-        {
-          createdAt: new Date(lastCreatedAt),
-          id: {
-            lt: lastId,
-          },
-        },
-      ];
+    let query = this.prisma.$kysely
+      .selectFrom('Feed')
+      .select([
+        'Feed.id as id',
+        'title',
+        'thumbnail',
+        'Feed.createdAt as createdAt',
+        'viewCount',
+        'likeCount',
+      ])
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['User.id as authorId', 'name'])
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
+      .limit(size);
+
+    if (lastCreatedAt && lastId) {
+      query = query.where((eb) => {
+        return eb.or([
+          eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
+          eb.and([
+            eb('Feed.createdAt', '=', new Date(lastCreatedAt)),
+            eb('Feed.id', '<', kyselyUuid(lastId)),
+          ]),
+        ]);
+      });
     }
 
-    const select: Prisma.FeedSelect = {
-      id: true,
-      title: true,
-      thumbnail: true,
-      createdAt: true,
-      viewCount: true,
-      likeCount: true,
-      author: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
+    const feeds = await query.execute();
+    return feeds.map((feed) => {
+      return {
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        isLike: feed.isLike ?? false,
+        author: {
+          id: feed.authorId,
+          name: feed.name,
         },
       };
-    }
-
-    return await this.prisma.feed.findMany({
-      where,
-      select,
-      orderBy: [
-        {
-          createdAt: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ],
-      take: size,
     });
   }
 

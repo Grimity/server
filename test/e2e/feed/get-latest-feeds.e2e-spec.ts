@@ -20,6 +20,11 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -33,11 +38,6 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
 
   it('로그인유저, 좋아요유무, 커서', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -112,9 +112,6 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       },
     });
     expect(body2.nextCursor).toBeNull();
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('비로그인유저', async () => {
