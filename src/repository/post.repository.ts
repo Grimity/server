@@ -38,6 +38,7 @@ export class PostRepository {
           type: input.type,
           hasImage: input.hasImage,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
