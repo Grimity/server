@@ -16,6 +16,7 @@ export class FeedCommentRepository {
           content: input.content,
           mentionedUserId: input.mentionedUserId ?? null,
         },
+        select: { id: true },
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
