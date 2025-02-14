@@ -282,44 +282,52 @@ export class FeedSelectRepository {
   }
 
   async findTodayPopularByIds(userId: string | null, ids: string[]) {
-    const select: Prisma.FeedSelect = {
-      id: true,
-      title: true,
-      thumbnail: true,
-      createdAt: true,
-      viewCount: true,
-      likeCount: true,
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where(
+        'Feed.id',
+        'in',
+        ids.map((id) => kyselyUuid(id)),
+      )
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'Feed.createdAt',
+        'viewCount',
+        'likeCount',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select(['User.id as authorId', 'name'])
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .orderBy(['likeCount desc'])
+      .limit(12)
+      .execute();
+
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      createdAt: feed.createdAt,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      isLike: feed.isLike ?? false,
       author: {
-        select: {
-          id: true,
-          name: true,
-        },
+        id: feed.authorId,
+        name: feed.name,
       },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    return await this.prisma.feed.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-      orderBy: {
-        likeCount: 'desc',
-      },
-      select,
-      take: 12,
-    });
+    }));
   }
 
   async findFollowingFeeds({

@@ -183,7 +183,7 @@ export class FeedService {
           id: feed.author.id,
           name: feed.author.name,
         },
-        isLike: feed.likes?.length === 1,
+        isLike: feed.isLike,
       };
     });
   }
