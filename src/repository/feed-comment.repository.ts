@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
+import { kyselyUuid } from './util';
 
 @Injectable()
 export class FeedCommentRepository {
@@ -16,6 +17,7 @@ export class FeedCommentRepository {
           content: input.content,
           mentionedUserId: input.mentionedUserId ?? null,
         },
+        select: { id: true },
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -28,46 +30,62 @@ export class FeedCommentRepository {
   }
 
   async findAllParentsByFeedId(userId: string | null, feedId: string) {
-    const select: Prisma.FeedCommentSelect = {
-      id: true,
-      content: true,
-      createdAt: true,
+    const result = await this.prisma.$kysely
+      .selectFrom('FeedComment')
+      .where('parentId', 'is', null)
+      .where('feedId', '=', kyselyUuid(feedId))
+      .select([
+        'FeedComment.id',
+        'content',
+        'FeedComment.createdAt',
+        'likeCount',
+        'FeedComment.writerId',
+      ])
+      .innerJoin('User', 'FeedComment.writerId', 'User.id')
+      .select(['User.name', 'User.image'])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment as cm')
+          .whereRef('cm.parentId', '=', 'FeedComment.id')
+          .where('cm.feedId', '=', kyselyUuid(feedId))
+          .select((eb) => eb.fn.count<bigint>('cm.id').as('childCommentCount'))
+          .as('childCommentCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('FeedCommentLike')
+                .whereRef(
+                  'FeedCommentLike.feedCommentId',
+                  '=',
+                  'FeedComment.id',
+                )
+                .where('FeedCommentLike.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .orderBy('FeedComment.createdAt', 'asc')
+      .execute();
+
+    return result.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
       writer: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
+        id: comment.writerId,
+        name: comment.name,
+        image: comment.image,
       },
-      likeCount: true,
-      _count: {
-        select: {
-          childComments: true,
-        },
-      },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    return await this.prisma.feedComment.findMany({
-      where: {
-        feedId,
-        parentId: null,
-      },
-      select,
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+      likeCount: comment.likeCount,
+      isLike: comment.isLike ?? false,
+      childCommentCount:
+        comment.childCommentCount === null
+          ? 0
+          : Number(comment.childCommentCount),
+    }));
   }
 
   async findAllChildComments(
@@ -80,47 +98,59 @@ export class FeedCommentRepository {
       parentId: string;
     },
   ) {
-    const select: Prisma.FeedCommentSelect = {
-      id: true,
-      content: true,
-      createdAt: true,
+    const result = await this.prisma.$kysely
+      .selectFrom('FeedComment')
+      .where('parentId', '=', kyselyUuid(parentId))
+      .where('feedId', '=', kyselyUuid(feedId))
+      .select([
+        'FeedComment.id',
+        'content',
+        'FeedComment.createdAt',
+        'likeCount',
+        'FeedComment.writerId',
+        'FeedComment.mentionedUserId',
+      ])
+      .innerJoin('User', 'FeedComment.writerId', 'User.id')
+      .select(['User.name as writerName', 'User.image'])
+      .leftJoin('User as mu', 'FeedComment.mentionedUserId', 'mu.id')
+      .select(['mu.name as mentionedUserName'])
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('FeedCommentLike')
+                .whereRef(
+                  'FeedCommentLike.feedCommentId',
+                  '=',
+                  'FeedComment.id',
+                )
+                .where('FeedCommentLike.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .orderBy('FeedComment.createdAt', 'asc')
+      .execute();
+
+    return result.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
       writer: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
+        id: comment.writerId,
+        name: comment.writerName,
+        image: comment.image,
       },
-      likeCount: true,
-      mentionedUser: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    return await this.prisma.feedComment.findMany({
-      where: {
-        feedId,
-        parentId,
-      },
-      select,
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+      likeCount: comment.likeCount,
+      isLike: comment.isLike ?? false,
+      mentionedUser: comment.mentionedUserId
+        ? {
+            id: comment.mentionedUserId,
+            name: comment.mentionedUserName!,
+          }
+        : null,
+    }));
   }
 
   async countByFeedId(feedId: string) {
@@ -138,6 +168,7 @@ export class FeedCommentRepository {
           id: commentId,
           writerId: userId,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
@@ -168,6 +199,7 @@ export class FeedCommentRepository {
               increment: 1,
             },
           },
+          select: { id: true },
         }),
       ]);
       return;
@@ -203,6 +235,7 @@ export class FeedCommentRepository {
               decrement: 1,
             },
           },
+          select: { id: true },
         }),
       ]);
       return;

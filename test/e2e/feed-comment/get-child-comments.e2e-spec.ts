@@ -20,6 +20,11 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -33,18 +38,9 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
   });
 
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
-    // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
-    const accessToken = await register(app, 'test');
-
     // when
     const { status } = await request(app.getHttpServer())
       .get('/feed-comments/child-comments')
-      .set('Authorization', `Bearer ${accessToken}`)
       .query({
         feedId: '1',
         parentId: '00000000-0000-0000-0000-000000000000',
@@ -52,9 +48,6 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('parentId가 없을 때 400을 반환한다', async () => {
@@ -71,11 +64,6 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
 
   it('200과 함께 자식 댓글을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const me = await prisma.user.findFirstOrThrow();
@@ -151,8 +139,5 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
         name: user.name,
       },
     });
-
-    // cleanup
-    spy.mockRestore();
   });
 });

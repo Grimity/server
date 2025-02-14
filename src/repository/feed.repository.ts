@@ -2,6 +2,8 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
+import { kyselyUuid } from './util';
+import { sql } from 'kysely';
 
 @Injectable()
 export class FeedRepository {
@@ -80,6 +82,7 @@ export class FeedRepository {
               feedId,
             },
           },
+          select: { userId: true },
         }),
         this.prisma.feed.update({
           where: {
@@ -90,6 +93,7 @@ export class FeedRepository {
               decrement: 1,
             },
           },
+          select: { id: true },
         }),
       ]);
       return;
@@ -114,6 +118,7 @@ export class FeedRepository {
             increment: 1,
           },
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
@@ -142,6 +147,7 @@ export class FeedRepository {
           userId,
           feedId,
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {
@@ -178,33 +184,38 @@ export class FeedRepository {
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
     try {
-      await this.prisma.feed.update({
-        where: {
-          id: updateFeedInput.feedId,
-          authorId: userId,
-        },
-        data: {
-          title: updateFeedInput.title,
-          content: updateFeedInput.content,
-          isAI: updateFeedInput.isAI,
-          cards: updateFeedInput.cards,
-          thumbnail: updateFeedInput.thumbnail,
-          tags: {
-            deleteMany: {},
-            createMany: {
-              data: updateFeedInput.tags.map((tag) => {
-                return {
-                  tagName: tag,
-                };
-              }),
-            },
+      await this.prisma.$transaction([
+        this.prisma.tag.deleteMany({
+          where: {
+            feedId: updateFeedInput.feedId,
           },
-        },
-      });
-      return;
+        }),
+        this.prisma.tag.createMany({
+          data: updateFeedInput.tags.map((tag) => {
+            return {
+              feedId: updateFeedInput.feedId,
+              tagName: tag,
+            };
+          }),
+        }),
+        this.prisma.feed.update({
+          where: {
+            id: updateFeedInput.feedId,
+            authorId: userId,
+          },
+          data: {
+            title: updateFeedInput.title,
+            content: updateFeedInput.content,
+            isAI: updateFeedInput.isAI,
+            cards: updateFeedInput.cards,
+            thumbnail: updateFeedInput.thumbnail,
+          },
+          select: { id: true },
+        }),
+      ]);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
+        if (e.code === 'P2025' || e.code === 'P2003') {
           throw new HttpException('FEED', 404);
         }
       }
@@ -243,6 +254,7 @@ export class FeedRepository {
             feedId,
           },
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {

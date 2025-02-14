@@ -20,6 +20,11 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -45,11 +50,6 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
   it('댓글 id가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -60,18 +60,10 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('없는 댓글일 때 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -82,18 +74,10 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 좋아요를 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.create({
@@ -132,18 +116,10 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
     expect(like).not.toBeNull();
     const afterComment = await prisma.feedComment.findFirstOrThrow();
     expect(afterComment.likeCount).toBe(1);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('이미 좋아요를 했을 경우 409를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.create({
@@ -183,8 +159,5 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
     // then
     expect(status).toBe(409);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

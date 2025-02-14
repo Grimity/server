@@ -20,6 +20,11 @@ describe('PUT /:feedId/view', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -53,11 +58,6 @@ describe('PUT /:feedId/view', () => {
 
   it('feedId에 해당하는 피드가 없을 때 404를 반환한다 (로그인)', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -68,9 +68,6 @@ describe('PUT /:feedId/view', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 view를 한다 (비로그인)', async () => {
@@ -107,18 +104,10 @@ describe('PUT /:feedId/view', () => {
     const updatedFeed = await prisma.feed.findFirstOrThrow();
 
     expect(updatedFeed.viewCount).toBe(1);
-
-    // cleanup
-    await prisma.user.deleteMany();
   });
 
   it('204와 함께 view를 한다 (로그인)', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -150,8 +139,5 @@ describe('PUT /:feedId/view', () => {
 
     expect(updatedFeed.viewCount).toBe(1);
     expect(updatedFeed.views.length).toBe(1);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
