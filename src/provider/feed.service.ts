@@ -33,42 +33,8 @@ export class FeedService {
   }
 
   async getFeed(userId: string | null, feedId: string) {
-    if (userId) {
-      return await this.getFeedWithLogin(userId, feedId);
-    } else {
-      return await this.getFeedWithoutLogin(feedId);
-    }
-  }
+    const feed = await this.feedSelectRepository.getFeed(userId, feedId);
 
-  async getFeedWithLogin(userId: string, feedId: string) {
-    const feed = await this.feedSelectRepository.getFeedWithLogin(
-      userId,
-      feedId,
-    );
-
-    return {
-      id: feed.id,
-      title: feed.title,
-      cards: feed.cards,
-      thumbnail: feed.thumbnail,
-      isAI: feed.isAI,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      content: feed.content,
-      tags: feed.tags.map(({ tagName }) => tagName),
-      author: {
-        id: feed.author.id,
-        name: feed.author.name,
-        image: feed.author.image,
-      },
-      isLike: feed.likes.length === 1 && feed.likes[0].userId === userId,
-      isSave: feed.saves.length === 1 && feed.saves[0].userId === userId,
-    };
-  }
-
-  async getFeedWithoutLogin(feedId: string) {
-    const feed = await this.feedSelectRepository.getFeedWithoutLogin(feedId);
     return {
       id: feed.id,
       title: feed.title,
@@ -84,11 +50,9 @@ export class FeedService {
         id: feed.author.id,
         name: feed.author.name,
         image: feed.author.image,
-        followerCount: feed.author.followerCount,
-        isFollowing: false,
       },
-      isLike: false,
-      isSave: false,
+      isLike: feed.isLike,
+      isSave: feed.isSave,
     };
   }
 
@@ -267,11 +231,11 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           isAI: feed.isAI,
-          commentCount: feed._count.comments,
+          commentCount: feed.commentCount,
           author: feed.author,
-          isLike: feed.likes?.length === 1,
-          isSave: feed.saves?.length === 1,
-          tags: feed.tags.map(({ tagName }) => tagName),
+          isLike: feed.isLike,
+          isSave: feed.isSave,
+          tags: feed.tags,
         };
       }),
     };
