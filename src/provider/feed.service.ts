@@ -231,11 +231,11 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           isAI: feed.isAI,
-          commentCount: feed._count.comments,
+          commentCount: feed.commentCount,
           author: feed.author,
-          isLike: feed.likes?.length === 1,
-          isSave: feed.saves?.length === 1,
-          tags: feed.tags.map(({ tagName }) => tagName),
+          isLike: feed.isLike,
+          isSave: feed.isSave,
+          tags: feed.tags,
         };
       }),
     };
