@@ -31,6 +31,9 @@ class SearchedFeedDto {
 }
 
 export class FeedSearchResponse {
+  @ApiProperty()
+  totalCount: number;
+
   @ApiProperty({ type: 'string', nullable: true })
   nextCursor: string | null;
 

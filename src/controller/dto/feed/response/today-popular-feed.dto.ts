@@ -26,15 +26,3 @@ export class TodayPopularFeedDto {
   @ApiProperty({ type: IdAndNameDto })
   author: IdAndNameDto;
 }
-
-export class TodayPopularFeedResponse {
-  @ApiProperty({ type: TodayPopularFeedDto, isArray: true })
-  feeds: TodayPopularFeedDto[];
-
-  @ApiProperty({
-    type: 'string',
-    nullable: true,
-    description: 'cursor가 null이면 다음데이터는 없습니다',
-  })
-  nextCursor: string | null;
-}

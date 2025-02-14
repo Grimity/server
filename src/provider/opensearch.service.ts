@@ -189,7 +189,11 @@ export class OpenSearchService {
   }
 
   async searchUser({ keyword, cursor, size, sort }: SearchUserInput) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+    if (this.configService.get('NODE_ENV') !== 'production')
+      return {
+        totalCount: 0,
+        ids: [],
+      };
 
     let sortQuery: SortOptions[] = [];
 
@@ -242,17 +246,28 @@ export class OpenSearchService {
         },
       });
 
+      const totalCount = (response.body.hits.total as TotalHits).value;
       const hits = response.body.hits.hits as UserHitData[];
 
-      return hits.map((hit) => hit._id);
+      return {
+        totalCount,
+        ids: hits.map((hit) => hit._id),
+      };
     } catch (e) {
       this.logger.error(e);
-      return [];
+      return {
+        totalCount: 0,
+        ids: [],
+      };
     }
   }
 
   async searchFeed({ keyword, cursor, size, sort }: SearchFeedInput) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+    if (this.configService.get('NODE_ENV') !== 'production')
+      return {
+        totalCount: 0,
+        ids: [],
+      };
 
     const sortQuery: SortOptions[] = [];
 
@@ -290,12 +305,19 @@ export class OpenSearchService {
         },
       });
 
+      const totalCount = (response.body.hits.total as TotalHits).value;
       const hits = response.body.hits.hits as FeedHitData[];
 
-      return hits.map((hit) => hit._id);
+      return {
+        totalCount,
+        ids: hits.map((hit) => hit._id),
+      };
     } catch (e) {
       this.logger.error(e);
-      return [];
+      return {
+        totalCount: 0,
+        ids: [],
+      };
     }
   }
 

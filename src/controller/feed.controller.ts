@@ -26,8 +26,7 @@ import {
   UpdateFeedDto,
   GetLatestFeedsQuery,
   LatestFeedsResponse,
-  GetTodayPopularQuery,
-  TodayPopularFeedResponse,
+  TodayPopularFeedDto,
   GetFollowingFeedsQuery,
   FollowingFeedsResponse,
   FeedSearchQuery,
@@ -144,34 +143,18 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '오늘의 인기 랭킹 조회 - Optional Guard' })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 9,
-  })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    type: 'string',
-    description: '없으면 처음부터',
-  })
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: TodayPopularFeedResponse,
+    type: TodayPopularFeedDto,
+    isArray: true,
   })
   @UseGuards(OptionalJwtGuard)
   @Get('today-popular')
   async getHotFeeds(
     @CurrentUser() userId: string | null,
-    @Query() { size, cursor }: GetTodayPopularQuery,
-  ): Promise<TodayPopularFeedResponse> {
-    return await this.feedService.getTodayPopular({
-      userId,
-      size: size ?? 9,
-      cursor: cursor ?? null,
-    });
+  ): Promise<TodayPopularFeedDto[]> {
+    return await this.feedService.getTodayPopular(userId);
   }
 
   @ApiBearerAuth()
