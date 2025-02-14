@@ -21,6 +21,11 @@ describe('GET /notifications - 알림 목록 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: '1234',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -45,10 +50,6 @@ describe('GET /notifications - 알림 목록 조회', () => {
 
   it('200과 함께 알림목록을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: '1234',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -89,8 +90,5 @@ describe('GET /notifications - 알림 목록 조회', () => {
     // then
     expect(status).toBe(200);
     expect(body).toHaveLength(2);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

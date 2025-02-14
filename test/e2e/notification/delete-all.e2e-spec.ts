@@ -21,6 +21,11 @@ describe('DELETE /notifications - 전체 알림 삭제', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: '1234',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -45,10 +50,6 @@ describe('DELETE /notifications - 전체 알림 삭제', () => {
 
   it('204와 함께 전체 알림을 삭제한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: '1234',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -92,8 +93,5 @@ describe('DELETE /notifications - 전체 알림 삭제', () => {
     expect(status).toBe(204);
     const notifications = await prisma.notification.findMany();
     expect(notifications).toHaveLength(0);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

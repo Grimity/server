@@ -54,6 +54,7 @@ export class NotificationRepository {
         data: {
           isRead: true,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
@@ -84,6 +85,7 @@ export class NotificationRepository {
           userId,
           id: notificationId,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
