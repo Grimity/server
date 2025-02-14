@@ -338,16 +338,7 @@ export class FeedService {
   }
 
   async getLikes(feedId: string) {
-    const likes = await this.feedSelectRepository.findLikesById(feedId);
-
-    return likes.map(({ user }) => {
-      return {
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        description: user.description,
-      };
-    });
+    return await this.feedSelectRepository.findLikesById(feedId);
   }
 }
 

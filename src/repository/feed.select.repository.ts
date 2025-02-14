@@ -648,21 +648,12 @@ export class FeedSelectRepository {
   }
 
   async findLikesById(feedId: string) {
-    return await this.prisma.like.findMany({
-      where: {
-        feedId,
-      },
-      select: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            description: true,
-          },
-        },
-      },
-    });
+    return await this.prisma.$kysely
+      .selectFrom('Like')
+      .where('feedId', '=', kyselyUuid(feedId))
+      .innerJoin('User', 'Like.userId', 'User.id')
+      .select(['User.id', 'name', 'User.image as image', 'description'])
+      .execute();
   }
 }
 
