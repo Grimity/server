@@ -166,8 +166,8 @@ export class PostSelectRepository {
     };
   }
 
-  async findTodayPopular() {
-    return await this.prisma.post.findMany({
+  async findTodayPopularIds() {
+    const posts = await this.prisma.post.findMany({
       where: {
         createdAt: {
           gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
@@ -179,51 +179,50 @@ export class PostSelectRepository {
       },
       select: {
         id: true,
-        type: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
       },
     });
+    return posts.map((post) => post.id);
   }
 
   async findTodayPopularByIds(ids: string[]) {
-    return await this.prisma.post.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
+    const result = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where(
+        'Post.id',
+        'in',
+        ids.map((id) => kyselyUuid(id)),
+      )
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .orderBy('Post.viewCount', 'desc')
+      .limit(12)
+      .execute();
+
+    return result.map((post) => ({
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
       },
-      select: {
-        id: true,
-        type: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        viewCount: 'desc',
-      },
-      take: 12,
-    });
+    }));
   }
 
   async getCachedTodayPopular() {
