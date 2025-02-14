@@ -33,18 +33,7 @@ export class FeedService {
   }
 
   async getFeed(userId: string | null, feedId: string) {
-    if (userId) {
-      return await this.getFeedWithLogin(userId, feedId);
-    } else {
-      return await this.getFeedWithoutLogin(feedId);
-    }
-  }
-
-  async getFeedWithLogin(userId: string, feedId: string) {
-    const feed = await this.feedSelectRepository.getFeedWithLogin(
-      userId,
-      feedId,
-    );
+    const feed = await this.feedSelectRepository.getFeed(userId, feedId);
 
     return {
       id: feed.id,
@@ -64,29 +53,6 @@ export class FeedService {
       },
       isLike: feed.isLike,
       isSave: feed.isSave,
-    };
-  }
-
-  async getFeedWithoutLogin(feedId: string) {
-    const feed = await this.feedSelectRepository.getFeedWithoutLogin(feedId);
-    return {
-      id: feed.id,
-      title: feed.title,
-      cards: feed.cards,
-      thumbnail: feed.thumbnail,
-      isAI: feed.isAI,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      content: feed.content,
-      tags: feed.tags,
-      author: {
-        id: feed.author.id,
-        name: feed.author.name,
-        image: feed.author.image,
-      },
-      isLike: false,
-      isSave: false,
     };
   }
 

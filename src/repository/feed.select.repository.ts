@@ -11,56 +11,7 @@ export class FeedSelectRepository {
     private redis: RedisService,
   ) {}
 
-  async getFeedWithoutLogin(feedId: string) {
-    const [feed] = await this.prisma.$kysely
-      .selectFrom('Feed')
-      .where('Feed.id', '=', kyselyUuid(feedId))
-      .select([
-        'Feed.id',
-        'title',
-        'cards',
-        'thumbnail',
-        'isAI',
-        'Feed.createdAt',
-        'viewCount',
-        'likeCount',
-        'content',
-      ])
-      .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image'])
-      .select((eb) =>
-        eb
-          .selectFrom('Tag')
-          .whereRef('Tag.feedId', '=', 'Feed.id')
-          .select((eb) =>
-            eb.fn<string[]>('array_agg', ['tagName']).as('tagName'),
-          )
-          .as('tags'),
-      )
-      .execute();
-
-    if (!feed) throw new HttpException('FEED', 404);
-
-    return {
-      id: feed.id,
-      title: feed.title,
-      cards: feed.cards,
-      thumbnail: feed.thumbnail,
-      isAI: feed.isAI,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      content: feed.content,
-      tags: feed.tags ?? [],
-      author: {
-        id: feed.authorId,
-        name: feed.name,
-        image: feed.image,
-      },
-    };
-  }
-
-  async getFeedWithLogin(userId: string, feedId: string) {
+  async getFeed(userId: string | null, feedId: string) {
     const [feed] = await this.prisma.$kysely
       .selectFrom('Feed')
       .where('Feed.id', '=', kyselyUuid(feedId))
@@ -86,25 +37,25 @@ export class FeedSelectRepository {
           )
           .as('tags'),
       )
-      .select((eb) =>
-        eb
-          .fn<boolean>('EXISTS', [
-            eb
-              .selectFrom('Like')
-              .whereRef('Like.feedId', '=', 'Feed.id')
-              .where('Like.userId', '=', kyselyUuid(userId)),
-          ])
-          .as('isLike'),
-      )
-      .select((eb) =>
-        eb
-          .fn<boolean>('EXISTS', [
-            eb
-              .selectFrom('Save')
-              .whereRef('Save.feedId', '=', 'Feed.id')
-              .where('Save.userId', '=', kyselyUuid(userId)),
-          ])
-          .as('isSave'),
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Save')
+                .whereRef('Save.feedId', '=', 'Feed.id')
+                .where('Save.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isSave'),
+        ]),
       )
       .execute();
 
@@ -121,8 +72,8 @@ export class FeedSelectRepository {
       likeCount: feed.likeCount,
       content: feed.content,
       tags: feed.tags ?? [],
-      isLike: feed.isLike,
-      isSave: feed.isSave,
+      isLike: feed.isLike ?? false,
+      isSave: feed.isSave ?? false,
       author: {
         id: feed.authorId,
         name: feed.name,
