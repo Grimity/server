@@ -139,6 +139,7 @@ export class FeedCommentRepository {
           id: commentId,
           writerId: userId,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {

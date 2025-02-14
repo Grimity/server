@@ -20,6 +20,11 @@ describe('DELETE /feed-comments/:commentId', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,11 +48,6 @@ describe('DELETE /feed-comments/:commentId', () => {
 
   it('commentId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -58,18 +58,10 @@ describe('DELETE /feed-comments/:commentId', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('존재하지 않는 댓글일 때 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -80,18 +72,10 @@ describe('DELETE /feed-comments/:commentId', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 댓글을 삭제한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -122,8 +106,5 @@ describe('DELETE /feed-comments/:commentId', () => {
 
     const deletedComment = await prisma.feedComment.findFirst();
     expect(deletedComment).toBeNull();
-
-    // cleanup
-    spy.mockRestore();
   });
 });
