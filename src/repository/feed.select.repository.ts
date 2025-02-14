@@ -27,7 +27,7 @@ export class FeedSelectRepository {
         'content',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image', 'followerCount'])
+      .select(['User.id as authorId', 'name', 'User.image'])
       .select((eb) =>
         eb
           .selectFrom('Tag')
@@ -56,61 +56,79 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
-        followerCount: feed.followerCount,
       },
     };
   }
 
   async getFeedWithLogin(userId: string, feedId: string) {
-    try {
-      return await this.prisma.feed.findUniqueOrThrow({
-        where: {
-          id: feedId,
-        },
-        select: {
-          id: true,
-          title: true,
-          cards: true,
-          thumbnail: true,
-          isAI: true,
-          createdAt: true,
-          viewCount: true,
-          likeCount: true,
-          content: true,
-          tags: true,
-          likes: {
-            where: {
-              userId,
-            },
-            select: {
-              userId: true,
-            },
-          },
-          saves: {
-            where: {
-              userId,
-            },
-            select: {
-              userId: true,
-            },
-          },
-          author: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-        },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('FEED', 404);
-        }
-      }
-      throw e;
-    }
+    const [feed] = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('Feed.id', '=', kyselyUuid(feedId))
+      .select([
+        'Feed.id',
+        'title',
+        'cards',
+        'thumbnail',
+        'isAI',
+        'Feed.createdAt',
+        'viewCount',
+        'likeCount',
+        'content',
+      ])
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['User.id as authorId', 'name', 'User.image as image'])
+      .select((eb) =>
+        eb
+          .selectFrom('Tag')
+          .whereRef('Tag.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['tagName']).as('tagName'),
+          )
+          .as('tags'),
+      )
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Like')
+              .whereRef('Like.feedId', '=', 'Feed.id')
+              .where('Like.userId', '=', kyselyUuid(userId)),
+          ])
+          .as('isLike'),
+      )
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Save')
+              .whereRef('Save.feedId', '=', 'Feed.id')
+              .where('Save.userId', '=', kyselyUuid(userId)),
+          ])
+          .as('isSave'),
+      )
+      .execute();
+
+    if (!feed) throw new HttpException('FEED', 404);
+
+    return {
+      id: feed.id,
+      title: feed.title,
+      cards: feed.cards,
+      thumbnail: feed.thumbnail,
+      isAI: feed.isAI,
+      createdAt: feed.createdAt,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      content: feed.content,
+      tags: feed.tags ?? [],
+      isLike: feed.isLike,
+      isSave: feed.isSave,
+      author: {
+        id: feed.authorId,
+        name: feed.name,
+        image: feed.image,
+      },
+    };
   }
 
   async findManyByUserId({

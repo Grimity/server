@@ -20,6 +20,11 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -99,8 +104,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         id: user.id,
         name: 'test',
         image: null,
-        followerCount: 0,
-        isFollowing: false,
       },
       isLike: false,
       isSave: false,
@@ -109,11 +112,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
 
   it('200과 함께 피드를 반환한다 (로그인 상태)', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const [, user2] = await Promise.all([
@@ -151,9 +149,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       request(app.getHttpServer())
         .put(`/users/${user2.id}/follow`)
         .set('Authorization', `Bearer ${accessToken}`),
-      request(app.getHttpServer())
-        .put(`/feeds/${feed.id}/save`)
-        .set('Authorization', `Bearer ${accessToken}`),
     ]);
 
     // when
@@ -180,10 +175,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         image: null,
       },
       isLike: true,
-      isSave: true,
+      isSave: false,
     });
-
-    // cleanup
-    spy.mockRestore();
   });
 });

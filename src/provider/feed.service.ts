@@ -56,14 +56,14 @@ export class FeedService {
       viewCount: feed.viewCount,
       likeCount: feed.likeCount,
       content: feed.content,
-      tags: feed.tags.map(({ tagName }) => tagName),
+      tags: feed.tags,
       author: {
         id: feed.author.id,
         name: feed.author.name,
         image: feed.author.image,
       },
-      isLike: feed.likes.length === 1 && feed.likes[0].userId === userId,
-      isSave: feed.saves.length === 1 && feed.saves[0].userId === userId,
+      isLike: feed.isLike,
+      isSave: feed.isSave,
     };
   }
 
@@ -84,8 +84,6 @@ export class FeedService {
         id: feed.author.id,
         name: feed.author.name,
         image: feed.author.image,
-        followerCount: feed.author.followerCount,
-        isFollowing: false,
       },
       isLike: false,
       isSave: false,
