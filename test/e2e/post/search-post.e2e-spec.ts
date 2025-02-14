@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
 
-describe('GET /posts/search - 게시글 검색', () => {
+describe('GET /posts/search - 게시글 검색(이름만)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 

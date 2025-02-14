@@ -99,6 +99,7 @@ export class PostRepository {
           userId,
           postId,
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {
@@ -122,6 +123,7 @@ export class PostRepository {
             postId,
           },
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {

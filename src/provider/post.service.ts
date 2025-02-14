@@ -177,7 +177,7 @@ export class PostService {
     });
 
     return {
-      totalCount: user._count.posts,
+      totalCount: user.postCount,
       posts: posts.map((post) => {
         return {
           ...post,

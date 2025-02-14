@@ -234,19 +234,25 @@ export class PostSelectRepository {
   }
 
   async countByAuthorName(name: string) {
-    return await this.prisma.user.findUnique({
-      where: {
-        name,
-      },
-      select: {
-        id: true,
-        _count: {
-          select: {
-            posts: true,
-          },
-        },
-      },
-    });
+    const [user] = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('name', '=', name)
+      .select('User.id')
+      .select((eb) =>
+        eb
+          .selectFrom('Post')
+          .whereRef('authorId', '=', 'User.id')
+          .select(eb.fn.count<bigint>('id').as('posts'))
+          .as('postCount'),
+      )
+      .execute();
+
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      postCount: user.postCount === null ? 0 : Number(user.postCount),
+    };
   }
 
   async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
