@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
+import { kyselyUuid } from './util';
 
 @Injectable()
 export class PostSelectRepository {
@@ -92,62 +93,70 @@ export class PostSelectRepository {
   }
 
   async findOneById(userId: string | null, postId: string) {
-    const select: Prisma.PostSelect = {
-      id: true,
-      type: true,
-      title: true,
-      content: true,
-      hasImage: true,
-      commentCount: true,
-      viewCount: true,
-      createdAt: true,
-      _count: {
-        select: {
-          likes: true,
-        },
-      },
+    const [post] = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where('Post.id', '=', kyselyUuid(postId))
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .select((eb) =>
+        eb
+          .selectFrom('PostLike')
+          .where('PostLike.postId', '=', kyselyUuid(postId))
+          .select((eb) => eb.fn.count<bigint>('userId').as('likeCount'))
+          .as('likeCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('PostLike')
+                .whereRef('PostLike.postId', '=', 'Post.id')
+                .where('PostLike.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('PostSave')
+                .whereRef('PostSave.postId', '=', 'Post.id')
+                .where('PostSave.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isSave'),
+        ]),
+      )
+      .execute();
+
+    if (!post) throw new HttpException('POST', 404);
+
+    return {
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      likeCount: post.likeCount === null ? 0 : Number(post.likeCount),
+      isLike: post.isLike ?? false,
+      isSave: post.isSave ?? false,
       author: {
-        select: {
-          id: true,
-          name: true,
-        },
+        id: post.authorId,
+        name: post.authorName,
       },
     };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-      select.saves = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    try {
-      return await this.prisma.post.findUniqueOrThrow({
-        where: {
-          id: postId,
-        },
-        select,
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('POST', 404);
-        }
-      }
-      throw e;
-    }
   }
 
   async findTodayPopular() {

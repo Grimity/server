@@ -145,6 +145,7 @@ export class PostRepository {
             increment: 1,
           },
         },
+        select: { id: true },
       });
     } catch {
       return;
