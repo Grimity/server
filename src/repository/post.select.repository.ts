@@ -59,37 +59,44 @@ export class PostSelectRepository {
   }
 
   async findMany({ type, page, size }: FindManyInput) {
-    const where: Prisma.PostWhereInput = {};
-    if (type === null) {
-      where.type = {
-        not: 0,
-      };
-    } else where.type = type;
+    const result = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where((eb) => {
+        if (type === null) return eb('type', '!=', 0);
+        return eb('type', '=', type);
+      })
+      .select([
+        'Post.id',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'type',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .orderBy('Post.createdAt', 'desc')
+      .limit(size)
+      .offset((page - 1) * size)
+      .execute();
 
-    return await this.prisma.post.findMany({
-      where,
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        type: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+    return result.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      type: post.type,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
       },
-      skip: (page - 1) * size,
-      take: size,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    }));
   }
 
   async findOneById(userId: string | null, postId: string) {
