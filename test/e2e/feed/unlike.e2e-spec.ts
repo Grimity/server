@@ -20,6 +20,11 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,11 +48,6 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -58,18 +58,10 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 unlike를 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -79,8 +71,8 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
         title: 'test',
         content: 'test',
         isAI: false,
-        cards: ['feed/test.jpg'],
-        thumbnail: 'feed/test.jpg',
+        cards: ['test'],
+        thumbnail: 'test',
       },
     });
 
@@ -90,7 +82,6 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
       .send();
 
     // when
-
     const { status } = await request(app.getHttpServer())
       .delete(`/feeds/${feed.id}/like`)
       .set('Authorization', `Bearer ${accessToken}`);
@@ -111,18 +102,10 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
     ]);
     expect(like).toBeNull();
     expect(afterFeed?.likeCount).toBe(0);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('없는 피드에 unlike를 하면 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -133,8 +116,5 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
