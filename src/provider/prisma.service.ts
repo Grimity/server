@@ -19,8 +19,8 @@ declare module '@prisma/client' {
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
     super({
-      // log: process.env.NODE_ENV === 'production' ? ['info'] : [],
-      log: ['query', 'warn'],
+      log: process.env.NODE_ENV === 'production' ? ['info'] : [],
+      // log: ['query', 'warn'],
     });
   }
   async onModuleInit() {
