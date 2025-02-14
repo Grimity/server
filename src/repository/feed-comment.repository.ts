@@ -206,6 +206,7 @@ export class FeedCommentRepository {
               decrement: 1,
             },
           },
+          select: { id: true },
         }),
       ]);
       return;

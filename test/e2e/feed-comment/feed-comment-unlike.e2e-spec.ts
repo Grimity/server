@@ -20,6 +20,11 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -45,11 +50,6 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
 
   it('댓글 id가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -60,18 +60,10 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('좋아요가 존재하지 않을 때 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -82,18 +74,10 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 좋아요를 취소한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.create({
@@ -137,8 +121,5 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
     expect(like).toBeNull();
     const afterComment = await prisma.feedComment.findFirstOrThrow();
     expect(afterComment.likeCount).toBe(0);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
