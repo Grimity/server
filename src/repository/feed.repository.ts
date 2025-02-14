@@ -118,6 +118,7 @@ export class FeedRepository {
             increment: 1,
           },
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
@@ -146,6 +147,7 @@ export class FeedRepository {
           userId,
           feedId,
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {
