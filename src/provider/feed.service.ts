@@ -331,7 +331,7 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           author: feed.author,
-          isLike: feed.likes?.length === 1,
+          isLike: feed.isLike,
         };
       }),
     };
