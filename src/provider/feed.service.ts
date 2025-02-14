@@ -154,7 +154,7 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           author: feed.author,
-          isLike: feed.likes?.length === 1,
+          isLike: feed.isLike,
         };
       }),
     };
@@ -183,7 +183,7 @@ export class FeedService {
           id: feed.author.id,
           name: feed.author.name,
         },
-        isLike: feed.likes?.length === 1,
+        isLike: feed.isLike,
       };
     });
   }
@@ -331,23 +331,14 @@ export class FeedService {
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
           author: feed.author,
-          isLike: feed.likes?.length === 1,
+          isLike: feed.isLike,
         };
       }),
     };
   }
 
   async getLikes(feedId: string) {
-    const likes = await this.feedSelectRepository.findLikesById(feedId);
-
-    return likes.map(({ user }) => {
-      return {
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        description: user.description,
-      };
-    });
+    return await this.feedSelectRepository.findLikesById(feedId);
   }
 }
 

@@ -41,6 +41,7 @@ export class FeedRepository {
             userId,
             feedId,
           },
+          select: { userId: true },
         }),
         this.prisma.feed.update({
           where: {
@@ -218,6 +219,7 @@ export class FeedRepository {
           userId,
           feedId,
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {

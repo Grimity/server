@@ -20,6 +20,11 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,11 +48,6 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
 
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -58,18 +58,10 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 save를 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.create({
@@ -100,18 +92,10 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
     expect(status).toBe(204);
     const saved = await prisma.save.findFirstOrThrow();
     expect(saved.userId).toBeDefined();
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('이미 save한 경우 409를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -136,18 +120,10 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
 
     // then
     expect(status).toBe(409);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('피드가 없는 경우 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -157,8 +133,5 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
