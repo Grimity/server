@@ -20,6 +20,11 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,11 +48,6 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -58,18 +58,10 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 like를 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.create({
@@ -105,18 +97,10 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
       },
     });
     expect(like.userId).not.toBe(user.id);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('이미 like한 경우 409를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -144,18 +128,10 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     const afterFeed = await prisma.feed.findFirstOrThrow();
     expect(afterFeed.likeCount).toBe(1);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('없는 피드일때 404를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -165,8 +141,5 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
