@@ -11,29 +11,37 @@ export class PostSelectRepository {
   ) {}
 
   async findAllNotices() {
-    return await this.prisma.post.findMany({
-      where: {
-        type: 0,
+    const result = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where('type', '=', 0)
+      .select([
+        'Post.id',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name')
+      .orderBy('Post.createdAt', 'desc')
+      .execute();
+
+    return result.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.name,
       },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    }));
   }
 
   async getPostCount(type: 2 | 3 | null) {

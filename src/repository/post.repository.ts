@@ -158,6 +158,7 @@ export class PostRepository {
           id: postId,
           authorId: userId,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
