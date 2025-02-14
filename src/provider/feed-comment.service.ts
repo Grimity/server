@@ -43,21 +43,7 @@ export class FeedCommentService {
     ]);
 
     return {
-      comments: comments.map((comment) => {
-        return {
-          id: comment.id,
-          content: comment.content,
-          createdAt: comment.createdAt,
-          writer: {
-            id: comment.writer.id,
-            name: comment.writer.name,
-            image: comment.writer.image,
-          },
-          likeCount: comment.likeCount,
-          isLike: comment.likes?.length === 1,
-          childCommentCount: comment._count.childComments,
-        };
-      }),
+      comments,
       commentCount,
     };
   }

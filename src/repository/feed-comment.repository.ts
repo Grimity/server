@@ -30,46 +30,62 @@ export class FeedCommentRepository {
   }
 
   async findAllParentsByFeedId(userId: string | null, feedId: string) {
-    const select: Prisma.FeedCommentSelect = {
-      id: true,
-      content: true,
-      createdAt: true,
+    const result = await this.prisma.$kysely
+      .selectFrom('FeedComment')
+      .where('parentId', 'is', null)
+      .where('feedId', '=', kyselyUuid(feedId))
+      .select([
+        'FeedComment.id',
+        'content',
+        'FeedComment.createdAt',
+        'likeCount',
+        'FeedComment.writerId',
+      ])
+      .innerJoin('User', 'FeedComment.writerId', 'User.id')
+      .select(['User.name', 'User.image'])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment as cm')
+          .whereRef('cm.parentId', '=', 'FeedComment.id')
+          .where('cm.feedId', '=', kyselyUuid(feedId))
+          .select((eb) => eb.fn.count<bigint>('cm.id').as('childCommentCount'))
+          .as('childCommentCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('FeedCommentLike')
+                .whereRef(
+                  'FeedCommentLike.feedCommentId',
+                  '=',
+                  'FeedComment.id',
+                )
+                .where('FeedCommentLike.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .orderBy('FeedComment.createdAt', 'asc')
+      .execute();
+
+    return result.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
       writer: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
+        id: comment.writerId,
+        name: comment.name,
+        image: comment.image,
       },
-      likeCount: true,
-      _count: {
-        select: {
-          childComments: true,
-        },
-      },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    return await this.prisma.feedComment.findMany({
-      where: {
-        feedId,
-        parentId: null,
-      },
-      select,
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+      likeCount: comment.likeCount,
+      isLike: comment.isLike ?? false,
+      childCommentCount:
+        comment.childCommentCount === null
+          ? 0
+          : Number(comment.childCommentCount),
+    }));
   }
 
   async findAllChildComments(
