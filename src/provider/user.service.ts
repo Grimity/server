@@ -331,7 +331,7 @@ export class UserService {
 
   async searchUsers(input: SearchUserInput) {
     const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const searchedUserIds = await this.openSearchService.searchUser({
+    const { ids, totalCount } = await this.openSearchService.searchUser({
       keyword: input.keyword,
       cursor: currentCursor,
       size: input.size,
@@ -340,8 +340,9 @@ export class UserService {
 
     let nextCursor: string | null = null;
 
-    if (searchedUserIds === undefined || searchedUserIds.length === 0) {
+    if (ids.length === 0) {
       return {
+        totalCount,
         nextCursor,
         users: [],
       };
@@ -349,12 +350,12 @@ export class UserService {
 
     const users = await this.userSelectRepository.findManyByUserIds(
       input.userId,
-      searchedUserIds,
+      ids,
     );
 
     const returnUsers = [];
 
-    for (const searchedId of searchedUserIds) {
+    for (const searchedId of ids) {
       const user = users.find((user) => user.id === searchedId);
       if (user) {
         returnUsers.push({
@@ -369,11 +370,12 @@ export class UserService {
       }
     }
 
-    if (searchedUserIds.length === input.size) {
+    if (ids.length === input.size) {
       nextCursor = String(currentCursor + 1);
     }
 
     return {
+      totalCount,
       nextCursor,
       users: returnUsers,
     };

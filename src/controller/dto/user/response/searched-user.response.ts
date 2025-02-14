@@ -21,6 +21,9 @@ class SearchedUserDto {
 }
 
 export class SearchedUserResponse {
+  @ApiProperty()
+  totalCount: number;
+
   @ApiProperty({ type: 'string', nullable: true })
   nextCursor: string | null;
 

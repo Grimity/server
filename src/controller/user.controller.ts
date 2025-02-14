@@ -9,8 +9,6 @@ import {
   Param,
   Get,
   Query,
-  Patch,
-  ValidationPipe,
   HttpException,
 } from '@nestjs/common';
 import {

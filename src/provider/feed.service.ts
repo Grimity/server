@@ -308,7 +308,7 @@ export class FeedService {
 
   async search(input: SearchInput) {
     const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const searchedFeedIds = await this.openSearchService.searchFeed({
+    const { ids, totalCount } = await this.openSearchService.searchFeed({
       keyword: input.keyword,
       cursor: currentCursor,
       size: input.size,
@@ -317,8 +317,9 @@ export class FeedService {
 
     let nextCursor: string | null = null;
 
-    if (searchedFeedIds === undefined || searchedFeedIds.length === 0) {
+    if (ids === undefined || ids.length === 0) {
       return {
+        totalCount,
         nextCursor,
         feeds: [],
       };
@@ -326,7 +327,7 @@ export class FeedService {
 
     const feeds = await this.feedSelectRepository.findManyByIds(
       input.userId,
-      searchedFeedIds,
+      ids,
     );
 
     if (feeds.length === input.size) {
@@ -335,7 +336,7 @@ export class FeedService {
 
     const returnFeeds = [];
 
-    for (const searchedId of searchedFeedIds) {
+    for (const searchedId of ids) {
       const feed = feeds.find((feed) => feed.id === searchedId);
 
       if (!feed) {
@@ -356,6 +357,7 @@ export class FeedService {
     }
 
     return {
+      totalCount,
       nextCursor,
       feeds: returnFeeds,
     };
