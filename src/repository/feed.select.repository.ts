@@ -2,11 +2,14 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid } from './util';
-import { jsonArrayFrom } from 'kysely/helpers/postgres';
+import { RedisService } from 'src/provider/redis.service';
 
 @Injectable()
 export class FeedSelectRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   async getFeedWithoutLogin(feedId: string) {
     const [feed] = await this.prisma.$kysely
@@ -283,40 +286,31 @@ export class FeedSelectRepository {
     });
   }
 
-  async findTodayPopular({
-    userId,
-    size,
-    likeCount,
-    feedId,
-  }: {
-    userId: string | null;
-    size: number;
-    likeCount: number | null;
-    feedId: string | null;
-  }) {
-    const where: Prisma.FeedWhereInput = {
-      createdAt: {
-        gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
+  async getCachedTodayPopular() {
+    const result = await this.redis.get('todayPopularFeeds');
+    if (result === null) return null;
+    return JSON.parse(result) as string[];
+  }
+
+  async findTodayPopularIds() {
+    const result = await this.prisma.feed.findMany({
+      select: {
+        id: true,
       },
-    };
-
-    // cursor
-    if (likeCount !== null && feedId !== null) {
-      where.OR = [
-        {
-          likeCount: {
-            lt: likeCount,
-          },
+      where: {
+        createdAt: {
+          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
         },
-        {
-          likeCount,
-          id: {
-            lt: feedId,
-          },
-        },
-      ];
-    }
+      },
+      orderBy: {
+        likeCount: 'desc',
+      },
+      take: 20,
+    });
+    return result.map((feed) => feed.id);
+  }
 
+  async findTodayPopularByIds(userId: string | null, ids: string[]) {
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
@@ -344,17 +338,16 @@ export class FeedSelectRepository {
     }
 
     return await this.prisma.feed.findMany({
-      where,
-      orderBy: [
-        {
-          likeCount: 'desc',
+      where: {
+        id: {
+          in: ids,
         },
-        {
-          id: 'desc',
-        },
-      ],
-      take: size,
+      },
+      orderBy: {
+        likeCount: 'desc',
+      },
       select,
+      take: 12,
     });
   }
 

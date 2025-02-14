@@ -196,51 +196,32 @@ export class FeedService {
     };
   }
 
-  async getTodayPopular({
-    userId,
-    size,
-    cursor,
-  }: {
-    userId: string | null;
-    size: number;
-    cursor: string | null;
-  }) {
-    let parsedCursor: [number, string] | null = null;
-    if (cursor) {
-      const arr = cursor.split('_');
-      if (arr.length !== 2) {
-        throw new HttpException('Invalid cursor', 400);
-      }
-      parsedCursor = [Number(arr[0]), arr[1]];
+  async getTodayPopular(userId: string | null) {
+    let ids = await this.feedSelectRepository.getCachedTodayPopular();
+    if (ids === null) {
+      ids = await this.feedSelectRepository.findTodayPopularIds();
+      await this.feedRepository.cacheTodayPopular(ids);
     }
-    const feeds = await this.feedSelectRepository.findTodayPopular({
+    const feeds = await this.feedSelectRepository.findTodayPopularByIds(
       userId,
-      size,
-      likeCount: parsedCursor ? parsedCursor[0] : null,
-      feedId: parsedCursor ? parsedCursor[1] : null,
-    });
+      ids,
+    );
 
-    return {
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.id,
-          title: feed.title,
-          thumbnail: feed.thumbnail,
-          createdAt: feed.createdAt,
-          viewCount: feed.viewCount,
-          likeCount: feed.likeCount,
-          author: {
-            id: feed.author.id,
-            name: feed.author.name,
-          },
-          isLike: feed.likes?.length === 1,
-        };
-      }),
-      nextCursor:
-        feeds.length === size
-          ? `${feeds[size - 1].likeCount}_${feeds[size - 1].id}`
-          : null,
-    };
+    return feeds.map((feed) => {
+      return {
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        author: {
+          id: feed.author.id,
+          name: feed.author.name,
+        },
+        isLike: feed.likes?.length === 1,
+      };
+    });
   }
 
   async getFollowingFeeds(

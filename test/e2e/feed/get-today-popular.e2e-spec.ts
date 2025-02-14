@@ -3,10 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/provider/prisma.service';
+import { RedisService } from 'src/provider/redis.service';
 
 describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let redis: RedisService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,12 +17,14 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
+    redis = module.get<RedisService>(RedisService);
 
     await app.init();
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await redis.flushall();
   });
 
   afterAll(async () => {
@@ -53,17 +57,13 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      '/feeds/today-popular?size=8',
+      '/feeds/today-popular',
     );
-
-    const { status: status2, body: body2 } = await request(
-      app.getHttpServer(),
-    ).get(`/feeds/today-popular?size=20&cursor=${body.nextCursor}`);
 
     // then
     expect(status).toBe(200);
-    expect(body.feeds).toHaveLength(8);
-    expect(body.feeds[0]).toEqual({
+    expect(body).toHaveLength(12);
+    expect(body[0]).toEqual({
       id: expect.any(String),
       title: 'test19',
       likeCount: 19,
@@ -76,9 +76,5 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
         name: 'test',
       },
     });
-
-    expect(status2).toBe(200);
-    expect(body2.feeds).toHaveLength(12);
-    expect(body2.nextCursor).toBeNull();
   });
 });
