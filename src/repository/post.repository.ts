@@ -38,6 +38,7 @@ export class PostRepository {
           type: input.type,
           hasImage: input.hasImage,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
@@ -99,6 +100,7 @@ export class PostRepository {
           userId,
           postId,
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {
@@ -122,6 +124,7 @@ export class PostRepository {
             postId,
           },
         },
+        select: { userId: true },
       });
       return;
     } catch (e) {
@@ -145,6 +148,7 @@ export class PostRepository {
             increment: 1,
           },
         },
+        select: { id: true },
       });
     } catch {
       return;
@@ -158,6 +162,7 @@ export class PostRepository {
           id: postId,
           authorId: userId,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {

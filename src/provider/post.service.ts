@@ -129,21 +129,8 @@ export class PostService {
     ]);
 
     return {
-      id: post.id,
+      ...post,
       type: convertPostTypeFromNumber(post.type),
-      title: post.title,
-      content: post.content,
-      hasImage: post.hasImage,
-      commentCount: post.commentCount,
-      viewCount: post.viewCount,
-      likeCount: post._count.likes,
-      createdAt: post.createdAt,
-      author: {
-        id: post.author.id,
-        name: post.author.name,
-      },
-      isLike: post.likes?.length === 1,
-      isSave: post.saves?.length === 1,
     };
   }
 
@@ -154,18 +141,16 @@ export class PostService {
   }
 
   async getTodayPopularPosts() {
-    let resultPosts = [];
-    const cachedIds = await this.postSelectRepository.getCachedTodayPopular();
-    if (cachedIds) {
-      resultPosts =
-        await this.postSelectRepository.findTodayPopularByIds(cachedIds);
-    } else {
-      resultPosts = await this.postSelectRepository.findTodayPopular();
-
-      await this.postRepository.cacheTodayPopular(
-        resultPosts.map((post) => post.id),
-      );
+    let ids = await this.postSelectRepository.getCachedTodayPopular();
+    if (ids === null) {
+      ids = await this.postSelectRepository.findTodayPopularIds();
     }
+    const resultPosts =
+      await this.postSelectRepository.findTodayPopularByIds(ids);
+
+    await this.postRepository.cacheTodayPopular(
+      resultPosts.map((post) => post.id),
+    );
 
     return resultPosts.map((post) => {
       return {
@@ -192,7 +177,7 @@ export class PostService {
     });
 
     return {
-      totalCount: user._count.posts,
+      totalCount: user.postCount,
       posts: posts.map((post) => {
         return {
           ...post,

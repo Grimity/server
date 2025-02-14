@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
+import { kyselyUuid } from './util';
 
 @Injectable()
 export class PostSelectRepository {
@@ -11,29 +12,37 @@ export class PostSelectRepository {
   ) {}
 
   async findAllNotices() {
-    return await this.prisma.post.findMany({
-      where: {
-        type: 0,
+    const result = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where('type', '=', 0)
+      .select([
+        'Post.id',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name')
+      .orderBy('Post.createdAt', 'desc')
+      .execute();
+
+    return result.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.name,
       },
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    }));
   }
 
   async getPostCount(type: 2 | 3 | null) {
@@ -50,100 +59,115 @@ export class PostSelectRepository {
   }
 
   async findMany({ type, page, size }: FindManyInput) {
-    const where: Prisma.PostWhereInput = {};
-    if (type === null) {
-      where.type = {
-        not: 0,
-      };
-    } else where.type = type;
+    const result = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where((eb) => {
+        if (type === null) return eb('type', '!=', 0);
+        return eb('type', '=', type);
+      })
+      .select([
+        'Post.id',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'type',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .orderBy('Post.createdAt', 'desc')
+      .limit(size)
+      .offset((page - 1) * size)
+      .execute();
 
-    return await this.prisma.post.findMany({
-      where,
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        type: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+    return result.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      type: post.type,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
       },
-      skip: (page - 1) * size,
-      take: size,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    }));
   }
 
   async findOneById(userId: string | null, postId: string) {
-    const select: Prisma.PostSelect = {
-      id: true,
-      type: true,
-      title: true,
-      content: true,
-      hasImage: true,
-      commentCount: true,
-      viewCount: true,
-      createdAt: true,
-      _count: {
-        select: {
-          likes: true,
-        },
-      },
+    const [post] = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where('Post.id', '=', kyselyUuid(postId))
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .select((eb) =>
+        eb
+          .selectFrom('PostLike')
+          .where('PostLike.postId', '=', kyselyUuid(postId))
+          .select((eb) => eb.fn.count<bigint>('userId').as('likeCount'))
+          .as('likeCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('PostLike')
+                .whereRef('PostLike.postId', '=', 'Post.id')
+                .where('PostLike.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('PostSave')
+                .whereRef('PostSave.postId', '=', 'Post.id')
+                .where('PostSave.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isSave'),
+        ]),
+      )
+      .execute();
+
+    if (!post) throw new HttpException('POST', 404);
+
+    return {
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      likeCount: post.likeCount === null ? 0 : Number(post.likeCount),
+      isLike: post.isLike ?? false,
+      isSave: post.isSave ?? false,
       author: {
-        select: {
-          id: true,
-          name: true,
-        },
+        id: post.authorId,
+        name: post.authorName,
       },
     };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-      select.saves = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    try {
-      return await this.prisma.post.findUniqueOrThrow({
-        where: {
-          id: postId,
-        },
-        select,
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('POST', 404);
-        }
-      }
-      throw e;
-    }
   }
 
-  async findTodayPopular() {
-    return await this.prisma.post.findMany({
+  async findTodayPopularIds() {
+    const posts = await this.prisma.post.findMany({
       where: {
         createdAt: {
           gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24),
@@ -155,51 +179,50 @@ export class PostSelectRepository {
       },
       select: {
         id: true,
-        type: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
       },
     });
+    return posts.map((post) => post.id);
   }
 
   async findTodayPopularByIds(ids: string[]) {
-    return await this.prisma.post.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
+    const result = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where(
+        'Post.id',
+        'in',
+        ids.map((id) => kyselyUuid(id)),
+      )
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .orderBy('Post.viewCount', 'desc')
+      .limit(12)
+      .execute();
+
+    return result.map((post) => ({
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
       },
-      select: {
-        id: true,
-        type: true,
-        title: true,
-        content: true,
-        hasImage: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        viewCount: 'desc',
-      },
-      take: 12,
-    });
+    }));
   }
 
   async getCachedTodayPopular() {
@@ -211,19 +234,25 @@ export class PostSelectRepository {
   }
 
   async countByAuthorName(name: string) {
-    return await this.prisma.user.findUnique({
-      where: {
-        name,
-      },
-      select: {
-        id: true,
-        _count: {
-          select: {
-            posts: true,
-          },
-        },
-      },
-    });
+    const [user] = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('name', '=', name)
+      .select('User.id')
+      .select((eb) =>
+        eb
+          .selectFrom('Post')
+          .whereRef('authorId', '=', 'User.id')
+          .select(eb.fn.count<bigint>('id').as('posts'))
+          .as('postCount'),
+      )
+      .execute();
+
+    if (!user) return null;
+
+    return {
+      id: user.id,
+      postCount: user.postCount === null ? 0 : Number(user.postCount),
+    };
   }
 
   async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
