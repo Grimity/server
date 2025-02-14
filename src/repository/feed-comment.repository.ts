@@ -170,6 +170,7 @@ export class FeedCommentRepository {
               increment: 1,
             },
           },
+          select: { id: true },
         }),
       ]);
       return;
