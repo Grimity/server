@@ -139,31 +139,17 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    const where: Prisma.FollowWhereInput = {
-      followerId: userId,
-    };
-    if (cursor) {
-      where.followingId = {
-        lt: cursor,
-      };
-    }
-    return await this.prisma.follow.findMany({
-      where,
-      take: size,
-      orderBy: {
-        followingId: 'desc',
-      },
-      select: {
-        following: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            description: true,
-          },
-        },
-      },
-    });
+    return await this.prisma.$kysely
+      .selectFrom('Follow')
+      .where('followerId', '=', kyselyUuid(userId))
+      .innerJoin('User', 'followingId', 'id')
+      .select(['id', 'name', 'User.image', 'description'])
+      .orderBy('followingId', 'asc')
+      .limit(size)
+      .$if(cursor !== null, (eb) =>
+        eb.where('followingId', '>', kyselyUuid(cursor!)),
+      )
+      .execute();
   }
 
   async findPopularUserIds() {

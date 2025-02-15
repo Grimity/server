@@ -20,6 +20,11 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,10 +48,6 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
 
   it('cursor가 있을때 uuid가 아닌 경우 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -57,17 +58,10 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('200과 함께 팔로잉 목록을 조회한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -111,8 +105,5 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
     expect(status).toBe(200);
     expect(body.nextCursor).toBeDefined();
     expect(body.followings).toHaveLength(1);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

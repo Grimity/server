@@ -174,16 +174,9 @@ export class UserService {
     return {
       nextCursor:
         followings.length === size
-          ? followings[followings.length - 1].following.id
+          ? followings[followings.length - 1].id
           : null,
-      followings: followings.map((following) => {
-        return {
-          id: following.following.id,
-          name: following.following.name,
-          image: following.following.image,
-          description: following.following.description,
-        };
-      }),
+      followings,
     };
   }
 
