@@ -68,49 +68,75 @@ export class UserSelectRepository {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    try {
-      const select: Prisma.UserSelect = {
-        id: true,
-        name: true,
-        image: true,
-        backgroundImage: true,
-        description: true,
-        links: true,
-        followerCount: true,
-        _count: {
-          select: {
-            followings: true,
-            feeds: true,
-            posts: true,
-          },
-        },
-      };
+    const [user] = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('User.id', '=', kyselyUuid(targetUserId))
+      .select([
+        'User.id',
+        'name',
+        'User.image',
+        'backgroundImage',
+        'description',
+        'links',
+        'followerCount',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('Feed')
+          .whereRef('Feed.authorId', '=', 'User.id')
+          .select((eb) => eb.fn.count<bigint>('Feed.id').as('feedCount'))
+          .as('feedCount'),
+      )
+      .select((eb) =>
+        eb
+          .selectFrom('Post')
+          .whereRef('Post.authorId', '=', 'User.id')
+          .select((eb) => eb.fn.count<bigint>('Post.id').as('postCount'))
+          .as('postCount'),
+      )
+      .$if(userId === targetUserId, (eb) =>
+        eb.select((eb) =>
+          eb
+            .selectFrom('Follow')
+            .whereRef('Follow.followerId', '=', 'User.id')
+            .select((eb) =>
+              eb.fn.count<bigint>('Follow.followerId').as('followingCount'),
+            )
+            .as('followingCount'),
+        ),
+      )
+      .$if(userId !== null && userId !== targetUserId, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Follow')
+                .whereRef('Follow.followingId', '=', 'User.id')
+                .where('Follow.followerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isFollowing'),
+        ]),
+      )
+      .execute();
 
-      if (userId) {
-        select.followers = {
-          select: {
-            followerId: true,
-          },
-          where: {
-            followerId: userId,
-          },
-        };
-      }
-      return await this.prisma.user.findUniqueOrThrow({
-        where: {
-          id: targetUserId,
-        },
-        select,
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('USER', 404);
-      }
-      throw e;
-    }
+    if (!user) throw new HttpException('USER', 404);
+
+    return {
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      backgroundImage: user.backgroundImage,
+      description: user.description,
+      links: user.links ?? [],
+      followerCount: user.followerCount,
+      followingCount:
+        user.followingCount !== null && user.followingCount !== undefined
+          ? Number(user.followingCount)
+          : 0,
+      feedCount: user.feedCount !== null ? Number(user.feedCount) : 0,
+      postCount: user.postCount !== null ? Number(user.postCount) : 0,
+      isFollowing: user.isFollowing ?? false,
+    };
   }
 
   async findMyFollowers(

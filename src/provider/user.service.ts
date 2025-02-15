@@ -117,10 +117,10 @@ export class UserService {
         };
       }),
       followerCount: targetUser.followerCount,
-      followingCount: targetUser._count.followings,
-      feedCount: targetUser._count.feeds,
-      postCount: targetUser._count.posts,
-      isFollowing: targetUser.followers?.length === 1,
+      followingCount: targetUser.followingCount,
+      feedCount: targetUser.feedCount,
+      postCount: targetUser.postCount,
+      isFollowing: targetUser.isFollowing,
     };
   }
 
