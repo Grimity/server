@@ -26,6 +26,11 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     userService = module.get<UserService>(UserService);
     redis = module.get<RedisService>(RedisService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -40,10 +45,6 @@ describe('GET /users/popular - 인기 유저 조회', () => {
 
   it('200과 함께 인기 유저 목록을 조회한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const me = await prisma.user.findFirstOrThrow();
@@ -103,8 +104,5 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     // then
     expect(status).toBe(200);
     expect(body).toHaveLength(4);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

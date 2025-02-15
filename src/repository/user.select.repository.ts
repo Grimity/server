@@ -173,38 +173,43 @@ export class UserSelectRepository {
   }
 
   async findPopularUsersByIds(userId: string | null, userIds: string[]) {
-    const select: Prisma.UserSelect = {
-      id: true,
-      name: true,
-      image: true,
-      followerCount: true,
-      description: true,
-      feeds: {
-        select: {
-          thumbnail: true,
-        },
-        take: 2,
-      },
-    };
+    const users = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('User.id', 'in', userIds.map(kyselyUuid))
+      .select(['User.id', 'name', 'User.image', 'followerCount', 'description'])
+      .select((eb) =>
+        eb
+          .selectFrom('Feed')
+          .whereRef('Feed.authorId', '=', 'User.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['thumbnail']).as('thumbnail'),
+          )
+          .limit(2)
+          .as('thumbnails'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Follow')
+                .whereRef('Follow.followingId', '=', 'User.id')
+                .where('Follow.followerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isFollowing'),
+        ]),
+      )
+      .execute();
 
-    if (userId) {
-      select.followers = {
-        select: {
-          followerId: true,
-        },
-        where: {
-          followerId: userId,
-        },
-      };
-    }
-    return await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select,
-    });
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      followerCount: user.followerCount,
+      description: user.description,
+      thumbnails: user.thumbnails ?? [],
+      isFollowing: user.isFollowing ?? false,
+    }));
   }
 
   async getCachedPopularUserIds() {

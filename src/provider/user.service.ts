@@ -251,24 +251,10 @@ export class UserService {
       await this.userRepository.cachePopularUserIds(userIds);
     }
 
-    const users = await this.userSelectRepository.findPopularUsersByIds(
+    return await this.userSelectRepository.findPopularUsersByIds(
       userId,
       userIds,
     );
-
-    return users.map((user) => {
-      return {
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        description: user.description,
-        followerCount: user.followerCount,
-        isFollowing: user.followers?.length === 1,
-        thumbnails: user.feeds.map((feed) => {
-          return feed.thumbnail;
-        }),
-      };
-    });
   }
 
   async searchUsers(input: SearchUserInput) {
