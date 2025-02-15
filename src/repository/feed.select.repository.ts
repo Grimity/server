@@ -523,49 +523,65 @@ export class FeedSelectRepository {
 
   async findManyByIds(userId: string | null, feedIds: string[]) {
     if (feedIds.length === 0) return [];
-    const select: Prisma.FeedSelect = {
-      id: true,
-      title: true,
-      thumbnail: true,
-      likeCount: true,
-      viewCount: true,
-      tags: {
-        select: {
-          tagName: true,
-        },
-      },
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('Feed.id', 'in', feedIds.map(kyselyUuid))
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'viewCount',
+        'likeCount',
+        'Feed.authorId',
+      ])
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['name'])
+      .select((eb) =>
+        eb
+          .selectFrom('Tag')
+          .whereRef('Tag.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['tagName']).as('tagName'),
+          )
+          .as('tags'),
+      )
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .execute();
+
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      tags: feed.tags ?? [],
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
+      isLike: feed.isLike ?? false,
       author: {
-        select: {
-          id: true,
-          name: true,
-        },
+        id: feed.authorId,
+        name: feed.name,
       },
-      _count: {
-        select: {
-          comments: true,
-        },
-      },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    return await this.prisma.feed.findMany({
-      where: {
-        id: {
-          in: feedIds,
-        },
-      },
-      select,
-    });
+    }));
   }
 
   async findPopular({ userId, size, cursor }: FindPopularInput) {
