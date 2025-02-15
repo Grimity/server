@@ -282,6 +282,7 @@ export class FeedSelectRepository {
   }
 
   async findTodayPopularByIds(userId: string | null, ids: string[]) {
+    if (ids.length === 0) return [];
     const feeds = await this.prisma.$kysely
       .selectFrom('Feed')
       .where(
@@ -544,6 +545,7 @@ export class FeedSelectRepository {
   }
 
   async findManyByIds(userId: string | null, feedIds: string[]) {
+    if (feedIds.length === 0) return [];
     const select: Prisma.FeedSelect = {
       id: true,
       title: true,
