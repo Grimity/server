@@ -415,50 +415,52 @@ export class FeedSelectRepository {
       size: number;
     },
   ) {
-    let where: Prisma.LikeWhereInput = {
-      userId,
-    };
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Like')
+      .select('Like.createdAt')
+      .where('Like.userId', '=', kyselyUuid(userId))
+      .$if(cursor !== null, (eb) =>
+        eb.where('Like.createdAt', '<', new Date(cursor!)),
+      )
+      .innerJoin('Feed', 'Like.feedId', 'Feed.id')
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'viewCount',
+        'likeCount',
+        'cards',
+        'Feed.authorId',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['name'])
+      .orderBy('Like.createdAt desc')
+      .limit(size)
+      .execute();
 
-    if (cursor) {
-      where = {
-        ...where,
-        createdAt: {
-          lt: new Date(cursor),
-        },
-      };
-    }
-
-    return await this.prisma.like.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc',
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      cards: feed.cards,
+      createdAt: feed.createdAt,
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
+      author: {
+        id: feed.authorId,
+        name: feed.name,
       },
-      take: size,
-      select: {
-        createdAt: true,
-        feed: {
-          select: {
-            id: true,
-            title: true,
-            cards: true,
-            thumbnail: true,
-            viewCount: true,
-            likeCount: true,
-            _count: {
-              select: {
-                comments: true,
-              },
-            },
-            author: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    }));
   }
 
   async findMySaveFeeds(

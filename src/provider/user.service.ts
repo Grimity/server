@@ -220,19 +220,7 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.feed.id,
-          title: feed.feed.title,
-          cards: feed.feed.cards,
-          createdAt: feed.createdAt,
-          viewCount: feed.feed.viewCount,
-          likeCount: feed.feed.likeCount,
-          commentCount: feed.feed._count.comments,
-          thumbnail: feed.feed.thumbnail,
-          author: feed.feed.author,
-        };
-      }),
+      feeds,
     };
   }
 
