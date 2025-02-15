@@ -1,7 +1,8 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
-import { prismaUuid } from './util';
+import { prismaUuid, kyselyUuid } from './util';
+import { writer } from 'repl';
 
 @Injectable()
 export class PostCommentRepository {
@@ -43,82 +44,107 @@ export class PostCommentRepository {
   }
 
   async findManyByPostId(userId: string | null, postId: string) {
-    const select: Prisma.PostCommentSelect & {
-      childComments: {
-        select: Prisma.PostCommentSelect;
-        where: Prisma.PostCommentWhereInput;
-        orderBy: Prisma.PostCommentOrderByWithRelationInput;
-      };
-    } = {
-      id: true,
-      content: true,
-      createdAt: true,
-      likeCount: true,
-      isDeleted: true,
-      writer: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      childComments: {
-        select: {
-          id: true,
-          content: true,
-          createdAt: true,
-          likeCount: true,
-          writer: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          mentionedUser: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        where: {
-          postId,
-        },
-        orderBy: {
-          createdAt: 'asc',
-        },
-      },
-    };
+    const result = await this.prisma.$kysely
+      .selectFrom('PostComment')
+      .where('PostComment.postId', '=', kyselyUuid(postId))
+      .select([
+        'PostComment.id',
+        'PostComment.writerId',
+        'PostComment.parentId',
+        'PostComment.content',
+        'PostComment.mentionedUserId',
+        'PostComment.createdAt',
+        'PostComment.likeCount',
+        'PostComment.isDeleted',
+      ])
+      .leftJoin('User as w', 'w.id', 'PostComment.writerId')
+      .select('w.name as writerName')
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('PostCommentLike')
+                .whereRef(
+                  'PostCommentLike.postCommentId',
+                  '=',
+                  'PostComment.id',
+                )
+                .where('PostCommentLike.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .leftJoin('User as m', 'm.id', 'PostComment.mentionedUserId')
+      .select('m.name as mentionedUserName')
+      .orderBy('PostComment.createdAt', 'asc')
+      .execute();
 
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
+    const comments: {
+      id: string;
+      content: string;
+      createdAt: Date;
+      likeCount: number;
+      isDeleted: boolean;
+      writer: { id: string; name: string } | null;
+      isLike: boolean;
+      childComments: {
+        id: string;
+        content: string;
+        createdAt: Date;
+        likeCount: number;
+        writer: { id: string; name: string } | null;
+        mentionedUser: { id: string; name: string } | null;
+        isLike: boolean;
+      }[];
+    }[] = [];
+    const parentRecord: Record<string, number> = {};
 
-      select.childComments!.select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
+    for (const comment of result) {
+      if (comment.parentId === null) {
+        comments.push({
+          id: comment.id,
+          content: comment.content,
+          createdAt: comment.createdAt,
+          likeCount: comment.likeCount,
+          isDeleted: comment.isDeleted,
+          writer:
+            comment.writerId && comment.writerName
+              ? {
+                  id: comment.writerId,
+                  name: comment.writerName,
+                }
+              : null,
+          isLike: comment.isLike ?? false,
+          childComments: [],
+        });
+        parentRecord[comment.id] = comments.length - 1;
+      } else {
+        comments[parentRecord[comment.parentId]].childComments.push({
+          id: comment.id,
+          content: comment.content,
+          createdAt: comment.createdAt,
+          likeCount: comment.likeCount,
+          writer:
+            comment.writerId && comment.writerName
+              ? {
+                  id: comment.writerId,
+                  name: comment.writerName,
+                }
+              : null,
+          isLike: comment.isLike ?? false,
+          mentionedUser:
+            comment.mentionedUserId && comment.mentionedUserName
+              ? {
+                  id: comment.mentionedUserId,
+                  name: comment.mentionedUserName,
+                }
+              : null,
+        });
+      }
     }
 
-    return await this.prisma.postComment.findMany({
-      where: {
-        postId,
-        parentId: null,
-      },
-      select,
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+    return comments;
   }
 
   async createLike(userId: string, commentId: string) {
@@ -162,6 +188,7 @@ export class PostCommentRepository {
         this.prisma.postComment.update({
           where: { id: commentId },
           data: { likeCount: { decrement: 1 } },
+          select: { id: true },
         }),
       ]);
       return;

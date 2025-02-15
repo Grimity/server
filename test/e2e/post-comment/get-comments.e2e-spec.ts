@@ -127,12 +127,14 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
             parentId: parent1.id,
             content: 'child1',
             likeCount: 1,
+            createdAt: new Date('2021-01-03'),
           },
           {
             writerId: null,
             postId: post.id,
             parentId: parent1.id,
             content: 'child2',
+            createdAt: new Date('2021-01-04'),
           },
           {
             writerId: user.id,
@@ -140,6 +142,7 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
             parentId: parent2.id,
             content: 'child3',
             mentionedUserId: user.id,
+            createdAt: new Date('2021-01-05'),
           },
         ],
       });
