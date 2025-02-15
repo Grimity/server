@@ -59,12 +59,9 @@ export class UserRepository {
 
   async updateBackgroundImage(userId: string, imageName: string | null) {
     await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        backgroundImage: imageName,
-      },
+      where: { id: userId },
+      data: { backgroundImage: imageName },
+      select: { id: true },
     });
     return;
   }

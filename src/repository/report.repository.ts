@@ -8,6 +8,7 @@ export class ReportRepository {
   async create(input: CreateInput) {
     await this.prisma.report.create({
       data: input,
+      select: { id: true },
     });
     return;
   }
