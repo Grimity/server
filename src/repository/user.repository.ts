@@ -47,24 +47,18 @@ export class UserRepository {
 
   async updateImage(userId: string, imageName: string | null) {
     await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        image: imageName,
-      },
+      where: { id: userId },
+      data: { image: imageName },
+      select: { id: true },
     });
     return;
   }
 
   async updateBackgroundImage(userId: string, imageName: string | null) {
     await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        backgroundImage: imageName,
-      },
+      where: { id: userId },
+      data: { backgroundImage: imageName },
+      select: { id: true },
     });
     return;
   }
@@ -101,6 +95,7 @@ export class UserRepository {
             followerId: userId,
             followingId: targetUserId,
           },
+          select: { followingId: true },
         }),
         this.prisma.user.update({
           where: {
@@ -134,28 +129,38 @@ export class UserRepository {
   }
 
   async unfollow(userId: string, targetUserId: string) {
-    await this.prisma.$transaction([
-      this.prisma.follow.delete({
-        where: {
-          followerId_followingId: {
-            followerId: userId,
-            followingId: targetUserId,
+    try {
+      await this.prisma.$transaction([
+        this.prisma.follow.delete({
+          where: {
+            followerId_followingId: {
+              followerId: userId,
+              followingId: targetUserId,
+            },
           },
-        },
-      }),
-      this.prisma.user.update({
-        where: {
-          id: targetUserId,
-        },
-        data: {
-          followerCount: {
-            decrement: 1,
+          select: { followerId: true },
+        }),
+        this.prisma.user.update({
+          where: {
+            id: targetUserId,
           },
-        },
-      }),
-    ]);
-
-    return;
+          data: {
+            followerCount: {
+              decrement: 1,
+            },
+          },
+          select: { id: true },
+        }),
+      ]);
+      return;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2025') {
+          throw new HttpException('FOLLOW', 404);
+        }
+      }
+      throw e;
+    }
   }
 
   async updateSubscription(userId: string, subscription: string[]) {

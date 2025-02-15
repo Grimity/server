@@ -20,6 +20,11 @@ describe('DELETE /users/me/image', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,18 +48,12 @@ describe('DELETE /users/me/image', () => {
 
   it('204와 함께 프로필 이미지를 삭제한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
+    const accessToken = await register(app, 'test');
     await prisma.user.updateMany({
       data: {
         image: 'profile/test.jpg',
       },
     });
-
-    const accessToken = await register(app, 'test');
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -66,8 +65,5 @@ describe('DELETE /users/me/image', () => {
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
     expect(user.image).toBeNull();
-
-    // cleanup
-    spy.mockRestore();
   });
 });

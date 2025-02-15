@@ -218,6 +218,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 삭제' })
   @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 404, description: '팔로우하지 않은 유저' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete('me/followers/:id')

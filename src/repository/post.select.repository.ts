@@ -185,6 +185,7 @@ export class PostSelectRepository {
   }
 
   async findTodayPopularByIds(ids: string[]) {
+    if (ids.length === 0) return [];
     const result = await this.prisma.$kysely
       .selectFrom('Post')
       .where(

@@ -2,7 +2,6 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { prismaUuid, kyselyUuid } from './util';
-import { writer } from 'repl';
 
 @Injectable()
 export class PostCommentRepository {
