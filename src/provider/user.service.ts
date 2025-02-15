@@ -148,17 +148,8 @@ export class UserService {
 
     return {
       nextCursor:
-        followers.length === size
-          ? followers[followers.length - 1].follower.id
-          : null,
-      followers: followers.map((follower) => {
-        return {
-          id: follower.follower.id,
-          name: follower.follower.name,
-          image: follower.follower.image,
-          description: follower.follower.description,
-        };
-      }),
+        followers.length === size ? followers[followers.length - 1].id : null,
+      followers,
     };
   }
 

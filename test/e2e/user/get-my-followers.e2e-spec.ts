@@ -20,6 +20,11 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,10 +48,6 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
 
   it('팔로워 목록을 가져온다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -98,8 +99,5 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
       image: null,
       description: '',
     });
-
-    // cleanup
-    spy.mockRestore();
   });
 });

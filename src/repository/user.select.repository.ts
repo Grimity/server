@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
+import { kyselyUuid } from './util';
 
 @Injectable()
 export class UserSelectRepository {
@@ -115,31 +116,17 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    const where: Prisma.FollowWhereInput = {
-      followingId: userId,
-    };
-    if (cursor) {
-      where.followerId = {
-        lt: cursor,
-      };
-    }
-    return await this.prisma.follow.findMany({
-      where,
-      take: size,
-      orderBy: {
-        followerId: 'desc',
-      },
-      select: {
-        follower: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            description: true,
-          },
-        },
-      },
-    });
+    return await this.prisma.$kysely
+      .selectFrom('Follow')
+      .where('followingId', '=', kyselyUuid(userId))
+      .innerJoin('User', 'followerId', 'id')
+      .select(['id', 'name', 'User.image', 'description'])
+      .orderBy('followerId', 'desc')
+      .limit(size)
+      .$if(cursor !== null, (eb) =>
+        eb.where('followerId', '<', kyselyUuid(cursor!)),
+      )
+      .execute();
   }
 
   async findMyFollowings(
