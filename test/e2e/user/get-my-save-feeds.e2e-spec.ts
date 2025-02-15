@@ -20,6 +20,11 @@ describe('GET /users/me/save-feeds - 내가 저장한 피드 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,10 +48,6 @@ describe('GET /users/me/save-feeds - 내가 저장한 피드 조회', () => {
 
   it('200과 함께 내가 저장 한 피드를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -92,8 +93,5 @@ describe('GET /users/me/save-feeds - 내가 저장한 피드 조회', () => {
     expect(body2.feeds.length).toBe(10);
     expect(body2.nextCursor).toBeNull();
     expect(body2.feeds[9].id).toBe(feeds[29].id);
-
-    // clean up
-    spy.mockRestore();
   });
 });
