@@ -225,7 +225,7 @@ model PostComment {
   mentionedUser User?             @relation("MentionedUser", fields: [mentionedUserId], references: [id], onDelete: SetNull)
   likes         PostCommentLike[]
 
-  @@index([postId])
+  @@index([postId, createdAt(sort: Asc)])
 }
 
 model PostCommentLike {

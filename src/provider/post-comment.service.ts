@@ -50,8 +50,8 @@ export class PostCommentService {
         likeCount: comment.likeCount,
         isDeleted: comment.isDeleted,
         writer: comment.writer,
-        isLike: comment.likes?.length === 1,
-        childComments: comment.childComments.map((child: any) => {
+        isLike: comment.isLike,
+        childComments: comment.childComments.map((child) => {
           return {
             id: child.id,
             content: child.content,
@@ -59,7 +59,7 @@ export class PostCommentService {
             likeCount: child.likeCount,
             writer: child.writer,
             mentionedUser: child.mentionedUser,
-            isLike: child.likes?.length === 1,
+            isLike: child.isLike,
           };
         }),
       };
@@ -85,6 +85,7 @@ export class PostCommentService {
         userId,
         commentId,
         postId: comment.postId,
+        parentId: comment.parentId,
       });
     } else {
       // 상위댓글 삭제
