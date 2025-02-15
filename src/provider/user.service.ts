@@ -293,7 +293,7 @@ export class UserService {
           description: user.description,
           backgroundImage: user.backgroundImage,
           followerCount: user.followerCount,
-          isFollowing: user.followers?.length === 1,
+          isFollowing: user.isFollowing,
         });
       }
     }

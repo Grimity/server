@@ -245,34 +245,42 @@ export class UserSelectRepository {
   }
 
   async findManyByUserIds(myId: string | null, userIds: string[]) {
-    const select: Prisma.UserSelect = {
-      id: true,
-      name: true,
-      image: true,
-      backgroundImage: true,
-      description: true,
-      followerCount: true,
-    };
+    if (userIds.length === 0) return [];
 
-    if (myId) {
-      select.followers = {
-        select: {
-          followerId: true,
-        },
-        where: {
-          followerId: myId,
-        },
-      };
-    }
+    const users = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('id', 'in', userIds.map(kyselyUuid))
+      .select([
+        'User.id',
+        'name',
+        'User.image',
+        'description',
+        'backgroundImage',
+        'followerCount',
+      ])
+      .$if(myId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Follow')
+                .whereRef('Follow.followingId', '=', 'User.id')
+                .where('followerId', '=', kyselyUuid(myId!)),
+            ])
+            .as('isFollowing'),
+        ]),
+      )
+      .execute();
 
-    return await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select,
-    });
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      description: user.description,
+      backgroundImage: user.backgroundImage,
+      followerCount: user.followerCount,
+      isFollowing: user.isFollowing ?? false,
+    }));
   }
 
   async getSubscription(userId: string) {
