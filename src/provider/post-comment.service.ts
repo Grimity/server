@@ -85,6 +85,7 @@ export class PostCommentService {
         userId,
         commentId,
         postId: comment.postId,
+        parentId: comment.parentId,
       });
     } else {
       // 상위댓글 삭제
