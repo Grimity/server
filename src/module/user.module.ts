@@ -5,18 +5,11 @@ import { UserService } from 'src/provider/user.service';
 import { UserController } from 'src/controller/user.controller';
 import { FeedModule } from './feed.module';
 import { AwsModule } from './aws.module';
-import { NotificationModule } from './notification.module';
 import { OpenSearchModule } from './opensearch.module';
 import { PostModule } from './post.module';
 
 @Module({
-  imports: [
-    FeedModule,
-    AwsModule,
-    NotificationModule,
-    OpenSearchModule,
-    PostModule,
-  ],
+  imports: [FeedModule, AwsModule, OpenSearchModule, PostModule],
   controllers: [UserController],
   providers: [UserRepository, UserService, UserSelectRepository],
   exports: [UserRepository, UserSelectRepository],

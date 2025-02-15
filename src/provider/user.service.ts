@@ -2,13 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
-import { NotificationRepository } from 'src/repository/notification.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { OpenSearchService } from './opensearch.service';
-import { NotificationType } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
-import { title } from 'process';
 
 @Injectable()
 export class UserService {
@@ -16,7 +13,6 @@ export class UserService {
     private userRepository: UserRepository,
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
-    private notificationRepository: NotificationRepository,
     private userSelectRepository: UserSelectRepository,
     private openSearchService: OpenSearchService,
     private postSelectRepository: PostSelectRepository,
@@ -54,10 +50,7 @@ export class UserService {
   }
 
   async getMyProfile(userId: string) {
-    const [user, hasNotification] = await Promise.all([
-      this.userSelectRepository.getMyProfile(userId),
-      this.notificationRepository.hasUnread(userId),
-    ]);
+    const user = await this.userSelectRepository.getMyProfile(userId);
 
     return {
       id: user.id,
@@ -75,7 +68,7 @@ export class UserService {
       }),
       backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
-      hasNotification,
+      hasNotification: user.hasNotification,
     };
   }
 

@@ -36,26 +36,33 @@ export class UserSelectRepository {
   }
 
   async getMyProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        provider: true,
-        email: true,
-        name: true,
-        image: true,
-        createdAt: true,
-        description: true,
-        links: true,
-        backgroundImage: true,
-      },
-    });
+    const [user] = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('id', '=', kyselyUuid(userId))
+      .select([
+        'id',
+        'provider',
+        'email',
+        'name',
+        'image',
+        'createdAt',
+        'description',
+        'links',
+        'backgroundImage',
+      ])
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Notification')
+              .where('Notification.userId', '=', kyselyUuid(userId))
+              .where('isRead', '=', false),
+          ])
+          .as('hasNotification'),
+      )
+      .execute();
 
-    if (!user) {
-      throw new HttpException('USER', 404);
-    }
+    if (!user) throw new HttpException('USER', 404);
 
     return user;
   }
