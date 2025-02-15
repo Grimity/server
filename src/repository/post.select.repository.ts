@@ -340,30 +340,42 @@ export class PostSelectRepository {
   }
 
   async findManySavedPosts({ userId, page, size }: UserAndPageInput) {
-    return await this.prisma.postSave.findMany({
-      where: {
-        userId,
+    const posts = await this.prisma.$kysely
+      .selectFrom('PostSave')
+      .where('PostSave.userId', '=', kyselyUuid(userId))
+      .innerJoin('Post', 'Post.id', 'PostSave.postId')
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'hasImage',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select('name as authorName')
+      .orderBy('PostSave.createdAt', 'desc')
+      .limit(size)
+      .offset((page - 1) * size)
+      .execute();
+
+    return posts.map((post) => ({
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      hasImage: post.hasImage,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
       },
-      select: {
-        post: {
-          select: {
-            id: true,
-            type: true,
-            title: true,
-            content: true,
-            hasImage: true,
-            commentCount: true,
-            viewCount: true,
-            createdAt: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip: (page - 1) * size,
-      take: size,
-    });
+    }));
   }
 }
 

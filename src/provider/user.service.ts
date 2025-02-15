@@ -377,7 +377,7 @@ export class UserService {
 
     return {
       totalCount,
-      posts: posts.map(({ post }) => {
+      posts: posts.map((post) => {
         return {
           id: post.id,
           type: convertPostTypeFromNumber(post.type),
@@ -387,6 +387,7 @@ export class UserService {
           commentCount: post.commentCount,
           viewCount: post.viewCount,
           createdAt: post.createdAt,
+          author: post.author,
         };
       }),
     };
