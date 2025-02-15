@@ -95,6 +95,7 @@ export class UserRepository {
             followerId: userId,
             followingId: targetUserId,
           },
+          select: { followingId: true },
         }),
         this.prisma.user.update({
           where: {

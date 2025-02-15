@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /users/:targetId/follow', () => {
+describe('PUT /users/:targetId/follow - 팔로우', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -19,6 +19,11 @@ describe('PUT /users/:targetId/follow', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
 
     await app.init();
   });
@@ -43,10 +48,6 @@ describe('PUT /users/:targetId/follow', () => {
 
   it('204와 함께 팔로우한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const targetUser = await prisma.user.create({
@@ -70,17 +71,10 @@ describe('PUT /users/:targetId/follow', () => {
     const follow = await prisma.follow.findFirstOrThrow();
 
     expect(follow.followingId).toBe(targetUser.id);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('두번 팔로우하면 409를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const targetUser = await prisma.user.create({
@@ -105,8 +99,19 @@ describe('PUT /users/:targetId/follow', () => {
 
     // then
     expect(status).toBe(409);
+  });
 
-    // cleanup
-    spy.mockRestore();
+  it('없는 유저를 팔로우하면 404를 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/00000000-0000-0000-0000-000000000000/follow')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(404);
   });
 });
