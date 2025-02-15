@@ -2,13 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
-import { NotificationRepository } from 'src/repository/notification.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { OpenSearchService } from './opensearch.service';
-import { NotificationType } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
-import { title } from 'process';
 
 @Injectable()
 export class UserService {
@@ -16,7 +13,6 @@ export class UserService {
     private userRepository: UserRepository,
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
-    private notificationRepository: NotificationRepository,
     private userSelectRepository: UserSelectRepository,
     private openSearchService: OpenSearchService,
     private postSelectRepository: PostSelectRepository,
@@ -54,10 +50,7 @@ export class UserService {
   }
 
   async getMyProfile(userId: string) {
-    const [user, hasNotification] = await Promise.all([
-      this.userSelectRepository.getMyProfile(userId),
-      this.notificationRepository.hasUnread(userId),
-    ]);
+    const user = await this.userSelectRepository.getMyProfile(userId);
 
     return {
       id: user.id,
@@ -75,7 +68,7 @@ export class UserService {
       }),
       backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
-      hasNotification,
+      hasNotification: user.hasNotification,
     };
   }
 
@@ -124,10 +117,10 @@ export class UserService {
         };
       }),
       followerCount: targetUser.followerCount,
-      followingCount: targetUser._count.followings,
-      feedCount: targetUser._count.feeds,
-      postCount: targetUser._count.posts,
-      isFollowing: targetUser.followers?.length === 1,
+      followingCount: targetUser.followingCount,
+      feedCount: targetUser.feedCount,
+      postCount: targetUser.postCount,
+      isFollowing: targetUser.isFollowing,
     };
   }
 
@@ -148,17 +141,8 @@ export class UserService {
 
     return {
       nextCursor:
-        followers.length === size
-          ? followers[followers.length - 1].follower.id
-          : null,
-      followers: followers.map((follower) => {
-        return {
-          id: follower.follower.id,
-          name: follower.follower.name,
-          image: follower.follower.image,
-          description: follower.follower.description,
-        };
-      }),
+        followers.length === size ? followers[followers.length - 1].id : null,
+      followers,
     };
   }
 
@@ -183,16 +167,9 @@ export class UserService {
     return {
       nextCursor:
         followings.length === size
-          ? followings[followings.length - 1].following.id
+          ? followings[followings.length - 1].id
           : null,
-      followings: followings.map((following) => {
-        return {
-          id: following.following.id,
-          name: following.following.name,
-          image: following.following.image,
-          description: following.following.description,
-        };
-      }),
+      followings,
     };
   }
 
@@ -210,18 +187,7 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.id,
-          title: feed.title,
-          cards: feed.cards,
-          createdAt: feed.createdAt,
-          viewCount: feed.viewCount,
-          likeCount: feed.likeCount,
-          commentCount: feed._count.comments,
-          thumbnail: feed.thumbnail,
-        };
-      }),
+      feeds,
     };
   }
 
@@ -247,19 +213,7 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.feed.id,
-          title: feed.feed.title,
-          cards: feed.feed.cards,
-          createdAt: feed.createdAt,
-          viewCount: feed.feed.viewCount,
-          likeCount: feed.feed.likeCount,
-          commentCount: feed.feed._count.comments,
-          thumbnail: feed.feed.thumbnail,
-          author: feed.feed.author,
-        };
-      }),
+      feeds,
     };
   }
 
@@ -285,19 +239,7 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.feed.id,
-          title: feed.feed.title,
-          cards: feed.feed.cards,
-          createdAt: feed.createdAt,
-          viewCount: feed.feed.viewCount,
-          likeCount: feed.feed.likeCount,
-          commentCount: feed.feed._count.comments,
-          thumbnail: feed.feed.thumbnail,
-          author: feed.feed.author,
-        };
-      }),
+      feeds,
     };
   }
 
@@ -309,24 +251,10 @@ export class UserService {
       await this.userRepository.cachePopularUserIds(userIds);
     }
 
-    const users = await this.userSelectRepository.findPopularUsersByIds(
+    return await this.userSelectRepository.findPopularUsersByIds(
       userId,
       userIds,
     );
-
-    return users.map((user) => {
-      return {
-        id: user.id,
-        name: user.name,
-        image: user.image,
-        description: user.description,
-        followerCount: user.followerCount,
-        isFollowing: user.followers?.length === 1,
-        thumbnails: user.feeds.map((feed) => {
-          return feed.thumbnail;
-        }),
-      };
-    });
   }
 
   async searchUsers(input: SearchUserInput) {
@@ -365,7 +293,7 @@ export class UserService {
           description: user.description,
           backgroundImage: user.backgroundImage,
           followerCount: user.followerCount,
-          isFollowing: user.followers?.length === 1,
+          isFollowing: user.isFollowing,
         });
       }
     }
@@ -435,7 +363,7 @@ export class UserService {
 
     return {
       totalCount,
-      posts: posts.map(({ post }) => {
+      posts: posts.map((post) => {
         return {
           id: post.id,
           type: convertPostTypeFromNumber(post.type),
@@ -445,6 +373,7 @@ export class UserService {
           commentCount: post.commentCount,
           viewCount: post.viewCount,
           createdAt: post.createdAt,
+          author: post.author,
         };
       }),
     };

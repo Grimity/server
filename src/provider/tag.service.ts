@@ -31,20 +31,6 @@ export class TagService {
       return [];
     }
 
-    const feeds = await this.tagRepository.findFeedsByIds(userId, ids);
-    return feeds.map((feed) => {
-      return {
-        id: feed.id,
-        title: feed.title,
-        thumbnail: feed.thumbnail,
-        likeCount: feed.likeCount,
-        viewCount: feed.viewCount,
-        isLike: feed.likes?.length === 1,
-        author: {
-          id: feed.author.id,
-          name: feed.author.name,
-        },
-      };
-    });
+    return await this.tagRepository.findFeedsByIds(userId, ids);
   }
 }

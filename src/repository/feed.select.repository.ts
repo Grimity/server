@@ -88,115 +88,88 @@ export class FeedSelectRepository {
     cursor,
     targetId,
   }: FindFeedsByUserInput) {
-    let orderBy: Prisma.FeedOrderByWithRelationInput[] = [];
-    const where: Prisma.FeedWhereInput = {
-      authorId: targetId,
-    };
-    let sortCursor: string | null = null;
-    let idCursor: string | null = null;
-    if (cursor) {
-      const arr = cursor.split('_');
-      if (arr.length !== 2) {
-        throw new HttpException('invalid cursor', 400);
-      }
-      sortCursor = arr[0];
-      idCursor = arr[1];
-    }
+    let query = this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('authorId', '=', kyselyUuid(targetId))
+      .select([
+        'Feed.id',
+        'title',
+        'cards',
+        'thumbnail',
+        'Feed.createdAt',
+        'viewCount',
+        'likeCount',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .limit(size);
+
     if (sort === 'latest') {
-      orderBy = [
-        {
-          createdAt: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-      if (sortCursor && idCursor) {
-        where.OR = [
-          {
-            createdAt: {
-              lt: new Date(sortCursor),
-            },
-          },
-          {
-            createdAt: new Date(sortCursor),
-            id: {
-              lt: idCursor,
-            },
-          },
-        ];
-      }
+      query = query
+        .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
+        .$if(cursor !== null, (eb) => {
+          const [createdAt, id] = cursor!.split('_');
+          return eb.where((eb) =>
+            eb.or([
+              eb('Feed.createdAt', '<', new Date(createdAt)),
+              eb.and([
+                eb('Feed.createdAt', '=', new Date(createdAt)),
+                eb('Feed.id', '<', kyselyUuid(id)),
+              ]),
+            ]),
+          );
+        });
     } else if (sort === 'like') {
-      orderBy = [
-        {
-          likeCount: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-      if (sortCursor && idCursor) {
-        where.OR = [
-          {
-            likeCount: {
-              lt: Number(sortCursor),
-            },
-          },
-          {
-            likeCount: Number(sortCursor),
-            id: {
-              lt: idCursor,
-            },
-          },
-        ];
-      }
+      query = query
+        .orderBy(['Feed.likeCount desc', 'Feed.id desc'])
+        .$if(cursor !== null, (eb) => {
+          const [likeCount, id] = cursor!.split('_');
+          return eb.where((eb) =>
+            eb.or([
+              eb('Feed.likeCount', '<', Number(likeCount)),
+              eb.and([
+                eb('Feed.likeCount', '=', Number(likeCount)),
+                eb('Feed.id', '<', kyselyUuid(id)),
+              ]),
+            ]),
+          );
+        });
     } else {
-      orderBy = [
-        {
-          createdAt: 'asc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-      if (sortCursor && idCursor) {
-        where.OR = [
-          {
-            createdAt: {
-              gt: new Date(sortCursor),
-            },
-          },
-          {
-            createdAt: new Date(sortCursor),
-            id: {
-              lt: idCursor,
-            },
-          },
-        ];
-      }
+      query = query
+        .orderBy(['Feed.createdAt asc', 'Feed.id desc'])
+        .$if(cursor !== null, (eb) => {
+          const [createdAt, id] = cursor!.split('_');
+          return eb.where((eb) =>
+            eb.or([
+              eb('Feed.createdAt', '>', new Date(createdAt)),
+              eb.and([
+                eb('Feed.createdAt', '=', new Date(createdAt)),
+                eb('Feed.id', '<', kyselyUuid(id)),
+              ]),
+            ]),
+          );
+        });
     }
 
-    const select: Prisma.FeedSelect = {
-      id: true,
-      title: true,
-      cards: true,
-      thumbnail: true,
-      createdAt: true,
-      viewCount: true,
-      likeCount: true,
-      _count: {
-        select: {
-          comments: true,
-        },
-      },
-    };
+    const feeds = await query.execute();
 
-    return await this.prisma.feed.findMany({
-      where,
-      take: size,
-      orderBy,
-      select,
-    });
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      cards: feed.cards,
+      thumbnail: feed.thumbnail,
+      createdAt: feed.createdAt,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
+    }));
   }
 
   async findManyLatest({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
@@ -442,50 +415,52 @@ export class FeedSelectRepository {
       size: number;
     },
   ) {
-    let where: Prisma.LikeWhereInput = {
-      userId,
-    };
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Like')
+      .select('Like.createdAt')
+      .where('Like.userId', '=', kyselyUuid(userId))
+      .$if(cursor !== null, (eb) =>
+        eb.where('Like.createdAt', '<', new Date(cursor!)),
+      )
+      .innerJoin('Feed', 'Like.feedId', 'Feed.id')
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'viewCount',
+        'likeCount',
+        'cards',
+        'Feed.authorId',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['name'])
+      .orderBy('Like.createdAt desc')
+      .limit(size)
+      .execute();
 
-    if (cursor) {
-      where = {
-        ...where,
-        createdAt: {
-          lt: new Date(cursor),
-        },
-      };
-    }
-
-    return await this.prisma.like.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc',
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      cards: feed.cards,
+      createdAt: feed.createdAt,
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
+      author: {
+        id: feed.authorId,
+        name: feed.name,
       },
-      take: size,
-      select: {
-        createdAt: true,
-        feed: {
-          select: {
-            id: true,
-            title: true,
-            cards: true,
-            thumbnail: true,
-            viewCount: true,
-            likeCount: true,
-            _count: {
-              select: {
-                comments: true,
-              },
-            },
-            author: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    }));
   }
 
   async findMySaveFeeds(
@@ -498,97 +473,115 @@ export class FeedSelectRepository {
       size: number;
     },
   ) {
-    let where: Prisma.SaveWhereInput = {
-      userId,
-    };
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Save')
+      .select('Save.createdAt')
+      .where('Save.userId', '=', kyselyUuid(userId))
+      .$if(cursor !== null, (eb) =>
+        eb.where('Save.createdAt', '<', new Date(cursor!)),
+      )
+      .innerJoin('Feed', 'Save.feedId', 'Feed.id')
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'viewCount',
+        'likeCount',
+        'cards',
+        'Feed.authorId',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['name'])
+      .orderBy('Save.createdAt desc')
+      .limit(size)
+      .execute();
 
-    if (cursor) {
-      where = {
-        ...where,
-        createdAt: {
-          lt: new Date(cursor),
-        },
-      };
-    }
-
-    return await this.prisma.save.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc',
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      cards: feed.cards,
+      createdAt: feed.createdAt,
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
+      author: {
+        id: feed.authorId,
+        name: feed.name,
       },
-      take: size,
-      select: {
-        createdAt: true,
-        feed: {
-          select: {
-            id: true,
-            title: true,
-            cards: true,
-            thumbnail: true,
-            viewCount: true,
-            likeCount: true,
-            _count: {
-              select: {
-                comments: true,
-              },
-            },
-            author: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    }));
   }
 
   async findManyByIds(userId: string | null, feedIds: string[]) {
     if (feedIds.length === 0) return [];
-    const select: Prisma.FeedSelect = {
-      id: true,
-      title: true,
-      thumbnail: true,
-      likeCount: true,
-      viewCount: true,
-      tags: {
-        select: {
-          tagName: true,
-        },
-      },
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('Feed.id', 'in', feedIds.map(kyselyUuid))
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'viewCount',
+        'likeCount',
+        'Feed.authorId',
+      ])
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select(['name'])
+      .select((eb) =>
+        eb
+          .selectFrom('Tag')
+          .whereRef('Tag.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['tagName']).as('tagName'),
+          )
+          .as('tags'),
+      )
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .execute();
+
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      viewCount: feed.viewCount,
+      likeCount: feed.likeCount,
+      tags: feed.tags ?? [],
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
+      isLike: feed.isLike ?? false,
       author: {
-        select: {
-          id: true,
-          name: true,
-        },
+        id: feed.authorId,
+        name: feed.name,
       },
-      _count: {
-        select: {
-          comments: true,
-        },
-      },
-    };
-
-    if (userId) {
-      select.likes = {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-      };
-    }
-
-    return await this.prisma.feed.findMany({
-      where: {
-        id: {
-          in: feedIds,
-        },
-      },
-      select,
-    });
+    }));
   }
 
   async findPopular({ userId, size, cursor }: FindPopularInput) {

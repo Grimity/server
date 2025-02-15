@@ -288,17 +288,7 @@ export class FeedService {
         continue;
       }
 
-      returnFeeds.push({
-        id: feed.id,
-        title: feed.title,
-        thumbnail: feed.thumbnail,
-        viewCount: feed.viewCount,
-        likeCount: feed.likeCount,
-        commentCount: feed._count.comments,
-        isLike: feed.likes?.length === 1,
-        author: feed.author,
-        tags: feed.tags.map(({ tagName }) => tagName),
-      });
+      returnFeeds.push(feed);
     }
 
     return {

@@ -20,6 +20,11 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -66,10 +71,6 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
 
   it('로그인한 유저는 isFollowing을 포함해서 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const targetUser = await prisma.user.create({
@@ -107,9 +108,6 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
       postCount: 0,
       isFollowing: true,
     });
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('없는 유저면 404를 반환한다', async () => {

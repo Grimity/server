@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/provider/prisma.service';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
+import { kyselyUuid } from './util';
 
 @Injectable()
 export class UserSelectRepository {
@@ -35,74 +36,107 @@ export class UserSelectRepository {
   }
 
   async getMyProfile(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        id: true,
-        provider: true,
-        email: true,
-        name: true,
-        image: true,
-        createdAt: true,
-        description: true,
-        links: true,
-        backgroundImage: true,
-      },
-    });
+    const [user] = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('id', '=', kyselyUuid(userId))
+      .select([
+        'id',
+        'provider',
+        'email',
+        'name',
+        'image',
+        'createdAt',
+        'description',
+        'links',
+        'backgroundImage',
+      ])
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Notification')
+              .where('Notification.userId', '=', kyselyUuid(userId))
+              .where('isRead', '=', false),
+          ])
+          .as('hasNotification'),
+      )
+      .execute();
 
-    if (!user) {
-      throw new HttpException('USER', 404);
-    }
+    if (!user) throw new HttpException('USER', 404);
 
     return user;
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    try {
-      const select: Prisma.UserSelect = {
-        id: true,
-        name: true,
-        image: true,
-        backgroundImage: true,
-        description: true,
-        links: true,
-        followerCount: true,
-        _count: {
-          select: {
-            followings: true,
-            feeds: true,
-            posts: true,
-          },
-        },
-      };
+    const [user] = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('User.id', '=', kyselyUuid(targetUserId))
+      .select([
+        'User.id',
+        'name',
+        'User.image',
+        'backgroundImage',
+        'description',
+        'links',
+        'followerCount',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('Feed')
+          .whereRef('Feed.authorId', '=', 'User.id')
+          .select((eb) => eb.fn.count<bigint>('Feed.id').as('feedCount'))
+          .as('feedCount'),
+      )
+      .select((eb) =>
+        eb
+          .selectFrom('Post')
+          .whereRef('Post.authorId', '=', 'User.id')
+          .select((eb) => eb.fn.count<bigint>('Post.id').as('postCount'))
+          .as('postCount'),
+      )
+      .$if(userId === targetUserId, (eb) =>
+        eb.select((eb) =>
+          eb
+            .selectFrom('Follow')
+            .whereRef('Follow.followerId', '=', 'User.id')
+            .select((eb) =>
+              eb.fn.count<bigint>('Follow.followerId').as('followingCount'),
+            )
+            .as('followingCount'),
+        ),
+      )
+      .$if(userId !== null && userId !== targetUserId, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Follow')
+                .whereRef('Follow.followingId', '=', 'User.id')
+                .where('Follow.followerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isFollowing'),
+        ]),
+      )
+      .execute();
 
-      if (userId) {
-        select.followers = {
-          select: {
-            followerId: true,
-          },
-          where: {
-            followerId: userId,
-          },
-        };
-      }
-      return await this.prisma.user.findUniqueOrThrow({
-        where: {
-          id: targetUserId,
-        },
-        select,
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('USER', 404);
-      }
-      throw e;
-    }
+    if (!user) throw new HttpException('USER', 404);
+
+    return {
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      backgroundImage: user.backgroundImage,
+      description: user.description,
+      links: user.links ?? [],
+      followerCount: user.followerCount,
+      followingCount:
+        user.followingCount !== null && user.followingCount !== undefined
+          ? Number(user.followingCount)
+          : 0,
+      feedCount: user.feedCount !== null ? Number(user.feedCount) : 0,
+      postCount: user.postCount !== null ? Number(user.postCount) : 0,
+      isFollowing: user.isFollowing ?? false,
+    };
   }
 
   async findMyFollowers(
@@ -115,31 +149,17 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    const where: Prisma.FollowWhereInput = {
-      followingId: userId,
-    };
-    if (cursor) {
-      where.followerId = {
-        lt: cursor,
-      };
-    }
-    return await this.prisma.follow.findMany({
-      where,
-      take: size,
-      orderBy: {
-        followerId: 'desc',
-      },
-      select: {
-        follower: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            description: true,
-          },
-        },
-      },
-    });
+    return await this.prisma.$kysely
+      .selectFrom('Follow')
+      .where('followingId', '=', kyselyUuid(userId))
+      .innerJoin('User', 'followerId', 'id')
+      .select(['id', 'name', 'User.image', 'description'])
+      .orderBy('followerId', 'desc')
+      .limit(size)
+      .$if(cursor !== null, (eb) =>
+        eb.where('followerId', '<', kyselyUuid(cursor!)),
+      )
+      .execute();
   }
 
   async findMyFollowings(
@@ -152,31 +172,17 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    const where: Prisma.FollowWhereInput = {
-      followerId: userId,
-    };
-    if (cursor) {
-      where.followingId = {
-        lt: cursor,
-      };
-    }
-    return await this.prisma.follow.findMany({
-      where,
-      take: size,
-      orderBy: {
-        followingId: 'desc',
-      },
-      select: {
-        following: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            description: true,
-          },
-        },
-      },
-    });
+    return await this.prisma.$kysely
+      .selectFrom('Follow')
+      .where('followerId', '=', kyselyUuid(userId))
+      .innerJoin('User', 'followingId', 'id')
+      .select(['id', 'name', 'User.image', 'description'])
+      .orderBy('followingId', 'asc')
+      .limit(size)
+      .$if(cursor !== null, (eb) =>
+        eb.where('followingId', '>', kyselyUuid(cursor!)),
+      )
+      .execute();
   }
 
   async findPopularUserIds() {
@@ -193,38 +199,43 @@ export class UserSelectRepository {
   }
 
   async findPopularUsersByIds(userId: string | null, userIds: string[]) {
-    const select: Prisma.UserSelect = {
-      id: true,
-      name: true,
-      image: true,
-      followerCount: true,
-      description: true,
-      feeds: {
-        select: {
-          thumbnail: true,
-        },
-        take: 2,
-      },
-    };
+    const users = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('User.id', 'in', userIds.map(kyselyUuid))
+      .select(['User.id', 'name', 'User.image', 'followerCount', 'description'])
+      .select((eb) =>
+        eb
+          .selectFrom('Feed')
+          .whereRef('Feed.authorId', '=', 'User.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['thumbnail']).as('thumbnail'),
+          )
+          .limit(2)
+          .as('thumbnails'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Follow')
+                .whereRef('Follow.followingId', '=', 'User.id')
+                .where('Follow.followerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isFollowing'),
+        ]),
+      )
+      .execute();
 
-    if (userId) {
-      select.followers = {
-        select: {
-          followerId: true,
-        },
-        where: {
-          followerId: userId,
-        },
-      };
-    }
-    return await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select,
-    });
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      followerCount: user.followerCount,
+      description: user.description,
+      thumbnails: user.thumbnails ?? [],
+      isFollowing: user.isFollowing ?? false,
+    }));
   }
 
   async getCachedPopularUserIds() {
@@ -234,34 +245,42 @@ export class UserSelectRepository {
   }
 
   async findManyByUserIds(myId: string | null, userIds: string[]) {
-    const select: Prisma.UserSelect = {
-      id: true,
-      name: true,
-      image: true,
-      backgroundImage: true,
-      description: true,
-      followerCount: true,
-    };
+    if (userIds.length === 0) return [];
 
-    if (myId) {
-      select.followers = {
-        select: {
-          followerId: true,
-        },
-        where: {
-          followerId: myId,
-        },
-      };
-    }
+    const users = await this.prisma.$kysely
+      .selectFrom('User')
+      .where('id', 'in', userIds.map(kyselyUuid))
+      .select([
+        'User.id',
+        'name',
+        'User.image',
+        'description',
+        'backgroundImage',
+        'followerCount',
+      ])
+      .$if(myId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Follow')
+                .whereRef('Follow.followingId', '=', 'User.id')
+                .where('followerId', '=', kyselyUuid(myId!)),
+            ])
+            .as('isFollowing'),
+        ]),
+      )
+      .execute();
 
-    return await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: userIds,
-        },
-      },
-      select,
-    });
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      image: user.image,
+      description: user.description,
+      backgroundImage: user.backgroundImage,
+      followerCount: user.followerCount,
+      isFollowing: user.isFollowing ?? false,
+    }));
   }
 
   async getSubscription(userId: string) {

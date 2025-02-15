@@ -20,6 +20,11 @@ describe('PUT /users/me', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -33,10 +38,6 @@ describe('PUT /users/me', () => {
 
   it('name이 없을 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -51,17 +52,10 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('name이 13글자 이상일때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -76,17 +70,10 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('description이 201글자 이상일때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -101,17 +88,10 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('link가 url이 아닐 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -131,17 +111,10 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('links가 4개 이상일 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -173,17 +146,10 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204와 함께 프로필을 수정한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -207,17 +173,10 @@ describe('PUT /users/me', () => {
     expect(user.name).toBe('test2');
     expect(user.description).toBe('test');
     expect(user.links).toEqual(['test|~|https://test.com']);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('중복된 name일 때 409를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
     await prisma.user.create({
       data: {
@@ -245,17 +204,10 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(409);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('links를 삭제한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
     await prisma.user.updateMany({
       data: {
@@ -277,17 +229,10 @@ describe('PUT /users/me', () => {
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
     expect(user.links).toEqual([]);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('links가 null일 때 빈 배열로 저장한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
     await prisma.user.updateMany({
       data: {
@@ -309,17 +254,10 @@ describe('PUT /users/me', () => {
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
     expect(user.links).toEqual([]);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('linkName에 space가 있을 때 space를 제거한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -343,8 +281,5 @@ describe('PUT /users/me', () => {
     expect(user.name).toBe('test2');
     expect(user.description).toBe('test');
     expect(user.links).toEqual(['t e s t|~|https://test.com']);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

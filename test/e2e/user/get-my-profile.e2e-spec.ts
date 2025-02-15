@@ -6,7 +6,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /users/me', () => {
+describe('GET /users/me - 내 정보 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -19,6 +19,11 @@ describe('GET /users/me', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
 
     await app.init();
   });
@@ -43,10 +48,6 @@ describe('GET /users/me', () => {
 
   it('200과 함께 내 정보를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     const user = await prisma.user.findFirstOrThrow();
@@ -56,22 +57,6 @@ describe('GET /users/me', () => {
         description: 'test',
         image: 'profile/test.png',
         links: ['test1|~|https://test1.com'],
-      },
-    });
-
-    const targetUser = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-      },
-    });
-
-    await prisma.follow.create({
-      data: {
-        followerId: user.id,
-        followingId: targetUser.id,
       },
     });
 
@@ -95,8 +80,5 @@ describe('GET /users/me', () => {
       createdAt: expect.any(String),
       hasNotification: false,
     });
-
-    // cleanup
-    spy.mockRestore();
   });
 });

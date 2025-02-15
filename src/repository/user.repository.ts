@@ -74,6 +74,7 @@ export class UserRepository {
           description: updateProfileInput.description,
           links: updateProfileInput.links,
         },
+        select: { id: true },
       });
       return;
     } catch (e) {
@@ -173,6 +174,7 @@ export class UserRepository {
           set: subscription,
         },
       },
+      select: { id: true },
     });
   }
 

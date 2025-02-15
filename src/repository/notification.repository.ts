@@ -68,16 +68,6 @@ export class NotificationRepository {
     }
   }
 
-  async hasUnread(userId: string) {
-    const notification = await this.prisma.notification.findFirst({
-      where: {
-        userId,
-        isRead: false,
-      },
-    });
-    return !!notification;
-  }
-
   async deleteOne(userId: string, notificationId: string) {
     try {
       await this.prisma.notification.delete({

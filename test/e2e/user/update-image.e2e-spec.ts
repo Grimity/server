@@ -20,6 +20,11 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,10 +48,6 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
 
   it('imageName이 없을 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -57,18 +58,10 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('204를 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -83,18 +76,10 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
     expect(user.image).toBe('profile/test.jpg');
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('imageName에 확장자가 없을 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -107,18 +92,10 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('imageName에 분류가 없을 때 400을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
-
     const accessToken = await register(app, 'test');
 
     // when
@@ -131,8 +108,5 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
