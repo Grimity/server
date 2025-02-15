@@ -159,6 +159,7 @@ export class PostCommentRepository {
         this.prisma.postComment.update({
           where: { id: commentId },
           data: { likeCount: { increment: 1 } },
+          select: { id: true },
         }),
       ]);
       return;
