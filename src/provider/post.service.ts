@@ -144,13 +144,11 @@ export class PostService {
     let ids = await this.postSelectRepository.getCachedTodayPopular();
     if (ids === null) {
       ids = await this.postSelectRepository.findTodayPopularIds();
+      await this.postRepository.cacheTodayPopular(ids);
     }
+
     const resultPosts =
       await this.postSelectRepository.findTodayPopularByIds(ids);
-
-    await this.postRepository.cacheTodayPopular(
-      resultPosts.map((post) => post.id),
-    );
 
     return resultPosts.map((post) => {
       return {
