@@ -205,12 +205,17 @@ export class UserSelectRepository {
       .select(['User.id', 'name', 'User.image', 'followerCount', 'description'])
       .select((eb) =>
         eb
-          .selectFrom('Feed')
-          .whereRef('Feed.authorId', '=', 'User.id')
-          .select((eb) =>
-            eb.fn<string[]>('array_agg', ['thumbnail']).as('thumbnail'),
+          .selectFrom((eb) =>
+            eb
+              .selectFrom('Feed')
+              .select('thumbnail')
+              .whereRef('Feed.authorId', '=', 'User.id')
+              .limit(2)
+              .as('Feed'),
           )
-          .limit(2)
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['Feed.thumbnail']).as('thumbnail'),
+          )
           .as('thumbnails'),
       )
       .$if(userId !== null, (eb) =>

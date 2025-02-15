@@ -93,6 +93,18 @@ describe('GET /users/popular - 인기 유저 조회', () => {
           title: 'test2',
           thumbnail: 'test2',
         },
+        {
+          authorId: users[0].id,
+          content: 'test',
+          title: 'test3',
+          thumbnail: 'test3',
+        },
+        {
+          authorId: users[0].id,
+          content: 'test',
+          title: 'test4',
+          thumbnail: 'test4',
+        },
       ],
     });
 
@@ -104,5 +116,7 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     // then
     expect(status).toBe(200);
     expect(body).toHaveLength(4);
+    const user = body.find((user: any) => user.id === users[0].id);
+    expect(user.thumbnails).toHaveLength(2);
   });
 });
