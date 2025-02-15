@@ -2,6 +2,7 @@ import { PrismaService } from 'src/provider/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
+import { kyselyUuid } from './util';
 
 @Injectable()
 export class TagRepository {
@@ -43,39 +44,47 @@ export class TagRepository {
   }
 
   async findFeedsByIds(userId: string | null, feedIds: string[]) {
-    const select: Prisma.FeedSelect = {
-      id: true,
-      title: true,
-      thumbnail: true,
-      likeCount: true,
-      viewCount: true,
+    if (feedIds.length === 0) return [];
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('Feed.id', 'in', feedIds.map(kyselyUuid))
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'likeCount',
+        'viewCount',
+        'authorId',
+      ])
+      .innerJoin('User', 'User.id', 'Feed.authorId')
+      .select(['name'])
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) =>
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ),
+      )
+      .limit(8)
+      .execute();
+
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      likeCount: feed.likeCount,
+      viewCount: feed.viewCount,
+      isLike: feed.isLike ?? false,
       author: {
-        select: {
-          id: true,
-          name: true,
-        },
+        id: feed.authorId,
+        name: feed.name,
       },
-    };
-
-    if (userId) {
-      select.likes = {
-        select: {
-          userId: true,
-        },
-        where: {
-          userId,
-        },
-      };
-    }
-
-    return await this.prisma.feed.findMany({
-      where: {
-        id: {
-          in: feedIds,
-        },
-      },
-      select,
-    });
+    }));
   }
 
   async cachePopularTags(items: { tagName: string; thumbnail: string }[]) {
