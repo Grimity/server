@@ -36,117 +36,117 @@ describe('PUT /users/me', () => {
     await app.close();
   });
 
-  // it('name이 없을 때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('name이 없을 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send({
-  //       name: '',
-  //       description: '',
-  //       links: [],
-  //     });
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: '',
+        description: '',
+        links: [],
+      });
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
-  // it('name이 13글자 이상일때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('name이 13글자 이상일때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send({
-  //       name: 'a'.repeat(13),
-  //       description: '',
-  //       links: [],
-  //     });
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'a'.repeat(13),
+        description: '',
+        links: [],
+      });
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
-  // it('description이 201글자 이상일때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('description이 201글자 이상일때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send({
-  //       name: 'test2',
-  //       description: 'a'.repeat(201),
-  //       links: [],
-  //     });
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test2',
+        description: 'a'.repeat(201),
+        links: [],
+      });
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
-  // it('link가 url이 아닐 때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('link가 url이 아닐 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send({
-  //       name: 'test',
-  //       description: 'test',
-  //       links: [
-  //         {
-  //           linkName: 'test',
-  //           link: 'test',
-  //         },
-  //       ],
-  //     });
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test',
+        description: 'test',
+        links: [
+          {
+            linkName: 'test',
+            link: 'test',
+          },
+        ],
+      });
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
-  // it('links가 4개 이상일 때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('links가 4개 이상일 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send({
-  //       name: 'test',
-  //       description: 'test',
-  //       links: [
-  //         {
-  //           linkName: 'test',
-  //           link: 'https://test.com',
-  //         },
-  //         {
-  //           linkName: 'test',
-  //           link: 'https://test.com',
-  //         },
-  //         {
-  //           linkName: 'test',
-  //           link: 'https://test.com',
-  //         },
-  //         {
-  //           linkName: 'test',
-  //           link: 'https://test.com',
-  //         },
-  //       ],
-  //     });
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test',
+        description: 'test',
+        links: [
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+        ],
+      });
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
   it('204와 함께 프로필을 수정한다', async () => {
     // given

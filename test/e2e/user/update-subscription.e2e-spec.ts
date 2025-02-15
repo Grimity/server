@@ -36,45 +36,45 @@ describe('PUT /users/me/subscribe - 구독 설정 수정', () => {
     await app.close();
   });
 
-  // it('accessToken이 없을 때 401을 반환한다', async () => {
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me/subscribe')
-  //     .send();
+  it('accessToken이 없을 때 401을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/subscribe')
+      .send();
 
-  //   // then
-  //   expect(status).toBe(401);
-  // });
+    // then
+    expect(status).toBe(401);
+  });
 
-  // it('subscription이 없을 때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('subscription이 없을 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me/subscribe')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send();
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/subscribe')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
-  // it('subscription이 유효하지 않을 때 400을 반환한다', async () => {
-  //   // given
-  //   const accessToken = await register(app, 'test');
+  it('subscription이 유효하지 않을 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
 
-  //   // when
-  //   const { status } = await request(app.getHttpServer())
-  //     .put('/users/me/subscribe')
-  //     .set('Authorization', `Bearer ${accessToken}`)
-  //     .send({
-  //       subscription: ['INVALID'],
-  //     });
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/subscribe')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        subscription: ['INVALID'],
+      });
 
-  //   // then
-  //   expect(status).toBe(400);
-  // });
+    // then
+    expect(status).toBe(400);
+  });
 
   it('204와 함께 subscription을 수정한다', async () => {
     // given
