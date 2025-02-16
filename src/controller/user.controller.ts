@@ -79,6 +79,17 @@ export class UserController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiResponse({ status: 204, description: '성공' })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete('me')
+  async deleteUser(@CurrentUser() userId: string) {
+    await this.userService.deleteMe(userId);
+    return;
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: '프로필 이미지 변경' })
   @ApiResponse({ status: 204, description: '성공' })
   @UseGuards(JwtGuard)

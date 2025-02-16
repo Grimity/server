@@ -652,6 +652,18 @@ export class FeedSelectRepository {
       .select(['User.id', 'name', 'User.image as image', 'description'])
       .execute();
   }
+
+  async findAllIdsByUserId(userId: string) {
+    const feeds = await this.prisma.feed.findMany({
+      select: {
+        id: true,
+      },
+      where: {
+        authorId: userId,
+      },
+    });
+    return feeds.map((feed) => feed.id);
+  }
 }
 
 type FindPopularInput = {

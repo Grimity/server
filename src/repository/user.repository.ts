@@ -182,6 +182,15 @@ export class UserRepository {
     await this.redis.set('popularUserIds', JSON.stringify(ids), 'EX', 60 * 30);
     return;
   }
+
+  async deleteOne(userId: string) {
+    await this.prisma.user.delete({
+      where: {
+        id: userId,
+      },
+      select: { id: true },
+    });
+  }
 }
 
 type UpdateProfileInput = {

@@ -378,6 +378,18 @@ export class UserService {
       }),
     };
   }
+
+  async deleteMe(userId: string) {
+    const [feedIds, postIds] = await Promise.all([
+      this.feedSelectRepository.findAllIdsByUserId(userId),
+      this.postSelectRepository.findAllIdsByUserId(userId),
+    ]);
+    await Promise.all([
+      this.openSearchService.deleteAll({ userId, feedIds, postIds }),
+      this.userRepository.deleteOne(userId),
+    ]);
+    return;
+  }
 }
 
 export type SearchUserInput = {

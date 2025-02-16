@@ -188,6 +188,49 @@ export class OpenSearchService {
     }
   }
 
+  async deleteAll({
+    userId,
+    feedIds,
+    postIds,
+  }: {
+    userId: string;
+    feedIds: string[];
+    postIds: string[];
+  }) {
+    if (this.configService.get('NODE_ENV') !== 'production') return;
+    try {
+      await Promise.all([
+        this.client.deleteByQuery({
+          index: 'feed',
+          body: {
+            query: {
+              ids: {
+                values: feedIds,
+              },
+            },
+          },
+        }),
+        this.client.deleteByQuery({
+          index: 'post',
+          body: {
+            query: {
+              ids: {
+                values: postIds,
+              },
+            },
+          },
+        }),
+        this.client.delete({
+          index: 'user',
+          id: userId,
+        }),
+      ]);
+    } catch (e) {
+      this.logger.error(e);
+      return;
+    }
+  }
+
   async searchUser({ keyword, cursor, size, sort }: SearchUserInput) {
     if (this.configService.get('NODE_ENV') !== 'production')
       return {

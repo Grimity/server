@@ -385,6 +385,18 @@ export class PostSelectRepository {
       },
     }));
   }
+
+  async findAllIdsByUserId(userId: string) {
+    const posts = await this.prisma.post.findMany({
+      where: {
+        authorId: userId,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return posts.map((post) => post.id);
+  }
 }
 
 type FindManyInput = {

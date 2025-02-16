@@ -1,17 +1,5 @@
-import {
-  Controller,
-  Body,
-  Post,
-  Get,
-  UseGuards,
-  HttpCode,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Body, Post, Get, HttpCode } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
 import {
   LoginDto,
@@ -20,7 +8,6 @@ import {
   RegisterSuccessDto,
   LoginSuccessDto,
 } from './dto/auth';
-import { JwtGuard } from 'src/common/guard';
 
 @ApiTags('/auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -62,13 +49,5 @@ export class AuthController {
     @Body() registerDto: RegisterDto,
   ): Promise<RegisterSuccessDto> {
     return await this.authService.register(registerDto);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'JWT Guard 테스트용 엔드포인트' })
-  @UseGuards(JwtGuard)
-  @Get('test')
-  async test() {
-    return true;
   }
 }
