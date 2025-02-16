@@ -64,7 +64,18 @@ export class UserSelectRepository {
 
     if (!user) throw new HttpException('USER', 404);
 
-    return user;
+    return {
+      id: user.id,
+      provider: user.provider,
+      email: user.email,
+      name: user.name,
+      image: user.image,
+      description: user.description,
+      links: user.links ?? [],
+      backgroundImage: user.backgroundImage,
+      createdAt: user.createdAt,
+      hasNotification: user.hasNotification,
+    };
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
