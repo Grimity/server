@@ -21,7 +21,7 @@ model User {
   image           String?
   description     String   @default("")
   backgroundImage String?
-  links           String[]
+  links           String[] @default([])
   followerCount   Int      @default(0)
   subscription    String[] @default(["FOLLOW", "FEED_LIKE", "FEED_COMMENT", "FEED_REPLY", "POST_COMMENT", "POST_REPLY"])
 
