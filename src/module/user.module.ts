@@ -5,7 +5,7 @@ import { UserService } from 'src/provider/user.service';
 import { UserController } from 'src/controller/user.controller';
 import { FeedModule } from './feed.module';
 import { AwsModule } from './aws.module';
-import { OpenSearchModule } from './opensearch.module';
+import { OpenSearchModule } from '../database/opensearch/opensearch.module';
 import { PostModule } from './post.module';
 
 @Module({

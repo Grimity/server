@@ -4,7 +4,7 @@ import { PostType } from 'src/common/constants';
 import * as striptags from 'striptags';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
-import { OpenSearchService } from './opensearch.service';
+import { OpenSearchService } from '../database/opensearch/opensearch.service';
 
 @Injectable()
 export class PostService {

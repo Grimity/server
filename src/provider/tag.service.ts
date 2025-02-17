@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TagRepository } from 'src/repository/tag.repository';
-import { OpenSearchService } from './opensearch.service';
+import { OpenSearchService } from '../database/opensearch/opensearch.service';
 
 @Injectable()
 export class TagService {

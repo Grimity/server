@@ -3,7 +3,7 @@ import { UserRepository } from 'src/repository/user.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
-import { OpenSearchService } from './opensearch.service';
+import { OpenSearchService } from '../database/opensearch/opensearch.service';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
 

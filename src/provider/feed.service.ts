@@ -2,7 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
-import { OpenSearchService } from './opensearch.service';
+import { OpenSearchService } from '../database/opensearch/opensearch.service';
 
 @Injectable()
 export class FeedService {

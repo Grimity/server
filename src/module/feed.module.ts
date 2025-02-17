@@ -4,7 +4,7 @@ import { FeedService } from 'src/provider/feed.service';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsModule } from './aws.module';
-import { OpenSearchModule } from './opensearch.module';
+import { OpenSearchModule } from '../database/opensearch/opensearch.module';
 
 @Module({
   imports: [AwsModule, OpenSearchModule],
