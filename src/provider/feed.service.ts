@@ -3,6 +3,7 @@ import { FeedRepository } from 'src/repository/feed.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { DdbService } from 'src/database/ddb/ddb.service';
 
 @Injectable()
 export class FeedService {
@@ -11,6 +12,7 @@ export class FeedService {
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
     private openSearchService: OpenSearchService,
+    private ddb: DdbService,
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
@@ -66,17 +68,29 @@ export class FeedService {
           feedId,
           likeCount,
         }),
-        this.awsService.pushOpensearchQueue('FEED', feedId),
+        this.ddb.putItemForUpdate({
+          type: 'FEED',
+          id: feedId,
+          count: likeCount,
+        }),
       ]);
     } else {
-      await this.awsService.pushOpensearchQueue('FEED', feedId);
+      await this.ddb.putItemForUpdate({
+        type: 'FEED',
+        id: feedId,
+        count: likeCount,
+      });
     }
     return;
   }
 
   async unlike(userId: string, feedId: string) {
-    await this.feedRepository.unlike(userId, feedId);
-    await this.awsService.pushOpensearchQueue('FEED', feedId);
+    const feed = await this.feedRepository.unlike(userId, feedId);
+    await this.ddb.putItemForUpdate({
+      type: 'FEED',
+      id: feedId,
+      count: feed.likeCount,
+    });
     return;
   }
 

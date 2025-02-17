@@ -72,7 +72,7 @@ export class FeedRepository {
 
   async unlike(userId: string, feedId: string) {
     try {
-      await this.prisma.$transaction([
+      const [_, feed] = await this.prisma.$transaction([
         this.prisma.like.delete({
           where: {
             userId_feedId: {
@@ -91,10 +91,10 @@ export class FeedRepository {
               decrement: 1,
             },
           },
-          select: { id: true },
+          select: { likeCount: true },
         }),
       ]);
-      return;
+      return feed;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {

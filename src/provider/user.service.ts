@@ -6,6 +6,7 @@ import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { OpenSearchService } from '../database/opensearch/opensearch.service';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
+import { DdbService } from 'src/database/ddb/ddb.service';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,7 @@ export class UserService {
     private userSelectRepository: UserSelectRepository,
     private openSearchService: OpenSearchService,
     private postSelectRepository: PostSelectRepository,
+    private ddb: DdbService,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -73,27 +75,40 @@ export class UserService {
   }
 
   async follow(userId: string, targetUserId: string) {
-    const subscription = await this.userRepository.follow(userId, targetUserId);
+    const user = await this.userRepository.follow(userId, targetUserId);
 
-    if (subscription.includes('FOLLOW')) {
+    if (user.subscription.includes('FOLLOW')) {
       await Promise.all([
         this.awsService.pushEvent({
           type: 'FOLLOW',
           actorId: userId,
           userId: targetUserId,
         }),
-        this.awsService.pushOpensearchQueue('USER', targetUserId),
+        this.ddb.putItemForUpdate({
+          type: 'USER',
+          id: targetUserId,
+          count: user.followerCount,
+        }),
       ]);
     } else {
-      await this.awsService.pushOpensearchQueue('USER', targetUserId);
+      await this.ddb.putItemForUpdate({
+        type: 'USER',
+        id: targetUserId,
+        count: user.followerCount,
+      });
     }
 
     return;
   }
 
   async unfollow(userId: string, targetUserId: string) {
-    await this.userRepository.unfollow(userId, targetUserId);
-    await this.awsService.pushOpensearchQueue('USER', targetUserId);
+    const user = await this.userRepository.unfollow(userId, targetUserId);
+    await this.ddb.putItemForUpdate({
+      type: 'USER',
+      id: targetUserId,
+      count: user.followerCount,
+    });
+
     return;
   }
 
