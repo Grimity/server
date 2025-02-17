@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 import { v4 as uuid } from 'uuid';

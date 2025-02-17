@@ -4,7 +4,7 @@ generator client {
 
 generator kysely {
   provider = "prisma-kysely"
-  output   = "../src/kysely"
+  output   = "../src/database/kysely"
 }
 
 datasource db {

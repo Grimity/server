@@ -1,5 +1,5 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { RedisService } from 'src/provider/redis.service';
 import { kyselyUuid } from './util';

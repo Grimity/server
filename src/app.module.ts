@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PrismaModule } from './module/prisma.module';
+import { PrismaModule } from './database/prisma/prisma.module';
 import { globalPipe } from './common/pipe/global.pipe';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './module/auth.module';

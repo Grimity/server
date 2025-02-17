@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/provider/redis.service';
 
 describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {

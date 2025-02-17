@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 
 describe('GET /users/:id/feeds - 유저별 피드조회', () => {
   let app: INestApplication;
