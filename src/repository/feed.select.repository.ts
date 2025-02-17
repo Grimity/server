@@ -1,7 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from './util';
-import { RedisService } from 'src/provider/redis.service';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class FeedSelectRepository {
