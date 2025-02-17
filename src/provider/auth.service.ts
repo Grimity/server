@@ -2,7 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { JwtService } from '@nestjs/jwt';
-import { OpenSearchService } from './opensearch.service';
+import { OpenSearchService } from '../database/opensearch/opensearch.service';
 
 @Injectable()
 export class AuthService {

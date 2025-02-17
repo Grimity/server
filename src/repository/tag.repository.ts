@@ -1,7 +1,6 @@
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { RedisService } from 'src/provider/redis.service';
+import { RedisService } from 'src/database/redis/redis.service';
 import { kyselyUuid } from './util';
 
 @Injectable()

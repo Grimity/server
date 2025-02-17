@@ -1,9 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { RedisService } from 'src/provider/redis.service';
-import { kyselyUuid } from './util';
-import { sql } from 'kysely';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class FeedRepository {
@@ -74,7 +72,7 @@ export class FeedRepository {
 
   async unlike(userId: string, feedId: string) {
     try {
-      await this.prisma.$transaction([
+      const [_, feed] = await this.prisma.$transaction([
         this.prisma.like.delete({
           where: {
             userId_feedId: {
@@ -93,10 +91,10 @@ export class FeedRepository {
               decrement: 1,
             },
           },
-          select: { id: true },
+          select: { likeCount: true },
         }),
       ]);
-      return;
+      return feed;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {

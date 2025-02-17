@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PrismaModule } from './module/prisma.module';
+import { PrismaModule } from './database/prisma/prisma.module';
 import { globalPipe } from './common/pipe/global.pipe';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './module/auth.module';
@@ -14,7 +14,7 @@ import { PostCommentModule } from './module/post-comment.module';
 import { ReportModule } from './module/report.module';
 import { GlobalFilter } from './common/filter';
 import { APP_FILTER } from '@nestjs/core';
-import { RedisModule } from './module/redis.module';
+import { RedisModule } from './database/redis/redis.module';
 
 @Module({
   imports: [

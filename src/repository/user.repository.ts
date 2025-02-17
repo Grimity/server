@@ -1,7 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { RedisService } from 'src/provider/redis.service';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class UserRepository {
@@ -109,10 +109,11 @@ export class UserRepository {
           },
           select: {
             subscription: true,
+            followerCount: true,
           },
         }),
       ]);
-      return user.subscription;
+      return user;
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -131,7 +132,7 @@ export class UserRepository {
 
   async unfollow(userId: string, targetUserId: string) {
     try {
-      await this.prisma.$transaction([
+      const [_, user] = await this.prisma.$transaction([
         this.prisma.follow.delete({
           where: {
             followerId_followingId: {
@@ -150,10 +151,10 @@ export class UserRepository {
               decrement: 1,
             },
           },
-          select: { id: true },
+          select: { followerCount: true },
         }),
       ]);
-      return;
+      return user;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') {

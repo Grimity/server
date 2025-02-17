@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
-import { PrismaService } from 'src/provider/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { UserService } from 'src/provider/user.service';
-import { RedisService } from 'src/provider/redis.service';
+import { RedisService } from 'src/database/redis/redis.service';
 import { register } from '../helper';
 
 describe('GET /users/popular - 인기 유저 조회', () => {

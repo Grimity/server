@@ -7,7 +7,7 @@ import {
   PostgresQueryCompiler,
 } from 'kysely';
 import kyselyExtension from 'prisma-extension-kysely';
-import { DB } from 'src/kysely/types';
+import { DB } from 'src/database/kysely/types';
 
 declare module '@prisma/client' {
   interface PrismaClient {
