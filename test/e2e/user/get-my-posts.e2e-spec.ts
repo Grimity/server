@@ -84,7 +84,6 @@ describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
           title: `title${index}`,
           content: `content${index}`,
           type: 1,
-          hasImage: false,
           commentCount: 0,
           viewCount: 0,
           createdAt: new Date(Date.now() - index * 1000),

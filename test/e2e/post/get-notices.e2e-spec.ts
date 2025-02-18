@@ -45,7 +45,6 @@ describe('GET /posts/notices - 공지사항 조회', () => {
           title: `test${i}`,
           content: `test${i}`,
           type: 0,
-          hasImage: false,
           createdAt: new Date(Date.now() - i * 1000),
         };
       }),
@@ -57,7 +56,6 @@ describe('GET /posts/notices - 공지사항 조회', () => {
         title: 'test',
         content: 'test',
         type: 1,
-        hasImage: false,
       },
     });
 
@@ -73,7 +71,7 @@ describe('GET /posts/notices - 공지사항 조회', () => {
       id: expect.any(String),
       title: 'test0',
       content: 'test0',
-      hasImage: false,
+      thumbnail: null,
       commentCount: 0,
       viewCount: 0,
       type: 'NOTICE',

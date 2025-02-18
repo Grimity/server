@@ -158,7 +158,6 @@ describe('PUT /posts/:id - 게시글 수정', () => {
         title: 'title',
         content: 'content',
         type: 1,
-        hasImage: false,
       },
     });
 
@@ -181,7 +180,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
       title: 'new title',
       content: 'new content',
       type: 2,
-      hasImage: false,
+      thumbnail: null,
       createdAt: expect.any(Date),
       commentCount: 0,
       viewCount: 0,
@@ -207,7 +206,6 @@ describe('PUT /posts/:id - 게시글 수정', () => {
         title: 'title',
         content: 'content',
         type: 1,
-        hasImage: false,
       },
     });
 

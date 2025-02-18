@@ -122,7 +122,7 @@ describe('POST /posts - 게시글 생성', () => {
 
     // when
     const htmlText =
-      '<p>test</p><img src="test.jpg" ><p>test</p><br /><p><strong>te st</strong></p>';
+      '<h1><strong>아아아아아ㅏ</strong></h1><p><strong><span style="color: #e03e2d;">맛도리</span></strong></p><p><strong><img src="https://image.grimity.com/post/9a21b826-a173-4057-801e-f67630a74018.jpeg" alt=""></strong></p><p><strong><span style="color: #e03e2d;"><strong><img src="https://image.grimity.com/post/9109549f-f4fc-4541-8fa4-d322fd746789.jpeg" alt=""></strong></span></strong></p><p>&nbsp;</p><p><strong><span style="color: #e03e2d;"><strong><img src="https://image.grimity.com/post/e612fb8d-660f-4081-bd97-c527d2e660bf.jpeg" alt=""></strong></span></strong></p>';
     const { status, body } = await request(app.getHttpServer())
       .post('/posts')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -141,7 +141,8 @@ describe('POST /posts - 게시글 생성', () => {
       title: 'test',
       content: htmlText,
       type: 1,
-      hasImage: true,
+      thumbnail:
+        'https://image.grimity.com/post/9a21b826-a173-4057-801e-f67630a74018.jpeg',
       createdAt: expect.any(Date),
       viewCount: 0,
       commentCount: 0,

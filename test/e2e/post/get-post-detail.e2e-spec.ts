@@ -75,7 +75,6 @@ describe('GET /posts/:id - 게시글 상세 조회', () => {
         title: 'test',
         content: 'test',
         type: 1,
-        hasImage: false,
       },
     });
 
@@ -106,7 +105,7 @@ describe('GET /posts/:id - 게시글 상세 조회', () => {
       type: 'NORMAL',
       title: post.title,
       content: post.content,
-      hasImage: post.hasImage,
+      thumbnail: null,
       commentCount: 0,
       viewCount: expect.any(Number),
       likeCount: 1,
