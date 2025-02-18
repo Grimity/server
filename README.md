@@ -18,7 +18,9 @@
 <br/>
 
 ## Architecture
-![grimity drawio](https://github.com/user-attachments/assets/38f9502f-ae65-40bf-ac73-1e1295b690a6)
+
+![grimity drawio](https://github.com/user-attachments/assets/46aacb7d-27cc-4d2b-9975-64815c83fe12)
+
 
 <br/>
 
