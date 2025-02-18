@@ -171,7 +171,7 @@ model Post {
   title        String
   content      String
   type         Int      @db.SmallInt
-  hasImage     Boolean  @default(false)
+  thumbnail    String?
   createdAt    DateTime @default(now())
   viewCount    Int      @default(0)
   commentCount Int      @default(0)

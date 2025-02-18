@@ -103,7 +103,7 @@ describe('GET /posts/search - 게시글 검색(이름만)', () => {
       type: 'NORMAL',
       title: 'title0',
       content: 'content0',
-      hasImage: false,
+      thumbnail: null,
       commentCount: 0,
       viewCount: 0,
       createdAt: expect.any(String),

@@ -85,7 +85,6 @@ describe('DELETE /posts/:id/like - 게시글 좋아요 취소', () => {
         title: 'title',
         content: 'content',
         type: 1,
-        hasImage: false,
       },
     });
 

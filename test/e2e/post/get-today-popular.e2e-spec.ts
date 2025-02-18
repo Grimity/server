@@ -50,7 +50,6 @@ describe('GET /posts/today-popular - 오늘의 인기 게시글 조회', () => {
           content: `test${i}`,
           viewCount: i,
           type: 1,
-          hasImage: false,
         };
       }),
     });
@@ -68,7 +67,7 @@ describe('GET /posts/today-popular - 오늘의 인기 게시글 조회', () => {
       title: 'test19',
       type: 'NORMAL',
       content: 'test19',
-      hasImage: false,
+      thumbnail: null,
       viewCount: 19,
       commentCount: 0,
       createdAt: expect.any(String),

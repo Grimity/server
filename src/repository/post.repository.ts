@@ -17,7 +17,7 @@ export class PostRepository {
         title: input.title,
         content: input.content,
         type: input.type,
-        hasImage: input.hasImage,
+        thumbnail: input.thumbnail,
       },
       select: {
         id: true,
@@ -36,7 +36,7 @@ export class PostRepository {
           title: input.title,
           content: input.content,
           type: input.type,
-          hasImage: input.hasImage,
+          thumbnail: input.thumbnail,
         },
         select: { id: true },
       });
@@ -191,7 +191,7 @@ type CreateInput = {
   title: string;
   content: string;
   type: number;
-  hasImage: boolean;
+  thumbnail: string | null;
 };
 
 type UpdateInput = {
@@ -200,7 +200,7 @@ type UpdateInput = {
   title: string;
   content: string;
   type: number;
-  hasImage: boolean;
+  thumbnail: string | null;
 };
 
 type CachedPost = {

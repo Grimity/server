@@ -15,8 +15,8 @@ class SavedPostDto {
   @ApiProperty()
   content: string;
 
-  @ApiProperty()
-  hasImage: boolean;
+  @ApiProperty({ type: 'string', nullable: true })
+  thumbnail: string | null;
 
   @ApiProperty()
   commentCount: number;

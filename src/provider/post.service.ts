@@ -5,6 +5,7 @@ import * as striptags from 'striptags';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { extractImage } from './util';
 
 @Injectable()
 export class PostService {
@@ -21,7 +22,7 @@ export class PostService {
       throw new HttpException('내용을 입력해주세요', 400);
     }
 
-    const hasImage = content.includes('<img');
+    const thumbnail = extractImage(content);
 
     const typeNumber = PostTypeEnum[type];
 
@@ -30,7 +31,7 @@ export class PostService {
       title,
       content,
       type: typeNumber,
-      hasImage,
+      thumbnail,
     });
 
     await this.openSearchService.insertPost({
@@ -51,7 +52,7 @@ export class PostService {
       throw new HttpException('내용을 입력해주세요', 400);
     }
 
-    const hasImage = content.includes('<img');
+    const thumbnail = extractImage(content);
 
     const typeNumber = PostTypeEnum[type];
 
@@ -61,7 +62,7 @@ export class PostService {
       title,
       content,
       type: typeNumber,
-      hasImage,
+      thumbnail,
     });
 
     await this.openSearchService.updatePost({

@@ -85,7 +85,6 @@ describe('DELETE /posts/:id/save - 게시글 저장 취소', () => {
         title: 'title',
         content: 'content',
         type: 1,
-        hasImage: false,
       },
     });
 

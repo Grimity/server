@@ -18,8 +18,8 @@ class SearchedPostDto {
   @ApiProperty()
   content: string;
 
-  @ApiProperty()
-  hasImage: boolean;
+  @ApiProperty({ type: 'string', nullable: true })
+  thumbnail: string | null;
 
   @ApiProperty()
   viewCount: number;
