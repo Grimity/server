@@ -20,7 +20,7 @@ describe('GET /posts/:id/meta - 게시글 메타 조회', () => {
   });
 
   afterEach(async () => {
-    await prisma.post.deleteMany();
+    await prisma.user.deleteMany();
   });
 
   afterAll(async () => {
