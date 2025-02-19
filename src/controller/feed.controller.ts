@@ -34,6 +34,7 @@ import {
   GetPopularQuery,
   PopularFeedResponse,
   LikeUserDto,
+  FeedMetaDto,
 } from './dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -235,6 +236,16 @@ export class FeedController {
     @Param('id', ParseUUIDPipe) feedId: string,
   ): Promise<FeedDetailDto> {
     return await this.feedService.getFeed(userId, feedId);
+  }
+
+  @ApiOperation({ summary: '피드 상세 메타데이터 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: FeedMetaDto })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @Get(':id/meta')
+  async getFeedMeta(
+    @Param('id', ParseUUIDPipe) feedId: string,
+  ): Promise<FeedMetaDto> {
+    return await this.feedService.getMeta(feedId);
   }
 
   @ApiBearerAuth()

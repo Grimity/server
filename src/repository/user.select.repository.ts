@@ -309,4 +309,28 @@ export class UserSelectRepository {
       },
     });
   }
+
+  async findMeta(id: string) {
+    try {
+      return await this.prisma.user.findUniqueOrThrow({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          description: true,
+        },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('USER', 404);
+      }
+      throw e;
+    }
+  }
 }

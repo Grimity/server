@@ -208,6 +208,20 @@ export class PostService {
       }),
     };
   }
+
+  async getMeta(id: string) {
+    const post = await this.postSelectRepository.findMeta(id);
+
+    const parsedContent = striptags(post.content);
+
+    return {
+      id: post.id,
+      title: post.title,
+      content: parsedContent.slice(0, 100),
+      thumbnail: post.thumbnail,
+      createdAt: post.createdAt,
+    };
+  }
 }
 
 type CreateInput = {

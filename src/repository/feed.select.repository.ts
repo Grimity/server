@@ -663,6 +663,34 @@ export class FeedSelectRepository {
     });
     return feeds.map((feed) => feed.id);
   }
+
+  async findMeta(id: string) {
+    const [feed] = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('id', '=', kyselyUuid(id))
+      .select(['Feed.id', 'title', 'thumbnail', 'Feed.createdAt', 'content'])
+      .select((eb) =>
+        eb
+          .selectFrom('Tag')
+          .whereRef('Tag.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['tagName']).as('tagName'),
+          )
+          .as('tags'),
+      )
+      .execute();
+
+    if (!feed) throw new HttpException('FEED', 404);
+
+    return {
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      createdAt: feed.createdAt,
+      content: feed.content,
+      tags: feed.tags ?? [],
+    };
+  }
 }
 
 type FindPopularInput = {
