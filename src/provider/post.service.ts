@@ -22,6 +22,8 @@ export class PostService {
       throw new HttpException('내용을 입력해주세요', 400);
     }
 
+    const cleanedText = parsedContent.replace(/&nbsp;|&amp;/g, ' ');
+
     const thumbnail = extractImage(content);
 
     const typeNumber = PostTypeEnum[type];
@@ -37,7 +39,7 @@ export class PostService {
     await this.openSearchService.insertPost({
       id,
       title,
-      content: parsedContent,
+      content: cleanedText,
     });
     return { id };
   }
@@ -213,6 +215,7 @@ export class PostService {
     const post = await this.postSelectRepository.findMeta(id);
 
     const parsedContent = striptags(post.content);
+    const cleanedText = parsedContent.replace(/&nbsp;|&amp;/g, ' ');
 
     return {
       id: post.id,
