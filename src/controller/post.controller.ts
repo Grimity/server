@@ -32,6 +32,7 @@ import {
   UpdatePostDto,
   SearchPostQuery,
   SearchPostResponse,
+  PostMetaDto,
 } from './dto/post';
 
 @ApiTags('/posts')
@@ -141,6 +142,16 @@ export class PostController {
     @Param('id', new ParseUUIDPipe()) postId: string,
   ): Promise<PostDetailDto> {
     return await this.postService.getPost(userId, postId);
+  }
+
+  @ApiOperation({ summary: '게시글 메타데이터 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: PostMetaDto })
+  @ApiResponse({ status: 404, description: '게시글 없음' })
+  @Get(':id/meta')
+  async getMeta(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<PostMetaDto> {
+    return await this.postService.getMeta(id);
   }
 
   @ApiBearerAuth()

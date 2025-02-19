@@ -397,6 +397,25 @@ export class PostSelectRepository {
     });
     return posts.map((post) => post.id);
   }
+
+  async findMeta(id: string) {
+    try {
+      return await this.prisma.post.findUniqueOrThrow({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          thumbnail: true,
+          createdAt: true,
+        },
+      });
+    } catch (e) {
+      throw new HttpException('POST', 404);
+    }
+  }
 }
 
 type FindManyInput = {
