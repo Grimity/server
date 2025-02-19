@@ -220,7 +220,7 @@ export class PostService {
     return {
       id: post.id,
       title: post.title,
-      content: parsedContent.slice(0, 100),
+      content: cleanedText.slice(0, 100),
       thumbnail: post.thumbnail,
       createdAt: post.createdAt,
     };
