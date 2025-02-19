@@ -344,6 +344,10 @@ export class FeedService {
   async getLikes(feedId: string) {
     return await this.feedSelectRepository.findLikesById(feedId);
   }
+
+  async getMeta(id: string) {
+    return await this.feedSelectRepository.findMeta(id);
+  }
 }
 
 export type GetPopularFeedsInput = {
