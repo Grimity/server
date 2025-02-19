@@ -38,12 +38,12 @@ import {
   PopularUserDto,
   SearchUserQuery,
   SearchedUserResponse,
-  SubscribeQuery,
   SubscriptionDto,
   GetMyPostsQuery,
   MyPostDto,
   GetMySavePostsResponse,
   UpdateSubscriptionDto,
+  UserMetaDto,
 } from 'src/controller/dto/user';
 
 @ApiTags('/users')
@@ -374,6 +374,13 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
   ): Promise<UserProfileDto> {
     return this.userService.getUserProfile(userId, targetId);
+  }
+
+  @ApiOperation({ summary: '유저 메타데이터 조회' })
+  @ApiResponse({ status: 200, description: '성공', type: UserMetaDto })
+  @Get(':id/meta')
+  async getMeta(@Param('id', ParseUUIDPipe) id: string): Promise<UserMetaDto> {
+    return this.userService.getMeta(id);
   }
 
   @ApiOperation({ summary: '유저별 피드 조회' })

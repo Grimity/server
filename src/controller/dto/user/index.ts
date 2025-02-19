@@ -6,7 +6,6 @@ export * from './request/get-my-followers.query';
 export * from './request/get-my-followings.query';
 export * from './request/get-my-like-feeds.query';
 export * from './request/search-user.query';
-export * from './request/subscribe.query';
 export * from './request/get-my-posts.query';
 export * from './request/update-subscription.dto';
 
@@ -21,3 +20,4 @@ export * from './response/searched-user.response';
 export * from './response/subscription.dto';
 export * from './response/my-post.dto';
 export * from './response/get-my-save-posts.response';
+export * from './response/user-meta.dto';

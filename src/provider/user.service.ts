@@ -405,6 +405,10 @@ export class UserService {
     ]);
     return;
   }
+
+  async getMeta(id: string) {
+    return await this.userSelectRepository.findMeta(id);
+  }
 }
 
 export type SearchUserInput = {
