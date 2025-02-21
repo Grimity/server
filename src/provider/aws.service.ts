@@ -18,7 +18,7 @@ export class AwsService {
 
   async getUploadUrl(
     type: 'profile' | 'feed' | 'background' | 'post',
-    ext: 'jpg' | 'jpeg' | 'png' | 'gif',
+    ext: 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp',
   ) {
     const key = `${type}/${uuidv4()}.${ext}`;
     const url = await this.createUploadUrl(key);
@@ -119,5 +119,5 @@ type Event =
 
 type GetUplodateUrlInput = {
   type: 'profile' | 'feed' | 'background' | 'post';
-  ext: 'jpg' | 'jpeg' | 'png' | 'gif';
+  ext: 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp';
 };
