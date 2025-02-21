@@ -20,6 +20,7 @@ import { GetImageUploadUrlDto, UrlDto } from 'src/controller/dto/aws';
 @ApiTags('/aws')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
+@UseGuards(JwtGuard)
 @Controller('aws')
 export class AwsController {
   constructor(private awsService: AwsService) {}
@@ -41,7 +42,6 @@ export class AwsController {
     type: UrlDto,
     isArray: true,
   })
-  @UseGuards(JwtGuard)
   @Post('image-upload-urls')
   async getImageUploadUrls(
     @Body(

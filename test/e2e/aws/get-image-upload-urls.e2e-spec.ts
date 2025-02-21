@@ -20,6 +20,11 @@ describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: '1234',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -43,10 +48,6 @@ describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
 
   it('type은 profile, feed 중 하나여야 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: '1234',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -62,17 +63,10 @@ describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
-  it('ext는 jpg, jpeg, png 중 하나여야 한다', async () => {
+  it('ext는 webp여야 한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: '1234',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -88,17 +82,10 @@ describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
 
     // then
     expect(status).toBe(400);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('201과 함께 url을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: '1234',
-      email: 'test@test.com',
-    });
     const accessToken = await register(app, 'test');
 
     // when
@@ -108,23 +95,20 @@ describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
       .send([
         {
           type: 'feed',
-          ext: 'png',
+          ext: 'webp',
         },
         {
           type: 'feed',
-          ext: 'jpg',
+          ext: 'webp',
         },
         {
           type: 'profile',
-          ext: 'jpeg',
+          ext: 'webp',
         },
       ]);
 
     // then
     expect(status).toBe(201);
     expect(body).toHaveLength(3);
-
-    // cleanup
-    spy.mockRestore();
   });
 });
