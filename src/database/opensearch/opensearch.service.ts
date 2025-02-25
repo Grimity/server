@@ -4,6 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { SortOptions } from '@opensearch-project/opensearch/api/_types/_common';
 import { TotalHits } from '@opensearch-project/opensearch/api/_types/_core.search';
 
+const requestTimeout = 1000;
+const searchTimeout = 3000;
+
 @Injectable()
 export class OpenSearchService {
   private readonly logger = new Logger(OpenSearchService.name);
@@ -31,7 +34,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout,
         },
       );
     } catch (e) {
@@ -88,7 +91,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout,
         },
       );
     } catch (e) {
@@ -138,7 +141,7 @@ export class OpenSearchService {
           id,
         },
         {
-          requestTimeout: 100,
+          requestTimeout,
         },
       );
     } catch (e) {
@@ -169,7 +172,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout,
         },
       );
     } catch (e) {
@@ -201,7 +204,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout,
         },
       );
     } catch (e) {
@@ -219,7 +222,7 @@ export class OpenSearchService {
           id,
         },
         {
-          requestTimeout: 100,
+          requestTimeout,
         },
       );
     } catch (e) {
@@ -252,7 +255,7 @@ export class OpenSearchService {
             },
           },
           {
-            requestTimeout: 100,
+            requestTimeout,
           },
         ),
         this.client.deleteByQuery(
@@ -267,7 +270,7 @@ export class OpenSearchService {
             },
           },
           {
-            requestTimeout: 100,
+            requestTimeout,
           },
         ),
         this.client.delete(
@@ -276,7 +279,7 @@ export class OpenSearchService {
             id: userId,
           },
           {
-            requestTimeout: 100,
+            requestTimeout,
           },
         ),
       ]);
@@ -345,7 +348,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout: searchTimeout,
         },
       );
 
@@ -409,7 +412,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout: searchTimeout,
         },
       );
 
@@ -455,7 +458,7 @@ export class OpenSearchService {
           },
         },
         {
-          requestTimeout: 100,
+          requestTimeout: searchTimeout,
         },
       );
 
