@@ -19,16 +19,21 @@ export class OpenSearchService {
   async createUser(id: string, name: string) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.index({
-        index: 'user',
-        id,
-        body: {
-          name,
-          description: '',
-          followerCount: 0,
+      return await this.client.index(
+        {
+          index: 'user',
           id,
+          body: {
+            name,
+            description: '',
+            followerCount: 0,
+            id,
+          },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -38,16 +43,21 @@ export class OpenSearchService {
   async updateUser(id: string, name: string, description: string) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.update({
-        index: 'user',
-        id,
-        body: {
-          doc: {
-            name,
-            description,
+      return await this.client.update(
+        {
+          index: 'user',
+          id,
+          body: {
+            doc: {
+              name,
+              description,
+            },
           },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -65,17 +75,22 @@ export class OpenSearchService {
   }) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.index({
-        index: 'feed',
-        id,
-        body: {
-          title,
-          tag,
+      return await this.client.index(
+        {
+          index: 'feed',
           id,
-          createdAt: new Date().toISOString(),
-          likeCount: 0,
+          body: {
+            title,
+            tag,
+            id,
+            createdAt: new Date().toISOString(),
+            likeCount: 0,
+          },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -93,16 +108,21 @@ export class OpenSearchService {
   }) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.update({
-        index: 'feed',
-        id,
-        body: {
-          doc: {
-            title,
-            tag,
+      return await this.client.update(
+        {
+          index: 'feed',
+          id,
+          body: {
+            doc: {
+              title,
+              tag,
+            },
           },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -112,10 +132,15 @@ export class OpenSearchService {
   async deleteFeed(id: string) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.delete({
-        index: 'feed',
-        id,
-      });
+      return await this.client.delete(
+        {
+          index: 'feed',
+          id,
+        },
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -133,15 +158,20 @@ export class OpenSearchService {
   }) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.index({
-        index: 'post',
-        id,
-        body: {
-          title,
-          content,
-          createdAt: new Date().toISOString(),
+      return await this.client.index(
+        {
+          index: 'post',
+          id,
+          body: {
+            title,
+            content,
+            createdAt: new Date().toISOString(),
+          },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -159,16 +189,21 @@ export class OpenSearchService {
   }) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.update({
-        index: 'post',
-        id,
-        body: {
-          doc: {
-            title,
-            content,
+      return await this.client.update(
+        {
+          index: 'post',
+          id,
+          body: {
+            doc: {
+              title,
+              content,
+            },
           },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -178,10 +213,15 @@ export class OpenSearchService {
   async deletePost(id: string) {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.delete({
-        index: 'post',
-        id,
-      });
+      return await this.client.delete(
+        {
+          index: 'post',
+          id,
+        },
+        {
+          requestTimeout: 100,
+        },
+      );
     } catch (e) {
       this.logger.error(e);
       return;
@@ -200,30 +240,45 @@ export class OpenSearchService {
     if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
       await Promise.all([
-        this.client.deleteByQuery({
-          index: 'feed',
-          body: {
-            query: {
-              ids: {
-                values: feedIds,
+        this.client.deleteByQuery(
+          {
+            index: 'feed',
+            body: {
+              query: {
+                ids: {
+                  values: feedIds,
+                },
               },
             },
           },
-        }),
-        this.client.deleteByQuery({
-          index: 'post',
-          body: {
-            query: {
-              ids: {
-                values: postIds,
+          {
+            requestTimeout: 100,
+          },
+        ),
+        this.client.deleteByQuery(
+          {
+            index: 'post',
+            body: {
+              query: {
+                ids: {
+                  values: postIds,
+                },
               },
             },
           },
-        }),
-        this.client.delete({
-          index: 'user',
-          id: userId,
-        }),
+          {
+            requestTimeout: 100,
+          },
+        ),
+        this.client.delete(
+          {
+            index: 'user',
+            id: userId,
+          },
+          {
+            requestTimeout: 100,
+          },
+        ),
       ]);
     } catch (e) {
       this.logger.error(e);
@@ -261,33 +316,38 @@ export class OpenSearchService {
     }
 
     try {
-      const response = await this.client.search({
-        index: 'user',
-        body: {
-          query: {
-            bool: {
-              should: [
-                {
-                  wildcard: {
-                    name: {
-                      value: `*${keyword}*`,
-                      boost: 3,
+      const response = await this.client.search(
+        {
+          index: 'user',
+          body: {
+            query: {
+              bool: {
+                should: [
+                  {
+                    wildcard: {
+                      name: {
+                        value: `*${keyword}*`,
+                        boost: 3,
+                      },
                     },
                   },
-                },
-                {
-                  match: {
-                    description: keyword,
+                  {
+                    match: {
+                      description: keyword,
+                    },
                   },
-                },
-              ],
+                ],
+              },
             },
+            size,
+            sort: sortQuery,
+            from: size * cursor,
           },
-          size,
-          sort: sortQuery,
-          from: size * cursor,
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
 
       const totalCount = (response.body.hits.total as TotalHits).value;
       const hits = response.body.hits.hits as UserHitData[];
@@ -333,20 +393,25 @@ export class OpenSearchService {
     });
 
     try {
-      const response = await this.client.search({
-        index: 'feed',
-        body: {
-          query: {
-            multi_match: {
-              query: keyword,
-              fields: ['title', 'tag'],
+      const response = await this.client.search(
+        {
+          index: 'feed',
+          body: {
+            query: {
+              multi_match: {
+                query: keyword,
+                fields: ['title', 'tag'],
+              },
             },
+            size,
+            sort: sortQuery,
+            from: cursor * size,
           },
-          size,
-          sort: sortQuery,
-          from: cursor * size,
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
 
       const totalCount = (response.body.hits.total as TotalHits).value;
       const hits = response.body.hits.hits as FeedHitData[];
@@ -372,22 +437,27 @@ export class OpenSearchService {
       };
 
     try {
-      const response = await this.client.search({
-        index: 'post',
-        body: {
-          query: {
-            multi_match: {
-              query: keyword,
-              fields: ['title', 'content'],
+      const response = await this.client.search(
+        {
+          index: 'post',
+          body: {
+            query: {
+              multi_match: {
+                query: keyword,
+                fields: ['title', 'content'],
+              },
+            },
+            size,
+            from: (page - 1) * size,
+            sort: {
+              createdAt: 'desc',
             },
           },
-          size,
-          from: (page - 1) * size,
-          sort: {
-            createdAt: 'desc',
-          },
         },
-      });
+        {
+          requestTimeout: 100,
+        },
+      );
 
       const totalCount = (response.body.hits.total as TotalHits).value;
       const hits = response.body.hits.hits as PostHitData[];
