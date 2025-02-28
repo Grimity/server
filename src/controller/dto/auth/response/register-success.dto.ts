@@ -2,8 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterSuccessDto {
   @ApiProperty()
+  id: string;
+
+  @ApiProperty()
   accessToken: string;
 
   @ApiProperty()
-  id: string;
+  refreshToken: string;
 }

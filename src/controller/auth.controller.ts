@@ -14,10 +14,15 @@ import {
   Register409Dto,
   RegisterSuccessDto,
   LoginSuccessDto,
+  RefreshSuccessDto,
 } from './dto/auth';
-import { GetClientInfo } from 'src/common/decorator';
+import {
+  GetClientInfo,
+  GetRefreshToken,
+  CurrentUser,
+} from 'src/common/decorator';
 import { ClientInfo } from 'src/types';
-import { UserAgentGuard } from 'src/common/guard/user-agent.guard';
+import { UserAgentGuard, JwtRefreshGuard } from 'src/common/guard';
 
 @ApiTags('/auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -69,5 +74,21 @@ export class AuthController {
     @Body() registerDto: RegisterDto,
   ): Promise<RegisterSuccessDto> {
     return await this.authService.register(registerDto, clientInfo);
+  }
+
+  @ApiOperation({ summary: '토큰 재발급' })
+  @ApiResponse({
+    status: 200,
+    description: '토큰 재발급 성공',
+    type: RefreshSuccessDto,
+  })
+  @UseGuards(JwtRefreshGuard)
+  @Get('refresh')
+  async refresh(
+    @CurrentUser() userId: string,
+    @GetRefreshToken() token: string,
+    @GetClientInfo() clientInfo: ClientInfo,
+  ): Promise<RefreshSuccessDto> {
+    return await this.authService.refresh(userId, token, clientInfo);
   }
 }

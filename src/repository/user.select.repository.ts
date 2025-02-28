@@ -333,4 +333,18 @@ export class UserSelectRepository {
       throw e;
     }
   }
+
+  async findRefreshToken(userId: string, token: string) {
+    return await this.prisma.refreshToken.findUnique({
+      where: {
+        userId_token: {
+          userId,
+          token,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+  }
 }

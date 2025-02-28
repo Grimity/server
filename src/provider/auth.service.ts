@@ -114,6 +114,34 @@ export class AuthService {
     return { accessToken, id: user.id, refreshToken };
   }
 
+  async refresh(userId: string, token: string, clientInfo: ClientInfo) {
+    const savedToken = await this.userSelectRepository.findRefreshToken(
+      userId,
+      token,
+    );
+    if (!savedToken) {
+      throw new HttpException('만료된 refT', 401);
+    }
+
+    const accessToken = this.jwtService.sign({ id: userId });
+    const refreshToken = this.jwtService.sign(
+      {
+        id: userId,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: `${clientInfo.os} ${clientInfo.browser}`,
+      },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      },
+    );
+
+    await this.userRepository.updateRefreshToken(userId, token, refreshToken);
+
+    return { accessToken, refreshToken };
+  }
+
   async getKakaoProfile(kakaoAccessToken: string) {
     const result = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: {
