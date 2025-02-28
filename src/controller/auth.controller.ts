@@ -1,4 +1,11 @@
-import { Controller, Body, Post, Get, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Body,
+  Post,
+  Get,
+  HttpCode,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
 import {
@@ -10,6 +17,7 @@ import {
 } from './dto/auth';
 import { GetClientInfo } from 'src/common/decorator';
 import { ClientInfo } from 'src/types';
+import { UserAgentGuard } from 'src/common/guard/user-agent.guard';
 
 @ApiTags('/auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -27,17 +35,20 @@ export class AuthController {
     status: 404,
     description: '회원 없음',
   })
+  @UseGuards(UserAgentGuard)
   @HttpCode(200)
   @Post('login')
   async login(
     @GetClientInfo() clientInfo: ClientInfo,
     @Body() { provider, providerAccessToken }: LoginDto,
   ): Promise<LoginSuccessDto> {
-    return this.authService.login({
-      provider,
-      providerAccessToken,
+    return this.authService.login(
+      {
+        provider,
+        providerAccessToken,
+      },
       clientInfo,
-    });
+    );
   }
 
   @ApiOperation({ summary: '회원가입' })
@@ -51,10 +62,12 @@ export class AuthController {
     description: '이미 있는 회원 or 닉네임 중복',
     type: Register409Dto,
   })
+  @UseGuards(UserAgentGuard)
   @Post('register')
   async register(
+    @GetClientInfo() clientInfo: ClientInfo,
     @Body() registerDto: RegisterDto,
   ): Promise<RegisterSuccessDto> {
-    return await this.authService.register(registerDto);
+    return await this.authService.register(registerDto, clientInfo);
   }
 }

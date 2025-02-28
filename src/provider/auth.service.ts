@@ -16,7 +16,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async login(input: LoginInput) {
+  async login(input: LoginInput, clientInfo: ClientInfo) {
     let providerId;
 
     if (input.provider === 'GOOGLE') {
@@ -37,63 +37,81 @@ export class AuthService {
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    // const refreshToken = this.jwtService.sign(
-    //   {
-    //     id: user.id,
-    //     type: input.clientInfo.type,
-    //     device: input.clientInfo.device,
-    //     model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
-    //   },
-    //   {
-    //     secret: this.configService.get('JWT_REFRESH_SECRET'),
-    //     expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
-    //   },
-    // );
+    const refreshToken = this.jwtService.sign(
+      {
+        id: user.id,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: `${clientInfo.os} ${clientInfo.browser}`,
+      },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      },
+    );
 
-    // await this.userRepository.saveRefreshToken({
-    //   userId: user.id,
-    //   refreshToken,
-    //   type: input.clientInfo.type,
-    //   device: input.clientInfo.device,
-    //   model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
-    //   ip: input.clientInfo.ip,
-    // });
+    await this.userRepository.saveRefreshToken({
+      userId: user.id,
+      refreshToken,
+      type: clientInfo.type,
+      device: clientInfo.device,
+      model: `${clientInfo.os} ${clientInfo.browser}`,
+      ip: clientInfo.ip,
+    });
 
-    return { id: user.id, accessToken };
+    return { id: user.id, accessToken, refreshToken };
   }
 
-  async register({
-    provider,
-    providerAccessToken,
-    name,
-  }: {
-    provider: string;
-    providerAccessToken: string;
-    name: string;
-  }) {
+  async register(input: RegisterInput, clientInfo: ClientInfo) {
     let providerId;
     let email;
-    if (provider === 'GOOGLE') {
-      const googleProfile = await this.getGoogleProfile(providerAccessToken);
+    if (input.provider === 'GOOGLE') {
+      const googleProfile = await this.getGoogleProfile(
+        input.providerAccessToken,
+      );
       providerId = googleProfile.id;
       email = googleProfile.email;
     } else {
-      const kakaoProfile = await this.getKakaoProfile(providerAccessToken);
+      const kakaoProfile = await this.getKakaoProfile(
+        input.providerAccessToken,
+      );
       providerId = kakaoProfile.kakaoId;
       email = kakaoProfile.email;
     }
 
     const user = await this.userRepository.create({
-      provider,
+      provider: input.provider,
       providerId,
       email,
-      name,
+      name: input.name,
     });
 
-    await this.openSearchService.createUser(user.id, name);
+    await this.openSearchService.createUser(user.id, input.name);
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    return { accessToken, id: user.id };
+    const refreshToken = this.jwtService.sign(
+      {
+        id: user.id,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: `${clientInfo.os} ${clientInfo.browser}`,
+      },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      },
+    );
+
+    await this.userRepository.saveRefreshToken({
+      userId: user.id,
+      refreshToken,
+      type: clientInfo.type,
+      device: clientInfo.device,
+      model: `${clientInfo.os} ${clientInfo.browser}`,
+      ip: clientInfo.ip,
+    });
+
+    return { accessToken, id: user.id, refreshToken };
   }
 
   async getKakaoProfile(kakaoAccessToken: string) {
@@ -152,5 +170,10 @@ export type GoogleProfile = {
 export type LoginInput = {
   provider: string;
   providerAccessToken: string;
-  clientInfo: ClientInfo;
+};
+
+export type RegisterInput = {
+  provider: string;
+  providerAccessToken: string;
+  name: string;
 };

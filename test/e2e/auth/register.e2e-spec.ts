@@ -34,6 +34,10 @@ describe('POST /auth/register', () => {
     // when
     const { status } = await request(app.getHttpServer())
       .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'facebook',
         providerAccessToken: 'test',
@@ -44,10 +48,28 @@ describe('POST /auth/register', () => {
     expect(status).toBe(400);
   });
 
+  it('user-agent가 없으면 401을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        provider: 'facebook',
+        providerAccessToken: 'test',
+        name: 'test',
+      });
+
+    // then
+    expect(status).toBe(401);
+  });
+
   it('name이 0글자일 때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
       .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'google',
         providerAccessToken: 'test',
@@ -62,6 +84,10 @@ describe('POST /auth/register', () => {
     // when
     const { status } = await request(app.getHttpServer())
       .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'google',
         providerAccessToken: 'test',
@@ -82,6 +108,10 @@ describe('POST /auth/register', () => {
     // when
     const { status, body } = await request(app.getHttpServer())
       .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'kakao',
         providerAccessToken: 'test',
@@ -93,6 +123,7 @@ describe('POST /auth/register', () => {
     expect(body).toEqual({
       accessToken: expect.any(String),
       id: expect.any(String),
+      refreshToken: expect.any(String),
     });
 
     const { status: status2 } = await request(app.getHttpServer())
@@ -124,6 +155,10 @@ describe('POST /auth/register', () => {
     // when
     const { status, body } = await request(app.getHttpServer())
       .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'kakao',
         providerAccessToken: 'test',
@@ -157,6 +192,10 @@ describe('POST /auth/register', () => {
     // when
     const { status, body } = await request(app.getHttpServer())
       .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'kakao',
         providerAccessToken: 'test',
