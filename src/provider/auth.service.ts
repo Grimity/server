@@ -3,6 +3,8 @@ import { UserRepository } from 'src/repository/user.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { JwtService } from '@nestjs/jwt';
 import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { ConfigService } from '@nestjs/config';
+import { ClientInfo } from 'src/types';
 
 @Injectable()
 export class AuthService {
@@ -11,26 +13,53 @@ export class AuthService {
     private jwtService: JwtService,
     private userSelectRepository: UserSelectRepository,
     private openSearchService: OpenSearchService,
+    private configService: ConfigService,
   ) {}
 
-  async login(provider: string, providerAccessToken: string) {
+  async login(input: LoginInput) {
     let providerId;
 
-    if (provider === 'GOOGLE') {
-      const googleProfile = await this.getGoogleProfile(providerAccessToken);
+    if (input.provider === 'GOOGLE') {
+      const googleProfile = await this.getGoogleProfile(
+        input.providerAccessToken,
+      );
       providerId = googleProfile.id;
     } else {
-      const kakaoProfile = await this.getKakaoProfile(providerAccessToken);
+      const kakaoProfile = await this.getKakaoProfile(
+        input.providerAccessToken,
+      );
       providerId = kakaoProfile.kakaoId;
     }
 
     const user = await this.userSelectRepository.findOneByProviderOrThrow(
-      provider,
+      input.provider,
       providerId,
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    return { accessToken, id: user.id };
+    const refreshToken = this.jwtService.sign(
+      {
+        id: user.id,
+        type: input.clientInfo.type,
+        device: input.clientInfo.device,
+        model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
+      },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      },
+    );
+
+    await this.userRepository.saveRefreshToken({
+      userId: user.id,
+      refreshToken,
+      type: input.clientInfo.type,
+      device: input.clientInfo.device,
+      model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
+      ip: input.clientInfo.ip,
+    });
+
+    return { id: user.id, accessToken, refreshToken };
   }
 
   async register({
@@ -118,4 +147,10 @@ export type GoogleProfile = {
   email: string;
   verified_email: boolean;
   picture: string;
+};
+
+export type LoginInput = {
+  provider: string;
+  providerAccessToken: string;
+  clientInfo: ClientInfo;
 };

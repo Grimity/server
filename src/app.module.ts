@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './database/prisma/prisma.module';
 import { globalPipe } from './common/pipe/global.pipe';
@@ -15,6 +15,7 @@ import { ReportModule } from './module/report.module';
 import { GlobalFilter } from './common/filter';
 import { APP_FILTER } from '@nestjs/core';
 import { RedisModule } from './database/redis/redis.module';
+import { ClientInfoMiddleware } from './common/middleware';
 
 @Module({
   imports: [
@@ -52,4 +53,8 @@ import { RedisModule } from './database/redis/redis.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ClientInfoMiddleware).forRoutes('auth');
+  }
+}
