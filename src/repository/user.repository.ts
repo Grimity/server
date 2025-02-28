@@ -192,6 +192,21 @@ export class UserRepository {
       select: { id: true },
     });
   }
+
+  async saveRefreshToken(input: SaveRefTInput) {
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: input.userId,
+        token: input.refreshToken,
+        type: input.type,
+        device: input.device,
+        model: input.model,
+        ip: input.ip,
+      },
+      select: { userId: true },
+    });
+    return;
+  }
 }
 
 type UpdateProfileInput = {
@@ -200,10 +215,19 @@ type UpdateProfileInput = {
   links: string[];
 };
 
-export type MyFollower = {
+type MyFollower = {
   id: string;
   name: string;
   image: string | null;
   followerCount: number;
   isFollowing: boolean;
+};
+
+type SaveRefTInput = {
+  userId: string;
+  refreshToken: string;
+  type: 'WEB' | 'APP';
+  device: string;
+  model: string;
+  ip: string;
 };

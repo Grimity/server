@@ -19,6 +19,11 @@ describe('POST /auth/login', () => {
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
 
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId',
+      email: 'test@test.com',
+    });
+
     await app.init();
   });
 
@@ -44,15 +49,13 @@ describe('POST /auth/login', () => {
   });
 
   it('유저가 없으면 404를 반환한다', async () => {
-    // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'kakaoId',
-      email: 'test@test.com',
-    });
-
     // when
     const { status } = await request(app.getHttpServer())
       .post('/auth/login')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'kakao',
         providerAccessToken: 'test',
@@ -60,18 +63,10 @@ describe('POST /auth/login', () => {
 
     // then
     expect(status).toBe(404);
-
-    // cleanup
-    spy.mockRestore();
   });
 
   it('200과 함께 accessToken을 반환한다', async () => {
     // given
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'kakaoId',
-      email: 'test@test.com',
-    });
-
     await prisma.user.create({
       data: {
         provider: 'KAKAO',
@@ -84,6 +79,10 @@ describe('POST /auth/login', () => {
     // when
     const { status, body } = await request(app.getHttpServer())
       .post('/auth/login')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
       .send({
         provider: 'kakao',
         providerAccessToken: 'test',
@@ -94,6 +93,7 @@ describe('POST /auth/login', () => {
     expect(body).toEqual({
       accessToken: expect.any(String),
       id: expect.any(String),
+      refreshToken: expect.any(String),
     });
 
     const { status: status2 } = await request(app.getHttpServer())
@@ -101,8 +101,5 @@ describe('POST /auth/login', () => {
       .set('Authorization', `Bearer ${body.accessToken}`);
 
     expect(status2).toBe(200);
-
-    // cleanup
-    spy.mockRestore();
   });
 });

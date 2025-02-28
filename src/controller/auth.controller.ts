@@ -8,6 +8,8 @@ import {
   RegisterSuccessDto,
   LoginSuccessDto,
 } from './dto/auth';
+import { GetClientInfo } from 'src/common/decorator';
+import { ClientInfo } from 'src/types';
 
 @ApiTags('/auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -28,9 +30,14 @@ export class AuthController {
   @HttpCode(200)
   @Post('login')
   async login(
+    @GetClientInfo() clientInfo: ClientInfo,
     @Body() { provider, providerAccessToken }: LoginDto,
   ): Promise<LoginSuccessDto> {
-    return this.authService.login(provider, providerAccessToken);
+    return this.authService.login({
+      provider,
+      providerAccessToken,
+      clientInfo,
+    });
   }
 
   @ApiOperation({ summary: '회원가입' })
