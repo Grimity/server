@@ -37,29 +37,29 @@ export class AuthService {
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    const refreshToken = this.jwtService.sign(
-      {
-        id: user.id,
-        type: input.clientInfo.type,
-        device: input.clientInfo.device,
-        model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
-      },
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
-      },
-    );
+    // const refreshToken = this.jwtService.sign(
+    //   {
+    //     id: user.id,
+    //     type: input.clientInfo.type,
+    //     device: input.clientInfo.device,
+    //     model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
+    //   },
+    //   {
+    //     secret: this.configService.get('JWT_REFRESH_SECRET'),
+    //     expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+    //   },
+    // );
 
-    await this.userRepository.saveRefreshToken({
-      userId: user.id,
-      refreshToken,
-      type: input.clientInfo.type,
-      device: input.clientInfo.device,
-      model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
-      ip: input.clientInfo.ip,
-    });
+    // await this.userRepository.saveRefreshToken({
+    //   userId: user.id,
+    //   refreshToken,
+    //   type: input.clientInfo.type,
+    //   device: input.clientInfo.device,
+    //   model: `${input.clientInfo.os} ${input.clientInfo.browser}`,
+    //   ip: input.clientInfo.ip,
+    // });
 
-    return { id: user.id, accessToken, refreshToken };
+    return { id: user.id, accessToken };
   }
 
   async register({
