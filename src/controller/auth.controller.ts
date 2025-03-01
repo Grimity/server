@@ -6,7 +6,12 @@ import {
   HttpCode,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
 import {
   LoginDto,
@@ -76,6 +81,7 @@ export class AuthController {
     return await this.authService.register(registerDto, clientInfo);
   }
 
+  @ApiBearerAuth()
   @ApiOperation({ summary: '토큰 재발급' })
   @ApiResponse({
     status: 200,
@@ -90,5 +96,20 @@ export class AuthController {
     @GetClientInfo() clientInfo: ClientInfo,
   ): Promise<RefreshSuccessDto> {
     return await this.authService.refresh(userId, token, clientInfo);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '로그아웃' })
+  @ApiResponse({ status: 204, description: '로그아웃 성공' })
+  @UseGuards(JwtRefreshGuard)
+  @Post('logout')
+  @HttpCode(204)
+  async logout(
+    @CurrentUser() userId: string,
+    @GetRefreshToken() token: string,
+    @GetClientInfo() clientInfo: ClientInfo,
+  ) {
+    await this.authService.logout(userId, token, clientInfo);
+    return;
   }
 }

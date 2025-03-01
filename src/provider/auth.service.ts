@@ -142,6 +142,11 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async logout(userId: string, token: string, clientInfo: ClientInfo) {
+    await this.userRepository.deleteRefreshToken(userId, token);
+    return;
+  }
+
   async getKakaoProfile(kakaoAccessToken: string) {
     const result = await fetch('https://kapi.kakao.com/v2/user/me', {
       headers: {

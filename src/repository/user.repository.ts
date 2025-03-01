@@ -237,6 +237,29 @@ export class UserRepository {
       throw e;
     }
   }
+
+  async deleteRefreshToken(userId: string, token: string) {
+    try {
+      await this.prisma.refreshToken.delete({
+        where: {
+          userId_token: {
+            userId,
+            token,
+          },
+        },
+        select: { userId: true },
+      });
+      return;
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('만료된 refT', 401);
+      }
+      throw e;
+    }
+  }
 }
 
 type UpdateProfileInput = {
