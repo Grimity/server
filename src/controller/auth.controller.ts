@@ -82,7 +82,7 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '토큰 재발급' })
+  @ApiOperation({ summary: '토큰 재발급 - refT를 담아야함' })
   @ApiResponse({
     status: 200,
     description: '토큰 재발급 성공',
@@ -99,7 +99,7 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '로그아웃' })
+  @ApiOperation({ summary: '로그아웃 - refT를 담아야함' })
   @ApiResponse({ status: 204, description: '로그아웃 성공' })
   @UseGuards(JwtRefreshGuard)
   @Post('logout')
