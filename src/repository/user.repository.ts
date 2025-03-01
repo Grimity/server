@@ -207,6 +207,36 @@ export class UserRepository {
     });
     return;
   }
+
+  async updateRefreshToken(
+    userId: string,
+    prevToken: string,
+    newToken: string,
+  ) {
+    try {
+      await this.prisma.refreshToken.update({
+        where: {
+          userId_token: {
+            userId,
+            token: prevToken,
+          },
+        },
+        data: {
+          token: newToken,
+          updatedAt: new Date(),
+        },
+        select: { userId: true },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2025'
+      ) {
+        throw new HttpException('만료된 refT', 401);
+      }
+      throw e;
+    }
+  }
 }
 
 type UpdateProfileInput = {
