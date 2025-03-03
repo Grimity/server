@@ -10,17 +10,7 @@ export class UserRepository {
     private redis: RedisService,
   ) {}
 
-  async create({
-    provider,
-    providerId,
-    email,
-    name,
-  }: {
-    provider: string;
-    providerId: string;
-    email: string;
-    name: string;
-  }) {
+  async create({ provider, providerId, email, name }: CreateInput) {
     try {
       return await this.prisma.user.create({
         data: {
@@ -45,46 +35,19 @@ export class UserRepository {
     }
   }
 
-  async updateImage(userId: string, imageName: string | null) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { image: imageName },
-      select: { id: true },
-    });
-    return;
-  }
-
-  async updateBackgroundImage(userId: string, imageName: string | null) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { backgroundImage: imageName },
-      select: { id: true },
-    });
-    return;
-  }
-
-  async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
+  async update(id: string, input: UpdateInput) {
     try {
       await this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          name: updateProfileInput.name,
-          description: updateProfileInput.description,
-          links: updateProfileInput.links,
-        },
+        where: { id },
+        data: input,
         select: { id: true },
       });
       return;
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
-        throw new HttpException('NAME', 409);
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === 'P2003') throw new HttpException('USER', 404);
+        if (e.code === 'P2002') throw new HttpException('NAME', 409);
       }
-      throw e;
     }
   }
 
@@ -165,20 +128,6 @@ export class UserRepository {
     }
   }
 
-  async updateSubscription(userId: string, subscription: string[]) {
-    await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        subscription: {
-          set: subscription,
-        },
-      },
-      select: { id: true },
-    });
-  }
-
   async cachePopularUserIds(ids: string[]) {
     await this.redis.set('popularUserIds', JSON.stringify(ids), 'EX', 60 * 30);
     return;
@@ -193,7 +142,7 @@ export class UserRepository {
     });
   }
 
-  async saveRefreshToken(input: SaveRefTInput) {
+  async createRefreshToken(input: CreateRefTInput) {
     await this.prisma.refreshToken.create({
       data: {
         userId: input.userId,
@@ -262,21 +211,23 @@ export class UserRepository {
   }
 }
 
-type UpdateProfileInput = {
+type CreateInput = {
+  provider: string;
+  providerId: string;
+  email: string;
   name: string;
-  description: string;
-  links: string[];
 };
 
-type MyFollower = {
-  id: string;
-  name: string;
-  image: string | null;
-  followerCount: number;
-  isFollowing: boolean;
+type UpdateInput = {
+  name?: string;
+  image?: string | null;
+  description?: string;
+  backgroundImage?: string | null;
+  links?: string[];
+  subscription?: string[];
 };
 
-type SaveRefTInput = {
+type CreateRefTInput = {
   userId: string;
   refreshToken: string;
   type: 'WEB' | 'APP';

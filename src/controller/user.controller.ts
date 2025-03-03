@@ -144,8 +144,10 @@ export class UserController {
   @ApiResponse({ status: 200, description: '성공', type: SubscriptionDto })
   @UseGuards(JwtGuard)
   @Get('me/subscribe')
-  async getSubscriptions(@CurrentUser() userId: string) {
-    return this.userService.getSubscription(userId);
+  async getSubscriptions(
+    @CurrentUser() userId: string,
+  ): Promise<SubscriptionDto> {
+    return await this.userService.getSubscription(userId);
   }
 
   @ApiBearerAuth()

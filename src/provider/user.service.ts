@@ -21,12 +21,12 @@ export class UserService {
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
-    await this.userRepository.updateImage(userId, imageName);
+    await this.userRepository.update(userId, { image: imageName });
     return;
   }
 
   async updateBackgroundImage(userId: string, imageName: string | null) {
-    await this.userRepository.updateBackgroundImage(userId, imageName);
+    await this.userRepository.update(userId, { backgroundImage: imageName });
     return;
   }
 
@@ -39,7 +39,7 @@ export class UserService {
         return `${linkName.trim()}|~|${link.trim()}`;
       });
     }
-    await this.userRepository.updateProfile(userId, {
+    await this.userRepository.update(userId, {
       ...updateProfileInput,
       links: transformedLinks,
     });
@@ -325,12 +325,16 @@ export class UserService {
   }
 
   async updateSubscription(userId: string, subscription: string[]) {
-    await this.userRepository.updateSubscription(userId, subscription);
+    await this.userRepository.update(userId, { subscription });
     return;
   }
 
   async getSubscription(userId: string) {
-    return await this.userSelectRepository.getSubscription(userId);
+    const { subscription } =
+      await this.userSelectRepository.findOneById(userId);
+    return {
+      subscription,
+    };
   }
 
   async getMyPosts({
@@ -407,7 +411,14 @@ export class UserService {
   }
 
   async getMeta(id: string) {
-    return await this.userSelectRepository.findMeta(id);
+    const user = await this.userSelectRepository.findOneById(id);
+
+    return {
+      id: user.id,
+      name: user.name,
+      description: user.description,
+      image: user.image,
+    };
   }
 }
 

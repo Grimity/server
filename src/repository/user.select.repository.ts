@@ -11,6 +11,15 @@ export class UserSelectRepository {
     private redis: RedisService,
   ) {}
 
+  async findOneById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (user === null) throw new HttpException('USER', 404);
+    return user;
+  }
+
   async findOneByProviderOrThrow(provider: string, providerId: string) {
     try {
       return await this.prisma.user.findUniqueOrThrow({
@@ -297,41 +306,6 @@ export class UserSelectRepository {
       followerCount: user.followerCount,
       isFollowing: user.isFollowing ?? false,
     }));
-  }
-
-  async getSubscription(userId: string) {
-    return await this.prisma.user.findUniqueOrThrow({
-      where: {
-        id: userId,
-      },
-      select: {
-        subscription: true,
-      },
-    });
-  }
-
-  async findMeta(id: string) {
-    try {
-      return await this.prisma.user.findUniqueOrThrow({
-        where: {
-          id,
-        },
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          description: true,
-        },
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('USER', 404);
-      }
-      throw e;
-    }
   }
 
   async findRefreshToken(userId: string, token: string) {
