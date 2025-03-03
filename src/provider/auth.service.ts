@@ -50,7 +50,7 @@ export class AuthService {
       },
     );
 
-    await this.userRepository.saveRefreshToken({
+    await this.userRepository.createRefreshToken({
       userId: user.id,
       refreshToken,
       type: clientInfo.type,
@@ -102,7 +102,7 @@ export class AuthService {
       },
     );
 
-    await this.userRepository.saveRefreshToken({
+    await this.userRepository.createRefreshToken({
       userId: user.id,
       refreshToken,
       type: clientInfo.type,

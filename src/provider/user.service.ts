@@ -21,12 +21,12 @@ export class UserService {
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
-    await this.userRepository.updateImage(userId, imageName);
+    await this.userRepository.update(userId, { image: imageName });
     return;
   }
 
   async updateBackgroundImage(userId: string, imageName: string | null) {
-    await this.userRepository.updateBackgroundImage(userId, imageName);
+    await this.userRepository.update(userId, { backgroundImage: imageName });
     return;
   }
 
@@ -39,7 +39,7 @@ export class UserService {
         return `${linkName.trim()}|~|${link.trim()}`;
       });
     }
-    await this.userRepository.updateProfile(userId, {
+    await this.userRepository.update(userId, {
       ...updateProfileInput,
       links: transformedLinks,
     });
@@ -325,7 +325,7 @@ export class UserService {
   }
 
   async updateSubscription(userId: string, subscription: string[]) {
-    await this.userRepository.updateSubscription(userId, subscription);
+    await this.userRepository.update(userId, { subscription });
     return;
   }
 
