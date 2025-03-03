@@ -13,5 +13,5 @@ export class SubscriptionDto {
     ],
     isArray: true,
   })
-  subscription: NotificationType[];
+  subscription: string[];
 }

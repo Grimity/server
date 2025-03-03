@@ -330,7 +330,11 @@ export class UserService {
   }
 
   async getSubscription(userId: string) {
-    return await this.userSelectRepository.getSubscription(userId);
+    const { subscription } =
+      await this.userSelectRepository.findOneById(userId);
+    return {
+      subscription,
+    };
   }
 
   async getMyPosts({
@@ -407,7 +411,14 @@ export class UserService {
   }
 
   async getMeta(id: string) {
-    return await this.userSelectRepository.findMeta(id);
+    const user = await this.userSelectRepository.findOneById(id);
+
+    return {
+      id: user.id,
+      name: user.name,
+      description: user.description,
+      image: user.image,
+    };
   }
 }
 
