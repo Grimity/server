@@ -70,3 +70,5 @@ export class UpdateSubscriptionRequest {
 }
 
 export class GetMyFollowersRequest extends CursorRequest {}
+
+export class GetMyFollowingsRequest extends CursorRequest {}

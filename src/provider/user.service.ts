@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
@@ -7,6 +7,7 @@ import { OpenSearchService } from '../database/opensearch/opensearch.service';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
 import { DdbService } from 'src/database/ddb/ddb.service';
+import { validate as isUUID } from 'uuid';
 
 @Injectable()
 export class UserService {
@@ -171,6 +172,9 @@ export class UserService {
       size: number;
     },
   ) {
+    if (cursor !== null && !isUUID(cursor))
+      throw new HttpException('cursor가 올바르지 않습니다', 400);
+
     const followings = await this.userSelectRepository.findMyFollowings(
       userId,
       {
