@@ -8,7 +8,11 @@ import {
   IsOptional,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { TrimString, IsImageWithPrefix } from './helper';
+import {
+  TrimString,
+  IsImageWithPrefix,
+  TrimAndLowerNullableString,
+} from './helper';
 import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
 import { CursorRequest } from './shared';
 
@@ -72,9 +76,7 @@ export class UpdateSubscriptionRequest {
 
 export class SearchUserRequest extends CursorRequest {
   @ApiProperty({ minLength: 2, maxLength: 20 })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') return value.trim().toLowerCase();
-  })
+  @TrimAndLowerNullableString()
   @Length(2, 20)
   keyword: string;
 
@@ -86,4 +88,14 @@ export class SearchUserRequest extends CursorRequest {
   @IsOptional()
   @IsEnum(['popular', 'accuracy'])
   sort?: 'popular' | 'accuracy';
+}
+
+const GetFeedsByUserSort = ['latest', 'like', 'oldest'] as const;
+
+export class GetFeedsByUserRequest extends CursorRequest {
+  @ApiProperty({ required: false, enum: GetFeedsByUserSort })
+  @TrimAndLowerNullableString()
+  @IsOptional()
+  @IsEnum(GetFeedsByUserSort)
+  sort?: (typeof GetFeedsByUserSort)[number];
 }

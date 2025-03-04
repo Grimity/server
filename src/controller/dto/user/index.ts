@@ -1,5 +1,3 @@
-export * from './request/get-feeds-by-user.query';
-
 export * from './response/my-profile.dto';
 export * from './response/user-profile.dto';
 export * from './response/my-follower.dto';
