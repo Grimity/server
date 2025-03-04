@@ -9,6 +9,7 @@ import {
 import { Type, Transform } from 'class-transformer';
 import { TrimString, IsImageWithPrefix } from './helper';
 import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
+import { CursorRequest } from './shared/cursor.request';
 
 class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
@@ -67,3 +68,5 @@ export class UpdateSubscriptionRequest {
   @IsEnum(subscriptionTypes, { each: true })
   subscription: SubscriptionType[];
 }
+
+export class GetMyFollowersRequest extends CursorRequest {}
