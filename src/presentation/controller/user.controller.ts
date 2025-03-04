@@ -22,7 +22,6 @@ import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  UpdateProfileImageDto,
   GetMyFollowersQuery,
   GetMyFollowingsQuery,
   MyProfileDto,
@@ -45,7 +44,10 @@ import {
   UserMetaDto,
 } from 'src/controller/dto/user';
 
-import { UpdateUserRequest } from '../request/user/user.request';
+import {
+  UpdateUserRequest,
+  UpdateProfileImageRequest,
+} from '../request/user.request';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -98,7 +100,7 @@ export class UserController {
   @Put('me/image')
   async updateProfileImage(
     @CurrentUser() userId: string,
-    @Body() { imageName }: UpdateProfileImageDto,
+    @Body() { imageName }: UpdateProfileImageRequest,
   ) {
     await this.userService.updateProfileImage(userId, imageName);
     return;

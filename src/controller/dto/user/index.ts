@@ -1,4 +1,3 @@
-export * from './request/update-profile-image.dto';
 export * from './request/get-feeds-by-user.query';
 export * from './request/update-background.dto';
 export * from './request/get-my-followers.query';

@@ -1,21 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  Length,
-  IsNotEmpty,
-  IsUrl,
-  IsArray,
-  ArrayMaxSize,
-  ValidateNested,
-  Validate,
-} from 'class-validator';
+import { Length, IsUrl, ArrayMaxSize, ValidateNested } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { TrimString, IsImageWithPrefix } from './helper';
 
 class UpdateLinkRequest {
-  @ApiProperty({ example: '인스타그램' })
+  @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
   @TrimString()
-  @Length(1)
+  @Length(1, 30)
   linkName: string;
 
   @ApiProperty({ example: 'https://www.instagram.com/username' })
@@ -25,12 +16,16 @@ class UpdateLinkRequest {
 }
 
 export class UpdateUserRequest {
-  @ApiProperty({ description: '2~12자' })
+  @ApiProperty({ minLength: 2, maxLength: 12 })
   @TrimString()
   @Length(2, 12)
   name: string;
 
-  @ApiProperty({ description: '없으면 빈 문자열 주세요, 0~200자' })
+  @ApiProperty({
+    description: '없으면 빈 문자열 주세요',
+    minLength: 0,
+    maxLength: 200,
+  })
   @TrimString()
   @Length(0, 200)
   description: string;
@@ -38,8 +33,8 @@ export class UpdateUserRequest {
   @ApiProperty({
     type: UpdateLinkRequest,
     isArray: true,
-    description: '최대 3개',
     nullable: true,
+    maximum: 3,
   })
   @Transform(({ value }) => (value === null ? [] : value))
   @ArrayMaxSize(3)

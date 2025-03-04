@@ -109,4 +109,20 @@ describe('PUT /users/me/image - 프로필 이미지 수정', () => {
     // then
     expect(status).toBe(400);
   });
+
+  it('imageName이 profile/로 시작하지 않을 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me/image')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        imageName: 'test/test.jpg',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
 });
