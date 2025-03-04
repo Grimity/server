@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ReportController } from 'src/controller/report.controller';
+import { ReportController } from 'src/presentation/controller/report.controller';
 import { ReportService } from 'src/provider/report.service';
 import { ReportRepository } from 'src/repository/report.repository';
 

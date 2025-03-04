@@ -13,7 +13,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TagService } from 'src/provider/tag.service';
-import { PopularTagDto, SearchedFeedByTagsDto } from './dto/tag';
+import { PopularTagDto, SearchedFeedByTagsDto } from 'src/controller/dto/tag';
 import { OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 

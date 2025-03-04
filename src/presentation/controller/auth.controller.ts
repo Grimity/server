@@ -20,7 +20,7 @@ import {
   RegisterSuccessDto,
   LoginSuccessDto,
   RefreshSuccessDto,
-} from './dto/auth';
+} from 'src/controller/dto/auth';
 import {
   GetClientInfo,
   GetRefreshToken,

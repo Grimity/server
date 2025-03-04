@@ -26,7 +26,7 @@ import {
   FeedCommentResponseDto,
   GetChildCommentsQuery,
   ChildCommentDto,
-} from './dto/feed-comment';
+} from 'src/controller/dto/feed-comment';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })

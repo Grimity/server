@@ -33,7 +33,7 @@ import {
   SearchPostQuery,
   SearchPostResponse,
   PostMetaDto,
-} from './dto/post';
+} from 'src/controller/dto/post';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })

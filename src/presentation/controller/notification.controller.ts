@@ -17,7 +17,7 @@ import {
 import { NotificationService } from 'src/provider/notification.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { NotificationDto } from './dto/notification';
+import { NotificationDto } from 'src/controller/dto/notification';
 
 @ApiBearerAuth()
 @ApiTags('/notifications')

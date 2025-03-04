@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { FeedController } from 'src/controller/feed.controller';
+import { FeedController } from 'src/presentation/controller/feed.controller';
 import { FeedService } from 'src/provider/feed.service';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';

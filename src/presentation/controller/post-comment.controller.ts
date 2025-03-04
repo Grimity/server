@@ -24,7 +24,7 @@ import {
   CreatePostCommentDto,
   PostParentCommentDto,
   CreatedCommentDto,
-} from './dto/post-comment';
+} from 'src/controller/dto/post-comment';
 
 @ApiTags('/post-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })

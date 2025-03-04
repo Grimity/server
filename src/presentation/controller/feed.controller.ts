@@ -35,7 +35,7 @@ import {
   PopularFeedResponse,
   LikeUserDto,
   FeedMetaDto,
-} from './dto/feed';
+} from 'src/controller/dto/feed';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 

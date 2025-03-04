@@ -6,7 +6,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { ReportService } from 'src/provider/report.service';
-import { CreateReportDto } from './dto/report';
+import { CreateReportDto } from 'src/controller/dto/report';
 import { CurrentUser } from 'src/common/decorator';
 import { JwtGuard } from 'src/common/guard';
 
