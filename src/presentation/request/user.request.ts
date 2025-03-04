@@ -48,3 +48,9 @@ export class UpdateProfileImageRequest {
   @IsImageWithPrefix('profile/')
   imageName: string;
 }
+
+export class UpdateBackgroundImageRequest {
+  @ApiProperty({ example: 'background/{UUID}.jpg' })
+  @IsImageWithPrefix('background/')
+  imageName: string;
+}

@@ -29,7 +29,6 @@ import {
   MyFollowerResponse,
   GetFeedsByUserQuery,
   UserFeedsResponse,
-  UpdateBackgroundImageDto,
   MyFollowingResponse,
   GetMyLikeFeedsQuery,
   MyLikeFeedsResponse,
@@ -47,6 +46,7 @@ import {
 import {
   UpdateUserRequest,
   UpdateProfileImageRequest,
+  UpdateBackgroundImageRequest,
 } from '../request/user.request';
 
 @ApiTags('/users')
@@ -125,7 +125,7 @@ export class UserController {
   @Put('me/background')
   async updateBackgroundImage(
     @CurrentUser() userId: string,
-    @Body() { imageName }: UpdateBackgroundImageDto,
+    @Body() { imageName }: UpdateBackgroundImageRequest,
   ) {
     await this.userService.updateBackgroundImage(userId, imageName);
     return;
