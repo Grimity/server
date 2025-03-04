@@ -1,5 +1,4 @@
 export * from './request/get-feeds-by-user.query';
-export * from './request/search-user.query';
 
 export * from './response/my-profile.dto';
 export * from './response/user-profile.dto';

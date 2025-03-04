@@ -5,10 +5,12 @@ import {
   ArrayMaxSize,
   ValidateNested,
   IsEnum,
+  IsOptional,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { TrimString, IsImageWithPrefix } from './helper';
 import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
+import { CursorRequest } from './shared';
 
 class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
@@ -66,4 +68,22 @@ export class UpdateSubscriptionRequest {
   @ApiProperty({ enum: subscriptionTypes, isArray: true })
   @IsEnum(subscriptionTypes, { each: true })
   subscription: SubscriptionType[];
+}
+
+export class SearchUserRequest extends CursorRequest {
+  @ApiProperty({ minLength: 2, maxLength: 20 })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') return value.trim().toLowerCase();
+  })
+  @Length(2, 20)
+  keyword: string;
+
+  @ApiProperty({ required: false, enum: ['popular', 'accuracy'] })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') return value.toLowerCase();
+    return value;
+  })
+  @IsOptional()
+  @IsEnum(['popular', 'accuracy'])
+  sort?: 'popular' | 'accuracy';
 }
