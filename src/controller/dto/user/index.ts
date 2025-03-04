@@ -1,5 +1,4 @@
 export * from './request/get-feeds-by-user.query';
-export * from './request/get-my-like-feeds.query';
 export * from './request/search-user.query';
 export * from './request/get-my-posts.query';
 

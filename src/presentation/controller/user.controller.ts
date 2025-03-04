@@ -28,7 +28,6 @@ import {
   GetFeedsByUserQuery,
   UserFeedsResponse,
   MyFollowingResponse,
-  GetMyLikeFeedsQuery,
   MyLikeFeedsResponse,
   PopularUserDto,
   SearchUserQuery,
@@ -45,8 +44,7 @@ import {
   UpdateProfileImageRequest,
   UpdateBackgroundImageRequest,
   UpdateSubscriptionRequest,
-  GetMyFollowersRequest,
-  GetMyFollowingsRequest,
+  CursorRequest,
 } from '../request/user.request';
 
 @ApiTags('/users')
@@ -180,7 +178,7 @@ export class UserController {
   @Get('me/followers')
   async getMyFollowers(
     @CurrentUser() userId: string,
-    @Query() query: GetMyFollowersRequest,
+    @Query() query: CursorRequest,
   ): Promise<MyFollowerResponse> {
     return this.userService.getMyFollowers(userId, {
       cursor: query.cursor ?? null,
@@ -199,7 +197,7 @@ export class UserController {
   @Get('me/followings')
   async getMyFollowings(
     @CurrentUser() userId: string,
-    @Query() query: GetMyFollowingsRequest,
+    @Query() query: CursorRequest,
   ): Promise<MyFollowingResponse> {
     return this.userService.getMyFollowings(userId, {
       cursor: query.cursor ?? null,
@@ -224,18 +222,6 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 좋아요한 피드 조회' })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    description: '없으면 처음부터',
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 20,
-  })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -245,7 +231,7 @@ export class UserController {
   @Get('me/like-feeds')
   async getMyLikeFeeds(
     @CurrentUser() userId: string,
-    @Query() query: GetMyLikeFeedsQuery,
+    @Query() query: CursorRequest,
   ): Promise<MyLikeFeedsResponse> {
     return await this.userService.getMyLikeFeeds(userId, {
       cursor: query.cursor ?? null,
@@ -255,18 +241,6 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 저장한 피드 조회' })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    description: '없으면 처음부터',
-    type: 'string',
-  })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 20,
-  })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -276,7 +250,7 @@ export class UserController {
   @Get('me/save-feeds')
   async getMySaveFeeds(
     @CurrentUser() userId: string,
-    @Query() query: GetMyLikeFeedsQuery,
+    @Query() query: CursorRequest,
   ): Promise<MyLikeFeedsResponse> {
     return await this.userService.getMySaveFeeds(userId, {
       cursor: query.cursor ?? null,
