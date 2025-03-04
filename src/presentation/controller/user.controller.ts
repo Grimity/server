@@ -33,7 +33,6 @@ import {
   SearchUserQuery,
   SearchedUserResponse,
   SubscriptionDto,
-  GetMyPostsQuery,
   MyPostDto,
   GetMySavePostsResponse,
   UserMetaDto,
@@ -44,8 +43,8 @@ import {
   UpdateProfileImageRequest,
   UpdateBackgroundImageRequest,
   UpdateSubscriptionRequest,
-  CursorRequest,
 } from '../request/user.request';
+import { CursorRequest, PageRequest } from '../request/shared';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -260,8 +259,6 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 저장한 게시글 조회' })
-  @ApiQuery({ name: 'page', required: false, default: 1 })
-  @ApiQuery({ name: 'size', required: false, default: 10 })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -271,7 +268,7 @@ export class UserController {
   @Get('me/save-posts')
   async getMySavePosts(
     @CurrentUser() userId: string,
-    @Query() { page, size }: GetMyPostsQuery,
+    @Query() { page, size }: PageRequest,
   ): Promise<GetMySavePostsResponse> {
     return await this.userService.getMySavePosts({
       userId,
@@ -384,8 +381,6 @@ export class UserController {
     summary:
       '유저별 게시글 조회 - 일관성을 위해서 경로는 이렇게하지만 accT는 있어야합니다',
   })
-  @ApiQuery({ name: 'page', required: false, default: 1 })
-  @ApiQuery({ name: 'size', required: false, default: 10 })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -397,7 +392,7 @@ export class UserController {
   async getPosts(
     @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) targetId: string,
-    @Query() { page, size }: GetMyPostsQuery,
+    @Query() { page, size }: PageRequest,
   ): Promise<MyPostDto[]> {
     if (userId !== targetId) {
       throw new HttpException('Forbidden', 403);

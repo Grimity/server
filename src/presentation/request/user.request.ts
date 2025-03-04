@@ -9,8 +9,6 @@ import {
 import { Type, Transform } from 'class-transformer';
 import { TrimString, IsImageWithPrefix } from './helper';
 import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
-import { CursorRequest } from './shared/cursor.request';
-export { CursorRequest };
 
 class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
