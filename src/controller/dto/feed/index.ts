@@ -1,4 +1,3 @@
-export * from './request/create-feed.dto';
 export * from './request/update-feed.dto';
 export * from './request/get-latest-feeds.query';
 export * from './request/get-following-feeds.query';

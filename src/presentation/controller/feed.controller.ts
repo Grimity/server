@@ -20,7 +20,6 @@ import {
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
 import {
-  CreateFeedDto,
   FeedIdDto,
   FeedDetailDto,
   UpdateFeedDto,
@@ -36,6 +35,8 @@ import {
   LikeUserDto,
   FeedMetaDto,
 } from 'src/controller/dto/feed';
+
+import { CreateFeedRequest } from '../request/feed.request';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
@@ -57,7 +58,7 @@ export class FeedController {
   @Post()
   async create(
     @CurrentUser() userId: string,
-    @Body() createFeedDto: CreateFeedDto,
+    @Body() createFeedDto: CreateFeedRequest,
   ): Promise<FeedIdDto> {
     return await this.feedService.create(userId, createFeedDto);
   }

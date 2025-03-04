@@ -58,3 +58,18 @@ export function IsImageWithPrefix(
     });
   };
 }
+
+@ValidatorConstraint()
+export class TagValidator implements ValidatorConstraintInterface {
+  validate(tag: string) {
+    return (
+      typeof tag === 'string' &&
+      tag.trim().length <= 20 &&
+      tag.trim().length > 0
+    );
+  }
+
+  defaultMessage() {
+    return '태그는 1글자 이상 20글자 이하여야 합니다';
+  }
+}

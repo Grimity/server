@@ -6,22 +6,24 @@ import {
   ArrayMaxSize,
   Validate,
 } from 'class-validator';
-import { IsFeedCard, IsFeedTag } from 'src/common/validator';
+import { TrimString, IsImageWithPrefix, TagValidator } from './helper';
 
-export class CreateFeedDto {
-  @ApiProperty({ description: '1글자이상 32글자 이하' })
+export class CreateFeedRequest {
+  @ApiProperty({ minLength: 1, maxLength: 32 })
+  @TrimString()
   @Length(1, 32)
   title: string;
 
   @ApiProperty({
     isArray: true,
     type: 'string',
-    description: '이미지 파일명배열, 최소 1개, 최대 10개',
     example: ['feed/{UUID}.jpg'],
+    minLength: 1,
+    maxLength: 10,
   })
   @ArrayNotEmpty()
   @ArrayMaxSize(10)
-  @Validate(IsFeedCard, { each: true })
+  @IsImageWithPrefix('feed/', { each: true })
   cards: string[];
 
   @ApiProperty()
@@ -29,7 +31,8 @@ export class CreateFeedDto {
   isAI: boolean;
 
   @ApiProperty({
-    description: '1글자 이상 300글자 이하',
+    minLength: 1,
+    maxLength: 300,
   })
   @Length(1, 300)
   content: string;
@@ -37,18 +40,18 @@ export class CreateFeedDto {
   @ApiProperty({
     isArray: true,
     type: 'string',
-    description:
-      '태그, 없으면 빈 배열, 최대 10개, 각 태그는 1글자 이상 20글자 이하',
     example: ['태그1', '태그2'],
+    maxLength: 10,
+    description: '없으면 빈 배열',
   })
   @ArrayMaxSize(10)
-  @Validate(IsFeedTag, { each: true })
+  @Validate(TagValidator, { each: true })
   tags: string[];
 
   @ApiProperty({
     example: 'feed/{UUID}.jpg',
     description: '썸네일로 사용할 이미지명',
   })
-  @Validate(IsFeedCard)
+  @IsImageWithPrefix('feed/')
   thumbnail: string;
 }
