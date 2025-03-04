@@ -1,26 +1,16 @@
+import { subscriptionTypes } from './subscription';
+
 import { ApiProperty } from '@nestjs/swagger';
 
-export type NotificationType =
-  | 'FOLLOW'
-  | 'FEED_LIKE'
-  | 'FEED_COMMENT'
-  | 'FEED_REPLY'
-  | 'FEED_MENTION'
-  | 'POST_COMMENT'
-  | 'POST_REPLY'
-  | 'POST_MENTION';
-
-export const notificationTypesArray = [
-  'FOLLOW',
-  'FEED_LIKE',
-  'FEED_COMMENT',
-  'FEED_REPLY',
+export const notificationTypes = [
+  ...subscriptionTypes,
   'FEED_MENTION',
-  'POST_COMMENT',
-  'POST_REPLY',
   'POST_MENTION',
 ];
 
+export type NotificationType = (typeof notificationTypes)[number];
+
+// TODO: 이게 왜 여기있냐
 class Actor {
   @ApiProperty()
   id: string;

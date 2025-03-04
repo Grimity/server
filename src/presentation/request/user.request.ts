@@ -1,7 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsUrl, ArrayMaxSize, ValidateNested } from 'class-validator';
+import {
+  Length,
+  IsUrl,
+  ArrayMaxSize,
+  ValidateNested,
+  IsEnum,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { TrimString, IsImageWithPrefix } from './helper';
+import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
 
 class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
@@ -53,4 +60,10 @@ export class UpdateBackgroundImageRequest {
   @ApiProperty({ example: 'background/{UUID}.jpg' })
   @IsImageWithPrefix('background/')
   imageName: string;
+}
+
+export class UpdateSubscriptionRequest {
+  @ApiProperty({ enum: subscriptionTypes, isArray: true })
+  @IsEnum(subscriptionTypes, { each: true })
+  subscription: SubscriptionType[];
 }

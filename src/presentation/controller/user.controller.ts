@@ -39,7 +39,6 @@ import {
   GetMyPostsQuery,
   MyPostDto,
   GetMySavePostsResponse,
-  UpdateSubscriptionDto,
   UserMetaDto,
 } from 'src/controller/dto/user';
 
@@ -47,6 +46,7 @@ import {
   UpdateUserRequest,
   UpdateProfileImageRequest,
   UpdateBackgroundImageRequest,
+  UpdateSubscriptionRequest,
 } from '../request/user.request';
 
 @ApiTags('/users')
@@ -161,7 +161,7 @@ export class UserController {
   @HttpCode(204)
   async updateSubscriptions(
     @CurrentUser() userId: string,
-    @Body() { subscription }: UpdateSubscriptionDto,
+    @Body() { subscription }: UpdateSubscriptionRequest,
   ) {
     await this.userService.updateSubscription(userId, [
       ...new Set(subscription),

@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { NotificationType, notificationTypesArray } from 'src/common/constants';
 
 export class SubscriptionDto {
   @ApiProperty({
