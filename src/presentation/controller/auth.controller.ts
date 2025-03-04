@@ -14,13 +14,13 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
 import {
-  LoginDto,
   RegisterDto,
   Register409Dto,
   RegisterSuccessDto,
   LoginSuccessDto,
   RefreshSuccessDto,
 } from 'src/controller/dto/auth';
+import { LoginRequest } from '../request/auth.request';
 import {
   GetClientInfo,
   GetRefreshToken,
@@ -50,7 +50,7 @@ export class AuthController {
   @Post('login')
   async login(
     @GetClientInfo() clientInfo: ClientInfo,
-    @Body() { provider, providerAccessToken }: LoginDto,
+    @Body() { provider, providerAccessToken }: LoginRequest,
   ): Promise<LoginSuccessDto> {
     return this.authService.login(
       {
