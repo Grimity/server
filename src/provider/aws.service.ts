@@ -4,6 +4,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
+import { imageTypes, exts } from 'src/common/constants/image';
 
 @Injectable()
 export class AwsService {
@@ -17,8 +18,8 @@ export class AwsService {
   }
 
   async getUploadUrl(
-    type: 'profile' | 'feed' | 'background' | 'post',
-    ext: 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp',
+    type: (typeof imageTypes)[number],
+    ext: (typeof exts)[number],
   ) {
     const key = `${type}/${uuidv4()}.${ext}`;
     const url = await this.createUploadUrl(key);
@@ -28,7 +29,7 @@ export class AwsService {
     };
   }
 
-  async getUploadUrls(inputs: GetUplodateUrlInput[]) {
+  async getUploadUrls(inputs: GetUploadUrlInput[]) {
     return await Promise.all(
       inputs.map(async (input) => {
         return await this.getUploadUrl(input.type, input.ext);
@@ -117,7 +118,7 @@ type Event =
   | PostReplyEvent
   | PostMentionEvent;
 
-type GetUplodateUrlInput = {
-  type: 'profile' | 'feed' | 'background' | 'post';
-  ext: 'jpg' | 'jpeg' | 'png' | 'gif' | 'webp';
+type GetUploadUrlInput = {
+  type: (typeof imageTypes)[number];
+  ext: (typeof exts)[number];
 };

@@ -14,7 +14,8 @@ import {
 } from '@nestjs/swagger';
 import { AwsService } from 'src/provider/aws.service';
 import { JwtGuard } from 'src/common/guard';
-import { GetImageUploadUrlDto, UrlDto } from 'src/controller/dto/aws';
+import { UrlDto } from 'src/controller/dto/aws';
+import { GetPresignedUrlRequest } from '../request/aws.request';
 
 @ApiBearerAuth()
 @ApiTags('/aws')
@@ -29,13 +30,13 @@ export class AwsController {
   @ApiResponse({ status: 201, description: '성공', type: UrlDto })
   @Post('image-upload-url')
   async getImageUploadUrl(
-    @Body() { type, ext }: GetImageUploadUrlDto,
+    @Body() { type, ext }: GetPresignedUrlRequest,
   ): Promise<UrlDto> {
     return await this.awsService.getUploadUrl(type, ext);
   }
 
   @ApiOperation({ summary: '이미지 업로드 URL 생성 - 여러장' })
-  @ApiBody({ type: GetImageUploadUrlDto, isArray: true })
+  @ApiBody({ type: GetPresignedUrlRequest, isArray: true })
   @ApiResponse({
     status: 201,
     description: '성공',
@@ -46,10 +47,10 @@ export class AwsController {
   async getImageUploadUrls(
     @Body(
       new ParseArrayPipe({
-        items: GetImageUploadUrlDto,
+        items: GetPresignedUrlRequest,
       }),
     )
-    dtos: GetImageUploadUrlDto[],
+    dtos: GetPresignedUrlRequest[],
   ) {
     return await this.awsService.getUploadUrls(dtos);
   }
