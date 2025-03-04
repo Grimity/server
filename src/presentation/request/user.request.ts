@@ -7,9 +7,10 @@ import {
   IsArray,
   ArrayMaxSize,
   ValidateNested,
+  Validate,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { TrimString } from './helper';
+import { TrimString, IsImageWithPrefix } from './helper';
 
 class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램' })
@@ -45,4 +46,10 @@ export class UpdateUserRequest {
   @ValidateNested({ each: true })
   @Type(() => UpdateLinkRequest)
   links: UpdateLinkRequest[];
+}
+
+export class UpdateProfileImageRequest {
+  @ApiProperty({ example: 'profile/{UUID}.jpg' })
+  @IsImageWithPrefix('profile/')
+  imageName: string;
 }
