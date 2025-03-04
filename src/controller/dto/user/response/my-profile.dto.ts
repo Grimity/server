@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { LinkDto } from '../request/upload-profile.dto';
+
+// TODO: 리팩터링해야함
+export class LinkDto {
+  @ApiProperty({ example: '인스타그램' })
+  linkName: string;
+
+  @ApiProperty({ example: 'https://www.instagram.com/username' })
+  link: string;
+}
 
 export class MyProfileDto {
   @ApiProperty({ description: '유저 아이디' })

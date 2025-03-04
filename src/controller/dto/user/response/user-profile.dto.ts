@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { LinkDto } from '../request/upload-profile.dto';
+
+// TODO: 리팩터링해야함
+import { LinkDto } from './my-profile.dto';
 
 export class UserProfileDto {
   @ApiProperty()
