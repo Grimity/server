@@ -25,7 +25,6 @@ import {
   UpdateProfileImageDto,
   GetMyFollowersQuery,
   GetMyFollowingsQuery,
-  UpdateProfileDto,
   MyProfileDto,
   UserProfileDto,
   MyFollowerResponse,
@@ -45,6 +44,8 @@ import {
   UpdateSubscriptionDto,
   UserMetaDto,
 } from 'src/controller/dto/user';
+
+import { UpdateUserRequest } from '../request/user/user.request';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -72,7 +73,7 @@ export class UserController {
   @Put('me')
   async updateProfile(
     @CurrentUser() userId: string,
-    @Body() dto: UpdateProfileDto,
+    @Body() dto: UpdateUserRequest,
   ) {
     await this.userService.updateProfile(userId, dto);
     return;
