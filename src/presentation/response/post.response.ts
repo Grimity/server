@@ -3,7 +3,7 @@ import { IdAndNameResponse } from './user.response';
 import { TotalCountResponse } from './shared';
 import { postTypes } from 'src/common/constants';
 
-class PostBaseResponse {
+export class PostBaseResponse {
   @ApiProperty()
   id: string;
 

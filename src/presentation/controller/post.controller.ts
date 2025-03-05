@@ -20,7 +20,6 @@ import {
 import { PostService } from 'src/provider/post.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { PostMetaDto } from 'src/controller/dto/post';
 
 import {
   CreatePostRequest,
@@ -30,6 +29,7 @@ import {
 
 import { IdResponse } from '../response/shared';
 import {
+  PostBaseResponse,
   PostResponse,
   PostsResponse,
   PostDetailResponse,
@@ -104,7 +104,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 상세 조회 - Optional Guard' })
-  @ApiResponse({ status: 200, description: '성공', type: PostDetailResponse })
+  @ApiResponse({ status: 200, type: PostDetailResponse })
   @ApiResponse({ status: 404, description: '게시글 없음' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
@@ -116,12 +116,12 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '게시글 메타데이터 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: PostMetaDto })
+  @ApiResponse({ status: 200, type: PostBaseResponse })
   @ApiResponse({ status: 404, description: '게시글 없음' })
   @Get(':id/meta')
   async getMeta(
     @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<PostMetaDto> {
+  ): Promise<PostBaseResponse> {
     return await this.postService.getMeta(id);
   }
 
