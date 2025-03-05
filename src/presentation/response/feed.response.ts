@@ -174,3 +174,28 @@ export class SearchedFeedByTagsResponse extends FeedBaseResponse {
   @ApiProperty({ type: IdAndNameResponse })
   author: IdAndNameResponse;
 }
+
+export class MyLikeFeedResponse extends FeedBaseResponse {
+  @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
+  cards: string[];
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  commentCount: number;
+
+  @ApiProperty({ description: '내가 좋아요/저장 한 시간' })
+  createdAt: Date;
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
+}
+
+export class MyLikeFeedsResponse extends CursorResponse {
+  @ApiProperty({ type: MyLikeFeedResponse, isArray: true })
+  feeds: MyLikeFeedResponse[];
+}

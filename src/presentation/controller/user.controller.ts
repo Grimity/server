@@ -22,7 +22,6 @@ import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   UserFeedsResponse,
-  MyLikeFeedsResponse,
   MyPostDto,
   GetMySavePostsResponse,
 } from 'src/controller/dto/user';
@@ -47,6 +46,7 @@ import {
   UserProfileResponse,
   UserMetaResponse,
 } from '../response/user.response';
+import { MyLikeFeedsResponse } from '../response/feed.response';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -57,7 +57,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 정보 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: MyProfileResponse })
+  @ApiResponse({ status: 200, type: MyProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(JwtGuard)
   @Get('me')
@@ -67,7 +67,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 정보 변경' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 409, description: '이미 존재하는 이름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -82,7 +82,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '회원 탈퇴' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete('me')
@@ -93,7 +93,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '프로필 이미지 변경' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put('me/image')
@@ -107,7 +107,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '프로필 이미지 삭제' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete('me/image')
@@ -118,7 +118,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '배경사진 변경' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put('me/background')
@@ -132,7 +132,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '배경사진 삭제' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete('me/background')
@@ -143,7 +143,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '알림 구독 여부 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: SubscriptionResponse })
+  @ApiResponse({ status: 200, type: SubscriptionResponse })
   @UseGuards(JwtGuard)
   @Get('me/subscribe')
   async getSubscriptions(
@@ -154,7 +154,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '알림 구독 여부 수정' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @Put('me/subscribe')
   @HttpCode(204)
@@ -170,11 +170,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: MyFollowersResponse,
-  })
+  @ApiResponse({ status: 200, type: MyFollowersResponse })
   @UseGuards(JwtGuard)
   @Get('me/followers')
   async getMyFollowers(
@@ -189,11 +185,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로잉 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: MyFollowingsResponse,
-  })
+  @ApiResponse({ status: 200, type: MyFollowingsResponse })
   @UseGuards(JwtGuard)
   @Get('me/followings')
   async getMyFollowings(
@@ -208,7 +200,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 팔로워 삭제' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '팔로우하지 않은 유저' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -221,14 +213,9 @@ export class UserController {
     return;
   }
 
-  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 좋아요한 피드 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: MyLikeFeedsResponse,
-  })
+  @ApiResponse({ status: 200, type: MyLikeFeedsResponse })
   @UseGuards(JwtGuard)
   @Get('me/like-feeds')
   async getMyLikeFeeds(
@@ -241,14 +228,9 @@ export class UserController {
     });
   }
 
-  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 저장한 피드 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: MyLikeFeedsResponse,
-  })
+  @ApiResponse({ status: 200, type: MyLikeFeedsResponse })
   @UseGuards(JwtGuard)
   @Get('me/save-feeds')
   async getMySaveFeeds(
