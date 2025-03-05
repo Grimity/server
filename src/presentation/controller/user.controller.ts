@@ -337,6 +337,7 @@ export class UserController {
     return this.userService.getMeta(id);
   }
 
+  // TODO response 리팩터링
   @ApiOperation({ summary: '유저별 피드 조회' })
   @ApiResponse({
     status: 200,
@@ -358,6 +359,7 @@ export class UserController {
     });
   }
 
+  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({
     summary:

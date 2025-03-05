@@ -13,13 +13,13 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
-import {
-  Register409Dto,
-  RegisterSuccessDto,
-  LoginSuccessDto,
-  RefreshSuccessDto,
-} from 'src/controller/dto/auth';
+
 import { LoginRequest, RegisterRequest } from '../request/auth.request';
+import {
+  LoginResponse,
+  JwtResponse,
+  Register409Response,
+} from '../response/auth.response';
 import {
   GetClientInfo,
   GetRefreshToken,
@@ -38,7 +38,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: '로그인 성공',
-    type: LoginSuccessDto,
+    type: LoginResponse,
   })
   @ApiResponse({
     status: 404,
@@ -50,7 +50,7 @@ export class AuthController {
   async login(
     @GetClientInfo() clientInfo: ClientInfo,
     @Body() { provider, providerAccessToken }: LoginRequest,
-  ): Promise<LoginSuccessDto> {
+  ): Promise<LoginResponse> {
     return this.authService.login(
       {
         provider,
@@ -64,19 +64,19 @@ export class AuthController {
   @ApiResponse({
     status: 201,
     description: '회원가입 성공',
-    type: RegisterSuccessDto,
+    type: LoginResponse,
   })
   @ApiResponse({
     status: 409,
     description: '이미 있는 회원 or 닉네임 중복',
-    type: Register409Dto,
+    type: Register409Response,
   })
   @UseGuards(UserAgentGuard)
   @Post('register')
   async register(
     @GetClientInfo() clientInfo: ClientInfo,
     @Body() dto: RegisterRequest,
-  ): Promise<RegisterSuccessDto> {
+  ): Promise<LoginResponse> {
     return await this.authService.register(dto, clientInfo);
   }
 
@@ -85,7 +85,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: '토큰 재발급 성공',
-    type: RefreshSuccessDto,
+    type: JwtResponse,
   })
   @UseGuards(JwtRefreshGuard)
   @Get('refresh')
@@ -93,7 +93,7 @@ export class AuthController {
     @CurrentUser() userId: string,
     @GetRefreshToken() token: string,
     @GetClientInfo() clientInfo: ClientInfo,
-  ): Promise<RefreshSuccessDto> {
+  ): Promise<JwtResponse> {
     return await this.authService.refresh(userId, token, clientInfo);
   }
 
