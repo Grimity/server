@@ -28,7 +28,6 @@ import {
   MyLikeFeedsResponse,
   PopularUserDto,
   SearchedUserResponse,
-  SubscriptionDto,
   MyPostDto,
   GetMySavePostsResponse,
   UserMetaDto,
@@ -44,7 +43,10 @@ import {
 } from '../request/user.request';
 import { CursorRequest, PageRequest } from '../request/shared';
 
-import { MyProfileResponse } from '../response/user.response';
+import {
+  MyProfileResponse,
+  SubscriptionResponse,
+} from '../response/user.response';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -141,12 +143,12 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '알림 구독 여부 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: SubscriptionDto })
+  @ApiResponse({ status: 200, description: '성공', type: SubscriptionResponse })
   @UseGuards(JwtGuard)
   @Get('me/subscribe')
   async getSubscriptions(
     @CurrentUser() userId: string,
-  ): Promise<SubscriptionDto> {
+  ): Promise<SubscriptionResponse> {
     return await this.userService.getSubscription(userId);
   }
 

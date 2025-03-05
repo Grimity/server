@@ -27,6 +27,21 @@ export class LinkResponse {
   link: string;
 }
 
+export class SubscriptionResponse {
+  @ApiProperty({
+    enum: [
+      'FOLLOW',
+      'FEED_LIKE',
+      'FEED_COMMENT',
+      'FEED_REPLY',
+      'POST_COMMENT',
+      'POST_REPLY',
+    ],
+    isArray: true,
+  })
+  subscription: string[];
+}
+
 export class MyProfileResponse extends UserImageResponse {
   @ApiProperty({ enum: socialProviders })
   provider: string;
