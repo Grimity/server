@@ -75,9 +75,9 @@ export class AuthController {
   @Post('register')
   async register(
     @GetClientInfo() clientInfo: ClientInfo,
-    @Body() registerDto: RegisterRequest,
+    @Body() dto: RegisterRequest,
   ): Promise<RegisterSuccessDto> {
-    return await this.authService.register(registerDto, clientInfo);
+    return await this.authService.register(dto, clientInfo);
   }
 
   @ApiBearerAuth()

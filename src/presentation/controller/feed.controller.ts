@@ -54,9 +54,9 @@ export class FeedController {
   @Post()
   async create(
     @CurrentUser() userId: string,
-    @Body() createFeedDto: CreateFeedRequest,
+    @Body() dto: CreateFeedRequest,
   ): Promise<FeedIdDto> {
-    return await this.feedService.create(userId, createFeedDto);
+    return await this.feedService.create(userId, dto);
   }
 
   @ApiBearerAuth()

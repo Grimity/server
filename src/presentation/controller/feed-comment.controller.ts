@@ -22,11 +22,11 @@ import { FeedCommentService } from 'src/provider/feed-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  CreateFeedCommentDto,
   FeedCommentResponseDto,
   GetChildCommentsQuery,
   ChildCommentDto,
 } from 'src/controller/dto/feed-comment';
+import { CreateFeedCommentRequest } from '../request/feed-comment.request';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -43,9 +43,9 @@ export class FeedCommentController {
   @UseGuards(JwtGuard)
   async create(
     @CurrentUser() userId: string,
-    @Body() createFeedCommentDto: CreateFeedCommentDto,
+    @Body() dto: CreateFeedCommentRequest,
   ) {
-    await this.feedCommentService.create(userId, createFeedCommentDto);
+    await this.feedCommentService.create(userId, dto);
     return;
   }
 
