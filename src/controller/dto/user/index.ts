@@ -4,4 +4,3 @@ export * from './response/my-like-feeds.response';
 
 export * from './response/my-post.dto';
 export * from './response/get-my-save-posts.response';
-export * from './response/user-meta.dto';

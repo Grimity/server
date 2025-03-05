@@ -25,7 +25,6 @@ import {
   MyLikeFeedsResponse,
   MyPostDto,
   GetMySavePostsResponse,
-  UserMetaDto,
 } from 'src/controller/dto/user';
 
 import {
@@ -46,6 +45,7 @@ import {
   SearchedUsersResponse,
   PopularUserResponse,
   UserProfileResponse,
+  UserMetaResponse,
 } from '../response/user.response';
 
 @ApiTags('/users')
@@ -329,9 +329,11 @@ export class UserController {
   }
 
   @ApiOperation({ summary: '유저 메타데이터 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: UserMetaDto })
+  @ApiResponse({ status: 200, description: '성공', type: UserMetaResponse })
   @Get(':id/meta')
-  async getMeta(@Param('id', ParseUUIDPipe) id: string): Promise<UserMetaDto> {
+  async getMeta(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserMetaResponse> {
     return this.userService.getMeta(id);
   }
 
