@@ -20,7 +20,6 @@ import {
 import { FeedService } from 'src/provider/feed.service';
 import {
   FeedDetailDto,
-  FollowingFeedsResponse,
   LikeUserDto,
   FeedMetaDto,
 } from 'src/controller/dto/feed';
@@ -33,6 +32,7 @@ import {
   LatestFeedsResponse,
   TodayPopularFeedResponse,
   PopularFeedsResponse,
+  FollowingFeedsResponse,
 } from '../response/feed.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
@@ -121,12 +121,8 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '팔로잉한 유저들의 피드 목록 조회' })
+  @ApiResponse({ status: 200, type: FollowingFeedsResponse })
   @UseGuards(JwtGuard)
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: FollowingFeedsResponse,
-  })
   @Get('following')
   async getFollowingFeeds(
     @CurrentUser() userId: string,

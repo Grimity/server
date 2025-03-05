@@ -99,3 +99,43 @@ export class PopularFeedsResponse extends CursorResponse {
   @ApiProperty({ type: PopularFeedResponse, isArray: true })
   feeds: PopularFeedResponse[];
 }
+
+class FollowingFeedResponse extends FeedBaseResponse {
+  @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
+  cards: string[];
+
+  @ApiProperty()
+  content: string;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  commentCount: number;
+
+  @ApiProperty()
+  isAI: boolean;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty()
+  isSave: boolean;
+
+  @ApiProperty()
+  tags: string[];
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
+}
+
+export class FollowingFeedsResponse extends CursorResponse {
+  @ApiProperty({ type: FollowingFeedResponse, isArray: true })
+  feeds: FollowingFeedResponse[];
+}
