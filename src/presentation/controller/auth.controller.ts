@@ -13,7 +13,6 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
-
 import { LoginRequest, RegisterRequest } from '../request/auth.request';
 import {
   LoginResponse,

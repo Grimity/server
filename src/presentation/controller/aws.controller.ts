@@ -14,8 +14,9 @@ import {
 } from '@nestjs/swagger';
 import { AwsService } from 'src/provider/aws.service';
 import { JwtGuard } from 'src/common/guard';
-import { UrlDto } from 'src/controller/dto/aws';
+
 import { GetPresignedUrlRequest } from '../request/aws.request';
+import { PresignedUrlResponse } from '../response/aws.response';
 
 @ApiBearerAuth()
 @ApiTags('/aws')
@@ -27,11 +28,11 @@ export class AwsController {
   constructor(private awsService: AwsService) {}
 
   @ApiOperation({ summary: '이미지 업로드 URL 생성' })
-  @ApiResponse({ status: 201, description: '성공', type: UrlDto })
+  @ApiResponse({ status: 201, description: '성공', type: PresignedUrlResponse })
   @Post('image-upload-url')
   async getImageUploadUrl(
     @Body() { type, ext }: GetPresignedUrlRequest,
-  ): Promise<UrlDto> {
+  ): Promise<PresignedUrlResponse> {
     return await this.awsService.getUploadUrl(type, ext);
   }
 
@@ -40,8 +41,7 @@ export class AwsController {
   @ApiResponse({
     status: 201,
     description: '성공',
-    type: UrlDto,
-    isArray: true,
+    type: [PresignedUrlResponse],
   })
   @Post('image-upload-urls')
   async getImageUploadUrls(
