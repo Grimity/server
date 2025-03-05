@@ -22,9 +22,7 @@ import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   UserProfileDto,
-  MyFollowerResponse,
   UserFeedsResponse,
-  MyFollowingResponse,
   MyLikeFeedsResponse,
   PopularUserDto,
   SearchedUserResponse,
@@ -46,6 +44,8 @@ import { CursorRequest, PageRequest } from '../request/shared';
 import {
   MyProfileResponse,
   SubscriptionResponse,
+  MyFollowersResponse,
+  MyFollowingsResponse,
 } from '../response/user.response';
 
 @ApiTags('/users')
@@ -173,14 +173,14 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: MyFollowerResponse,
+    type: MyFollowersResponse,
   })
   @UseGuards(JwtGuard)
   @Get('me/followers')
   async getMyFollowers(
     @CurrentUser() userId: string,
     @Query() query: CursorRequest,
-  ): Promise<MyFollowerResponse> {
+  ): Promise<MyFollowersResponse> {
     return this.userService.getMyFollowers(userId, {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
@@ -192,14 +192,14 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: MyFollowingResponse,
+    type: MyFollowingsResponse,
   })
   @UseGuards(JwtGuard)
   @Get('me/followings')
   async getMyFollowings(
     @CurrentUser() userId: string,
     @Query() query: CursorRequest,
-  ): Promise<MyFollowingResponse> {
+  ): Promise<MyFollowingsResponse> {
     return this.userService.getMyFollowings(userId, {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,

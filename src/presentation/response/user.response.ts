@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { socialProviders } from 'src/common/constants';
+import { CursorResponse } from './shared/cursor.response';
 
 // 최소단위 User
 export class UserResponse {
@@ -56,7 +57,7 @@ export class MyProfileResponse extends UserImageResponse {
   })
   backgroundImage: string | null;
 
-  @ApiProperty({ description: 'not null인데 빈문자열 허용' })
+  @ApiProperty({ description: 'not null인데 공백 허용' })
   description: string;
 
   @ApiProperty({ type: LinkResponse, isArray: true })
@@ -67,4 +68,19 @@ export class MyProfileResponse extends UserImageResponse {
 
   @ApiProperty()
   hasNotification: boolean;
+}
+
+class FollowUserResponse extends UserImageResponse {
+  @ApiProperty({ description: 'not null인데 공백은 허용' })
+  description: string;
+}
+
+export class MyFollowersResponse extends CursorResponse {
+  @ApiProperty({ type: FollowUserResponse, isArray: true })
+  followers: FollowUserResponse[];
+}
+
+export class MyFollowingsResponse extends CursorResponse {
+  @ApiProperty({ type: FollowUserResponse, isArray: true })
+  followings: FollowUserResponse[];
 }
