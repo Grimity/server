@@ -20,10 +20,10 @@ import {
 import { PostCommentService } from 'src/provider/post-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { PostParentCommentDto } from 'src/controller/dto/post-comment';
 
-import { IdResponse } from '../response/shared';
 import { CreatePostCommentRequest } from '../request/post-comment.request';
+import { IdResponse } from '../response/shared';
+import { ParentPostCommentResponse } from '../response/post-comment.response';
 
 @ApiTags('/post-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -49,24 +49,19 @@ export class PostCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 조회 - Optional Guard' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: PostParentCommentDto,
-    isArray: true,
-  })
+  @ApiResponse({ status: 200, type: [ParentPostCommentResponse] })
   @Get()
   @UseGuards(OptionalJwtGuard)
   async getPostComments(
     @CurrentUser() userId: string | null,
     @Query('postId', ParseUUIDPipe) postId: string,
-  ): Promise<PostParentCommentDto[]> {
+  ): Promise<ParentPostCommentResponse[]> {
     return await this.postCommentService.getComments(userId, postId);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 삭제' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '없는 댓글' })
   @UseGuards(JwtGuard)
   @Delete(':id')
@@ -81,7 +76,7 @@ export class PostCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 좋아요' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '없는 댓글' })
   @ApiResponse({ status: 409, description: '이미 좋아요한 댓글' })
   @UseGuards(JwtGuard)
@@ -97,7 +92,7 @@ export class PostCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 좋아요 취소' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({
     status: 404,
     description: '없는 댓글이거나 좋아요한적이 없을때',
