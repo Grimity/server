@@ -20,7 +20,7 @@ import {
 import { PostService } from 'src/provider/post.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { PostDetailDto, PostMetaDto } from 'src/controller/dto/post';
+import { PostMetaDto } from 'src/controller/dto/post';
 
 import {
   CreatePostRequest,
@@ -29,7 +29,11 @@ import {
 } from '../request/post.request';
 
 import { IdResponse } from '../response/shared';
-import { PostResponse, PostsResponse } from '../response/post.response';
+import {
+  PostResponse,
+  PostsResponse,
+  PostDetailResponse,
+} from '../response/post.response';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -100,14 +104,14 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 상세 조회 - Optional Guard' })
-  @ApiResponse({ status: 200, description: '성공', type: PostDetailDto })
+  @ApiResponse({ status: 200, description: '성공', type: PostDetailResponse })
   @ApiResponse({ status: 404, description: '게시글 없음' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getPost(
     @CurrentUser() userId: string | null,
     @Param('id', new ParseUUIDPipe()) postId: string,
-  ): Promise<PostDetailDto> {
+  ): Promise<PostDetailResponse> {
     return await this.postService.getPost(userId, postId);
   }
 

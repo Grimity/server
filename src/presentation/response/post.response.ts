@@ -38,3 +38,14 @@ export class PostsResponse extends TotalCountResponse {
   @ApiProperty({ type: PostResponse, isArray: true })
   posts: PostResponse[];
 }
+
+export class PostDetailResponse extends PostResponse {
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty()
+  isSave: boolean;
+}
