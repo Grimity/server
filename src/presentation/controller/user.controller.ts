@@ -20,7 +20,6 @@ import {
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { MyPostDto } from 'src/controller/dto/user';
 
 import {
   UpdateUserRequest,
@@ -46,7 +45,7 @@ import {
   MyLikeFeedsResponse,
   UserFeedsResponse,
 } from '../response/feed.response';
-import { MySavePostsResponse } from '../response/post.response';
+import { MySavePostsResponse, MyPostResponse } from '../response/post.response';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -310,7 +309,6 @@ export class UserController {
     return this.userService.getMeta(id);
   }
 
-  // TODO response 리팩터링
   @ApiOperation({ summary: '유저별 피드 조회' })
   @ApiResponse({ status: 200, type: UserFeedsResponse })
   @UseGuards(OptionalJwtGuard)
@@ -328,25 +326,19 @@ export class UserController {
     });
   }
 
-  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({
     summary:
       '유저별 게시글 조회 - 일관성을 위해서 경로는 이렇게하지만 accT는 있어야합니다',
   })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: MyPostDto,
-    isArray: true,
-  })
+  @ApiResponse({ status: 200, type: [MyPostResponse] })
   @UseGuards(JwtGuard)
   @Get(':id/posts')
   async getPosts(
     @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) targetId: string,
     @Query() { page, size }: PageRequest,
-  ): Promise<MyPostDto[]> {
+  ): Promise<MyPostResponse[]> {
     if (userId !== targetId) {
       throw new HttpException('Forbidden', 403);
     }
@@ -359,7 +351,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '팔로우' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 409, description: '이미 팔로우 했음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -374,7 +366,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '언팔로우' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/follow')

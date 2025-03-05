@@ -54,3 +54,14 @@ export class MySavePostsResponse extends TotalCountResponse {
   @ApiProperty({ type: PostResponse, isArray: true })
   posts: PostResponse[];
 }
+
+export class MyPostResponse extends PostBaseResponse {
+  @ApiProperty({ enum: postTypes })
+  type: (typeof postTypes)[number];
+
+  @ApiProperty()
+  commentCount: number;
+
+  @ApiProperty()
+  viewCount: number;
+}
