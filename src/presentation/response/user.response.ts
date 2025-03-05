@@ -1,17 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { socialProviders } from 'src/common/constants';
-import { CursorResponse } from './shared/cursor.response';
+import {
+  CursorResponse,
+  CursorWithCountResponse,
+} from './shared/cursor.response';
 
 // 최소단위 User
-export class UserResponse {
+export class UserBaseResponse {
   @ApiProperty()
   id: string;
 
   @ApiProperty()
   name: string;
-}
 
-export class UserImageResponse extends UserResponse {
   @ApiProperty({
     example: 'profile/{UUID}.jpg',
     nullable: true,
@@ -43,7 +44,7 @@ export class SubscriptionResponse {
   subscription: string[];
 }
 
-export class MyProfileResponse extends UserImageResponse {
+export class MyProfileResponse extends UserBaseResponse {
   @ApiProperty({ enum: socialProviders })
   provider: string;
 
@@ -70,7 +71,7 @@ export class MyProfileResponse extends UserImageResponse {
   hasNotification: boolean;
 }
 
-class FollowUserResponse extends UserImageResponse {
+class FollowUserResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
 }
@@ -83,4 +84,24 @@ export class MyFollowersResponse extends CursorResponse {
 export class MyFollowingsResponse extends CursorResponse {
   @ApiProperty({ type: FollowUserResponse, isArray: true })
   followings: FollowUserResponse[];
+}
+
+class SearchedUserResponse extends UserBaseResponse {
+  @ApiProperty({ description: 'not null인데 공백은 허용' })
+  description: string;
+
+  @ApiProperty({
+    example: 'background/{UUID}.jpg',
+    nullable: true,
+    type: 'string',
+  })
+  backgroundImage: string | null;
+
+  @ApiProperty()
+  isFollowing: boolean;
+}
+
+export class SearchedUsersResponse extends CursorWithCountResponse {
+  @ApiProperty({ type: SearchedUserResponse, isArray: true })
+  users: SearchedUserResponse[];
 }

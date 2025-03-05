@@ -4,3 +4,8 @@ export class CursorResponse {
   @ApiProperty({ type: 'string', nullable: true })
   nextCursor: string | null;
 }
+
+export class CursorWithCountResponse extends CursorResponse {
+  @ApiProperty()
+  totalCount: number;
+}

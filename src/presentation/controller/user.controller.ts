@@ -25,7 +25,6 @@ import {
   UserFeedsResponse,
   MyLikeFeedsResponse,
   PopularUserDto,
-  SearchedUserResponse,
   MyPostDto,
   GetMySavePostsResponse,
   UserMetaDto,
@@ -46,6 +45,7 @@ import {
   SubscriptionResponse,
   MyFollowersResponse,
   MyFollowingsResponse,
+  SearchedUsersResponse,
 } from '../response/user.response';
 
 @ApiTags('/users')
@@ -221,6 +221,7 @@ export class UserController {
     return;
   }
 
+  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 좋아요한 피드 조회' })
   @ApiResponse({
@@ -240,6 +241,7 @@ export class UserController {
     });
   }
 
+  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 저장한 피드 조회' })
   @ApiResponse({
@@ -259,6 +261,7 @@ export class UserController {
     });
   }
 
+  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 저장한 게시글 조회' })
   @ApiResponse({
@@ -281,13 +284,13 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })
-  @ApiResponse({ status: 200, description: '성공', type: SearchedUserResponse })
+  @ApiResponse({ status: 200, type: SearchedUsersResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('search')
   async searchUser(
     @Query() query: SearchUserRequest,
     @CurrentUser() userId: string | null,
-  ): Promise<SearchedUserResponse> {
+  ): Promise<SearchedUsersResponse> {
     return await this.userService.searchUsers({
       keyword: query.keyword,
       cursor: query.cursor ?? null,
