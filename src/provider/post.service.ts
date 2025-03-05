@@ -234,7 +234,7 @@ type CreateInput = {
 };
 
 type GetPostsInput = {
-  type: 'ALL' | 'QUESTION' | 'FEEDBACK';
+  type: (typeof postTypes)[number] | 'ALL';
   page: number;
   size: number;
 };

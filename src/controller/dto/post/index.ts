@@ -1,4 +1,3 @@
-export * from './request/get-posts.query';
 export * from './request/update-post.dto';
 export * from './request/search-post.query';
 
