@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsUUID, ValidateIf, MaxLength } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsIn, IsInt, IsUUID, IsOptional, MaxLength } from 'class-validator';
 import { refTypes } from 'src/common/constants/report';
+import { TrimAndUpperNullableString, TrimNullableString } from './helper';
 
-export class CreateReportDto {
+export class CreateReportRequest {
   @ApiProperty({
     description: '신고 타입, 다른건 상관없는데 기타는 0으로 보내주세요',
   })
@@ -14,10 +14,8 @@ export class CreateReportDto {
     description: '신고 대상 타입',
     enum: refTypes,
   })
-  @Transform(({ value }) =>
-    typeof value === 'string' ? value.toUpperCase() : value,
-  )
-  @IsEnum(refTypes)
+  @TrimAndUpperNullableString()
+  @IsIn(refTypes)
   refType: (typeof refTypes)[number];
 
   @ApiProperty({
@@ -27,14 +25,13 @@ export class CreateReportDto {
   refId: string;
 
   @ApiProperty({
-    description: '신고 내용',
     type: 'string',
     nullable: true,
     required: false,
     maxLength: 1000,
   })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : null))
-  @ValidateIf(({ content }) => content !== null && content !== undefined)
+  @TrimNullableString()
+  @IsOptional()
   @MaxLength(1000)
-  content: string | null;
+  content?: string | null;
 }

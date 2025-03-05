@@ -17,6 +17,16 @@ export function TrimString() {
   });
 }
 
+export function TrimNullableString() {
+  return Transform(({ value }: TransformFnParams) => {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    return value.trim();
+  });
+}
+
 export function TrimAndLowerNullableString() {
   return Transform(({ value }: TransformFnParams) => {
     if (typeof value !== 'string') {

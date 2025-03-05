@@ -6,7 +6,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { ReportService } from 'src/provider/report.service';
-import { CreateReportDto } from 'src/controller/dto/report';
+import { CreateReportRequest } from '../request/report.request';
 import { CurrentUser } from 'src/common/decorator';
 import { JwtGuard } from 'src/common/guard';
 
@@ -22,7 +22,10 @@ export class ReportController {
   @ApiOperation({ summary: '신고하기' })
   @ApiResponse({ status: 201, description: '성공' })
   @Post()
-  async create(@CurrentUser() userId: string, @Body() dto: CreateReportDto) {
+  async create(
+    @CurrentUser() userId: string,
+    @Body() dto: CreateReportRequest,
+  ) {
     await this.reportService.create({
       userId,
       ...dto,
