@@ -20,11 +20,7 @@ import {
 import { PostService } from 'src/provider/post.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import {
-  PostDetailDto,
-  TodayPopularDto,
-  PostMetaDto,
-} from 'src/controller/dto/post';
+import { PostDetailDto, PostMetaDto } from 'src/controller/dto/post';
 
 import {
   CreatePostRequest,
@@ -75,11 +71,7 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '게시글 검색' })
-  @ApiResponse({
-    status: 200,
-    description: '게시글 검색 성공',
-    type: PostsResponse,
-  })
+  @ApiResponse({ status: 200, type: PostsResponse })
   @Get('search')
   async searchPosts(
     @Query() { keyword, page, size, searchBy }: SearchPostRequest,
@@ -100,14 +92,9 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '오늘의 인기글 조회 - 최대 12개' })
-  @ApiResponse({
-    status: 200,
-    description: '오늘의 인기글 조회 성공',
-    type: TodayPopularDto,
-    isArray: true,
-  })
+  @ApiResponse({ status: 200, type: [PostResponse] })
   @Get('today-popular')
-  async getTodayPopularPosts(): Promise<TodayPopularDto[]> {
+  async getTodayPopularPosts(): Promise<PostResponse[]> {
     return await this.postService.getTodayPopularPosts();
   }
 
