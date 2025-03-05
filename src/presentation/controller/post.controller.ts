@@ -27,7 +27,6 @@ import {
   GetPostsResponse,
   PostDetailDto,
   TodayPopularDto,
-  UpdatePostDto,
   SearchPostResponse,
   PostMetaDto,
 } from 'src/controller/dto/post';
@@ -160,7 +159,7 @@ export class PostController {
   async update(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) postId: string,
-    @Body() dto: UpdatePostDto,
+    @Body() dto: CreatePostRequest,
   ) {
     await this.postService.update(userId, { postId, ...dto });
     return;
