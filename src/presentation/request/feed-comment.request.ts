@@ -32,8 +32,14 @@ export class CreateFeedCommentRequest {
   mentionedUserId?: string | null;
 }
 
-export class GetParentFeedCommentRequest {
+export class GetFeedCommentRequest {
   @ApiProperty()
   @IsUUID()
   feedId: string;
+}
+
+export class GetChildFeedCommentRequest extends GetFeedCommentRequest {
+  @ApiProperty()
+  @IsUUID()
+  parentId: string;
 }

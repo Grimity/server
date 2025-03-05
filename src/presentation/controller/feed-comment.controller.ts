@@ -28,7 +28,8 @@ import {
 } from 'src/controller/dto/feed-comment';
 import {
   CreateFeedCommentRequest,
-  GetParentFeedCommentRequest,
+  GetFeedCommentRequest,
+  GetChildFeedCommentRequest,
 } from '../request/feed-comment.request';
 
 @ApiTags('/feed-comments')
@@ -63,15 +64,13 @@ export class FeedCommentController {
   @Get()
   async findAll(
     @CurrentUser() userId: string | null,
-    @Query() { feedId }: GetParentFeedCommentRequest,
+    @Query() { feedId }: GetFeedCommentRequest,
   ): Promise<FeedCommentResponseDto> {
     return await this.feedCommentService.getAllByFeedId(userId, feedId);
   }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 자식 댓글 조회 - Optional Guard' })
-  @ApiQuery({ name: 'parentId', type: 'string' })
-  @ApiQuery({ name: 'feedId', type: 'string' })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -82,7 +81,7 @@ export class FeedCommentController {
   @Get('child-comments')
   async findChildComments(
     @CurrentUser() userId: string | null,
-    @Query() query: GetChildCommentsQuery,
+    @Query() query: GetChildFeedCommentRequest,
   ): Promise<ChildCommentDto[]> {
     return await this.feedCommentService.getChildComments(userId, query);
   }
