@@ -16,20 +16,17 @@ import {
   ApiResponse,
   ApiOperation,
   ApiBearerAuth,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { FeedCommentService } from 'src/provider/feed-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import {
-  FeedCommentResponseDto,
-  ChildCommentDto,
-} from 'src/controller/dto/feed-comment';
+import { ChildCommentDto } from 'src/controller/dto/feed-comment';
 import {
   CreateFeedCommentRequest,
   GetFeedCommentRequest,
   GetChildFeedCommentRequest,
 } from '../request/feed-comment.request';
+import { FeedCommentsResponse } from '../response/feed-comment.response';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -40,7 +37,7 @@ export class FeedCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 댓글 생성' })
-  @ApiResponse({ status: 201, description: '성공' })
+  @ApiResponse({ status: 201 })
   @ApiResponse({ status: 404, description: '피드를 찾을 수 없음' })
   @Post()
   @UseGuards(JwtGuard)
@@ -57,14 +54,14 @@ export class FeedCommentController {
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: FeedCommentResponseDto,
+    type: FeedCommentsResponse,
   })
   @UseGuards(OptionalJwtGuard)
   @Get()
   async findAll(
     @CurrentUser() userId: string | null,
     @Query() { feedId }: GetFeedCommentRequest,
-  ): Promise<FeedCommentResponseDto> {
+  ): Promise<FeedCommentsResponse> {
     return await this.feedCommentService.getAllByFeedId(userId, feedId);
   }
 
