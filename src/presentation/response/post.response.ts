@@ -49,3 +49,8 @@ export class PostDetailResponse extends PostResponse {
   @ApiProperty()
   isSave: boolean;
 }
+
+export class MySavePostsResponse extends TotalCountResponse {
+  @ApiProperty({ type: PostResponse, isArray: true })
+  posts: PostResponse[];
+}

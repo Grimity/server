@@ -20,11 +20,7 @@ import {
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import {
-  UserFeedsResponse,
-  MyPostDto,
-  GetMySavePostsResponse,
-} from 'src/controller/dto/user';
+import { UserFeedsResponse, MyPostDto } from 'src/controller/dto/user';
 
 import {
   UpdateUserRequest,
@@ -47,6 +43,7 @@ import {
   UserMetaResponse,
 } from '../response/user.response';
 import { MyLikeFeedsResponse } from '../response/feed.response';
+import { MySavePostsResponse } from '../response/post.response';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -243,20 +240,15 @@ export class UserController {
     });
   }
 
-  // TODO response 리팩터링
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 저장한 게시글 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: GetMySavePostsResponse,
-  })
+  @ApiResponse({ status: 200, type: MySavePostsResponse })
   @UseGuards(JwtGuard)
   @Get('me/save-posts')
   async getMySavePosts(
     @CurrentUser() userId: string,
     @Query() { page, size }: PageRequest,
-  ): Promise<GetMySavePostsResponse> {
+  ): Promise<MySavePostsResponse> {
     return await this.userService.getMySavePosts({
       userId,
       page: page ?? 1,
@@ -284,11 +276,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '인기 유저 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: [PopularUserResponse],
-  })
+  @ApiResponse({ status: 200, type: [PopularUserResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('popular')
   async getPopularUsers(
@@ -299,7 +287,7 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 정보 조회 - Optional Guard' })
-  @ApiResponse({ status: 200, description: '성공', type: UserProfileResponse })
+  @ApiResponse({ status: 200, type: UserProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
@@ -311,7 +299,7 @@ export class UserController {
   }
 
   @ApiOperation({ summary: '유저 메타데이터 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: UserMetaResponse })
+  @ApiResponse({ status: 200, type: UserMetaResponse })
   @Get(':id/meta')
   async getMeta(
     @Param('id', ParseUUIDPipe) id: string,
@@ -321,11 +309,7 @@ export class UserController {
 
   // TODO response 리팩터링
   @ApiOperation({ summary: '유저별 피드 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: UserFeedsResponse,
-  })
+  @ApiResponse({ status: 200, type: UserFeedsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get(':id/feeds')
   async getFeeds(
