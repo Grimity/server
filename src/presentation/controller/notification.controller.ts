@@ -17,7 +17,7 @@ import {
 import { NotificationService } from 'src/provider/notification.service';
 import { JwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { NotificationDto } from 'src/controller/dto/notification';
+import { NotificationResponse } from '../response/notification.response';
 
 @ApiBearerAuth()
 @ApiTags('/notifications')
@@ -31,7 +31,7 @@ export class NotificationController {
   @ApiOperation({ summary: '알림 목록 조회' })
   @ApiResponse({
     status: 200,
-    type: NotificationDto,
+    type: NotificationResponse,
     isArray: true,
     description: '성공',
   })

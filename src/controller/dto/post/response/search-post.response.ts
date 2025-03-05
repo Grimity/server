@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdAndNameDto } from '../../feed/response/simple-author.dto';
+import { IdAndNameResponse } from 'src/presentation/response/user.response';
 import { postTypes } from 'src/common/constants';
 
 class SearchedPostDto {
@@ -27,8 +27,8 @@ class SearchedPostDto {
   @ApiProperty()
   commentCount: number;
 
-  @ApiProperty({ type: IdAndNameDto })
-  author: IdAndNameDto;
+  @ApiProperty({ type: IdAndNameResponse })
+  author: IdAndNameResponse;
 }
 
 export class SearchPostResponse {

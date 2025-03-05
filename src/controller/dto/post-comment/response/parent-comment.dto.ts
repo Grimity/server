@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdAndNameDto } from '../../feed/response/simple-author.dto';
+import { IdAndNameResponse } from 'src/presentation/response/user.response';
 
 class PostChildCommentDto {
   @ApiProperty()
@@ -15,17 +15,17 @@ class PostChildCommentDto {
   likeCount: number;
 
   @ApiProperty({
-    type: IdAndNameDto,
+    type: IdAndNameResponse,
     nullable: true,
     description: 'null이면 익명화',
   })
-  writer: IdAndNameDto | null;
+  writer: IdAndNameResponse | null;
 
   @ApiProperty({
-    type: IdAndNameDto,
+    type: IdAndNameResponse,
     nullable: true,
   })
-  mentionedUser: IdAndNameDto | null;
+  mentionedUser: IdAndNameResponse | null;
 
   @ApiProperty()
   isLike: boolean;
@@ -48,11 +48,11 @@ export class PostParentCommentDto {
   isDeleted: boolean;
 
   @ApiProperty({
-    type: IdAndNameDto,
+    type: IdAndNameResponse,
     nullable: true,
     description: 'null이면 익명화',
   })
-  writer: IdAndNameDto | null;
+  writer: IdAndNameResponse | null;
 
   @ApiProperty()
   isLike: boolean;

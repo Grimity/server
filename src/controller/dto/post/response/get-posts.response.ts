@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdAndNameDto } from '../../feed/response/simple-author.dto';
+import { IdAndNameResponse } from 'src/presentation/response/user.response';
 import { PostType } from 'src/common/constants';
 
 class PostDto {
@@ -27,8 +27,8 @@ class PostDto {
   @ApiProperty()
   createdAt: Date;
 
-  @ApiProperty({ type: IdAndNameDto })
-  author: IdAndNameDto;
+  @ApiProperty({ type: IdAndNameResponse })
+  author: IdAndNameResponse;
 }
 
 export class GetPostsResponse {
