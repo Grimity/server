@@ -272,7 +272,7 @@ export class FeedSelectRepository {
         'likeCount',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select(['User.id as authorId', 'name'])
+      .select(['User.id as authorId', 'name', 'User.image as image'])
       .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
@@ -300,6 +300,7 @@ export class FeedSelectRepository {
       author: {
         id: feed.authorId,
         name: feed.name,
+        image: feed.image,
       },
     }));
   }

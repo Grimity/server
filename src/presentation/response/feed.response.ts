@@ -12,7 +12,9 @@ export class FeedBaseResponse {
 
   @ApiProperty({ example: 'feed/UUID.webp' })
   thumbnail: string;
+}
 
+class SearchedFeedResponse extends FeedBaseResponse {
   @ApiProperty()
   viewCount: number;
 
@@ -21,9 +23,7 @@ export class FeedBaseResponse {
 
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
-}
 
-class SearchedFeedResponse extends FeedBaseResponse {
   @ApiProperty()
   commentCount: number;
 
@@ -41,6 +41,15 @@ export class SearchedFeedsResponse extends CursorAndCountResponse {
 
 class LatestFeedResponse extends FeedBaseResponse {
   @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
+
+  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()
@@ -50,4 +59,21 @@ class LatestFeedResponse extends FeedBaseResponse {
 export class LatestFeedsResponse extends CursorResponse {
   @ApiProperty({ type: LatestFeedResponse, isArray: true })
   feeds: LatestFeedResponse[];
+}
+
+export class TodayPopularFeedResponse extends FeedBaseResponse {
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
 }

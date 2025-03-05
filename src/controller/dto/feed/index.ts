@@ -1,6 +1,5 @@
 export * from './response/feed-detail.dto';
 
-export * from './response/today-popular-feed.dto';
 export * from './response/following-feeds-response.dto';
 
 export * from './response/popular-feed.response';

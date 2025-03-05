@@ -20,7 +20,6 @@ import {
 import { FeedService } from 'src/provider/feed.service';
 import {
   FeedDetailDto,
-  TodayPopularFeedDto,
   FollowingFeedsResponse,
   PopularFeedResponse,
   LikeUserDto,
@@ -33,6 +32,7 @@ import { IdResponse } from '../response/shared';
 import {
   SearchedFeedsResponse,
   LatestFeedsResponse,
+  TodayPopularFeedResponse,
 } from '../response/feed.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
@@ -47,11 +47,7 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 생성' })
-  @ApiResponse({
-    status: 201,
-    description: '피드 생성 성공',
-    type: IdResponse,
-  })
+  @ApiResponse({ status: 201, type: IdResponse })
   @UseGuards(JwtGuard)
   @Post()
   async create(
@@ -63,10 +59,7 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 검색 - Optional Guard' })
-  @ApiResponse({
-    status: 200,
-    type: SearchedFeedsResponse,
-  })
+  @ApiResponse({ status: 200, type: SearchedFeedsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('search')
   async search(
@@ -86,11 +79,7 @@ export class FeedController {
   @ApiOperation({
     summary: '최신순 그림 목록 조회, 무한스크롤 - Optional Guard',
   })
-  @ApiResponse({
-    status: 200,
-    description: '피드 목록 조회 성공',
-    type: LatestFeedsResponse,
-  })
+  @ApiResponse({ status: 200, type: LatestFeedsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('latest')
   async getFeeds(
@@ -105,17 +94,12 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '오늘의 인기 랭킹 조회 - Optional Guard' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: TodayPopularFeedDto,
-    isArray: true,
-  })
+  @ApiResponse({ status: 200, type: [TodayPopularFeedResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('today-popular')
   async getHotFeeds(
     @CurrentUser() userId: string | null,
-  ): Promise<TodayPopularFeedDto[]> {
+  ): Promise<TodayPopularFeedResponse[]> {
     return await this.feedService.getTodayPopular(userId);
   }
 
