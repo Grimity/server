@@ -4,7 +4,7 @@ import {
   IsUrl,
   ArrayMaxSize,
   ValidateNested,
-  IsEnum,
+  IsIn,
   IsOptional,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
@@ -70,7 +70,7 @@ export class UpdateBackgroundImageRequest {
 
 export class UpdateSubscriptionRequest {
   @ApiProperty({ enum: subscriptionTypes, isArray: true })
-  @IsEnum(subscriptionTypes, { each: true })
+  @IsIn(subscriptionTypes, { each: true })
   subscription: SubscriptionType[];
 }
 
@@ -81,7 +81,7 @@ export class SearchUserRequest extends CursorKeywordRequest {
     return value;
   })
   @IsOptional()
-  @IsEnum(['popular', 'accuracy'])
+  @IsIn(['popular', 'accuracy'])
   sort?: 'popular' | 'accuracy';
 }
 
@@ -91,6 +91,6 @@ export class GetFeedsByUserRequest extends CursorRequest {
   @ApiProperty({ required: false, enum: GetFeedsByUserSort })
   @TrimAndLowerNullableString()
   @IsOptional()
-  @IsEnum(GetFeedsByUserSort)
+  @IsIn(GetFeedsByUserSort)
   sort?: (typeof GetFeedsByUserSort)[number];
 }

@@ -19,7 +19,7 @@ export class CreateFeedCommentRequest {
 
   @ApiProperty()
   @TrimString()
-  @Length(1, 3000)
+  @Length(1, 1000)
   content: string;
 
   @ApiProperty({

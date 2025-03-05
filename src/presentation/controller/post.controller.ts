@@ -22,7 +22,6 @@ import { PostService } from 'src/provider/post.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  CreatePostDto,
   PostIdDto,
   NoticePostDto,
   GetPostsQuery,
@@ -34,6 +33,8 @@ import {
   SearchPostResponse,
   PostMetaDto,
 } from 'src/controller/dto/post';
+
+import { CreatePostRequest } from '../request/post.request';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -53,7 +54,7 @@ export class PostController {
   @UseGuards(JwtGuard)
   async create(
     @CurrentUser() userId: string,
-    @Body() dto: CreatePostDto,
+    @Body() dto: CreatePostRequest,
   ): Promise<PostIdDto> {
     return await this.postService.create(userId, dto);
   }

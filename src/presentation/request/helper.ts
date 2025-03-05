@@ -27,6 +27,16 @@ export function TrimAndLowerNullableString() {
   });
 }
 
+export function TrimAndUpperNullableString() {
+  return Transform(({ value }: TransformFnParams) => {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    return value.trim().toUpperCase();
+  });
+}
+
 @ValidatorConstraint()
 class ImageValidator implements ValidatorConstraintInterface {
   validate(image: string, args: ValidationArguments) {

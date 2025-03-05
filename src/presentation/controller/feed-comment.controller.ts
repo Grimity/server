@@ -23,7 +23,6 @@ import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   FeedCommentResponseDto,
-  GetChildCommentsQuery,
   ChildCommentDto,
 } from 'src/controller/dto/feed-comment';
 import {

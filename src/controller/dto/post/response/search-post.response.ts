@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IdAndNameDto } from '../../feed/response/simple-author.dto';
-import { PostType, PostTypes } from 'src/common/constants';
+import { postTypes } from 'src/common/constants';
 
 class SearchedPostDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({ enum: PostTypes })
-  type: PostType;
+  @ApiProperty({ enum: postTypes })
+  type: (typeof postTypes)[number];
 
   @ApiProperty()
   title: string;

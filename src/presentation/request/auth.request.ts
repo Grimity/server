@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsEnum } from 'class-validator';
+import { Length, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TrimString } from './helper';
 
@@ -8,7 +8,7 @@ const providers = ['GOOGLE', 'KAKAO'] as const;
 export class LoginRequest {
   @ApiProperty({ enum: providers, description: '대소문자 구분 X' })
   @Transform(({ value }) => value.toUpperCase())
-  @IsEnum(providers)
+  @IsIn(providers)
   provider: (typeof providers)[number];
 
   @ApiProperty()

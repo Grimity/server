@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PostType, PostTypes } from 'src/common/constants';
+import { PostType, postTypes } from 'src/common/constants';
 
 export class MyPostDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({ enum: PostTypes })
+  @ApiProperty({ enum: postTypes })
   type: PostType;
 
   @ApiProperty()
