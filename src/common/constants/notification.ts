@@ -1,134 +1,74 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { subscriptionTypes } from './subscription';
 
-export type NotificationType =
-  | 'FOLLOW'
-  | 'FEED_LIKE'
-  | 'FEED_COMMENT'
-  | 'FEED_REPLY'
-  | 'FEED_MENTION'
-  | 'POST_COMMENT'
-  | 'POST_REPLY'
-  | 'POST_MENTION';
-
-export const notificationTypesArray = [
-  'FOLLOW',
-  'FEED_LIKE',
-  'FEED_COMMENT',
-  'FEED_REPLY',
+export const notificationTypes = [
+  ...subscriptionTypes,
   'FEED_MENTION',
-  'POST_COMMENT',
-  'POST_REPLY',
   'POST_MENTION',
 ];
 
-class Actor {
-  @ApiProperty()
+export type NotificationType = (typeof notificationTypes)[number];
+
+interface Actor {
   id: string;
-
-  @ApiProperty()
   name: string;
-
-  @ApiProperty({ type: 'string', nullable: true })
   image: string | null;
 }
 
-export class FollowData {
-  @ApiProperty({ enum: ['FOLLOW'] })
+export interface FollowData {
   type: 'FOLLOW';
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
-export class FeedLikeData {
-  @ApiProperty({ enum: ['FEED_LIKE'] })
+export interface FeedLikeData {
   type: 'FEED_LIKE';
-
-  @ApiProperty()
   feedId: string;
-
-  @ApiProperty()
   likeCount: number;
-
-  @ApiProperty()
   thumbnail: string;
-
-  @ApiProperty()
   title: string;
 }
 
-export class FeedCommentData {
-  @ApiProperty({ enum: ['FEED_COMMENT'] })
+export interface FeedCommentData {
   type: 'FEED_COMMENT';
-
-  @ApiProperty()
   feedId: string;
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
-export class FeedReplyData {
-  @ApiProperty({ enum: ['FEED_REPLY'] })
+export interface FeedReplyData {
   type: 'FEED_REPLY';
-
-  @ApiProperty()
   feedId: string;
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
-export class FeedMentionData {
-  @ApiProperty({ enum: ['FEED_MENTION'] })
+export interface FeedMentionData {
   type: 'FEED_MENTION';
-
-  @ApiProperty()
   feedId: string;
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
-export class PostCommentData {
-  @ApiProperty({ enum: ['POST_COMMENT'] })
+export interface PostCommentData {
   type: 'POST_COMMENT';
-
-  @ApiProperty()
   postId: string;
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
-export class PostReplyData {
-  @ApiProperty({ enum: ['POST_REPLY'] })
+export interface PostReplyData {
   type: 'POST_REPLY';
-
-  @ApiProperty()
   postId: string;
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
-export class PostMentionData {
-  @ApiProperty({ enum: ['POST_MENTION'] })
+export interface PostMentionData {
   type: 'POST_MENTION';
-
-  @ApiProperty()
   postId: string;
-
-  @ApiProperty({ type: Actor })
   actor: Actor;
 }
 
 export type NotificationData =
-  | typeof FollowData
-  | typeof FeedLikeData
-  | typeof FeedCommentData
-  | typeof FeedReplyData
-  | typeof FeedMentionData
-  | typeof PostCommentData
-  | typeof PostReplyData
-  | typeof PostMentionData;
+  | FollowData
+  | FeedLikeData
+  | FeedCommentData
+  | FeedReplyData
+  | FeedMentionData
+  | PostCommentData
+  | PostReplyData
+  | PostMentionData;

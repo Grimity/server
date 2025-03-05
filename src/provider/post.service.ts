@@ -1,6 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post.repository';
-import { PostType } from 'src/common/constants';
+import { postTypes } from 'src/common/constants';
 import * as striptags from 'striptags';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
@@ -230,11 +230,11 @@ export class PostService {
 type CreateInput = {
   title: string;
   content: string;
-  type: Exclude<PostType, 'NOTICE'>;
+  type: (typeof postTypes)[number];
 };
 
 type GetPostsInput = {
-  type: 'ALL' | 'QUESTION' | 'FEEDBACK';
+  type: (typeof postTypes)[number] | 'ALL';
   page: number;
   size: number;
 };

@@ -45,7 +45,7 @@ export class PostSelectRepository {
     }));
   }
 
-  async getPostCount(type: 2 | 3 | null) {
+  async getPostCount(type: number | null) {
     const where: Prisma.PostWhereInput = {};
     if (type === null) {
       where.type = {
@@ -419,7 +419,7 @@ export class PostSelectRepository {
 }
 
 type FindManyInput = {
-  type: 2 | 3 | null;
+  type: number | null;
   page: number;
   size: number;
 };

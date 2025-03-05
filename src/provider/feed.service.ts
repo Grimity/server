@@ -180,26 +180,7 @@ export class FeedService {
       ids = await this.feedSelectRepository.findTodayPopularIds();
       await this.feedRepository.cacheTodayPopular(ids);
     }
-    const feeds = await this.feedSelectRepository.findTodayPopularByIds(
-      userId,
-      ids,
-    );
-
-    return feeds.map((feed) => {
-      return {
-        id: feed.id,
-        title: feed.title,
-        thumbnail: feed.thumbnail,
-        createdAt: feed.createdAt,
-        viewCount: feed.viewCount,
-        likeCount: feed.likeCount,
-        author: {
-          id: feed.author.id,
-          name: feed.author.name,
-        },
-        isLike: feed.isLike,
-      };
-    });
+    return await this.feedSelectRepository.findTodayPopularByIds(userId, ids);
   }
 
   async getFollowingFeeds(

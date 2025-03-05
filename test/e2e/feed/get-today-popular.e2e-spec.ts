@@ -74,6 +74,7 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
       author: {
         id: user.id,
         name: 'test',
+        image: null,
       },
     });
   });

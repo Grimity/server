@@ -109,6 +109,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       author: {
         id: user.id,
         name: 'test',
+        image: null,
       },
     });
     expect(body2.nextCursor).toBeNull();

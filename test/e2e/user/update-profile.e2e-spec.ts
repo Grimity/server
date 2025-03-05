@@ -148,7 +148,7 @@ describe('PUT /users/me', () => {
     expect(status).toBe(400);
   });
 
-  it('204와 함께 프로필을 수정한다', async () => {
+  it('linkName이 공백일 때 400을 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
@@ -157,11 +157,34 @@ describe('PUT /users/me', () => {
       .put('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
+        name: 'test',
+        description: 'test',
+        links: [
+          {
+            linkName: '     ',
+            link: 'https://test.com',
+          },
+        ],
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('204와 함께 프로필을 수정한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
         name: 'test2',
         description: 'test',
         links: [
           {
-            linkName: 'test',
+            linkName: ' test ',
             link: 'https://test.com',
           },
         ],
