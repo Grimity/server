@@ -20,11 +20,9 @@ import {
 import { PostCommentService } from 'src/provider/post-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import {
-  PostParentCommentDto,
-  CreatedCommentDto,
-} from 'src/controller/dto/post-comment';
+import { PostParentCommentDto } from 'src/controller/dto/post-comment';
 
+import { IdResponse } from '../response/shared';
 import { CreatePostCommentRequest } from '../request/post-comment.request';
 
 @ApiTags('/post-comments')
@@ -36,13 +34,13 @@ export class PostCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 생성' })
-  @ApiResponse({ status: 201, description: '성공', type: CreatedCommentDto })
+  @ApiResponse({ status: 201, type: IdResponse })
   @Post()
   @UseGuards(JwtGuard)
   async createPostComment(
     @CurrentUser() userId: string,
     @Body() dto: CreatePostCommentRequest,
-  ): Promise<CreatedCommentDto> {
+  ): Promise<IdResponse> {
     return await this.postCommentService.create({
       ...dto,
       userId,

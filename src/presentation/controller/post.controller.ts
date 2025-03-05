@@ -26,7 +26,6 @@ import {
   GetPostsRequest,
   SearchPostRequest,
 } from '../request/post.request';
-
 import { IdResponse } from '../response/shared';
 import {
   PostBaseResponse,
@@ -127,7 +126,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 수정' })
-  @ApiResponse({ status: 204, description: '수정 성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '게시글 없음' })
   @UseGuards(JwtGuard)
   @Put(':id')
@@ -143,7 +142,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 삭제' })
-  @ApiResponse({ status: 204, description: '삭제 성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '게시글 없음' })
   @UseGuards(JwtGuard)
   @Delete(':id')
@@ -157,7 +156,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 좋아요' })
-  @ApiResponse({ status: 204, description: '좋아요 성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '좋아요할 게시글 없음' })
   @ApiResponse({ status: 409, description: '이미 좋아요한 게시글' })
   @UseGuards(JwtGuard)
@@ -172,7 +171,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 좋아요 취소' })
-  @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '좋아요 한 적이 없음' })
   @UseGuards(JwtGuard)
   @Delete(':id/like')
@@ -186,7 +185,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 저장' })
-  @ApiResponse({ status: 204, description: '게시글 저장 성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '저장할 게시글 없음' })
   @ApiResponse({ status: 409, description: '이미 저장한 게시글' })
   @UseGuards(JwtGuard)
@@ -201,7 +200,7 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 저장 취소' })
-  @ApiResponse({ status: 204, description: '게시글 저장 취소 성공' })
+  @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '저장한 적이 없음' })
   @UseGuards(JwtGuard)
   @Delete(':id/save')
