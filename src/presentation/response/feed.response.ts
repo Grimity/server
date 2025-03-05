@@ -149,3 +149,14 @@ export class FeedDetailResponse extends FeedResponse {
   @ApiProperty()
   isSave: boolean;
 }
+
+export class FeedMetaResponse extends FeedBaseResponse {
+  @ApiProperty()
+  content: string;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  tags: string[];
+}

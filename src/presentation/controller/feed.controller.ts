@@ -18,7 +18,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
-import { LikeUserDto, FeedMetaDto } from 'src/controller/dto/feed';
+import { LikeUserDto } from 'src/controller/dto/feed';
 
 import { CursorRequest } from '../request/shared';
 import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
@@ -30,6 +30,7 @@ import {
   PopularFeedsResponse,
   FollowingFeedsResponse,
   FeedDetailResponse,
+  FeedMetaResponse,
 } from '../response/feed.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
@@ -144,13 +145,13 @@ export class FeedController {
     return await this.feedService.getFeed(userId, feedId);
   }
 
-  @ApiOperation({ summary: '피드 상세 메타데이터 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: FeedMetaDto })
+  @ApiOperation({ summary: '피드 메타데이터 조회' })
+  @ApiResponse({ status: 200, type: FeedMetaResponse })
   @ApiResponse({ status: 404, description: '피드가 없음' })
   @Get(':id/meta')
   async getFeedMeta(
     @Param('id', ParseUUIDPipe) feedId: string,
-  ): Promise<FeedMetaDto> {
+  ): Promise<FeedMetaResponse> {
     return await this.feedService.getMeta(feedId);
   }
 
