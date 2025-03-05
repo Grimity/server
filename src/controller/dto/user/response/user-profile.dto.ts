@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 // TODO: 리팩터링해야함
-import { LinkDto } from './my-profile.dto';
+import { LinkResponse } from 'src/presentation/response/user.response';
 
 export class UserProfileDto {
   @ApiProperty()
@@ -23,8 +23,8 @@ export class UserProfileDto {
   @ApiProperty({ description: '빈 문자열 허용' })
   description: string;
 
-  @ApiProperty({ type: LinkDto, isArray: true })
-  links: LinkDto[];
+  @ApiProperty({ type: LinkResponse, isArray: true })
+  links: LinkResponse[];
 
   @ApiProperty()
   followerCount: number;

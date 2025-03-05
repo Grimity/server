@@ -21,7 +21,6 @@ import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  MyProfileDto,
   UserProfileDto,
   MyFollowerResponse,
   UserFeedsResponse,
@@ -45,6 +44,8 @@ import {
 } from '../request/user.request';
 import { CursorRequest, PageRequest } from '../request/shared';
 
+import { MyProfileResponse } from '../response/user.response';
+
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -54,11 +55,11 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 정보 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: MyProfileDto })
+  @ApiResponse({ status: 200, description: '성공', type: MyProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(JwtGuard)
   @Get('me')
-  async getMe(@CurrentUser() userId: string): Promise<MyProfileDto> {
+  async getMe(@CurrentUser() userId: string): Promise<MyProfileResponse> {
     return this.userService.getMyProfile(userId);
   }
 
