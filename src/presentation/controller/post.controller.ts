@@ -21,7 +21,6 @@ import { PostService } from 'src/provider/post.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  NoticePostDto,
   PostDetailDto,
   TodayPopularDto,
   SearchPostResponse,
@@ -35,7 +34,7 @@ import {
 } from '../request/post.request';
 
 import { IdResponse } from '../response/shared';
-import { PostsResponse } from '../response/post.response';
+import { PostResponse, PostsResponse } from '../response/post.response';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -70,14 +69,9 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '공지사항 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '공지사항 조회 성공',
-    type: NoticePostDto,
-    isArray: true,
-  })
+  @ApiResponse({ status: 200, type: [PostResponse] })
   @Get('notices')
-  async getNotices(): Promise<NoticePostDto[]> {
+  async getNotices(): Promise<PostResponse[]> {
     return await this.postService.getNotices();
   }
 

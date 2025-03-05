@@ -20,7 +20,7 @@ class PostBaseResponse {
   createdAt: Date;
 }
 
-class PostResponse extends PostBaseResponse {
+export class PostResponse extends PostBaseResponse {
   @ApiProperty({ enum: postTypes })
   type: (typeof postTypes)[number];
 
