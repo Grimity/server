@@ -5,14 +5,16 @@ import {
   CursorAndCountResponse,
 } from './shared/cursor.response';
 
-// 최소단위 User
-export class UserBaseResponse {
+export class IdAndNameResponse {
   @ApiProperty()
   id: string;
 
   @ApiProperty()
   name: string;
+}
 
+// 최소단위 User
+export class UserBaseResponse extends IdAndNameResponse {
   @ApiProperty({
     example: 'profile/{UUID}.jpg',
     nullable: true,

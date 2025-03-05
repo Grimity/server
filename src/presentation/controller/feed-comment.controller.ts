@@ -20,13 +20,16 @@ import {
 import { FeedCommentService } from 'src/provider/feed-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { ChildCommentDto } from 'src/controller/dto/feed-comment';
+
 import {
   CreateFeedCommentRequest,
   GetFeedCommentRequest,
   GetChildFeedCommentRequest,
 } from '../request/feed-comment.request';
-import { FeedCommentsResponse } from '../response/feed-comment.response';
+import {
+  FeedCommentsResponse,
+  FeedChildCommentResponse,
+} from '../response/feed-comment.response';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -51,11 +54,7 @@ export class FeedCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 최상위 댓글 조회 - Optional Guard' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: FeedCommentsResponse,
-  })
+  @ApiResponse({ status: 200, type: FeedCommentsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get()
   async findAll(
@@ -67,18 +66,13 @@ export class FeedCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 자식 댓글 조회 - Optional Guard' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: ChildCommentDto,
-    isArray: true,
-  })
+  @ApiResponse({ status: 200, type: [FeedChildCommentResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('child-comments')
   async findChildComments(
     @CurrentUser() userId: string | null,
     @Query() query: GetChildFeedCommentRequest,
-  ): Promise<ChildCommentDto[]> {
+  ): Promise<FeedChildCommentResponse[]> {
     return await this.feedCommentService.getChildComments(userId, query);
   }
 

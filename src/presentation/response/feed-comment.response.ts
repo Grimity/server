@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserBaseResponse } from './user.response';
+import { IdAndNameResponse, UserBaseResponse } from './user.response';
 
 class FeedCommentBaseResponse {
   @ApiProperty()
@@ -32,4 +32,9 @@ export class FeedCommentsResponse {
 
   @ApiProperty({ type: FeedParentCommentResponse, isArray: true })
   comments: FeedParentCommentResponse[];
+}
+
+export class FeedChildCommentResponse extends FeedCommentBaseResponse {
+  @ApiProperty({ type: IdAndNameResponse, nullable: true })
+  mentionedUser: IdAndNameResponse | null;
 }
