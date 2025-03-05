@@ -25,7 +25,6 @@ import {
   UpdateFeedDto,
   LatestFeedsResponse,
   TodayPopularFeedDto,
-  GetFollowingFeedsQuery,
   FollowingFeedsResponse,
   FeedSearchResponse,
   PopularFeedResponse,
@@ -144,18 +143,6 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '팔로잉한 유저들의 피드 목록 조회' })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 4,
-  })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    type: 'string',
-    description: '없으면 처음부터',
-  })
   @UseGuards(JwtGuard)
   @ApiResponse({
     status: 200,
@@ -165,7 +152,7 @@ export class FeedController {
   @Get('following')
   async getFollowingFeeds(
     @CurrentUser() userId: string,
-    @Query() { size, cursor }: GetFollowingFeedsQuery,
+    @Query() { size, cursor }: CursorRequest,
   ): Promise<FollowingFeedsResponse> {
     return await this.feedService.getFollowingFeeds(userId, {
       size: size ?? 4,
