@@ -175,7 +175,7 @@ export class SearchedFeedByTagsResponse extends FeedBaseResponse {
   author: IdAndNameResponse;
 }
 
-export class MyLikeFeedResponse extends FeedBaseResponse {
+class MyLikeFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
   cards: string[];
 
@@ -198,4 +198,26 @@ export class MyLikeFeedResponse extends FeedBaseResponse {
 export class MyLikeFeedsResponse extends CursorResponse {
   @ApiProperty({ type: MyLikeFeedResponse, isArray: true })
   feeds: MyLikeFeedResponse[];
+}
+
+class UserFeedResponse extends FeedBaseResponse {
+  @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
+  cards: string[];
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  commentCount: number;
+}
+
+export class UserFeedsResponse extends CursorResponse {
+  @ApiProperty({ type: UserFeedResponse, isArray: true })
+  feeds: UserFeedResponse[];
 }

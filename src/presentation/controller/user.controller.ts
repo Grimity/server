@@ -20,7 +20,7 @@ import {
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { UserFeedsResponse, MyPostDto } from 'src/controller/dto/user';
+import { MyPostDto } from 'src/controller/dto/user';
 
 import {
   UpdateUserRequest,
@@ -42,7 +42,10 @@ import {
   UserProfileResponse,
   UserMetaResponse,
 } from '../response/user.response';
-import { MyLikeFeedsResponse } from '../response/feed.response';
+import {
+  MyLikeFeedsResponse,
+  UserFeedsResponse,
+} from '../response/feed.response';
 import { MySavePostsResponse } from '../response/post.response';
 
 @ApiTags('/users')
