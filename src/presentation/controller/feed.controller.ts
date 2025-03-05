@@ -23,7 +23,6 @@ import {
   FeedIdDto,
   FeedDetailDto,
   UpdateFeedDto,
-  GetLatestFeedsQuery,
   LatestFeedsResponse,
   TodayPopularFeedDto,
   GetFollowingFeedsQuery,
@@ -36,6 +35,8 @@ import {
 } from 'src/controller/dto/feed';
 
 import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
+import { CursorRequest } from '../request/shared';
+
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
@@ -88,18 +89,6 @@ export class FeedController {
   @ApiOperation({
     summary: '최신순 그림 목록 조회, 무한스크롤 - Optional Guard',
   })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    type: 'string',
-    description: '없으면 처음부터',
-  })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 20,
-  })
   @ApiResponse({
     status: 200,
     description: '피드 목록 조회 성공',
@@ -109,7 +98,7 @@ export class FeedController {
   @Get('latest')
   async getFeeds(
     @CurrentUser() userId: string | null,
-    @Query() { cursor, size }: GetLatestFeedsQuery,
+    @Query() { cursor, size }: CursorRequest,
   ): Promise<LatestFeedsResponse> {
     return await this.feedService.getLatestFeeds(userId, {
       cursor: cursor ?? null,
