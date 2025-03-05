@@ -23,7 +23,6 @@ import { CurrentUser } from 'src/common/decorator';
 import {
   PostDetailDto,
   TodayPopularDto,
-  SearchPostResponse,
   PostMetaDto,
 } from 'src/controller/dto/post';
 
@@ -79,12 +78,12 @@ export class PostController {
   @ApiResponse({
     status: 200,
     description: '게시글 검색 성공',
-    type: SearchPostResponse,
+    type: PostsResponse,
   })
   @Get('search')
   async searchPosts(
     @Query() { keyword, page, size, searchBy }: SearchPostRequest,
-  ): Promise<SearchPostResponse> {
+  ): Promise<PostsResponse> {
     if (searchBy === 'name') {
       return await this.postService.searchByAuthorName({
         keyword,
