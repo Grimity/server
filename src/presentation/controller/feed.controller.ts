@@ -28,7 +28,6 @@ import {
   TodayPopularFeedDto,
   GetFollowingFeedsQuery,
   FollowingFeedsResponse,
-  FeedSearchQuery,
   FeedSearchResponse,
   GetPopularQuery,
   PopularFeedResponse,
@@ -36,7 +35,7 @@ import {
   FeedMetaDto,
 } from 'src/controller/dto/feed';
 
-import { CreateFeedRequest } from '../request/feed.request';
+import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 
@@ -65,31 +64,6 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '태그로 피드 검색 - Optional Guard' })
-  @ApiQuery({
-    name: 'keyword',
-    required: true,
-    type: 'string',
-    description: '최소 2글자',
-  })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    type: 'string',
-    description: '없으면 처음부터',
-  })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 20,
-  })
-  @ApiQuery({
-    name: 'sort',
-    required: false,
-    type: 'string',
-    enum: ['latest', 'popular', 'accuracy'],
-    default: 'latest',
-  })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -99,7 +73,7 @@ export class FeedController {
   @Get('search')
   async search(
     @CurrentUser() userId: string | null,
-    @Query() { keyword, cursor, size, sort }: FeedSearchQuery,
+    @Query() { keyword, cursor, size, sort }: SearchFeedRequest,
   ): Promise<FeedSearchResponse> {
     return await this.feedService.search({
       userId,

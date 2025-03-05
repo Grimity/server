@@ -5,8 +5,16 @@ import {
   ArrayNotEmpty,
   ArrayMaxSize,
   Validate,
+  IsIn,
+  IsOptional,
 } from 'class-validator';
-import { TrimString, IsImageWithPrefix, TagValidator } from './helper';
+import {
+  TrimString,
+  IsImageWithPrefix,
+  TagValidator,
+  TrimAndLowerNullableString,
+} from './helper';
+import { CursorKeywordRequest } from './shared';
 
 export class CreateFeedRequest {
   @ApiProperty({ minLength: 1, maxLength: 32 })
@@ -54,4 +62,13 @@ export class CreateFeedRequest {
   })
   @IsImageWithPrefix('feed/')
   thumbnail: string;
+}
+
+const searchFeedSortTypes = ['latest', 'popular', 'accuracy'] as const;
+export class SearchFeedRequest extends CursorKeywordRequest {
+  @ApiProperty({ enum: searchFeedSortTypes })
+  @TrimAndLowerNullableString()
+  @IsOptional()
+  @IsIn(searchFeedSortTypes)
+  sort?: (typeof searchFeedSortTypes)[number];
 }

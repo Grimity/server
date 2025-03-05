@@ -14,7 +14,7 @@ import {
   TrimAndLowerNullableString,
 } from './helper';
 import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
-import { CursorRequest } from './shared';
+import { CursorRequest, CursorKeywordRequest } from './shared';
 
 class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
@@ -74,12 +74,7 @@ export class UpdateSubscriptionRequest {
   subscription: SubscriptionType[];
 }
 
-export class SearchUserRequest extends CursorRequest {
-  @ApiProperty({ minLength: 2, maxLength: 20 })
-  @TrimAndLowerNullableString()
-  @Length(2, 20)
-  keyword: string;
-
+export class SearchUserRequest extends CursorKeywordRequest {
   @ApiProperty({ required: false, enum: ['popular', 'accuracy'] })
   @Transform(({ value }) => {
     if (typeof value === 'string') return value.toLowerCase();

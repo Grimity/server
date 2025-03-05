@@ -1,7 +1,6 @@
 export * from './request/update-feed.dto';
 export * from './request/get-latest-feeds.query';
 export * from './request/get-following-feeds.query';
-export * from './request/feed-search.query';
 export * from './request/get-popular.query';
 
 export * from './response/feed-id.dto';
