@@ -21,10 +21,11 @@ import { PostCommentService } from 'src/provider/post-comment.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  CreatePostCommentDto,
   PostParentCommentDto,
   CreatedCommentDto,
 } from 'src/controller/dto/post-comment';
+
+import { CreatePostCommentRequest } from '../request/post-comment.request';
 
 @ApiTags('/post-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -40,10 +41,10 @@ export class PostCommentController {
   @UseGuards(JwtGuard)
   async createPostComment(
     @CurrentUser() userId: string,
-    @Body() createPostCommentDto: CreatePostCommentDto,
+    @Body() dto: CreatePostCommentRequest,
   ): Promise<CreatedCommentDto> {
     return await this.postCommentService.create({
-      ...createPostCommentDto,
+      ...dto,
       userId,
     });
   }

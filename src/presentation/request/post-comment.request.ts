@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsUUID, ValidateIf, IsOptional } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Length, IsUUID, IsOptional } from 'class-validator';
+import { TrimString } from './helper';
 
-export class CreatePostCommentDto {
+export class CreatePostCommentRequest {
   @ApiProperty()
   @IsUUID()
   postId: string;
@@ -13,13 +13,12 @@ export class CreatePostCommentDto {
     description: '부모 댓글의 UUID',
     type: 'string',
   })
-  @ValidateIf((o) => o.parentCommentId !== null)
   @IsOptional()
   @IsUUID()
   parentCommentId?: string | null;
 
-  @ApiProperty({ description: '1~1000자' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @ApiProperty({ minLength: 1, maxLength: 1000 })
+  @TrimString()
   @Length(1, 1000)
   content: string;
 
@@ -29,7 +28,6 @@ export class CreatePostCommentDto {
     description: '언급된 사용자의 UUID',
     type: 'string',
   })
-  @ValidateIf((o) => o.mentionedUserId !== null)
   @IsOptional()
   @IsUUID()
   mentionedUserId?: string | null;

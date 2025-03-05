@@ -17,7 +17,7 @@ export class CreateFeedCommentRequest {
   @IsUUID()
   parentCommentId?: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ minLength: 1, maxLength: 1000 })
   @TrimString()
   @Length(1, 1000)
   content: string;
@@ -26,6 +26,7 @@ export class CreateFeedCommentRequest {
     required: false,
     nullable: true,
     description: '언급된 사용자의 UUID',
+    type: 'string',
   })
   @IsOptional()
   @IsUUID()
