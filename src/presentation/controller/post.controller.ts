@@ -16,13 +16,11 @@ import {
   ApiResponse,
   ApiOperation,
   ApiBearerAuth,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { PostService } from 'src/provider/post.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  PostIdDto,
   NoticePostDto,
   GetPostsResponse,
   PostDetailDto,
@@ -37,6 +35,8 @@ import {
   SearchPostRequest,
 } from '../request/post.request';
 
+import { IdResponse } from '../response/shared';
+
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -46,17 +46,13 @@ export class PostController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 생성' })
-  @ApiResponse({
-    status: 201,
-    description: '게시글 생성 성공',
-    type: PostIdDto,
-  })
+  @ApiResponse({ status: 201, type: IdResponse })
   @Post()
   @UseGuards(JwtGuard)
   async create(
     @CurrentUser() userId: string,
     @Body() dto: CreatePostRequest,
-  ): Promise<PostIdDto> {
+  ): Promise<IdResponse> {
     return await this.postService.create(userId, dto);
   }
 

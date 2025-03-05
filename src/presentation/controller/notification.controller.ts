@@ -29,19 +29,14 @@ export class NotificationController {
   constructor(private notificationService: NotificationService) {}
 
   @ApiOperation({ summary: '알림 목록 조회' })
-  @ApiResponse({
-    status: 200,
-    type: NotificationResponse,
-    isArray: true,
-    description: '성공',
-  })
+  @ApiResponse({ status: 200, type: [NotificationResponse] })
   @Get()
   async getAll(@CurrentUser() userId: string) {
     return this.notificationService.getAll(userId);
   }
 
   @ApiOperation({ summary: '전체 알림 읽음 처리' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @HttpCode(204)
   @Put()
   async readAll(@CurrentUser() userId: string) {
@@ -49,7 +44,7 @@ export class NotificationController {
   }
 
   @ApiOperation({ summary: '전체 알림 삭제' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @HttpCode(204)
   @Delete()
   async deleteAll(@CurrentUser() userId: string) {
@@ -57,7 +52,7 @@ export class NotificationController {
   }
 
   @ApiOperation({ summary: '개별 알림 읽음 처리' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @HttpCode(204)
   @Put(':id')
   async read(
@@ -68,7 +63,7 @@ export class NotificationController {
   }
 
   @ApiOperation({ summary: '개별 알림 삭제' })
-  @ApiResponse({ status: 204, description: '성공' })
+  @ApiResponse({ status: 204 })
   @HttpCode(204)
   @Delete(':id')
   async delete(

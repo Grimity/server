@@ -1,7 +1,5 @@
 import { subscriptionTypes } from './subscription';
 
-import { ApiProperty } from '@nestjs/swagger';
-
 export const notificationTypes = [
   ...subscriptionTypes,
   'FEED_MENTION',
