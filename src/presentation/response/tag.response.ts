@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class PopularTagDto {
+export class PopularTagResponse {
   @ApiProperty()
   tagName: string;
 

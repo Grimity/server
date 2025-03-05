@@ -20,7 +20,7 @@ export class ReportController {
   constructor(private reportService: ReportService) {}
 
   @ApiOperation({ summary: '신고하기' })
-  @ApiResponse({ status: 201, description: '성공' })
+  @ApiResponse({ status: 201 })
   @Post()
   async create(
     @CurrentUser() userId: string,

@@ -13,9 +13,11 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TagService } from 'src/provider/tag.service';
-import { PopularTagDto, SearchedFeedByTagsDto } from 'src/controller/dto/tag';
 import { OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
+
+import { PopularTagResponse } from '../response/tag.response';
+import { SearchedFeedByTagsResponse } from '../response/feed.response';
 
 @ApiTags('tags')
 @Controller('tags')
@@ -23,22 +25,22 @@ export class TagController {
   constructor(private tagService: TagService) {}
 
   @ApiOperation({ summary: '인기 태그 조회(최대 30개)' })
-  @ApiResponse({ status: 200, type: PopularTagDto, isArray: true })
+  @ApiResponse({ status: 200, type: [PopularTagResponse] })
   @Get('popular')
-  async findPopularTags(): Promise<PopularTagDto[]> {
+  async findPopularTags(): Promise<PopularTagResponse[]> {
     return await this.tagService.findPopularTags();
   }
 
   @ApiBearerAuth()
   @ApiQuery({ name: 'tagNames', type: 'string', example: '태그1,태그2,태그3' })
   @ApiOperation({ summary: '태그 여러개 검색 - Optional Guard' })
-  @ApiResponse({ status: 200, type: SearchedFeedByTagsDto, isArray: true })
+  @ApiResponse({ status: 200, type: [SearchedFeedByTagsResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('search')
   async searchTags(
     @CurrentUser() userId: string | null,
     @Query('tagNames') tagNames: string,
-  ): Promise<SearchedFeedByTagsDto[]> {
+  ): Promise<SearchedFeedByTagsResponse[]> {
     if (!tagNames) {
       throw new HttpException('태그를 입력해주세요.', 400);
     }

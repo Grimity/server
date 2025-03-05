@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserBaseResponse } from './user.response';
+import { UserBaseResponse, IdAndNameResponse } from './user.response';
 import { CursorAndCountResponse, CursorResponse } from './shared';
 
 // 최소단위
@@ -159,4 +159,18 @@ export class FeedMetaResponse extends FeedBaseResponse {
 
   @ApiProperty()
   tags: string[];
+}
+
+export class SearchedFeedByTagsResponse extends FeedBaseResponse {
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty({ type: IdAndNameResponse })
+  author: IdAndNameResponse;
 }
