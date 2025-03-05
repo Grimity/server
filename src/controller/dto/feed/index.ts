@@ -1,5 +1,5 @@
 export * from './response/feed-detail.dto';
-export * from './response/latest-feed.response';
+
 export * from './response/today-popular-feed.dto';
 export * from './response/following-feeds-response.dto';
 

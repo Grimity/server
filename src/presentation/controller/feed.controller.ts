@@ -20,7 +20,6 @@ import {
 import { FeedService } from 'src/provider/feed.service';
 import {
   FeedDetailDto,
-  LatestFeedsResponse,
   TodayPopularFeedDto,
   FollowingFeedsResponse,
   PopularFeedResponse,
@@ -31,7 +30,10 @@ import {
 import { CursorRequest } from '../request/shared';
 import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
 import { IdResponse } from '../response/shared';
-import { SearchedFeedsResponse } from '../response/feed.response';
+import {
+  SearchedFeedsResponse,
+  LatestFeedsResponse,
+} from '../response/feed.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
