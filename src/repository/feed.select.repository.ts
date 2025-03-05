@@ -534,7 +534,7 @@ export class FeedSelectRepository {
         'Feed.authorId',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['name'])
+      .select(['name', 'User.image as image'])
       .select((eb) =>
         eb
           .selectFrom('Tag')
@@ -579,6 +579,7 @@ export class FeedSelectRepository {
       author: {
         id: feed.authorId,
         name: feed.name,
+        image: feed.image,
       },
     }));
   }

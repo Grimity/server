@@ -5,7 +5,7 @@ export class CursorResponse {
   nextCursor: string | null;
 }
 
-export class CursorWithCountResponse extends CursorResponse {
+export class CursorAndCountResponse extends CursorResponse {
   @ApiProperty()
   totalCount: number;
 }

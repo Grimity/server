@@ -23,15 +23,15 @@ import {
   LatestFeedsResponse,
   TodayPopularFeedDto,
   FollowingFeedsResponse,
-  FeedSearchResponse,
   PopularFeedResponse,
   LikeUserDto,
   FeedMetaDto,
 } from 'src/controller/dto/feed';
 
-import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
 import { CursorRequest } from '../request/shared';
+import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
 import { IdResponse } from '../response/shared';
+import { SearchedFeedsResponse } from '../response/feed.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -63,15 +63,14 @@ export class FeedController {
   @ApiOperation({ summary: '피드 검색 - Optional Guard' })
   @ApiResponse({
     status: 200,
-    description: '성공',
-    type: FeedSearchResponse,
+    type: SearchedFeedsResponse,
   })
   @UseGuards(OptionalJwtGuard)
   @Get('search')
   async search(
     @CurrentUser() userId: string | null,
     @Query() { keyword, cursor, size, sort }: SearchFeedRequest,
-  ): Promise<FeedSearchResponse> {
+  ): Promise<SearchedFeedsResponse> {
     return await this.feedService.search({
       userId,
       keyword,

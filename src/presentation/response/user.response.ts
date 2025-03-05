@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { socialProviders } from 'src/common/constants';
 import {
   CursorResponse,
-  CursorWithCountResponse,
+  CursorAndCountResponse,
 } from './shared/cursor.response';
 
 // 최소단위 User
@@ -101,7 +101,7 @@ class SearchedUserResponse extends UserBaseResponse {
   isFollowing: boolean;
 }
 
-export class SearchedUsersResponse extends CursorWithCountResponse {
+export class SearchedUsersResponse extends CursorAndCountResponse {
   @ApiProperty({ type: SearchedUserResponse, isArray: true })
   users: SearchedUserResponse[];
 }
