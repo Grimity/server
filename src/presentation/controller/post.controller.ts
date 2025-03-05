@@ -22,7 +22,6 @@ import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
   NoticePostDto,
-  GetPostsResponse,
   PostDetailDto,
   TodayPopularDto,
   SearchPostResponse,
@@ -36,6 +35,7 @@ import {
 } from '../request/post.request';
 
 import { IdResponse } from '../response/shared';
+import { PostsResponse } from '../response/post.response';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -57,15 +57,11 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '게시글 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '게시글 조회 성공',
-    type: GetPostsResponse,
-  })
+  @ApiResponse({ status: 200, type: PostsResponse })
   @Get()
   async getPosts(
     @Query() { type, page, size }: GetPostsRequest,
-  ): Promise<GetPostsResponse> {
+  ): Promise<PostsResponse> {
     return await this.postService.getPosts({
       type,
       page: page ?? 1,
