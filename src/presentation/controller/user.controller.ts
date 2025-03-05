@@ -21,7 +21,6 @@ import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
 import {
-  UserProfileDto,
   UserFeedsResponse,
   MyLikeFeedsResponse,
   MyPostDto,
@@ -46,6 +45,7 @@ import {
   MyFollowingsResponse,
   SearchedUsersResponse,
   PopularUserResponse,
+  UserProfileResponse,
 } from '../response/user.response';
 
 @ApiTags('/users')
@@ -317,14 +317,14 @@ export class UserController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 정보 조회 - Optional Guard' })
-  @ApiResponse({ status: 200, description: '성공', type: UserProfileDto })
+  @ApiResponse({ status: 200, description: '성공', type: UserProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getUser(
     @CurrentUser() userId: string | null,
     @Param('id', ParseUUIDPipe) targetId: string,
-  ): Promise<UserProfileDto> {
+  ): Promise<UserProfileResponse> {
     return this.userService.getUserProfile(userId, targetId);
   }
 

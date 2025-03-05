@@ -119,3 +119,33 @@ export class PopularUserResponse extends UserBaseResponse {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/{UUID}.jpg'] })
   thumbnails: string[];
 }
+
+export class UserProfileResponse extends UserBaseResponse {
+  @ApiProperty({ description: 'not null인데 공백은 허용' })
+  description: string;
+
+  @ApiProperty({
+    example: 'background/{UUID}.jpg',
+    nullable: true,
+    type: 'string',
+  })
+  backgroundImage: string | null;
+
+  @ApiProperty({ type: LinkResponse, isArray: true })
+  links: LinkResponse[];
+
+  @ApiProperty()
+  followerCount: number;
+
+  @ApiProperty()
+  followingCount: number;
+
+  @ApiProperty()
+  feedCount: number;
+
+  @ApiProperty()
+  postCount: number;
+
+  @ApiProperty()
+  isFollowing: boolean;
+}
