@@ -19,7 +19,6 @@ import {
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
 import {
-  FeedIdDto,
   FeedDetailDto,
   LatestFeedsResponse,
   TodayPopularFeedDto,
@@ -32,6 +31,7 @@ import {
 
 import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
 import { CursorRequest } from '../request/shared';
+import { IdResponse } from '../response/shared';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -48,14 +48,14 @@ export class FeedController {
   @ApiResponse({
     status: 201,
     description: '피드 생성 성공',
-    type: FeedIdDto,
+    type: IdResponse,
   })
   @UseGuards(JwtGuard)
   @Post()
   async create(
     @CurrentUser() userId: string,
     @Body() dto: CreateFeedRequest,
-  ): Promise<FeedIdDto> {
+  ): Promise<IdResponse> {
     return await this.feedService.create(userId, dto);
   }
 

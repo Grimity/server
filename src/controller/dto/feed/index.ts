@@ -1,4 +1,3 @@
-export * from './response/feed-id.dto';
 export * from './response/feed-detail.dto';
 export * from './response/latest-feed.response';
 export * from './response/today-popular-feed.dto';
