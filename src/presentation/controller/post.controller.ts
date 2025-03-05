@@ -28,12 +28,15 @@ import {
   PostDetailDto,
   TodayPopularDto,
   UpdatePostDto,
-  SearchPostQuery,
   SearchPostResponse,
   PostMetaDto,
 } from 'src/controller/dto/post';
 
-import { CreatePostRequest, GetPostsRequest } from '../request/post.request';
+import {
+  CreatePostRequest,
+  GetPostsRequest,
+  SearchPostRequest,
+} from '../request/post.request';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -88,10 +91,6 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '게시글 검색' })
-  @ApiQuery({ name: 'keyword', required: true, description: '최소 2글자' })
-  @ApiQuery({ name: 'page', required: false, default: 1 })
-  @ApiQuery({ name: 'size', required: false, default: 10 })
-  @ApiQuery({ name: 'searchBy', enum: ['combined', 'name'] })
   @ApiResponse({
     status: 200,
     description: '게시글 검색 성공',
@@ -99,7 +98,7 @@ export class PostController {
   })
   @Get('search')
   async searchPosts(
-    @Query() { keyword, page, size, searchBy }: SearchPostQuery,
+    @Query() { keyword, page, size, searchBy }: SearchPostRequest,
   ): Promise<SearchPostResponse> {
     if (searchBy === 'name') {
       return await this.postService.searchByAuthorName({

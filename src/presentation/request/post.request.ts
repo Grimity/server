@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Length, IsIn } from 'class-validator';
-import { TrimString, TrimAndUpperNullableString } from './helper';
+import {
+  TrimString,
+  TrimAndUpperNullableString,
+  TrimAndLowerNullableString,
+} from './helper';
 import { postTypes } from 'src/common/constants';
 import { PageRequest } from './shared';
 
@@ -26,4 +30,17 @@ export class GetPostsRequest extends PageRequest {
   @TrimAndUpperNullableString()
   @IsIn(GetPostsRequestTypes)
   type: (typeof GetPostsRequestTypes)[number];
+}
+
+const searchByTypes = ['combined', 'name'] as const;
+export class SearchPostRequest extends PageRequest {
+  @ApiProperty({ minLength: 2, maxLength: 20 })
+  @TrimString()
+  @Length(2, 20)
+  keyword: string;
+
+  @ApiProperty({ enum: searchByTypes })
+  @TrimAndLowerNullableString()
+  @IsIn(searchByTypes)
+  searchBy: (typeof searchByTypes)[number];
 }
