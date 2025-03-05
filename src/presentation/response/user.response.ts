@@ -154,3 +154,8 @@ export class UserMetaResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
 }
+
+export class FeedLikedUserResponse extends UserBaseResponse {
+  @ApiProperty({ description: 'not null인데 공백은 허용' })
+  description: string;
+}

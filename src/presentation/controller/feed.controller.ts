@@ -18,7 +18,6 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
-import { LikeUserDto } from 'src/controller/dto/feed';
 
 import { CursorRequest } from '../request/shared';
 import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
@@ -32,6 +31,7 @@ import {
   FeedDetailResponse,
   FeedMetaResponse,
 } from '../response/feed.response';
+import { FeedLikedUserResponse } from '../response/user.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
@@ -188,12 +188,12 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '좋아요 누른 유저 목록 조회' })
-  @ApiResponse({ status: 200, description: '성공', type: [LikeUserDto] })
+  @ApiResponse({ status: 200, type: [FeedLikedUserResponse] })
   @UseGuards(JwtGuard)
   @Get(':id/like')
   async getLikeUsers(
     @Param('id', new ParseUUIDPipe()) feedId: string,
-  ): Promise<LikeUserDto[]> {
+  ): Promise<FeedLikedUserResponse[]> {
     return await this.feedService.getLikes(feedId);
   }
 
