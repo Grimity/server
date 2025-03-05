@@ -31,3 +31,9 @@ export class CreateFeedCommentRequest {
   @IsUUID()
   mentionedUserId?: string | null;
 }
+
+export class GetParentFeedCommentRequest {
+  @ApiProperty()
+  @IsUUID()
+  feedId: string;
+}

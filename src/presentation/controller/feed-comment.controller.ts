@@ -26,7 +26,10 @@ import {
   GetChildCommentsQuery,
   ChildCommentDto,
 } from 'src/controller/dto/feed-comment';
-import { CreateFeedCommentRequest } from '../request/feed-comment.request';
+import {
+  CreateFeedCommentRequest,
+  GetParentFeedCommentRequest,
+} from '../request/feed-comment.request';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -51,7 +54,6 @@ export class FeedCommentController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 최상위 댓글 조회 - Optional Guard' })
-  @ApiQuery({ name: 'feedId', type: 'string' })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -61,7 +63,7 @@ export class FeedCommentController {
   @Get()
   async findAll(
     @CurrentUser() userId: string | null,
-    @Query('feedId', ParseUUIDPipe) feedId: string,
+    @Query() { feedId }: GetParentFeedCommentRequest,
   ): Promise<FeedCommentResponseDto> {
     return await this.feedCommentService.getAllByFeedId(userId, feedId);
   }
