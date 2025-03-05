@@ -105,3 +105,17 @@ export class SearchedUsersResponse extends CursorWithCountResponse {
   @ApiProperty({ type: SearchedUserResponse, isArray: true })
   users: SearchedUserResponse[];
 }
+
+export class PopularUserResponse extends UserBaseResponse {
+  @ApiProperty({ description: 'not null인데 공백은 허용' })
+  description: string;
+
+  @ApiProperty()
+  followerCount: number;
+
+  @ApiProperty()
+  isFollowing: boolean;
+
+  @ApiProperty({ type: 'string', isArray: true, example: ['feed/{UUID}.jpg'] })
+  thumbnails: string[];
+}

@@ -24,7 +24,6 @@ import {
   UserProfileDto,
   UserFeedsResponse,
   MyLikeFeedsResponse,
-  PopularUserDto,
   MyPostDto,
   GetMySavePostsResponse,
   UserMetaDto,
@@ -46,6 +45,7 @@ import {
   MyFollowersResponse,
   MyFollowingsResponse,
   SearchedUsersResponse,
+  PopularUserResponse,
 } from '../response/user.response';
 
 @ApiTags('/users')
@@ -305,14 +305,13 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '성공',
-    type: PopularUserDto,
-    isArray: true,
+    type: [PopularUserResponse],
   })
   @UseGuards(OptionalJwtGuard)
   @Get('popular')
   async getPopularUsers(
     @CurrentUser() userId: string | null,
-  ): Promise<PopularUserDto[]> {
+  ): Promise<PopularUserResponse[]> {
     return this.userService.getPopularUsers(userId);
   }
 
