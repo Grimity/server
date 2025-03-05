@@ -14,6 +14,32 @@ export class FeedBaseResponse {
   thumbnail: string;
 }
 
+class FeedResponse extends FeedBaseResponse {
+  @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
+  cards: string[];
+
+  @ApiProperty()
+  isAI: boolean;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  content: string;
+
+  @ApiProperty()
+  tags: string[];
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
+}
+
 class SearchedFeedResponse extends FeedBaseResponse {
   @ApiProperty()
   viewCount: number;
@@ -100,42 +126,26 @@ export class PopularFeedsResponse extends CursorResponse {
   feeds: PopularFeedResponse[];
 }
 
-class FollowingFeedResponse extends FeedBaseResponse {
-  @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
-  cards: string[];
-
-  @ApiProperty()
-  content: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
+class FollowingFeedResponse extends FeedResponse {
   @ApiProperty()
   commentCount: number;
-
-  @ApiProperty()
-  isAI: boolean;
 
   @ApiProperty()
   isLike: boolean;
 
   @ApiProperty()
   isSave: boolean;
-
-  @ApiProperty()
-  tags: string[];
-
-  @ApiProperty({ type: UserBaseResponse })
-  author: UserBaseResponse;
 }
 
 export class FollowingFeedsResponse extends CursorResponse {
   @ApiProperty({ type: FollowingFeedResponse, isArray: true })
   feeds: FollowingFeedResponse[];
+}
+
+export class FeedDetailResponse extends FeedResponse {
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty()
+  isSave: boolean;
 }
