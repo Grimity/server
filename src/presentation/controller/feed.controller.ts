@@ -28,7 +28,6 @@ import {
   GetFollowingFeedsQuery,
   FollowingFeedsResponse,
   FeedSearchResponse,
-  GetPopularQuery,
   PopularFeedResponse,
   LikeUserDto,
   FeedMetaDto,
@@ -39,6 +38,7 @@ import { CursorRequest } from '../request/shared';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
+import { Cursor } from '@opensearch-project/opensearch/api/_types/sql._common';
 
 @ApiTags('/feeds')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -64,7 +64,7 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '태그로 피드 검색 - Optional Guard' })
+  @ApiOperation({ summary: '피드 검색 - Optional Guard' })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -124,18 +124,6 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '인기 그림 목록 조회 - Optional Guard' })
-  @ApiQuery({
-    name: 'size',
-    required: false,
-    type: 'number',
-    default: 20,
-  })
-  @ApiQuery({
-    name: 'cursor',
-    required: false,
-    type: 'string',
-    description: '없으면 처음부터',
-  })
   @ApiResponse({
     status: 200,
     description: '성공',
@@ -145,7 +133,7 @@ export class FeedController {
   @Get('popular')
   async getPopularFeeds(
     @CurrentUser() userId: string | null,
-    @Query() { size, cursor }: GetPopularQuery,
+    @Query() { size, cursor }: CursorRequest,
   ): Promise<PopularFeedResponse> {
     return await this.feedService.getPopularFeeds({
       userId,
