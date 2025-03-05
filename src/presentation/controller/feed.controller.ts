@@ -16,13 +16,11 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { FeedService } from 'src/provider/feed.service';
 import {
   FeedIdDto,
   FeedDetailDto,
-  UpdateFeedDto,
   LatestFeedsResponse,
   TodayPopularFeedDto,
   FollowingFeedsResponse,
@@ -37,7 +35,6 @@ import { CursorRequest } from '../request/shared';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
 import { CurrentUser } from 'src/common/decorator';
-import { Cursor } from '@opensearch-project/opensearch/api/_types/sql._common';
 
 @ApiTags('/feeds')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -197,9 +194,9 @@ export class FeedController {
   async update(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) feedId: string,
-    @Body() updateFeedDto: UpdateFeedDto,
+    @Body() dto: CreateFeedRequest,
   ) {
-    await this.feedService.update(userId, { feedId, ...updateFeedDto });
+    await this.feedService.update(userId, { feedId, ...dto });
     return;
   }
 
