@@ -77,3 +77,25 @@ export class TodayPopularFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 }
+
+class PopularFeedResponse extends FeedBaseResponse {
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
+}
+
+export class PopularFeedsResponse extends CursorResponse {
+  @ApiProperty({ type: PopularFeedResponse, isArray: true })
+  feeds: PopularFeedResponse[];
+}

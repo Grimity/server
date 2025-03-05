@@ -21,7 +21,6 @@ import { FeedService } from 'src/provider/feed.service';
 import {
   FeedDetailDto,
   FollowingFeedsResponse,
-  PopularFeedResponse,
   LikeUserDto,
   FeedMetaDto,
 } from 'src/controller/dto/feed';
@@ -33,6 +32,7 @@ import {
   SearchedFeedsResponse,
   LatestFeedsResponse,
   TodayPopularFeedResponse,
+  PopularFeedsResponse,
 } from '../response/feed.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
@@ -105,17 +105,13 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '인기 그림 목록 조회 - Optional Guard' })
-  @ApiResponse({
-    status: 200,
-    description: '성공',
-    type: PopularFeedResponse,
-  })
+  @ApiResponse({ status: 200, type: PopularFeedsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('popular')
   async getPopularFeeds(
     @CurrentUser() userId: string | null,
     @Query() { size, cursor }: CursorRequest,
-  ): Promise<PopularFeedResponse> {
+  ): Promise<PopularFeedsResponse> {
     return await this.feedService.getPopularFeeds({
       userId,
       size: size ?? 20,
