@@ -3,26 +3,32 @@ import { Client } from '@opensearch-project/opensearch';
 import { ConfigService } from '@nestjs/config';
 import { SortOptions } from '@opensearch-project/opensearch/api/_types/_common';
 import { TotalHits } from '@opensearch-project/opensearch/api/_types/_core.search';
+import {
+  CursorInput,
+  InsertFeedInput,
+  InsertPostInput,
+  PageInput,
+  SearchOutput,
+  SearchService,
+} from '../search.service';
 
 const requestTimeout = 1000;
 const searchTimeout = 3000;
 
 @Injectable()
-export class OpenSearchService {
+export class OpenSearchService implements SearchService {
   private readonly logger = new Logger(OpenSearchService.name);
   private client: Client;
 
   constructor(private configService: ConfigService) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
     this.client = new Client({
       node: this.configService.get('OPENSEARCH_NODE'),
     });
   }
 
-  async createUser(id: string, name: string) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+  async insertUser(id: string, name: string): Promise<void> {
     try {
-      return await this.client.index(
+      await this.client.index(
         {
           index: 'user',
           id,
@@ -43,10 +49,13 @@ export class OpenSearchService {
     }
   }
 
-  async updateUser(id: string, name: string, description: string) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+  async updateUser(
+    id: string,
+    name: string,
+    description: string,
+  ): Promise<void> {
     try {
-      return await this.client.update(
+      await this.client.update(
         {
           index: 'user',
           id,
@@ -67,18 +76,9 @@ export class OpenSearchService {
     }
   }
 
-  async createFeed({
-    id,
-    title,
-    tag,
-  }: {
-    id: string;
-    title: string;
-    tag: string;
-  }) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+  async insertFeed({ id, title, tag }: InsertFeedInput): Promise<void> {
     try {
-      return await this.client.index(
+      await this.client.index(
         {
           index: 'feed',
           id,
@@ -100,18 +100,9 @@ export class OpenSearchService {
     }
   }
 
-  async updateFeed({
-    id,
-    title,
-    tag,
-  }: {
-    id: string;
-    title: string;
-    tag: string;
-  }) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+  async updateFeed({ id, title, tag }: InsertFeedInput): Promise<void> {
     try {
-      return await this.client.update(
+      await this.client.update(
         {
           index: 'feed',
           id,
@@ -133,9 +124,8 @@ export class OpenSearchService {
   }
 
   async deleteFeed(id: string) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.delete(
+      await this.client.delete(
         {
           index: 'feed',
           id,
@@ -150,18 +140,9 @@ export class OpenSearchService {
     }
   }
 
-  async insertPost({
-    id,
-    title,
-    content,
-  }: {
-    id: string;
-    title: string;
-    content: string;
-  }) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+  async insertPost({ id, title, content }: InsertPostInput): Promise<void> {
     try {
-      return await this.client.index(
+      await this.client.index(
         {
           index: 'post',
           id,
@@ -181,18 +162,9 @@ export class OpenSearchService {
     }
   }
 
-  async updatePost({
-    id,
-    title,
-    content,
-  }: {
-    id: string;
-    title: string;
-    content: string;
-  }) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
+  async updatePost({ id, title, content }: InsertPostInput) {
     try {
-      return await this.client.update(
+      await this.client.update(
         {
           index: 'post',
           id,
@@ -214,9 +186,8 @@ export class OpenSearchService {
   }
 
   async deletePost(id: string) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
-      return await this.client.delete(
+      await this.client.delete(
         {
           index: 'post',
           id,
@@ -240,7 +211,6 @@ export class OpenSearchService {
     feedIds: string[];
     postIds: string[];
   }) {
-    if (this.configService.get('NODE_ENV') !== 'production') return;
     try {
       await Promise.all([
         this.client.deleteByQuery(
@@ -289,13 +259,12 @@ export class OpenSearchService {
     }
   }
 
-  async searchUser({ keyword, cursor, size, sort }: SearchUserInput) {
-    if (this.configService.get('NODE_ENV') !== 'production')
-      return {
-        totalCount: 0,
-        ids: [],
-      };
-
+  async searchUser({
+    sort,
+    cursor,
+    size,
+    keyword,
+  }: CursorInput & { sort: 'popular' | 'accuracy' }): Promise<SearchOutput> {
     let sortQuery: SortOptions[] = [];
 
     if (sort === 'popular') {
@@ -368,13 +337,14 @@ export class OpenSearchService {
     }
   }
 
-  async searchFeed({ keyword, cursor, size, sort }: SearchFeedInput) {
-    if (this.configService.get('NODE_ENV') !== 'production')
-      return {
-        totalCount: 0,
-        ids: [],
-      };
-
+  async searchFeed({
+    keyword,
+    cursor,
+    size,
+    sort,
+  }: CursorInput & {
+    sort: 'popular' | 'accuracy' | 'latest';
+  }): Promise<SearchOutput> {
     const sortQuery: SortOptions[] = [];
 
     if (sort === 'latest') {
@@ -432,13 +402,7 @@ export class OpenSearchService {
     }
   }
 
-  async searchPost({ keyword, page, size }: SearchPostInput) {
-    if (this.configService.get('NODE_ENV') !== 'production')
-      return {
-        totalCount: 0,
-        ids: [],
-      };
-
+  async searchPost({ keyword, page, size }: PageInput): Promise<SearchOutput> {
     try {
       const response = await this.client.search(
         {
@@ -478,26 +442,6 @@ export class OpenSearchService {
     }
   }
 }
-
-export type SearchUserInput = {
-  keyword: string;
-  cursor: number;
-  size: number;
-  sort: 'popular' | 'accuracy';
-};
-
-export type SearchFeedInput = {
-  keyword: string;
-  cursor: number;
-  size: number;
-  sort: 'popular' | 'accuracy' | 'latest';
-};
-
-type SearchPostInput = {
-  keyword: string;
-  page: number;
-  size: number;
-};
 
 type UserHitData = {
   _index: string;

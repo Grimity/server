@@ -1,10 +1,10 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post.repository';
 import { postTypes } from 'src/common/constants';
 import * as striptags from 'striptags';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
-import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { SearchService } from 'src/database/search/search.service';
 import { extractImage } from './util';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class PostService {
   constructor(
     private postRepository: PostRepository,
     private postSelectRepository: PostSelectRepository,
-    private openSearchService: OpenSearchService,
+    @Inject(SearchService) private searchService: SearchService,
   ) {}
 
   async create(userId: string, { title, content, type }: CreateInput) {
@@ -36,7 +36,7 @@ export class PostService {
       thumbnail,
     });
 
-    await this.openSearchService.insertPost({
+    await this.searchService.insertPost({
       id,
       title,
       content: cleanedText,
@@ -67,7 +67,7 @@ export class PostService {
       thumbnail,
     });
 
-    await this.openSearchService.updatePost({
+    await this.searchService.updatePost({
       id: postId,
       title,
       content: parsedContent,
@@ -139,7 +139,7 @@ export class PostService {
 
   async deleteOne(userId: string, postId: string) {
     await this.postRepository.deleteOne(userId, postId);
-    await this.openSearchService.deletePost(postId);
+    await this.searchService.deletePost(postId);
     return;
   }
 
@@ -193,7 +193,7 @@ export class PostService {
   }
 
   async searchByTitleAndContent({ keyword, page, size }: SearchPostInput) {
-    const { totalCount, ids } = await this.openSearchService.searchPost({
+    const { totalCount, ids } = await this.searchService.searchPost({
       keyword,
       page,
       size,

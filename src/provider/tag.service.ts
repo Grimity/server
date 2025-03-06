@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { TagRepository } from 'src/repository/tag.repository';
-import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { SearchService } from 'src/database/search/search.service';
 
 @Injectable()
 export class TagService {
   constructor(
     private tagRepository: TagRepository,
-    private openSearchService: OpenSearchService,
+    @Inject(SearchService) private searchService: SearchService,
   ) {}
 
   async findPopularTags() {
@@ -21,7 +21,7 @@ export class TagService {
   }
 
   async searchTags(userId: string | null, tagNames: string[]) {
-    const { ids } = await this.openSearchService.searchFeed({
+    const { ids } = await this.searchService.searchFeed({
       keyword: tagNames.join(' '),
       cursor: 0,
       size: 8,
