@@ -6,12 +6,14 @@ import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { extractImage } from './util';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private postRepository: PostRepository,
     private postSelectRepository: PostSelectRepository,
+    private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
   ) {}
 
@@ -144,10 +146,13 @@ export class PostService {
   }
 
   async getTodayPopularPosts() {
-    let ids = await this.postSelectRepository.getCachedTodayPopular();
+    let ids = (await this.redisService.getArray('todayPopularPostIds')) as
+      | string[]
+      | null;
+
     if (ids === null) {
       ids = await this.postSelectRepository.findTodayPopularIds();
-      await this.postRepository.cacheTodayPopular(ids);
+      await this.redisService.cacheArray('todayPopularPostIds', ids, 60 * 30);
     }
 
     const resultPosts =

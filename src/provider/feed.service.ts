@@ -4,6 +4,7 @@ import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class FeedService {
@@ -11,8 +12,9 @@ export class FeedService {
     private feedRepository: FeedRepository,
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
-    @Inject(SearchService) private searchService: SearchService,
     private ddb: DdbService,
+    private redisService: RedisService,
+    @Inject(SearchService) private searchService: SearchService,
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
@@ -175,10 +177,13 @@ export class FeedService {
   }
 
   async getTodayPopular(userId: string | null) {
-    let ids = await this.feedSelectRepository.getCachedTodayPopular();
+    let ids = (await this.redisService.getArray('todayPopularFeedIds')) as
+      | string[]
+      | null;
+
     if (ids === null) {
       ids = await this.feedSelectRepository.findTodayPopularIds();
-      await this.feedRepository.cacheTodayPopular(ids);
+      await this.redisService.cacheArray('todayPopularFeedIds', ids, 60 * 30);
     }
     return await this.feedSelectRepository.findTodayPopularByIds(userId, ids);
   }

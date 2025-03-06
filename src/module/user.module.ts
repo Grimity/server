@@ -8,9 +8,17 @@ import { AwsModule } from './aws.module';
 import { SearchModule } from 'src/database/search/search.module';
 import { PostModule } from './post.module';
 import { DdbModule } from 'src/database/ddb/ddb.module';
+import { RedisModule } from 'src/database/redis/redis.module';
 
 @Module({
-  imports: [FeedModule, AwsModule, SearchModule, PostModule, DdbModule],
+  imports: [
+    FeedModule,
+    AwsModule,
+    SearchModule,
+    PostModule,
+    DdbModule,
+    RedisModule,
+  ],
   controllers: [UserController],
   providers: [UserRepository, UserService, UserSelectRepository],
   exports: [UserRepository, UserSelectRepository],

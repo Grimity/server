@@ -7,6 +7,7 @@ import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
 import { DdbService } from 'src/database/ddb/ddb.service';
+import { RedisService } from 'src/database/redis/redis.service';
 import { validate as isUUID } from 'uuid';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class UserService {
     @Inject(SearchService) private searchService: SearchService,
     private postSelectRepository: PostSelectRepository,
     private ddb: DdbService,
+    private redisService: RedisService,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -263,11 +265,13 @@ export class UserService {
   }
 
   async getPopularUsers(userId: string | null) {
-    let userIds = await this.userSelectRepository.getCachedPopularUserIds();
+    let userIds = (await this.redisService.getArray('popularUserIds')) as
+      | string[]
+      | null;
 
     if (userIds === null) {
       userIds = await this.userSelectRepository.findPopularUserIds();
-      await this.userRepository.cachePopularUserIds(userIds);
+      await this.redisService.cacheArray('popularUserIds', userIds, 60 * 30);
     }
 
     return await this.userSelectRepository.findPopularUsersByIds(

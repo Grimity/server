@@ -36,8 +36,8 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
 
   it('인기 태그를 조회한다', async () => {
     // given
-    const spySet = jest.spyOn(tagRepository, 'cachePopularTags');
-    const spyGet = jest.spyOn(tagRepository, 'getCachedPopularTags');
+    const spyCache = jest.spyOn(redis, 'cacheArray');
+    const spyGet = jest.spyOn(redis, 'getArray');
 
     const user = await prisma.user.create({
       data: {
@@ -77,15 +77,12 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
     // then
     expect(status).toBe(200);
     expect(body).toHaveLength(16);
-    expect(spySet).toHaveBeenCalledTimes(1);
+    expect(spyCache).toHaveBeenCalledTimes(1);
     expect(spyGet).toHaveBeenCalledTimes(1);
 
     await request(app.getHttpServer()).get('/tags/popular');
 
-    expect(spySet).toHaveBeenCalledTimes(1);
+    expect(spyCache).toHaveBeenCalledTimes(1);
     expect(spyGet).toHaveBeenCalledTimes(2);
-
-    // cleanup
-    spySet.mockRestore();
   });
 });

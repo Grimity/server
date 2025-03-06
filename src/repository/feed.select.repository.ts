@@ -1,14 +1,10 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from './util';
-import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class FeedSelectRepository {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getFeed(userId: string | null, feedId: string) {
     const [feed] = await this.prisma.$kysely
@@ -228,12 +224,6 @@ export class FeedSelectRepository {
         },
       };
     });
-  }
-
-  async getCachedTodayPopular() {
-    const result = await this.redis.get('todayPopularFeeds');
-    if (result === null) return null;
-    return JSON.parse(result) as string[];
   }
 
   async findTodayPopularIds() {

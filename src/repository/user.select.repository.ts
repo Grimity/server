@@ -1,15 +1,11 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { RedisService } from 'src/database/redis/redis.service';
 import { kyselyUuid } from './util';
 
 @Injectable()
 export class UserSelectRepository {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async findOneById(id: string) {
     const user = await this.prisma.user.findUnique({
@@ -261,12 +257,6 @@ export class UserSelectRepository {
       thumbnails: user.thumbnails ?? [],
       isFollowing: user.isFollowing ?? false,
     }));
-  }
-
-  async getCachedPopularUserIds() {
-    const result = await this.redis.get('popularUserIds');
-    if (result === null) return null;
-    return JSON.parse(result) as string[];
   }
 
   async findManyByUserIds(myId: string | null, userIds: string[]) {
