@@ -1,12 +1,13 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Inject } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
-import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
 import { DdbService } from 'src/database/ddb/ddb.service';
+import { RedisService } from 'src/database/redis/redis.service';
 import { validate as isUUID } from 'uuid';
 
 @Injectable()
@@ -16,9 +17,10 @@ export class UserService {
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
     private userSelectRepository: UserSelectRepository,
-    private openSearchService: OpenSearchService,
+    @Inject(SearchService) private searchService: SearchService,
     private postSelectRepository: PostSelectRepository,
     private ddb: DdbService,
+    private redisService: RedisService,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -44,7 +46,7 @@ export class UserService {
       ...updateProfileInput,
       links: transformedLinks,
     });
-    await this.openSearchService.updateUser(
+    await this.searchService.updateUser(
       userId,
       updateProfileInput.name,
       updateProfileInput.description,
@@ -263,11 +265,13 @@ export class UserService {
   }
 
   async getPopularUsers(userId: string | null) {
-    let userIds = await this.userSelectRepository.getCachedPopularUserIds();
+    let userIds = (await this.redisService.getArray('popularUserIds')) as
+      | string[]
+      | null;
 
     if (userIds === null) {
       userIds = await this.userSelectRepository.findPopularUserIds();
-      await this.userRepository.cachePopularUserIds(userIds);
+      await this.redisService.cacheArray('popularUserIds', userIds, 60 * 30);
     }
 
     return await this.userSelectRepository.findPopularUsersByIds(
@@ -278,7 +282,7 @@ export class UserService {
 
   async searchUsers(input: SearchUserInput) {
     const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const { ids, totalCount } = await this.openSearchService.searchUser({
+    const { ids, totalCount } = await this.searchService.searchUser({
       keyword: input.keyword,
       cursor: currentCursor,
       size: input.size,
@@ -408,7 +412,7 @@ export class UserService {
       this.postSelectRepository.findAllIdsByUserId(userId),
     ]);
     await Promise.all([
-      this.openSearchService.deleteAll({ userId, feedIds, postIds }),
+      this.searchService.deleteAll({ userId, feedIds, postIds }),
       this.userRepository.deleteOne(userId),
     ]);
     return;

@@ -5,12 +5,20 @@ import { UserService } from 'src/provider/user.service';
 import { UserController } from 'src/presentation/controller/user.controller';
 import { FeedModule } from './feed.module';
 import { AwsModule } from './aws.module';
-import { OpenSearchModule } from '../database/opensearch/opensearch.module';
+import { SearchModule } from 'src/database/search/search.module';
 import { PostModule } from './post.module';
 import { DdbModule } from 'src/database/ddb/ddb.module';
+import { RedisModule } from 'src/database/redis/redis.module';
 
 @Module({
-  imports: [FeedModule, AwsModule, OpenSearchModule, PostModule, DdbModule],
+  imports: [
+    FeedModule,
+    AwsModule,
+    SearchModule,
+    PostModule,
+    DdbModule,
+    RedisModule,
+  ],
   controllers: [UserController],
   providers: [UserRepository, UserService, UserSelectRepository],
   exports: [UserRepository, UserSelectRepository],

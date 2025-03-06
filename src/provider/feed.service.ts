@@ -1,9 +1,10 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { FeedRepository } from 'src/repository/feed.repository';
 import { FeedSelectRepository } from 'src/repository/feed.select.repository';
 import { AwsService } from './aws.service';
-import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class FeedService {
@@ -11,8 +12,9 @@ export class FeedService {
     private feedRepository: FeedRepository,
     private feedSelectRepository: FeedSelectRepository,
     private awsService: AwsService,
-    private openSearchService: OpenSearchService,
     private ddb: DdbService,
+    private redisService: RedisService,
+    @Inject(SearchService) private searchService: SearchService,
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
@@ -25,7 +27,7 @@ export class FeedService {
       tags: [...trimmedSet],
     });
 
-    await this.openSearchService.createFeed({
+    await this.searchService.insertFeed({
       id,
       title: createFeedInput.title,
       tag: [...trimmedSet].join(' '),
@@ -113,7 +115,7 @@ export class FeedService {
       throw new HttpException('FEED', 404);
     }
 
-    await this.openSearchService.deleteFeed(feedId);
+    await this.searchService.deleteFeed(feedId);
     return;
   }
 
@@ -128,7 +130,7 @@ export class FeedService {
       ...updateFeedInput,
       tags: [...trimmedSet],
     });
-    await this.openSearchService.updateFeed({
+    await this.searchService.updateFeed({
       id: updateFeedInput.feedId,
       title: updateFeedInput.title,
       tag: [...trimmedSet].join(' '),
@@ -175,10 +177,13 @@ export class FeedService {
   }
 
   async getTodayPopular(userId: string | null) {
-    let ids = await this.feedSelectRepository.getCachedTodayPopular();
+    let ids = (await this.redisService.getArray('todayPopularFeedIds')) as
+      | string[]
+      | null;
+
     if (ids === null) {
       ids = await this.feedSelectRepository.findTodayPopularIds();
-      await this.feedRepository.cacheTodayPopular(ids);
+      await this.redisService.cacheArray('todayPopularFeedIds', ids, 60 * 30);
     }
     return await this.feedSelectRepository.findTodayPopularByIds(userId, ids);
   }
@@ -248,7 +253,7 @@ export class FeedService {
 
   async search(input: SearchInput) {
     const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const { ids, totalCount } = await this.openSearchService.searchFeed({
+    const { ids, totalCount } = await this.searchService.searchFeed({
       keyword: input.keyword,
       cursor: currentCursor,
       size: input.size,

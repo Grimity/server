@@ -1,14 +1,10 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class FeedRepository {
-  constructor(
-    private prisma: PrismaService,
-    private redis: RedisService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
     return await this.prisma.feed.create({
@@ -263,16 +259,6 @@ export class FeedRepository {
       }
       throw e;
     }
-  }
-
-  async cacheTodayPopular(ids: string[]) {
-    await this.redis.set(
-      'todayPopularFeeds',
-      JSON.stringify(ids),
-      'EX',
-      60 * 30,
-    );
-    return;
   }
 }
 

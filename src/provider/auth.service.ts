@@ -1,8 +1,8 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { UserRepository } from 'src/repository/user.repository';
 import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { JwtService } from '@nestjs/jwt';
-import { OpenSearchService } from '../database/opensearch/opensearch.service';
+import { SearchService } from 'src/database/search/search.service';
 import { ConfigService } from '@nestjs/config';
 import { ClientInfo } from 'src/types';
 
@@ -12,7 +12,7 @@ export class AuthService {
     private userRepository: UserRepository,
     private jwtService: JwtService,
     private userSelectRepository: UserSelectRepository,
-    private openSearchService: OpenSearchService,
+    @Inject(SearchService) private searchService: SearchService,
     private configService: ConfigService,
   ) {}
 
@@ -86,7 +86,7 @@ export class AuthService {
       name: input.name,
     });
 
-    await this.openSearchService.createUser(user.id, input.name);
+    await this.searchService.insertUser(user.id, input.name);
 
     const accessToken = this.jwtService.sign({ id: user.id });
     const refreshToken = this.jwtService.sign(
