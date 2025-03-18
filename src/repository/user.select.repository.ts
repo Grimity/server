@@ -16,6 +16,13 @@ export class UserSelectRepository {
     return user;
   }
 
+  async findOneByName(name: string) {
+    return await this.prisma.user.findUnique({
+      where: { name },
+      select: { id: true },
+    });
+  }
+
   async findOneByProviderOrThrow(provider: string, providerId: string) {
     try {
       return await this.prisma.user.findUniqueOrThrow({

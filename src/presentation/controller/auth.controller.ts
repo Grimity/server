@@ -13,7 +13,11 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
-import { LoginRequest, RegisterRequest } from '../request/auth.request';
+import {
+  LoginRequest,
+  RegisterRequest,
+  CheckNameRequest,
+} from '../request/auth.request';
 import {
   LoginResponse,
   JwtResponse,
@@ -66,6 +70,16 @@ export class AuthController {
     @Body() dto: RegisterRequest,
   ): Promise<LoginResponse> {
     return await this.authService.register(dto, clientInfo);
+  }
+
+  @ApiOperation({ summary: '이름 중복 확인' })
+  @ApiResponse({ status: 204, description: '중복 이름 없음' })
+  @ApiResponse({ status: 409, description: '중복' })
+  @Post('register/name')
+  @HttpCode(204)
+  async checkName(@Body() { name }: CheckNameRequest) {
+    await this.authService.checkNameOrThrow(name);
+    return;
   }
 
   @ApiBearerAuth()
