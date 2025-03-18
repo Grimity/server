@@ -84,6 +84,7 @@ export class AuthService {
       providerId,
       email,
       name: input.name,
+      id: input.id,
     });
 
     await this.searchService.insertUser(user.id, input.name);
@@ -209,4 +210,5 @@ export type RegisterInput = {
   provider: string;
   providerAccessToken: string;
   name: string;
+  id: string | null;
 };
