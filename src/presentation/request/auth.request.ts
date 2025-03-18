@@ -22,7 +22,12 @@ export class RegisterRequest extends LoginRequest {
   @Length(2, 12)
   name: string;
 
-  @ApiProperty({ minLength: 2, maxLength: 20 })
+  @ApiProperty({
+    minLength: 2,
+    maxLength: 20,
+    nullable: true,
+    description: '일단 지금은 nullable입니다',
+  })
   @TrimNullableString()
   @IsOptional()
   @Length(2, 20)

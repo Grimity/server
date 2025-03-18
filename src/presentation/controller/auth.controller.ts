@@ -58,11 +58,7 @@ export class AuthController {
 
   @ApiOperation({ summary: '회원가입' })
   @ApiResponse({ status: 201, type: LoginResponse })
-  @ApiResponse({
-    status: 409,
-    description: '이미 있는 회원 or 닉네임 중복',
-    type: Register409Response,
-  })
+  @ApiResponse({ status: 409, description: 'ID 중복' })
   @UseGuards(UserAgentGuard)
   @Post('register')
   async register(

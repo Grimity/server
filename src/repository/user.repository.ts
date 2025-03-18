@@ -7,29 +7,16 @@ export class UserRepository {
   constructor(private prisma: PrismaService) {}
 
   async create({ provider, providerId, email, name, id }: CreateInput) {
-    try {
-      return await this.prisma.user.create({
-        data: {
-          provider,
-          providerId,
-          email,
-          name,
-          tempId: id,
-        },
-        select: { id: true },
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
-        if (Array.isArray(e.meta?.target) && e.meta.target.includes('name')) {
-          throw new HttpException('NAME', 409);
-        }
-        throw new HttpException('USER', 409);
-      }
-      throw e;
-    }
+    return await this.prisma.user.create({
+      data: {
+        provider,
+        providerId,
+        email,
+        name,
+        tempId: id,
+      },
+      select: { id: true },
+    });
   }
 
   async update(id: string, input: UpdateInput) {

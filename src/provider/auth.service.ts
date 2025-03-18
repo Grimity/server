@@ -87,6 +87,11 @@ export class AuthService {
       email = kakaoProfile.email;
     }
 
+    if (input.id) {
+      const user = await this.userSelectRepository.findOneByTempId(input.id);
+      if (user !== null) throw new HttpException('ID', 409);
+    }
+
     const user = await this.userRepository.create({
       provider: input.provider,
       providerId,
