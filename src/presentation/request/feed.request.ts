@@ -49,7 +49,7 @@ export class CreateFeedRequest {
     isArray: true,
     type: 'string',
     example: ['태그1', '태그2'],
-    maxLength: 10,
+    maxLength: 20,
     description: '없으면 빈 배열',
   })
   @ArrayMaxSize(10)

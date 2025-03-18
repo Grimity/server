@@ -35,10 +35,7 @@ export class AuthController {
 
   @ApiOperation({ summary: '로그인' })
   @ApiResponse({ status: 200, type: LoginResponse })
-  @ApiResponse({
-    status: 404,
-    description: '회원 없음',
-  })
+  @ApiResponse({ status: 404, description: '회원 없음' })
   @UseGuards(UserAgentGuard)
   @HttpCode(200)
   @Post('login')
