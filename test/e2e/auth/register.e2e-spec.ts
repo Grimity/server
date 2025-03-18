@@ -98,6 +98,44 @@ describe('POST /auth/register - 회원가입', () => {
     expect(status).toBe(400);
   });
 
+  it('id에 허용되지 않은 문자가 있으면 400을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'google',
+        providerAccessToken: 'test',
+        name: 'test',
+        id: 'abc*D',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('id가 popular 이면 400을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'google',
+        providerAccessToken: 'test',
+        name: 'test',
+        id: 'popular',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
   it('유저를 생성한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
