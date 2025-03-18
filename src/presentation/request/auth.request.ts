@@ -26,6 +26,7 @@ export class RegisterRequest extends LoginRequest {
     minLength: 2,
     maxLength: 20,
     nullable: true,
+    type: 'string',
     description: '일단 지금은 nullable입니다',
   })
   @TrimNullableString()
