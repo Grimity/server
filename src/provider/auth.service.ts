@@ -62,6 +62,14 @@ export class AuthService {
     return { id: user.id, accessToken, refreshToken };
   }
 
+  async checkNameOrThrow(name: string) {
+    const user = await this.userSelectRepository.findOneByName(name);
+    if (user !== null) {
+      throw new HttpException('NAME', 409);
+    }
+    return true;
+  }
+
   async register(input: RegisterInput, clientInfo: ClientInfo) {
     let providerId;
     let email;
@@ -79,11 +87,17 @@ export class AuthService {
       email = kakaoProfile.email;
     }
 
+    if (input.id) {
+      const user = await this.userSelectRepository.findOneByTempId(input.id);
+      if (user !== null) throw new HttpException('ID', 409);
+    }
+
     const user = await this.userRepository.create({
       provider: input.provider,
       providerId,
       email,
       name: input.name,
+      id: input.id,
     });
 
     await this.searchService.insertUser(user.id, input.name);
@@ -209,4 +223,5 @@ export type RegisterInput = {
   provider: string;
   providerAccessToken: string;
   name: string;
+  id: string | null;
 };

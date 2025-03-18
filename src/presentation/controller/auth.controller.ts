@@ -13,7 +13,11 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
-import { LoginRequest, RegisterRequest } from '../request/auth.request';
+import {
+  LoginRequest,
+  RegisterRequest,
+  CheckNameRequest,
+} from '../request/auth.request';
 import {
   LoginResponse,
   JwtResponse,
@@ -35,10 +39,7 @@ export class AuthController {
 
   @ApiOperation({ summary: '로그인' })
   @ApiResponse({ status: 200, type: LoginResponse })
-  @ApiResponse({
-    status: 404,
-    description: '회원 없음',
-  })
+  @ApiResponse({ status: 404, description: '회원 없음' })
   @UseGuards(UserAgentGuard)
   @HttpCode(200)
   @Post('login')
@@ -57,11 +58,7 @@ export class AuthController {
 
   @ApiOperation({ summary: '회원가입' })
   @ApiResponse({ status: 201, type: LoginResponse })
-  @ApiResponse({
-    status: 409,
-    description: '이미 있는 회원 or 닉네임 중복',
-    type: Register409Response,
-  })
+  @ApiResponse({ status: 409, description: 'ID 중복' })
   @UseGuards(UserAgentGuard)
   @Post('register')
   async register(
@@ -69,6 +66,16 @@ export class AuthController {
     @Body() dto: RegisterRequest,
   ): Promise<LoginResponse> {
     return await this.authService.register(dto, clientInfo);
+  }
+
+  @ApiOperation({ summary: '이름 중복 확인' })
+  @ApiResponse({ status: 204, description: '중복 이름 없음' })
+  @ApiResponse({ status: 409, description: '중복' })
+  @Post('register/name')
+  @HttpCode(204)
+  async checkName(@Body() { name }: CheckNameRequest) {
+    await this.authService.checkNameOrThrow(name);
+    return;
   }
 
   @ApiBearerAuth()

@@ -93,3 +93,30 @@ export class TagValidator implements ValidatorConstraintInterface {
     return '태그는 1글자 이상 20글자 이하여야 합니다';
   }
 }
+
+@ValidatorConstraint()
+export class IdValidator implements ValidatorConstraintInterface {
+  validate(id: string) {
+    if (
+      id in
+      [
+        'popular',
+        'board',
+        'following',
+        'search',
+        'write',
+        'posts',
+        'feeds',
+        'mypage',
+      ]
+    )
+      return false;
+
+    const regex = /^[a-z0-9_]+$/;
+    return regex.test(id);
+  }
+
+  defaultMessage(validationArguments?: ValidationArguments): string {
+    return '숫자, 영문소문자, _ 로만 구성되어야합니다';
+  }
+}

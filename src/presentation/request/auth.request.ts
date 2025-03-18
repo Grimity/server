@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsIn } from 'class-validator';
+import { Length, IsIn, IsOptional, Validate } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { TrimString } from './helper';
+import { TrimString, TrimNullableString, IdValidator } from './helper';
 
 const providers = ['GOOGLE', 'KAKAO'] as const;
 
@@ -17,6 +17,25 @@ export class LoginRequest {
 }
 
 export class RegisterRequest extends LoginRequest {
+  @ApiProperty({ minLength: 2, maxLength: 12 })
+  @TrimString()
+  @Length(2, 12)
+  name: string;
+
+  @ApiProperty({
+    minLength: 2,
+    maxLength: 20,
+    nullable: true,
+    description: '일단 지금은 nullable입니다',
+  })
+  @TrimNullableString()
+  @IsOptional()
+  @Length(2, 20)
+  @Validate(IdValidator)
+  id: string | null;
+}
+
+export class CheckNameRequest {
   @ApiProperty({ minLength: 2, maxLength: 12 })
   @TrimString()
   @Length(2, 12)

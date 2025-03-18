@@ -4,13 +4,11 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { TagRepository } from 'src/repository/tag.repository';
 
 describe('GET /tags/popular - 인기 태그 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let redis: RedisService;
-  let tagRepository: TagRepository;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,7 +18,6 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     redis = module.get<RedisService>(RedisService);
-    tagRepository = module.get<TagRepository>(TagRepository);
 
     await app.init();
   });

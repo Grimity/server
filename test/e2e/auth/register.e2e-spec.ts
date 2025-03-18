@@ -116,6 +116,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test',
+        id: 'test',
       });
 
     // then
@@ -136,21 +137,25 @@ describe('POST /auth/register - 회원가입', () => {
     spy.mockRestore();
   });
 
-  it('이미 있는 유저일 때 409와 함께 USER 메시지를 반환한다', async () => {
+  it('id가 중복이면 409를 반환한다', async () => {
     // given
-    await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'kakaoId',
-        email: 'test@test.com',
-        name: 'test',
-      },
-    });
-
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'kakaoId',
       email: 'test@test.com',
     });
+
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+        id: 'test',
+      });
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -163,50 +168,10 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test2',
+        id: 'test',
       });
 
     // then
     expect(status).toBe(409);
-    expect(body.message).toBe('USER');
-
-    // cleanup
-    spy.mockRestore();
-  });
-
-  it('이미 있는 닉네임일때 409와 함께 NAME 메시지를 반환한다', async () => {
-    // given
-    await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'kakaoId',
-        email: 'test@test.com',
-        name: 'test',
-      },
-    });
-
-    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'kakaoId2',
-      email: 'test@test.com',
-    });
-
-    // when
-    const { status, body } = await request(app.getHttpServer())
-      .post('/auth/register')
-      .set(
-        'User-Agent',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
-      )
-      .send({
-        provider: 'kakao',
-        providerAccessToken: 'test',
-        name: 'test',
-      });
-
-    // then
-    expect(status).toBe(409);
-    expect(body.message).toBe('NAME');
-
-    // cleanup
-    spy.mockRestore();
   });
 });

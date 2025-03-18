@@ -16,6 +16,20 @@ export class UserSelectRepository {
     return user;
   }
 
+  async findOneByTempId(id: string) {
+    return await this.prisma.user.findFirst({
+      where: { tempId: id },
+      select: { id: true },
+    });
+  }
+
+  async findOneByName(name: string) {
+    return await this.prisma.user.findUnique({
+      where: { name },
+      select: { id: true },
+    });
+  }
+
   async findOneByProviderOrThrow(provider: string, providerId: string) {
     try {
       return await this.prisma.user.findUniqueOrThrow({
