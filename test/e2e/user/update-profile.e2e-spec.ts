@@ -48,6 +48,7 @@ describe('PUT /users/me', () => {
         name: '',
         description: '',
         links: [],
+        url: 'test',
       });
 
     // then
@@ -66,6 +67,7 @@ describe('PUT /users/me', () => {
         name: 'a'.repeat(13),
         description: '',
         links: [],
+        url: 'test',
       });
 
     // then
@@ -84,6 +86,7 @@ describe('PUT /users/me', () => {
         name: 'test2',
         description: 'a'.repeat(201),
         links: [],
+        url: 'test',
       });
 
     // then
@@ -107,6 +110,7 @@ describe('PUT /users/me', () => {
             link: 'test',
           },
         ],
+        url: 'test',
       });
 
     // then
@@ -124,6 +128,7 @@ describe('PUT /users/me', () => {
       .send({
         name: 'test',
         description: 'test',
+        url: 'test',
         links: [
           {
             linkName: 'test',
@@ -159,6 +164,7 @@ describe('PUT /users/me', () => {
       .send({
         name: 'test',
         description: 'test',
+        url: 'test',
         links: [
           {
             linkName: '     ',
@@ -176,12 +182,13 @@ describe('PUT /users/me', () => {
     const accessToken = await register(app, 'test');
 
     // when
-    const { status, body } = await request(app.getHttpServer())
+    const { status } = await request(app.getHttpServer())
       .put('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'test2',
         description: 'test',
+        url: 'test2',
         links: [
           {
             linkName: ' test ',
@@ -194,11 +201,41 @@ describe('PUT /users/me', () => {
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
     expect(user.name).toBe('test2');
+    expect(user.url).toBe('test2');
     expect(user.description).toBe('test');
     expect(user.links).toEqual(['test|~|https://test.com']);
   });
 
-  it('중복된 name일 때 409를 반환한다', async () => {
+  it('name과 url은 변경사항이 없어도 된다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test',
+        description: 'test',
+        url: 'test',
+        links: [
+          {
+            linkName: ' test ',
+            link: 'https://test.com',
+          },
+        ],
+      });
+
+    // then
+    expect(status).toBe(204);
+    const user = await prisma.user.findFirstOrThrow();
+    expect(user.name).toBe('test');
+    expect(user.url).toBe('test');
+    expect(user.description).toBe('test');
+    expect(user.links).toEqual(['test|~|https://test.com']);
+  });
+
+  it('중복된 name일 때 409와 함께 NAME을 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
     await prisma.user.create({
@@ -212,12 +249,13 @@ describe('PUT /users/me', () => {
     });
 
     // when
-    const { status } = await request(app.getHttpServer())
+    const { status, body } = await request(app.getHttpServer())
       .put('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'test2',
         description: 'test',
+        url: 'test',
         links: [
           {
             linkName: 'test',
@@ -228,6 +266,47 @@ describe('PUT /users/me', () => {
 
     // then
     expect(status).toBe(409);
+    expect(body).toEqual({
+      statusCode: 409,
+      message: 'NAME',
+    });
+  });
+
+  it('중복된 url일때 409와 함께 URL을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+    await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        name: 'test2',
+        email: 'test@test.com',
+        url: 'test2',
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .put('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'test',
+        description: 'test',
+        url: 'test2',
+        links: [
+          {
+            linkName: 'test',
+            link: 'https://test.com',
+          },
+        ],
+      });
+
+    // then
+    expect(status).toBe(409);
+    expect(body).toEqual({
+      statusCode: 409,
+      message: 'URL',
+    });
   });
 
   it('links를 삭제한다', async () => {
@@ -246,6 +325,7 @@ describe('PUT /users/me', () => {
       .send({
         name: 'test2',
         description: 'test',
+        url: 'test',
         links: [],
       });
 
@@ -272,38 +352,12 @@ describe('PUT /users/me', () => {
         name: 'test2',
         description: 'test',
         links: null,
+        url: 'test',
       });
 
     // then
     expect(status).toBe(204);
     const user = await prisma.user.findFirstOrThrow();
     expect(user.links).toEqual([]);
-  });
-
-  it('linkName에 space가 있을 때 space를 제거한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put('/users/me')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        name: 'test2',
-        description: 'test',
-        links: [
-          {
-            linkName: 't e s t',
-            link: 'https://test.com',
-          },
-        ],
-      });
-
-    // then
-    expect(status).toBe(204);
-    const user = await prisma.user.findFirstOrThrow();
-    expect(user.name).toBe('test2');
-    expect(user.description).toBe('test');
-    expect(user.links).toEqual(['t e s t|~|https://test.com']);
   });
 });

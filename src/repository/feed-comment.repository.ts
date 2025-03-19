@@ -42,7 +42,7 @@ export class FeedCommentRepository {
         'FeedComment.writerId',
       ])
       .innerJoin('User', 'FeedComment.writerId', 'User.id')
-      .select(['User.name', 'User.image'])
+      .select(['User.name', 'User.image', 'url'])
       .select((eb) =>
         eb
           .selectFrom('FeedComment as cm')
@@ -78,6 +78,7 @@ export class FeedCommentRepository {
         id: comment.writerId,
         name: comment.name,
         image: comment.image,
+        url: comment.url,
       },
       likeCount: comment.likeCount,
       isLike: comment.isLike ?? false,
@@ -111,9 +112,17 @@ export class FeedCommentRepository {
         'FeedComment.mentionedUserId',
       ])
       .innerJoin('User', 'FeedComment.writerId', 'User.id')
-      .select(['User.name as writerName', 'User.image'])
+      .select([
+        'User.name as writerName',
+        'User.image',
+        'User.url as writerUrl',
+      ])
       .leftJoin('User as mu', 'FeedComment.mentionedUserId', 'mu.id')
-      .select(['mu.name as mentionedUserName'])
+      .select([
+        'mu.name as mentionedUserName',
+        'mu.url as mentionedUserUrl',
+        'mu.image as mentionedUserImage',
+      ])
       .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
@@ -141,6 +150,7 @@ export class FeedCommentRepository {
         id: comment.writerId,
         name: comment.writerName,
         image: comment.image,
+        url: comment.writerUrl,
       },
       likeCount: comment.likeCount,
       isLike: comment.isLike ?? false,
@@ -148,6 +158,8 @@ export class FeedCommentRepository {
         ? {
             id: comment.mentionedUserId,
             name: comment.mentionedUserName!,
+            url: comment.mentionedUserUrl!,
+            image: comment.mentionedUserImage,
           }
         : null,
     }));

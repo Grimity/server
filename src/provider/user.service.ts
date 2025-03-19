@@ -8,7 +8,7 @@ import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { validate as isUUID } from 'uuid';
+import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
@@ -34,8 +34,8 @@ export class UserService {
     return;
   }
 
-  async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
-    const { links } = updateProfileInput;
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    const { links } = input;
 
     let transformedLinks: string[] = [];
     if (links.length > 0) {
@@ -43,15 +43,27 @@ export class UserService {
         return linkName.trim() + separator + link.trim();
       });
     }
-    await this.userRepository.update(userId, {
-      ...updateProfileInput,
+
+    const toUpdateInput: UpdateInput = {
+      description: input.description,
       links: transformedLinks,
-    });
-    await this.searchService.updateUser(
-      userId,
-      updateProfileInput.name,
-      updateProfileInput.description,
-    );
+    };
+
+    const [nameConflictUser, urlConflictUser] = await Promise.all([
+      this.userSelectRepository.findOneByName(input.name),
+      this.userSelectRepository.findOneByUrl(input.url),
+    ]);
+
+    if (nameConflictUser && nameConflictUser.id !== userId)
+      throw new HttpException('NAME', 409);
+    else toUpdateInput.name = input.name;
+
+    if (urlConflictUser && urlConflictUser.id !== userId)
+      throw new HttpException('URL', 409);
+    else toUpdateInput.url = input.url;
+
+    await this.userRepository.update(userId, toUpdateInput);
+    await this.searchService.updateUser(userId, input.name, input.description);
     return;
   }
 
@@ -60,6 +72,7 @@ export class UserService {
 
     return {
       id: user.id,
+      url: user.url,
       provider: user.provider,
       email: user.email,
       name: user.name,
@@ -116,7 +129,15 @@ export class UserService {
     return;
   }
 
-  async getUserProfile(userId: string | null, targetUserId: string) {
+  async getUserProfileByUrl(userId: string | null, url: string) {
+    const targetUser = await this.userSelectRepository.findOneByUrl(url);
+
+    if (targetUser === null) throw new HttpException('USER', 404);
+
+    return await this.getUserProfileById(userId, targetUser.id);
+  }
+
+  async getUserProfileById(userId: string | null, targetUserId: string) {
     const targetUser = await this.userSelectRepository.getUserProfile(
       userId,
       targetUserId,
@@ -126,6 +147,7 @@ export class UserService {
       id: targetUser.id,
       name: targetUser.name,
       image: targetUser.image,
+      url: targetUser.url,
       backgroundImage: targetUser.backgroundImage,
       description: targetUser.description,
       links: targetUser.links.map((link) => {
@@ -317,6 +339,7 @@ export class UserService {
           id: user.id,
           name: user.name,
           image: user.image,
+          url: user.url,
           description: user.description,
           backgroundImage: user.backgroundImage,
           followerCount: user.followerCount,
@@ -422,7 +445,15 @@ export class UserService {
     return;
   }
 
-  async getMeta(id: string) {
+  async getMetaByUrl(url: string) {
+    const user = await this.userSelectRepository.findOneByUrl(url);
+
+    if (!user) throw new HttpException('USER', 404);
+
+    return await this.getMetaById(user.id);
+  }
+
+  async getMetaById(id: string) {
     const user = await this.userSelectRepository.findOneById(id);
 
     return {
@@ -430,6 +461,7 @@ export class UserService {
       name: user.name,
       description: user.description,
       image: user.image,
+      url: user.url,
     };
   }
 }
@@ -443,6 +475,7 @@ export type SearchUserInput = {
 };
 
 export type UpdateProfileInput = {
+  url: string;
   name: string;
   description: string;
   links: {

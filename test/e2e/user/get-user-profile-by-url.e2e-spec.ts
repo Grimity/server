@@ -6,7 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('GET /users/:id - 유저 프로필 조회', () => {
+describe('GET /users/profile/:url - url로 프로필 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -50,7 +50,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      `/users/${user.id}`,
+      `/users/profile/${user.url}`,
     );
 
     // then
@@ -93,7 +93,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get(`/users/${targetUser.id}`)
+      .get(`/users/profile/${targetUser.url}`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then
@@ -117,7 +117,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
   it('없는 유저면 404를 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer()).get(
-      '/users/0bc1f834-add1-4627-a695-85898cedad4d',
+      '/users/profile/not',
     );
 
     // then

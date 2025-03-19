@@ -4,23 +4,25 @@ import {
   CursorResponse,
   CursorAndCountResponse,
 } from './shared/cursor.response';
+import { ConflictResponse } from './shared';
 
-export class IdAndNameResponse {
+// 최소단위 User
+export class UserBaseResponse {
   @ApiProperty()
   id: string;
 
   @ApiProperty()
   name: string;
-}
 
-// 최소단위 User
-export class UserBaseResponse extends IdAndNameResponse {
   @ApiProperty({
     example: 'profile/{UUID}.jpg',
     nullable: true,
     type: 'string',
   })
   image: string | null;
+
+  @ApiProperty({ description: '라우팅용 url' })
+  url: string;
 }
 
 export class LinkResponse {
@@ -160,4 +162,9 @@ export class UserMetaResponse extends UserBaseResponse {
 export class FeedLikedUserResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
+}
+
+export class UpdateProfileConflictResponse extends ConflictResponse {
+  @ApiProperty({ enum: ['NAME', 'URL'] })
+  message: 'NAME' | 'URL';
 }

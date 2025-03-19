@@ -260,17 +260,13 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 조회수 증가용 api - Optional Guard' })
+  @ApiOperation({ summary: '피드 조회수 증가용 api' })
   @ApiResponse({ status: 204, description: '조회 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
-  @UseGuards(OptionalJwtGuard)
   @HttpCode(204)
   @Put(':id/view')
-  async view(
-    @CurrentUser() userId: string | null,
-    @Param('id', new ParseUUIDPipe()) feedId: string,
-  ) {
-    await this.feedService.view(userId, feedId);
+  async view(@Param('id', new ParseUUIDPipe()) feedId: string) {
+    await this.feedService.view(feedId);
     return;
   }
 }

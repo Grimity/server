@@ -134,10 +134,13 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
         id: me.id,
         name: me.name,
         image: null,
+        url: 'test',
       },
       mentionedUser: {
         id: user.id,
         name: user.name,
+        url: 'test2',
+        image: null,
       },
     });
   });

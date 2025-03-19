@@ -111,6 +111,8 @@ describe('GET /posts/search - 게시글 검색(이름만)', () => {
       author: {
         id: user.id,
         name: 'test',
+        image: null,
+        url: 'test',
       },
     });
 

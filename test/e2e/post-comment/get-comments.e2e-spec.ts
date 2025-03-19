@@ -180,6 +180,8 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
         writer: {
           id: user.id,
           name: 'test',
+          image: null,
+          url: 'test2',
         },
         isLike: false,
         childComments: [
@@ -191,6 +193,8 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
             writer: {
               id: user.id,
               name: 'test',
+              image: null,
+              url: 'test2',
             },
             mentionedUser: null,
             isLike: true,
@@ -215,6 +219,8 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
         writer: {
           id: user.id,
           name: 'test',
+          image: null,
+          url: 'test2',
         },
         isLike: false,
         childComments: [
@@ -226,10 +232,14 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
             writer: {
               id: user.id,
               name: 'test',
+              image: null,
+              url: 'test2',
             },
             mentionedUser: {
               id: user.id,
               name: 'test',
+              image: null,
+              url: 'test2',
             },
             isLike: false,
           },

@@ -80,6 +80,8 @@ describe('GET /posts/notices - 공지사항 조회', () => {
       author: {
         id: user.id,
         name: 'test',
+        image: null,
+        url: 'test',
       },
     });
   });

@@ -116,6 +116,8 @@ describe('GET /posts/:id - 게시글 상세 조회', () => {
       author: {
         id: user.id,
         name: user.name,
+        image: null,
+        url: 'test2',
       },
     });
     expect(res2.status).toBe(200);

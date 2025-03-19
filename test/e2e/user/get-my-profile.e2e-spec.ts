@@ -70,6 +70,7 @@ describe('GET /users/me - 내 정보 조회', () => {
     expect(status).toBe(200);
     expect(body).toEqual({
       id: user.id,
+      url: 'test',
       provider: 'KAKAO',
       email: 'test@test.com',
       name: 'test',

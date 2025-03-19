@@ -22,7 +22,7 @@ export class PostSelectRepository {
         'authorId',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select('name')
+      .select(['name', 'url', 'User.image'])
       .orderBy('Post.createdAt', 'desc')
       .execute();
 
@@ -37,6 +37,8 @@ export class PostSelectRepository {
       author: {
         id: post.authorId,
         name: post.name,
+        url: post.url,
+        image: post.image,
       },
     }));
   }
@@ -73,7 +75,7 @@ export class PostSelectRepository {
         'authorId',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select('name as authorName')
+      .select(['name as authorName', 'url', 'User.image'])
       .orderBy('Post.createdAt', 'desc')
       .limit(size)
       .offset((page - 1) * size)
@@ -91,6 +93,8 @@ export class PostSelectRepository {
       author: {
         id: post.authorId,
         name: post.authorName,
+        url: post.url,
+        image: post.image,
       },
     }));
   }
@@ -111,7 +115,7 @@ export class PostSelectRepository {
         'authorId',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select('name as authorName')
+      .select(['name as authorName', 'url', 'image'])
       .select((eb) =>
         eb
           .selectFrom('PostLike')
@@ -158,6 +162,8 @@ export class PostSelectRepository {
       author: {
         id: post.authorId,
         name: post.authorName,
+        url: post.url,
+        image: post.image,
       },
     };
   }
@@ -201,7 +207,7 @@ export class PostSelectRepository {
         'authorId',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select('name as authorName')
+      .select(['name as authorName', 'url', 'image'])
       .orderBy('Post.viewCount', 'desc')
       .limit(12)
       .execute();
@@ -218,6 +224,8 @@ export class PostSelectRepository {
       author: {
         id: post.authorId,
         name: post.authorName,
+        url: post.url,
+        image: post.image,
       },
     }));
   }
@@ -245,26 +253,47 @@ export class PostSelectRepository {
   }
 
   async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
-    return await this.prisma.post.findMany({
-      where: {
-        authorId,
+    const posts = await this.prisma.$kysely
+      .selectFrom('Post')
+      .where('Post.authorId', '=', kyselyUuid(authorId))
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'thumbnail',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+      ])
+      .innerJoin('User', 'User.id', 'Post.authorId')
+      .select([
+        'User.id as authorId',
+        'User.name',
+        'url',
+        'User.image as image',
+      ])
+      .orderBy('Post.createdAt desc')
+      .offset((page - 1) * size)
+      .limit(size)
+      .execute();
+
+    return posts.map((post) => ({
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      thumbnail: post.thumbnail,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        url: post.url,
+        name: post.name,
+        id: post.authorId,
+        image: post.image,
       },
-      select: {
-        id: true,
-        type: true,
-        title: true,
-        content: true,
-        thumbnail: true,
-        commentCount: true,
-        viewCount: true,
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip: (page - 1) * size,
-      take: size,
-    });
+    }));
   }
 
   async findManyByIds(ids: string[]) {
@@ -284,7 +313,7 @@ export class PostSelectRepository {
         'authorId',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select('name')
+      .select(['name', 'url', 'User.image as image'])
       .orderBy('Post.createdAt', 'desc')
       .execute();
 
@@ -300,6 +329,8 @@ export class PostSelectRepository {
       author: {
         id: post.authorId,
         name: post.name,
+        url: post.url,
+        image: post.image,
       },
     }));
   }
@@ -352,7 +383,7 @@ export class PostSelectRepository {
         'authorId',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select('name as authorName')
+      .select(['name as authorName', 'url', 'image'])
       .orderBy('PostSave.createdAt', 'desc')
       .limit(size)
       .offset((page - 1) * size)
@@ -370,6 +401,8 @@ export class PostSelectRepository {
       author: {
         id: post.authorId,
         name: post.authorName,
+        url: post.url,
+        image: post.image,
       },
     }));
   }

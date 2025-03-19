@@ -100,6 +100,7 @@ describe('GET /users/me/followers - 내 팔로워 조회', () => {
       name: 'test2',
       image: null,
       description: '',
+      url: 'test2',
     });
   });
 });

@@ -57,7 +57,11 @@ export class PostCommentRepository {
         'PostComment.isDeleted',
       ])
       .leftJoin('User as w', 'w.id', 'PostComment.writerId')
-      .select('w.name as writerName')
+      .select([
+        'w.name as writerName',
+        'w.url as writerUrl',
+        'w.image as writerImage',
+      ])
       .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
@@ -75,7 +79,11 @@ export class PostCommentRepository {
         ]),
       )
       .leftJoin('User as m', 'm.id', 'PostComment.mentionedUserId')
-      .select('m.name as mentionedUserName')
+      .select([
+        'm.name as mentionedUserName',
+        'm.url as mentionedUserUrl',
+        'm.image as mentionedUserImage',
+      ])
       .orderBy('PostComment.createdAt', 'asc')
       .execute();
 
@@ -85,15 +93,30 @@ export class PostCommentRepository {
       createdAt: Date;
       likeCount: number;
       isDeleted: boolean;
-      writer: { id: string; name: string } | null;
+      writer: {
+        id: string;
+        name: string;
+        url: string;
+        image: string | null;
+      } | null;
       isLike: boolean;
       childComments: {
         id: string;
         content: string;
         createdAt: Date;
         likeCount: number;
-        writer: { id: string; name: string } | null;
-        mentionedUser: { id: string; name: string } | null;
+        writer: {
+          id: string;
+          name: string;
+          url: string;
+          image: string | null;
+        } | null;
+        mentionedUser: {
+          id: string;
+          name: string;
+          url: string;
+          image: string | null;
+        } | null;
         isLike: boolean;
       }[];
     }[] = [];
@@ -112,6 +135,8 @@ export class PostCommentRepository {
               ? {
                   id: comment.writerId,
                   name: comment.writerName,
+                  url: comment.writerUrl!,
+                  image: comment.writerImage,
                 }
               : null,
           isLike: comment.isLike ?? false,
@@ -129,6 +154,8 @@ export class PostCommentRepository {
               ? {
                   id: comment.writerId,
                   name: comment.writerName,
+                  url: comment.writerUrl!,
+                  image: comment.writerImage,
                 }
               : null,
           isLike: comment.isLike ?? false,
@@ -137,6 +164,8 @@ export class PostCommentRepository {
               ? {
                   id: comment.mentionedUserId,
                   name: comment.mentionedUserName,
+                  url: comment.mentionedUserUrl!,
+                  image: comment.mentionedUserImage,
                 }
               : null,
         });
