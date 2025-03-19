@@ -75,6 +75,8 @@ describe('GET /posts/today-popular - 오늘의 인기 게시글 조회', () => {
       author: {
         id: expect.any(String),
         name: 'test',
+        image: null,
+        url: 'test',
       },
     });
   });

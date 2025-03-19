@@ -105,6 +105,8 @@ describe('GET /posts - 게시글 조회', () => {
       author: {
         id: user.id,
         name: 'test',
+        image: null,
+        url: 'test',
       },
     });
 
@@ -127,6 +129,8 @@ describe('GET /posts - 게시글 조회', () => {
       author: {
         id: user.id,
         name: 'test',
+        image: null,
+        url: 'test',
       },
     });
   });

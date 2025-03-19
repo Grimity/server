@@ -67,6 +67,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
       feedCount: 0,
       postCount: 0,
       isFollowing: false,
+      url: 'test',
     });
   });
 
@@ -109,6 +110,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
       feedCount: 0,
       postCount: 0,
       isFollowing: true,
+      url: 'test2',
     });
   });
 

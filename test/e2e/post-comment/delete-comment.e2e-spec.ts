@@ -136,6 +136,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
             writer: {
               id: user.id,
               name: 'test',
+              image: null,
+              url: 'test',
             },
             mentionedUser: null,
             isLike: false,
@@ -314,6 +316,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
             writer: {
               id: user.id,
               name: 'test',
+              image: null,
+              url: 'test',
             },
             mentionedUser: null,
             isLike: false,

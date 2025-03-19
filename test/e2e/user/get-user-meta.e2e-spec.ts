@@ -69,6 +69,7 @@ describe('GET /users/:id/meta - 유저 메타데이터 조회', () => {
       name: 'test',
       description: '',
       image: null,
+      url: 'test',
     });
   });
 });
