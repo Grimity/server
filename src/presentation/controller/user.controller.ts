@@ -289,16 +289,36 @@ export class UserController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'url로 유저 정보 조회 - Optional Guard' })
+  @ApiResponse({ status: 200, type: UserProfileResponse })
+  @ApiResponse({ status: 404, description: '없는 유저' })
+  @UseGuards(OptionalJwtGuard)
+  @Get('/profile/:url')
+  async getProfileByUrl(
+    @CurrentUser() userId: string | null,
+    @Param('url') url: string,
+  ): Promise<UserProfileResponse> {
+    return this.userService.getUserProfileByUrl(userId, url);
+  }
+
+  @ApiOperation({ summary: 'url로 유저 메타데이터 조회' })
+  @ApiResponse({ status: 200, type: UserMetaResponse })
+  @Get('/profile/:url/meta')
+  async getMetaByUrl(@Param('url') url: string): Promise<UserMetaResponse> {
+    return this.userService.getMetaByUrl(url);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: '유저 정보 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: UserProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
-  async getUser(
+  async getUserById(
     @CurrentUser() userId: string | null,
     @Param('id', ParseUUIDPipe) targetId: string,
   ): Promise<UserProfileResponse> {
-    return this.userService.getUserProfile(userId, targetId);
+    return this.userService.getUserProfileById(userId, targetId);
   }
 
   @ApiOperation({ summary: '유저 메타데이터 조회' })
@@ -307,7 +327,7 @@ export class UserController {
   async getMeta(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserMetaResponse> {
-    return this.userService.getMeta(id);
+    return this.userService.getMetaById(id);
   }
 
   @ApiOperation({ summary: '유저별 피드 조회' })

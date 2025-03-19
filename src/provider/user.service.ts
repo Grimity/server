@@ -129,7 +129,15 @@ export class UserService {
     return;
   }
 
-  async getUserProfile(userId: string | null, targetUserId: string) {
+  async getUserProfileByUrl(userId: string | null, url: string) {
+    const targetUser = await this.userSelectRepository.findOneByUrl(url);
+
+    if (targetUser === null) throw new HttpException('USER', 404);
+
+    return await this.getUserProfileById(userId, targetUser.id);
+  }
+
+  async getUserProfileById(userId: string | null, targetUserId: string) {
     const targetUser = await this.userSelectRepository.getUserProfile(
       userId,
       targetUserId,
@@ -437,7 +445,15 @@ export class UserService {
     return;
   }
 
-  async getMeta(id: string) {
+  async getMetaByUrl(url: string) {
+    const user = await this.userSelectRepository.findOneByUrl(url);
+
+    if (!user) throw new HttpException('USER', 404);
+
+    return await this.getMetaById(user.id);
+  }
+
+  async getMetaById(id: string) {
     const user = await this.userSelectRepository.findOneById(id);
 
     return {
