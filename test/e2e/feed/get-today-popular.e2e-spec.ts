@@ -39,6 +39,7 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
         providerId: 'test',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 

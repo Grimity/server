@@ -61,6 +61,7 @@ describe('GET /posts/search - 게시글 검색(이름만)', () => {
         providerId: 'test',
         name: 'test',
         email: 'test@test.com',
+        url: 'test',
       },
     });
 

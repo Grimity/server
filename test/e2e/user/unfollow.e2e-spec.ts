@@ -58,6 +58,7 @@ describe('DELETE /users/:targetId/follow - 언팔로우', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
 

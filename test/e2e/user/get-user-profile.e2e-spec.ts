@@ -44,6 +44,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
         providerId: 'test',
         email: 'testtest2@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 
@@ -80,6 +81,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
         email: 'test@test.com',
         name: 'test2',
         links: ['test1|~|https://test1.com'],
+        url: 'test2',
       },
     });
 

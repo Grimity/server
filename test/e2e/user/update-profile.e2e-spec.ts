@@ -207,6 +207,7 @@ describe('PUT /users/me', () => {
         providerId: 'test2',
         name: 'test2',
         email: 'test@test.com',
+        url: 'test2',
       },
     });
 

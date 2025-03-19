@@ -58,6 +58,7 @@ describe('DELETE /users/me - 회원탈퇴', () => {
           providerId: 'test2',
           email: 'test@test.com',
           name: 'test2',
+          url: 'test2',
         },
       }),
     ]);

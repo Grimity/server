@@ -82,12 +82,14 @@ describe('GET /feeds/:id/like - 피드 좋아요 사용자 조회', () => {
           providerId: 'test2',
           email: 'test@test.com',
           name: 'test2',
+          url: 'test2',
         },
         {
           provider: 'KAKAO',
           providerId: 'test3',
           email: 'test@test.com',
           name: 'test3',
+          url: 'test3',
         },
       ],
     });

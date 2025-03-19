@@ -58,6 +58,7 @@ describe('GET /feeds/following - 팔로잉 피드 조회', () => {
         providerId: 'test2',
         name: 'test2',
         email: 'test@test.com',
+        url: 'test2',
         followers: {
           create: {
             followerId: me.id,

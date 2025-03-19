@@ -58,6 +58,7 @@ describe('DELETE /users/me/followers/:id', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
 
@@ -92,6 +93,7 @@ describe('DELETE /users/me/followers/:id', () => {
         providerId: 'test2',
         name: 'test2',
         email: 'test@test.com',
+        url: 'test2',
       },
     });
 

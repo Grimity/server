@@ -54,6 +54,7 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
         providerId: 'test',
         name: 'test',
         email: 'test@test.com',
+        url: 'test',
       },
     });
 
@@ -88,6 +89,7 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
           providerId: 'test2',
           name: 'test',
           email: 'test@test.com',
+          url: 'test2',
         },
       }),
     ]);

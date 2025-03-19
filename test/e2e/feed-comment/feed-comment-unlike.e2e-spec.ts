@@ -86,6 +86,7 @@ describe('DELETE /feed-comments/:id/unlike - 피드 댓글 좋아요 취소', ()
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
     const feed = await prisma.feed.create({

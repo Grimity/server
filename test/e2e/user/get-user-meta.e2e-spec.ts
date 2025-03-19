@@ -53,6 +53,7 @@ describe('GET /users/:id/meta - 유저 메타데이터 조회', () => {
         providerId: 'test',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 

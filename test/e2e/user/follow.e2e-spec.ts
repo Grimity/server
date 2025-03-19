@@ -56,6 +56,7 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
 
@@ -83,6 +84,7 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
 

@@ -70,6 +70,7 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
     const feed = await prisma.feed.create({

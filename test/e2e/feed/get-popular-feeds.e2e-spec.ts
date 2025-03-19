@@ -35,6 +35,7 @@ describe('GET /feeds/popular - 인기 그림 조회', () => {
         providerId: 'test',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 

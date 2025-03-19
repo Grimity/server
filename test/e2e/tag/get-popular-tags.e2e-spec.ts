@@ -42,6 +42,7 @@ describe('GET /tags/popular - 인기 태그 조회', () => {
         providerId: 'test',
         name: 'test',
         email: 'test@test.com',
+        url: 'test',
       },
     });
 

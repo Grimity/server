@@ -65,6 +65,7 @@ describe('GET /users/:id/feeds - 유저별 피드조회', () => {
         providerId: 'test',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 
