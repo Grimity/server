@@ -60,7 +60,7 @@ export class TagRepository {
               eb
                 .selectFrom('Like')
                 .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', userId),
+                .where('Like.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ),

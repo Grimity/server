@@ -40,7 +40,7 @@ export class FeedSelectRepository {
               eb
                 .selectFrom('Like')
                 .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', userId),
+                .where('Like.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
           eb
@@ -48,7 +48,7 @@ export class FeedSelectRepository {
               eb
                 .selectFrom('Save')
                 .whereRef('Save.feedId', '=', 'Feed.id')
-                .where('Save.userId', '=', userId),
+                .where('Save.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isSave'),
         ]),
@@ -86,7 +86,7 @@ export class FeedSelectRepository {
   }: FindFeedsByUserInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
-      .where('authorId', '=', targetId)
+      .where('authorId', '=', kyselyUuid(targetId))
       .select([
         'Feed.id',
         'title',
@@ -188,7 +188,7 @@ export class FeedSelectRepository {
               eb
                 .selectFrom('Like')
                 .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', userId!),
+                .where('Like.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ]),
@@ -271,7 +271,7 @@ export class FeedSelectRepository {
               eb
                 .selectFrom('Like')
                 .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', userId!),
+                .where('Like.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ]),
@@ -304,7 +304,7 @@ export class FeedSelectRepository {
   }: FindFollowingFeedsInput) {
     let query = this.prisma.$kysely
       .selectFrom('Follow')
-      .where('followerId', '=', userId)
+      .where('followerId', '=', kyselyUuid(userId))
       .innerJoin('Feed', 'authorId', 'followingId')
       .select([
         'Feed.id',
@@ -332,7 +332,7 @@ export class FeedSelectRepository {
             eb
               .selectFrom('Like')
               .whereRef('Like.feedId', '=', 'Feed.id')
-              .where('Like.userId', '=', userId),
+              .where('Like.userId', '=', kyselyUuid(userId!)),
           ])
           .as('isLike'),
         eb
@@ -340,7 +340,7 @@ export class FeedSelectRepository {
             eb
               .selectFrom('Save')
               .whereRef('Save.feedId', '=', 'Feed.id')
-              .where('Save.userId', '=', userId),
+              .where('Save.userId', '=', kyselyUuid(userId!)),
           ])
           .as('isSave'),
       ])
@@ -410,7 +410,7 @@ export class FeedSelectRepository {
     const feeds = await this.prisma.$kysely
       .selectFrom('Like')
       .select('Like.createdAt')
-      .where('Like.userId', '=', userId)
+      .where('Like.userId', '=', kyselyUuid(userId))
       .$if(cursor !== null, (eb) =>
         eb.where('Like.createdAt', '<', new Date(cursor!)),
       )
@@ -469,7 +469,7 @@ export class FeedSelectRepository {
     const feeds = await this.prisma.$kysely
       .selectFrom('Save')
       .select('Save.createdAt')
-      .where('Save.userId', '=', userId)
+      .where('Save.userId', '=', kyselyUuid(userId))
       .$if(cursor !== null, (eb) =>
         eb.where('Save.createdAt', '<', new Date(cursor!)),
       )
@@ -555,7 +555,7 @@ export class FeedSelectRepository {
               eb
                 .selectFrom('Like')
                 .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', userId),
+                .where('Like.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ]),
@@ -600,7 +600,7 @@ export class FeedSelectRepository {
               eb
                 .selectFrom('Like')
                 .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', userId),
+                .where('Like.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ]),
