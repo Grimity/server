@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Length, IsIn, IsOptional, Validate } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { TrimString, TrimNullableString, IdValidator } from './helper';
+import { TrimString, TrimNullableString, UrlValidator } from './helper';
 
 const providers = ['GOOGLE', 'KAKAO'] as const;
 
@@ -22,11 +22,29 @@ export class RegisterRequest extends LoginRequest {
   @Length(2, 12)
   name: string;
 
-  @ApiProperty({ minLength: 2, maxLength: 20 })
+  @ApiProperty({
+    minLength: 2,
+    maxLength: 20,
+    required: false,
+    description: '삭제될 필드입니다',
+  })
   @TrimNullableString()
+  @IsOptional()
   @Length(2, 20)
-  @Validate(IdValidator)
+  @Validate(UrlValidator)
   id: string;
+
+  @ApiProperty({
+    minLength: 2,
+    maxLength: 20,
+    required: false,
+    description: 'id필드말고 url 필드를 써주세요',
+  })
+  @TrimNullableString()
+  @IsOptional()
+  @Length(2, 20)
+  @Validate(UrlValidator)
+  url: string;
 }
 
 export class CheckNameRequest {

@@ -16,9 +16,9 @@ export class UserSelectRepository {
     return user;
   }
 
-  async findOneByTempId(id: string) {
-    return await this.prisma.user.findFirst({
-      where: { tempId: id },
+  async findOneByUrl(url: string) {
+    return await this.prisma.user.findUnique({
+      where: { url },
       select: { id: true },
     });
   }

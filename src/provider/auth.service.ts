@@ -87,17 +87,15 @@ export class AuthService {
       email = kakaoProfile.email;
     }
 
-    if (input.id) {
-      const user = await this.userSelectRepository.findOneByTempId(input.id);
-      if (user !== null) throw new HttpException('ID', 409);
-    }
+    const urlUser = await this.userSelectRepository.findOneByUrl(input.url);
+    if (urlUser !== null) throw new HttpException('URL', 409);
 
     const user = await this.userRepository.create({
       provider: input.provider,
       providerId,
       email,
       name: input.name,
-      id: input.id,
+      url: input.url,
     });
 
     await this.searchService.insertUser(user.id, input.name);
@@ -223,5 +221,5 @@ export type RegisterInput = {
   provider: string;
   providerAccessToken: string;
   name: string;
-  id: string | null;
+  url: string;
 };

@@ -95,9 +95,9 @@ export class TagValidator implements ValidatorConstraintInterface {
 }
 
 @ValidatorConstraint()
-export class IdValidator implements ValidatorConstraintInterface {
+export class UrlValidator implements ValidatorConstraintInterface {
   validate(id: string) {
-    const forbiddenIds = [
+    const forbiddenUrls = [
       'popular',
       'board',
       'following',
@@ -108,7 +108,7 @@ export class IdValidator implements ValidatorConstraintInterface {
       'mypage',
     ];
 
-    if (forbiddenIds.includes(id)) return false;
+    if (forbiddenUrls.includes(id)) return false;
 
     const regex = /^[a-z0-9_]+$/;
     return regex.test(id);
