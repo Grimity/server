@@ -62,7 +62,7 @@ export class FeedCommentRepository {
                   '=',
                   'FeedComment.id',
                 )
-                .where('FeedCommentLike.userId', '=', userId),
+                .where('FeedCommentLike.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ]),
@@ -125,7 +125,7 @@ export class FeedCommentRepository {
                   '=',
                   'FeedComment.id',
                 )
-                .where('FeedCommentLike.userId', '=', userId),
+                .where('FeedCommentLike.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isLike'),
         ]),
