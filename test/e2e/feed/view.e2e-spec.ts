@@ -106,39 +106,4 @@ describe('PUT /:feedId/view', () => {
 
     expect(updatedFeed.viewCount).toBe(1);
   });
-
-  it('204와 함께 view를 한다 (로그인)', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const feed = await prisma.feed.create({
-      data: {
-        authorId: user.id,
-        title: 'test',
-        content: 'test',
-        isAI: false,
-        cards: ['feed/test.jpg'],
-        thumbnail: 'feed/test.jpg',
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/view`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(204);
-
-    const updatedFeed = await prisma.feed.findFirstOrThrow({
-      include: {
-        views: true,
-      },
-    });
-
-    expect(updatedFeed.viewCount).toBe(1);
-    expect(updatedFeed.views.length).toBe(1);
-  });
 });

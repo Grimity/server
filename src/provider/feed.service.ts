@@ -77,15 +77,9 @@ export class FeedService {
     return;
   }
 
-  async view(userId: string | null, feedId: string) {
-    if (userId) {
-      await Promise.all([
-        this.feedRepository.createView(userId, feedId),
-        this.feedRepository.increaseViewCount(feedId),
-      ]);
-    } else {
-      await this.feedRepository.increaseViewCount(feedId);
-    }
+  async view(feedId: string) {
+    await this.feedRepository.increaseViewCount(feedId);
+
     return;
   }
 

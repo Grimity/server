@@ -125,35 +125,6 @@ export class FeedRepository {
     }
   }
 
-  async createView(userId: string, feedId: string) {
-    try {
-      await this.prisma.view.upsert({
-        where: {
-          userId_feedId: {
-            userId,
-            feedId,
-          },
-        },
-        update: {
-          createdAt: new Date(),
-        },
-        create: {
-          userId,
-          feedId,
-        },
-        select: { userId: true },
-      });
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') {
-          throw new HttpException('FEED', 404);
-        }
-      }
-      throw e;
-    }
-  }
-
   async deleteOne(userId: string, feedId: string) {
     try {
       return await this.prisma.feed.delete({
