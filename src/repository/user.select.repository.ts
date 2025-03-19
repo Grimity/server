@@ -68,6 +68,7 @@ export class UserSelectRepository {
         'description',
         'links',
         'backgroundImage',
+        'url',
       ])
       .select((eb) =>
         eb
@@ -85,6 +86,7 @@ export class UserSelectRepository {
 
     return {
       id: user.id,
+      url: user.url,
       provider: user.provider,
       email: user.email,
       name: user.name,
@@ -109,6 +111,7 @@ export class UserSelectRepository {
         'description',
         'links',
         'followerCount',
+        'url',
       ])
       .select((eb) =>
         eb
@@ -155,6 +158,7 @@ export class UserSelectRepository {
       id: user.id,
       name: user.name,
       image: user.image,
+      url: user.url,
       backgroundImage: user.backgroundImage,
       description: user.description,
       links: user.links ?? [],
@@ -183,7 +187,7 @@ export class UserSelectRepository {
       .selectFrom('Follow')
       .where('followingId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followerId', 'id')
-      .select(['id', 'name', 'User.image', 'description'])
+      .select(['id', 'name', 'User.image', 'description', 'url'])
       .orderBy('followerId', 'desc')
       .limit(size)
       .$if(cursor !== null, (eb) =>
@@ -206,7 +210,7 @@ export class UserSelectRepository {
       .selectFrom('Follow')
       .where('followerId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followingId', 'id')
-      .select(['id', 'name', 'User.image', 'description'])
+      .select(['id', 'name', 'User.image', 'description', 'url'])
       .orderBy('followingId', 'asc')
       .limit(size)
       .$if(cursor !== null, (eb) =>
@@ -232,7 +236,14 @@ export class UserSelectRepository {
     const users = await this.prisma.$kysely
       .selectFrom('User')
       .where('User.id', 'in', userIds.map(kyselyUuid))
-      .select(['User.id', 'name', 'User.image', 'followerCount', 'description'])
+      .select([
+        'User.id',
+        'name',
+        'User.image',
+        'followerCount',
+        'description',
+        'url',
+      ])
       .select((eb) =>
         eb
           .selectFrom((eb) =>
@@ -266,6 +277,7 @@ export class UserSelectRepository {
       id: user.id,
       name: user.name,
       image: user.image,
+      url: user.url,
       followerCount: user.followerCount,
       description: user.description,
       thumbnails: user.thumbnails ?? [],
@@ -286,6 +298,7 @@ export class UserSelectRepository {
         'description',
         'backgroundImage',
         'followerCount',
+        'url',
       ])
       .$if(myId !== null, (eb) =>
         eb.select((eb) => [
@@ -304,6 +317,7 @@ export class UserSelectRepository {
     return users.map((user) => ({
       id: user.id,
       name: user.name,
+      url: user.url,
       image: user.image,
       description: user.description,
       backgroundImage: user.backgroundImage,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdAndNameResponse, UserBaseResponse } from './user.response';
+import { UserBaseResponse } from './user.response';
 
 class FeedCommentBaseResponse {
   @ApiProperty()
@@ -35,6 +35,6 @@ export class FeedCommentsResponse {
 }
 
 export class FeedChildCommentResponse extends FeedCommentBaseResponse {
-  @ApiProperty({ type: IdAndNameResponse, nullable: true })
-  mentionedUser: IdAndNameResponse | null;
+  @ApiProperty({ type: UserBaseResponse, nullable: true })
+  mentionedUser: UserBaseResponse | null;
 }

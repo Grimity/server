@@ -23,7 +23,7 @@ export class FeedSelectRepository {
         'content',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image as image'])
+      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
       .select((eb) =>
         eb
           .selectFrom('Tag')
@@ -74,6 +74,7 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
+        url: feed.url,
       },
     };
   }
@@ -180,7 +181,7 @@ export class FeedSelectRepository {
         'likeCount',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image as image'])
+      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
       .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
@@ -222,6 +223,7 @@ export class FeedSelectRepository {
           id: feed.authorId,
           name: feed.name,
           image: feed.image,
+          url: feed.url,
         },
       };
     });
@@ -263,7 +265,7 @@ export class FeedSelectRepository {
         'likeCount',
       ])
       .innerJoin('User', 'authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image as image'])
+      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
       .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
@@ -292,6 +294,7 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
+        url: feed.url,
       },
     }));
   }
@@ -354,7 +357,7 @@ export class FeedSelectRepository {
           .as('commentCount'),
       )
       .innerJoin('User', 'followingId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image as image'])
+      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
       .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
       .limit(size);
 
@@ -390,6 +393,7 @@ export class FeedSelectRepository {
           id: feed.authorId,
           name: feed.name,
           image: feed.image,
+          url: feed.url,
         },
         isLike: feed.isLike,
         isSave: feed.isSave,
@@ -434,7 +438,7 @@ export class FeedSelectRepository {
           .as('commentCount'),
       )
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['name', 'User.image as image'])
+      .select(['name', 'User.image as image', 'url'])
       .orderBy('Like.createdAt desc')
       .limit(size)
       .execute();
@@ -452,6 +456,7 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
+        url: feed.url,
       },
     }));
   }
@@ -493,7 +498,7 @@ export class FeedSelectRepository {
           .as('commentCount'),
       )
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['name', 'User.image as image'])
+      .select(['name', 'User.image as image', 'url'])
       .orderBy('Save.createdAt desc')
       .limit(size)
       .execute();
@@ -511,6 +516,7 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
+        url: feed.url,
       },
     }));
   }
@@ -529,7 +535,7 @@ export class FeedSelectRepository {
         'Feed.authorId',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['name', 'User.image as image'])
+      .select(['name', 'User.image as image', 'url'])
       .select((eb) =>
         eb
           .selectFrom('Tag')
@@ -575,6 +581,7 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
+        url: feed.url,
       },
     }));
   }
@@ -592,7 +599,7 @@ export class FeedSelectRepository {
         'likeCount',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image as image'])
+      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
       .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
@@ -635,6 +642,7 @@ export class FeedSelectRepository {
         id: feed.authorId,
         name: feed.name,
         image: feed.image,
+        url: feed.url,
       },
     }));
   }
@@ -644,7 +652,7 @@ export class FeedSelectRepository {
       .selectFrom('Like')
       .where('feedId', '=', kyselyUuid(feedId))
       .innerJoin('User', 'Like.userId', 'User.id')
-      .select(['User.id', 'name', 'User.image as image', 'description'])
+      .select(['User.id', 'name', 'User.image as image', 'description', 'url'])
       .execute();
   }
 

@@ -60,6 +60,7 @@ export class UserService {
 
     return {
       id: user.id,
+      url: user.url,
       provider: user.provider,
       email: user.email,
       name: user.name,
@@ -126,6 +127,7 @@ export class UserService {
       id: targetUser.id,
       name: targetUser.name,
       image: targetUser.image,
+      url: targetUser.url,
       backgroundImage: targetUser.backgroundImage,
       description: targetUser.description,
       links: targetUser.links.map((link) => {
@@ -317,6 +319,7 @@ export class UserService {
           id: user.id,
           name: user.name,
           image: user.image,
+          url: user.url,
           description: user.description,
           backgroundImage: user.backgroundImage,
           followerCount: user.followerCount,
@@ -430,6 +433,7 @@ export class UserService {
       name: user.name,
       description: user.description,
       image: user.image,
+      url: user.url,
     };
   }
 }

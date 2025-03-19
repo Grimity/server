@@ -52,7 +52,7 @@ export class TagRepository {
         'authorId',
       ])
       .innerJoin('User', 'User.id', 'Feed.authorId')
-      .select(['name'])
+      .select(['name', 'url', 'image'])
       .$if(userId !== null, (eb) =>
         eb.select((eb) =>
           eb
@@ -78,6 +78,8 @@ export class TagRepository {
       author: {
         id: feed.authorId,
         name: feed.name,
+        url: feed.url,
+        image: feed.image,
       },
     }));
   }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdAndNameResponse } from './user.response';
+import { UserBaseResponse } from './user.response';
 
 class PostCommentBaseResponse {
   @ApiProperty()
@@ -15,11 +15,11 @@ class PostCommentBaseResponse {
   likeCount: number;
 
   @ApiProperty({
-    type: IdAndNameResponse,
+    type: UserBaseResponse,
     nullable: true,
     description: 'null이면 익명화',
   })
-  writer: IdAndNameResponse | null;
+  writer: UserBaseResponse | null;
 
   @ApiProperty()
   isLike: boolean;
@@ -27,10 +27,10 @@ class PostCommentBaseResponse {
 
 class ChildPostCommentResponse extends PostCommentBaseResponse {
   @ApiProperty({
-    type: IdAndNameResponse,
+    type: UserBaseResponse,
     nullable: true,
   })
-  mentionedUser: IdAndNameResponse | null;
+  mentionedUser: UserBaseResponse | null;
 }
 
 export class ParentPostCommentResponse extends PostCommentBaseResponse {

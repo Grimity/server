@@ -38,27 +38,7 @@ export class FeedService {
   }
 
   async getFeed(userId: string | null, feedId: string) {
-    const feed = await this.feedSelectRepository.getFeed(userId, feedId);
-
-    return {
-      id: feed.id,
-      title: feed.title,
-      cards: feed.cards,
-      thumbnail: feed.thumbnail,
-      isAI: feed.isAI,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      content: feed.content,
-      tags: feed.tags,
-      author: {
-        id: feed.author.id,
-        name: feed.author.name,
-        image: feed.author.image,
-      },
-      isLike: feed.isLike,
-      isSave: feed.isSave,
-    };
+    return await this.feedSelectRepository.getFeed(userId, feedId);
   }
 
   async like(userId: string, feedId: string) {
@@ -164,18 +144,7 @@ export class FeedService {
             separator +
             feeds[size - 1].id
           : null,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.id,
-          title: feed.title,
-          thumbnail: feed.thumbnail,
-          createdAt: feed.createdAt,
-          viewCount: feed.viewCount,
-          likeCount: feed.likeCount,
-          author: feed.author,
-          isLike: feed.isLike,
-        };
-      }),
+      feeds,
     };
   }
 
@@ -225,24 +194,7 @@ export class FeedService {
             separator +
             feeds[size - 1].id
           : null,
-      feeds: feeds.map((feed) => {
-        return {
-          id: feed.id,
-          title: feed.title,
-          cards: feed.cards,
-          thumbnail: feed.thumbnail,
-          content: feed.content,
-          createdAt: feed.createdAt,
-          viewCount: feed.viewCount,
-          likeCount: feed.likeCount,
-          isAI: feed.isAI,
-          commentCount: feed.commentCount,
-          author: feed.author,
-          isLike: feed.isLike,
-          isSave: feed.isSave,
-          tags: feed.tags,
-        };
-      }),
+      feeds,
     };
   }
 

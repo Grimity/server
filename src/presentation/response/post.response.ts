@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdAndNameResponse } from './user.response';
+import { UserBaseResponse } from './user.response';
 import { TotalCountResponse } from './shared';
 import { postTypes } from 'src/common/constants';
 
@@ -30,8 +30,8 @@ export class PostResponse extends PostBaseResponse {
   @ApiProperty()
   commentCount: number;
 
-  @ApiProperty({ type: IdAndNameResponse })
-  author: IdAndNameResponse;
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
 }
 
 export class PostsResponse extends TotalCountResponse {

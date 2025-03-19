@@ -188,10 +188,6 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
-          author: {
-            id: user.id,
-            name: keyword,
-          },
         };
       }),
     };
