@@ -40,6 +40,7 @@ import {
   PopularUserResponse,
   UserProfileResponse,
   UserMetaResponse,
+  UpdateProfileConflictResponse,
 } from '../response/user.response';
 import {
   MyLikeFeedsResponse,
@@ -67,7 +68,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '내 정보 변경' })
   @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 409, description: '이미 존재하는 이름' })
+  @ApiResponse({ status: 409, type: UpdateProfileConflictResponse })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put('me')

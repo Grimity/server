@@ -8,7 +8,7 @@ import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { validate as isUUID } from 'uuid';
+import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
@@ -34,8 +34,8 @@ export class UserService {
     return;
   }
 
-  async updateProfile(userId: string, updateProfileInput: UpdateProfileInput) {
-    const { links } = updateProfileInput;
+  async updateProfile(userId: string, input: UpdateProfileInput) {
+    const { links } = input;
 
     let transformedLinks: string[] = [];
     if (links.length > 0) {
@@ -43,15 +43,27 @@ export class UserService {
         return linkName.trim() + separator + link.trim();
       });
     }
-    await this.userRepository.update(userId, {
-      ...updateProfileInput,
+
+    const toUpdateInput: UpdateInput = {
+      description: input.description,
       links: transformedLinks,
-    });
-    await this.searchService.updateUser(
-      userId,
-      updateProfileInput.name,
-      updateProfileInput.description,
-    );
+    };
+
+    const [nameConflictUser, urlConflictUser] = await Promise.all([
+      this.userSelectRepository.findOneByName(input.name),
+      this.userSelectRepository.findOneByUrl(input.url),
+    ]);
+
+    if (nameConflictUser && nameConflictUser.id !== userId)
+      throw new HttpException('NAME', 409);
+    else toUpdateInput.name = input.name;
+
+    if (urlConflictUser && urlConflictUser.id !== userId)
+      throw new HttpException('URL', 409);
+    else toUpdateInput.url = input.url;
+
+    await this.userRepository.update(userId, toUpdateInput);
+    await this.searchService.updateUser(userId, input.name, input.description);
     return;
   }
 
@@ -447,6 +459,7 @@ export type SearchUserInput = {
 };
 
 export type UpdateProfileInput = {
+  url: string;
   name: string;
   description: string;
   links: {

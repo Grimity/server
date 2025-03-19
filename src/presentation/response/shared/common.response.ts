@@ -9,3 +9,8 @@ export class TotalCountResponse {
   @ApiProperty()
   totalCount: number;
 }
+
+export class ConflictResponse {
+  @ApiProperty({ enum: [409] })
+  statusCode: 409;
+}

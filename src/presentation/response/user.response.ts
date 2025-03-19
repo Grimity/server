@@ -4,6 +4,7 @@ import {
   CursorResponse,
   CursorAndCountResponse,
 } from './shared/cursor.response';
+import { ConflictResponse } from './shared';
 
 // 최소단위 User
 export class UserBaseResponse {
@@ -161,4 +162,9 @@ export class UserMetaResponse extends UserBaseResponse {
 export class FeedLikedUserResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
+}
+
+export class UpdateProfileConflictResponse extends ConflictResponse {
+  @ApiProperty({ enum: ['NAME', 'URL'] })
+  message: 'NAME' | 'URL';
 }

@@ -20,19 +20,12 @@ export class UserRepository {
   }
 
   async update(id: string, input: UpdateInput) {
-    try {
-      await this.prisma.user.update({
-        where: { id },
-        data: input,
-        select: { id: true },
-      });
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') throw new HttpException('USER', 404);
-        if (e.code === 'P2002') throw new HttpException('NAME', 409);
-      }
-    }
+    await this.prisma.user.update({
+      where: { id },
+      data: input,
+      select: { id: true },
+    });
+    return;
   }
 
   async follow(userId: string, targetUserId: string) {
@@ -198,7 +191,8 @@ type CreateInput = {
   url: string;
 };
 
-type UpdateInput = {
+export type UpdateInput = {
+  url?: string;
   name?: string;
   image?: string | null;
   description?: string;

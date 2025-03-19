@@ -6,12 +6,15 @@ import {
   ValidateNested,
   IsIn,
   IsOptional,
+  Validate,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
   TrimString,
   IsImageWithPrefix,
   TrimAndLowerNullableString,
+  TrimNullableString,
+  UrlValidator,
 } from './helper';
 import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
 import { CursorRequest, CursorKeywordRequest } from './shared';
@@ -33,6 +36,12 @@ export class UpdateUserRequest {
   @TrimString()
   @Length(2, 12)
   name: string;
+
+  @ApiProperty({ minLength: 2, maxLength: 20 })
+  @TrimNullableString()
+  @Length(2, 20)
+  @Validate(UrlValidator)
+  url: string;
 
   @ApiProperty({
     description: '없으면 빈 문자열 주세요',
