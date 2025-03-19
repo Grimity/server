@@ -72,6 +72,7 @@ describe('POST /auth/register/name - 이름 중복 확인', () => {
         provider: 'KAKAO',
         providerId: 'test',
         email: 'test@test.com',
+        url: 'test',
       },
     });
 

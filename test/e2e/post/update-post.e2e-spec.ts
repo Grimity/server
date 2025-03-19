@@ -197,6 +197,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
         providerId: 'test2',
         name: 'test2',
         email: 'test@test.com',
+        url: 'test2',
       },
     });
 

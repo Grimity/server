@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   UseGuards,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -65,7 +66,20 @@ export class AuthController {
     @GetClientInfo() clientInfo: ClientInfo,
     @Body() dto: RegisterRequest,
   ): Promise<LoginResponse> {
-    return await this.authService.register(dto, clientInfo);
+    let temp: string;
+    if (dto.id) {
+      temp = dto.id;
+    } else {
+      if (!dto.url) throw new HttpException('URL', 400);
+      temp = dto.url;
+    }
+    return await this.authService.register(
+      {
+        ...dto,
+        url: temp,
+      },
+      clientInfo,
+    );
   }
 
   @ApiOperation({ summary: '이름 중복 확인' })

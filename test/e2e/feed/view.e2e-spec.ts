@@ -78,6 +78,7 @@ describe('PUT /:feedId/view', () => {
         providerId: 'test',
         name: 'test',
         email: 'test@test.com',
+        url: 'test',
         feeds: {
           create: {
             title: 'test',

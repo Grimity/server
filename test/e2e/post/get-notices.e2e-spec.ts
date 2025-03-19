@@ -35,6 +35,7 @@ describe('GET /posts/notices - 공지사항 조회', () => {
         providerId: 'test',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 

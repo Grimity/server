@@ -57,6 +57,7 @@ describe('GET /posts/:id/meta - 게시글 메타 조회', () => {
             providerId: 'test',
             name: 'test',
             email: 'test@test.com',
+            url: 'test',
           },
         },
         title: 'title',

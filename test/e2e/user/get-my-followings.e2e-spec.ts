@@ -59,6 +59,7 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
           providerId: 'test2',
           email: 'test@test.com',
           name: 'test2',
+          url: 'test2',
           followers: {
             create: {
               followerId: user.id,
@@ -72,6 +73,7 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
           providerId: 'test3',
           email: 'test@test.com',
           name: 'test3',
+          url: 'test3',
           followers: {
             create: {
               followerId: user.id,

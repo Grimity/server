@@ -57,6 +57,7 @@ describe('GET /feeds/:id/meta - 피드 메타 정보', () => {
             providerId: 'test',
             name: 'test',
             email: 'test@test.com',
+            url: 'test',
           },
         },
         title: 'title',

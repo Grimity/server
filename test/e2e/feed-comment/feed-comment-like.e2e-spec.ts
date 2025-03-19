@@ -86,6 +86,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
     const feed = await prisma.feed.create({
@@ -128,6 +129,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
         providerId: 'test2',
         email: 'test@test.com',
         name: 'test2',
+        url: 'test2',
       },
     });
     const feed = await prisma.feed.create({

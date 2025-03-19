@@ -77,6 +77,7 @@ describe('POST /auth/login', () => {
         providerId: 'kakaoId',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 

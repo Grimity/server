@@ -74,6 +74,7 @@ describe('GET /feed-comments/child-comments - 자식 댓글 조회', () => {
         providerId: 'test2',
         name: 'test2',
         email: 'test@test.com',
+        url: 'test2',
       },
     });
 

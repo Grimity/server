@@ -63,6 +63,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         providerId: 'test',
         name: 'test',
         email: 'test@test.com',
+        url: 'test',
       },
     });
 
@@ -122,6 +123,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
           providerId: 'test2',
           name: 'test2',
           email: 'test@test.com',
+          url: 'test2',
         },
       }),
     ]);

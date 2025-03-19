@@ -123,6 +123,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
         providerId: 'test',
         name: 'test',
         email: 'test@test.com',
+        url: 'test',
         feeds: {
           create: {
             title: 'test',

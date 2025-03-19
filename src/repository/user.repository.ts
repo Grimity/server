@@ -6,14 +6,14 @@ import { Prisma } from '@prisma/client';
 export class UserRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create({ provider, providerId, email, name, id }: CreateInput) {
+  async create({ provider, providerId, email, name, url }: CreateInput) {
     return await this.prisma.user.create({
       data: {
         provider,
         providerId,
         email,
         name,
-        tempId: id,
+        url,
       },
       select: { id: true },
     });
@@ -195,7 +195,7 @@ type CreateInput = {
   providerId: string;
   email: string;
   name: string;
-  id: string | null;
+  url: string;
 };
 
 type UpdateInput = {

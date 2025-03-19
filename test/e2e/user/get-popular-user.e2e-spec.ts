@@ -56,18 +56,21 @@ describe('GET /users/popular - 인기 유저 조회', () => {
           providerId: 'test1',
           email: 'test@test.com',
           name: 'test1',
+          url: 'test1',
         },
         {
           provider: 'KAKAO',
           providerId: 'test2',
           email: 'test@test.com',
           name: 'test2',
+          url: 'test2',
         },
         {
           provider: 'KAKAO',
           providerId: 'test3',
           email: 'test@test.com',
           name: 'test3',
+          url: 'test3',
         },
       ],
     });

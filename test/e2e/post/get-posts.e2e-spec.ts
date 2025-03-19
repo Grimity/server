@@ -45,6 +45,7 @@ describe('GET /posts - 게시글 조회', () => {
         providerId: 'test',
         email: 'test@test.com',
         name: 'test',
+        url: 'test',
       },
     });
 
