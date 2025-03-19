@@ -116,6 +116,7 @@ describe('GET /auth/logout - 로그아웃', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test',
+        id: 'test',
       });
 
     const refreshToken = response.body.refreshToken;

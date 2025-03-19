@@ -9,6 +9,7 @@ import { convertPostTypeFromNumber } from 'src/common/constants';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { validate as isUUID } from 'uuid';
+import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
 export class UserService {
@@ -39,7 +40,7 @@ export class UserService {
     let transformedLinks: string[] = [];
     if (links.length > 0) {
       transformedLinks = links.map(({ linkName, link }) => {
-        return `${linkName.trim()}|~|${link.trim()}`;
+        return linkName.trim() + separator + link.trim();
       });
     }
     await this.userRepository.update(userId, {
@@ -65,7 +66,7 @@ export class UserService {
       image: user.image,
       description: user.description,
       links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split('|~|');
+        const [linkName, linkUrl] = link.split(separator);
         return {
           linkName,
           link: linkUrl,
@@ -128,7 +129,7 @@ export class UserService {
       backgroundImage: targetUser.backgroundImage,
       description: targetUser.description,
       links: targetUser.links.map((link) => {
-        const [linkName, linkUrl] = link.split('|~|');
+        const [linkName, linkUrl] = link.split(separator);
         return {
           linkName,
           link: linkUrl,
@@ -174,9 +175,6 @@ export class UserService {
       size: number;
     },
   ) {
-    if (cursor !== null && !isUUID(cursor))
-      throw new HttpException('cursor가 올바르지 않습니다', 400);
-
     const followings = await this.userSelectRepository.findMyFollowings(
       userId,
       {
@@ -200,9 +198,15 @@ export class UserService {
     let nextCursor: string | null = null;
     if (feeds.length === input.size) {
       if (input.sort === 'latest' || input.sort === 'oldest') {
-        nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}_${feeds[feeds.length - 1].id}`;
+        nextCursor =
+          feeds[feeds.length - 1].createdAt.toISOString() +
+          separator +
+          feeds[feeds.length - 1].id;
       } else {
-        nextCursor = `${feeds[feeds.length - 1].likeCount}_${feeds[feeds.length - 1].id}`;
+        nextCursor =
+          feeds[feeds.length - 1].likeCount +
+          separator +
+          feeds[feeds.length - 1].id;
       }
     }
 

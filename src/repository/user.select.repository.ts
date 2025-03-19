@@ -1,7 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { kyselyUuid } from './util';
 
 @Injectable()
 export class UserSelectRepository {
@@ -57,7 +56,7 @@ export class UserSelectRepository {
   async getMyProfile(userId: string) {
     const [user] = await this.prisma.$kysely
       .selectFrom('User')
-      .where('id', '=', kyselyUuid(userId))
+      .where('id', '=', userId)
       .select([
         'id',
         'provider',
@@ -74,7 +73,7 @@ export class UserSelectRepository {
           .fn<boolean>('EXISTS', [
             eb
               .selectFrom('Notification')
-              .where('Notification.userId', '=', kyselyUuid(userId))
+              .where('Notification.userId', '=', userId)
               .where('isRead', '=', false),
           ])
           .as('hasNotification'),
@@ -100,7 +99,7 @@ export class UserSelectRepository {
   async getUserProfile(userId: string | null, targetUserId: string) {
     const [user] = await this.prisma.$kysely
       .selectFrom('User')
-      .where('User.id', '=', kyselyUuid(targetUserId))
+      .where('User.id', '=', targetUserId)
       .select([
         'User.id',
         'name',
@@ -142,7 +141,7 @@ export class UserSelectRepository {
               eb
                 .selectFrom('Follow')
                 .whereRef('Follow.followingId', '=', 'User.id')
-                .where('Follow.followerId', '=', kyselyUuid(userId!)),
+                .where('Follow.followerId', '=', userId),
             ])
             .as('isFollowing'),
         ]),
@@ -181,14 +180,12 @@ export class UserSelectRepository {
   ) {
     return await this.prisma.$kysely
       .selectFrom('Follow')
-      .where('followingId', '=', kyselyUuid(userId))
+      .where('followingId', '=', userId)
       .innerJoin('User', 'followerId', 'id')
       .select(['id', 'name', 'User.image', 'description'])
       .orderBy('followerId', 'desc')
       .limit(size)
-      .$if(cursor !== null, (eb) =>
-        eb.where('followerId', '<', kyselyUuid(cursor!)),
-      )
+      .$if(cursor !== null, (eb) => eb.where('followerId', '<', cursor))
       .execute();
   }
 
@@ -204,14 +201,12 @@ export class UserSelectRepository {
   ) {
     return await this.prisma.$kysely
       .selectFrom('Follow')
-      .where('followerId', '=', kyselyUuid(userId))
+      .where('followerId', '=', userId)
       .innerJoin('User', 'followingId', 'id')
       .select(['id', 'name', 'User.image', 'description'])
       .orderBy('followingId', 'asc')
       .limit(size)
-      .$if(cursor !== null, (eb) =>
-        eb.where('followingId', '>', kyselyUuid(cursor!)),
-      )
+      .$if(cursor !== null, (eb) => eb.where('followingId', '>', cursor))
       .execute();
   }
 
@@ -231,7 +226,7 @@ export class UserSelectRepository {
   async findPopularUsersByIds(userId: string | null, userIds: string[]) {
     const users = await this.prisma.$kysely
       .selectFrom('User')
-      .where('User.id', 'in', userIds.map(kyselyUuid))
+      .where('User.id', 'in', userIds)
       .select(['User.id', 'name', 'User.image', 'followerCount', 'description'])
       .select((eb) =>
         eb
@@ -255,7 +250,7 @@ export class UserSelectRepository {
               eb
                 .selectFrom('Follow')
                 .whereRef('Follow.followingId', '=', 'User.id')
-                .where('Follow.followerId', '=', kyselyUuid(userId!)),
+                .where('Follow.followerId', '=', userId),
             ])
             .as('isFollowing'),
         ]),
@@ -278,7 +273,7 @@ export class UserSelectRepository {
 
     const users = await this.prisma.$kysely
       .selectFrom('User')
-      .where('id', 'in', userIds.map(kyselyUuid))
+      .where('id', 'in', userIds)
       .select([
         'User.id',
         'name',
@@ -294,7 +289,7 @@ export class UserSelectRepository {
               eb
                 .selectFrom('Follow')
                 .whereRef('Follow.followingId', '=', 'User.id')
-                .where('followerId', '=', kyselyUuid(myId!)),
+                .where('followerId', '=', myId),
             ])
             .as('isFollowing'),
         ]),

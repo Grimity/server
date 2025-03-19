@@ -13,7 +13,7 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid()) @db.Uuid
+  id              String   @id @default(uuid())
   tempId          String?
   provider        String
   providerId      String
@@ -49,8 +49,8 @@ model User {
 }
 
 model Follow {
-  followerId  String   @db.Uuid
-  followingId String   @db.Uuid
+  followerId  String
+  followingId String
   createdAt   DateTime @default(now())
 
   follower  User @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
@@ -62,7 +62,7 @@ model Follow {
 
 model Feed {
   id        String   @id @default(uuid()) @db.Uuid
-  authorId  String   @db.Uuid
+  authorId  String
   title     String
   cards     String[]
   thumbnail String
@@ -94,7 +94,7 @@ model Tag {
 }
 
 model Like {
-  userId    String   @db.Uuid
+  userId    String
   feedId    String   @db.Uuid
   createdAt DateTime @default(now())
 
@@ -106,7 +106,7 @@ model Like {
 }
 
 model View {
-  userId    String   @db.Uuid
+  userId    String
   feedId    String   @db.Uuid
   createdAt DateTime @default(now())
 
@@ -117,7 +117,7 @@ model View {
 }
 
 model Save {
-  userId    String   @db.Uuid
+  userId    String
   feedId    String   @db.Uuid
   createdAt DateTime @default(now())
 
@@ -130,10 +130,10 @@ model Save {
 model FeedComment {
   id              String   @id @default(uuid()) @db.Uuid
   feedId          String   @db.Uuid
-  writerId        String   @db.Uuid
+  writerId        String
   parentId        String?  @db.Uuid
   content         String
-  mentionedUserId String?  @db.Uuid
+  mentionedUserId String?
   createdAt       DateTime @default(now())
   likeCount       Int      @default(0)
 
@@ -149,7 +149,7 @@ model FeedComment {
 
 model Notification {
   id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
+  userId    String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   data      Json
@@ -159,7 +159,7 @@ model Notification {
 
 model FeedCommentLike {
   feedCommentId String @db.Uuid
-  userId        String @db.Uuid
+  userId        String
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   feedComment FeedComment @relation(fields: [feedCommentId], references: [id], onDelete: Cascade)
@@ -169,7 +169,7 @@ model FeedCommentLike {
 
 model Post {
   id           String   @id @default(uuid()) @db.Uuid
-  authorId     String   @db.Uuid
+  authorId     String
   title        String
   content      String
   type         Int      @db.SmallInt
@@ -190,7 +190,7 @@ model Post {
 
 model PostLike {
   postId String @db.Uuid
-  userId String @db.Uuid
+  userId String
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -200,7 +200,7 @@ model PostLike {
 
 model PostSave {
   postId    String   @db.Uuid
-  userId    String   @db.Uuid
+  userId    String
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -212,10 +212,10 @@ model PostSave {
 model PostComment {
   id              String   @id @default(uuid()) @db.Uuid
   postId          String   @db.Uuid
-  writerId        String?  @db.Uuid
+  writerId        String?
   parentId        String?  @db.Uuid
   content         String
-  mentionedUserId String?  @db.Uuid
+  mentionedUserId String?
   createdAt       DateTime @default(now())
   likeCount       Int      @default(0)
   isDeleted       Boolean  @default(false)
@@ -232,7 +232,7 @@ model PostComment {
 
 model PostCommentLike {
   postCommentId String @db.Uuid
-  userId        String @db.Uuid
+  userId        String
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   postComment PostComment @relation(fields: [postCommentId], references: [id], onDelete: Cascade)
@@ -243,7 +243,7 @@ model PostCommentLike {
 model Report {
   id        String   @id @default(uuid()) @db.Uuid
   type      Int      @db.SmallInt
-  userId    String   @db.Uuid
+  userId    String
   refType   String
   refId     String   @db.Uuid
   content   String?
@@ -251,7 +251,7 @@ model Report {
 }
 
 model RefreshToken {
-  userId    String   @db.Uuid
+  userId    String
   token     String
   updatedAt DateTime @default(now())
   type      String

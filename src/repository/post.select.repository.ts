@@ -126,7 +126,7 @@ export class PostSelectRepository {
               eb
                 .selectFrom('PostLike')
                 .whereRef('PostLike.postId', '=', 'Post.id')
-                .where('PostLike.userId', '=', kyselyUuid(userId!)),
+                .where('PostLike.userId', '=', userId),
             ])
             .as('isLike'),
           eb
@@ -134,7 +134,7 @@ export class PostSelectRepository {
               eb
                 .selectFrom('PostSave')
                 .whereRef('PostSave.postId', '=', 'Post.id')
-                .where('PostSave.userId', '=', kyselyUuid(userId!)),
+                .where('PostSave.userId', '=', userId),
             ])
             .as('isSave'),
         ]),
@@ -338,7 +338,7 @@ export class PostSelectRepository {
   async findManySavedPosts({ userId, page, size }: UserAndPageInput) {
     const posts = await this.prisma.$kysely
       .selectFrom('PostSave')
-      .where('PostSave.userId', '=', kyselyUuid(userId))
+      .where('PostSave.userId', '=', userId)
       .innerJoin('Post', 'Post.id', 'PostSave.postId')
       .select([
         'Post.id',

@@ -69,7 +69,7 @@ export class PostCommentRepository {
                   '=',
                   'PostComment.id',
                 )
-                .where('PostCommentLike.userId', '=', kyselyUuid(userId!)),
+                .where('PostCommentLike.userId', '=', userId),
             ])
             .as('isLike'),
         ]),

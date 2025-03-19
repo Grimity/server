@@ -22,18 +22,11 @@ export class RegisterRequest extends LoginRequest {
   @Length(2, 12)
   name: string;
 
-  @ApiProperty({
-    minLength: 2,
-    maxLength: 20,
-    nullable: true,
-    type: 'string',
-    description: '일단 지금은 nullable입니다',
-  })
+  @ApiProperty({ minLength: 2, maxLength: 20 })
   @TrimNullableString()
-  @IsOptional()
   @Length(2, 20)
   @Validate(IdValidator)
-  id: string | null;
+  id: string;
 }
 
 export class CheckNameRequest {
