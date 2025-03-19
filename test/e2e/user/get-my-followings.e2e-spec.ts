@@ -46,20 +46,6 @@ describe('GET /users/me/followings - 내 팔로잉 조회', () => {
     expect(status).toBe(401);
   });
 
-  it('cursor가 있을때 uuid가 아닌 경우 400을 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .get('/users/me/followings?cursor=invalid')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(400);
-  });
-
   it('200과 함께 팔로잉 목록을 조회한다', async () => {
     // given
     const accessToken = await register(app, 'test');

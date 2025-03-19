@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from './util';
+import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
 export class FeedSelectRepository {
@@ -110,7 +111,7 @@ export class FeedSelectRepository {
       query = query
         .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
         .$if(cursor !== null, (eb) => {
-          const [createdAt, id] = cursor!.split('_');
+          const [createdAt, id] = cursor!.split(separator);
           return eb.where((eb) =>
             eb.or([
               eb('Feed.createdAt', '<', new Date(createdAt)),
@@ -125,7 +126,7 @@ export class FeedSelectRepository {
       query = query
         .orderBy(['Feed.likeCount desc', 'Feed.id desc'])
         .$if(cursor !== null, (eb) => {
-          const [likeCount, id] = cursor!.split('_');
+          const [likeCount, id] = cursor!.split(separator);
           return eb.where((eb) =>
             eb.or([
               eb('Feed.likeCount', '<', Number(likeCount)),
@@ -140,7 +141,7 @@ export class FeedSelectRepository {
       query = query
         .orderBy(['Feed.createdAt asc', 'Feed.id desc'])
         .$if(cursor !== null, (eb) => {
-          const [createdAt, id] = cursor!.split('_');
+          const [createdAt, id] = cursor!.split(separator);
           return eb.where((eb) =>
             eb.or([
               eb('Feed.createdAt', '>', new Date(createdAt)),
@@ -608,7 +609,7 @@ export class FeedSelectRepository {
       .limit(size);
 
     if (cursor) {
-      const [firstCursor, secondCursor] = cursor.split('_');
+      const [firstCursor, secondCursor] = cursor.split(separator);
 
       query = query.where((eb) => {
         return eb.or([
