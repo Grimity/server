@@ -12,6 +12,7 @@ export const register = async (app: INestApplication, name: string) => {
       provider: 'KAKAO',
       providerAccessToken: 'test',
       name,
+      id: 'test',
     });
 
   return body.accessToken as string;

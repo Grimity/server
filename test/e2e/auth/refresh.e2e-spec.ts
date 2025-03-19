@@ -86,6 +86,7 @@ describe('GET /auth/refresh - 토큰 갱신', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test',
+        id: 'test',
       });
 
     const { accessToken, refreshToken } = response.body;
