@@ -1,0 +1,19 @@
+{
+  "name": "@grimity/dto",
+  "version": "1.0.3",
+  "types": "dist/share/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/share/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*.d.ts"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
