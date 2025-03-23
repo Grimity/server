@@ -12,6 +12,7 @@ interface Actor {
   id: string;
   name: string;
   image: string | null;
+  url: string;
 }
 
 export interface FollowData {

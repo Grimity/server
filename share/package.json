@@ -1,6 +1,6 @@
 {
   "name": "@grimity/dto",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "types": "dist/share/index.d.ts",
   "exports": {
     ".": {
