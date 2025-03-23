@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserBaseResponse } from './user.response';
 import { TotalCountResponse } from './shared';
-import { postTypes } from '../../../src/common/constants';
+import { postTypes } from '../../common/constants';
 
 export class PostBaseResponse {
   @ApiProperty()
