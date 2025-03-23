@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-import { imageTypes, exts } from 'src/common/constants/image';
+import { imageTypes, exts } from '../../../src/common/constants/image';
 
 export class GetPresignedUrlRequest {
   @ApiProperty({

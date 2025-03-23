@@ -10,7 +10,7 @@ import {
   PostCommentData,
   PostReplyData,
   PostMentionData,
-} from 'src/common/constants';
+} from '../../../src/common/constants';
 
 // TODO: 이건 좀 아닌거같네;;
 class FollowDataResponse implements FollowData {

@@ -16,7 +16,10 @@ import {
   TrimNullableString,
   UrlValidator,
 } from './helper';
-import { subscriptionTypes, SubscriptionType } from 'src/common/constants';
+import {
+  subscriptionTypes,
+  SubscriptionType,
+} from '../../../src/common/constants';
 import { CursorRequest, CursorKeywordRequest } from './shared';
 
 class UpdateLinkRequest {

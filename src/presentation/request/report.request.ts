@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsInt, IsUUID, IsOptional, MaxLength } from 'class-validator';
-import { refTypes } from 'src/common/constants/report';
+import { refTypes } from '../../../src/common/constants/report';
 import { TrimAndUpperNullableString, TrimNullableString } from './helper';
 
 export class CreateReportRequest {
