@@ -379,7 +379,7 @@ export class FeedSelectRepository {
       return {
         id: feed.id,
         title: feed.title,
-        cards: feed.cards,
+        cards: feed.cards ?? [],
         thumbnail: feed.thumbnail,
         content: feed.content,
         createdAt: feed.createdAt,

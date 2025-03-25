@@ -6,6 +6,7 @@ import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { separator } from 'src/common/constants/separator-text';
+import { getImageUrl } from './util/get-image-url';
 
 @Injectable()
 export class FeedService {
@@ -38,7 +39,17 @@ export class FeedService {
   }
 
   async getFeed(userId: string | null, feedId: string) {
-    return await this.feedSelectRepository.getFeed(userId, feedId);
+    const feed = await this.feedSelectRepository.getFeed(userId, feedId);
+
+    return {
+      ...feed,
+      thumbnail: getImageUrl(feed.thumbnail),
+      cards: feed.cards.map((card) => getImageUrl(card)),
+      author: {
+        ...feed.author,
+        image: getImageUrl(feed.author.image),
+      },
+    };
   }
 
   async like(userId: string, feedId: string) {
@@ -138,7 +149,14 @@ export class FeedService {
             separator +
             feeds[size - 1].id
           : null,
-      feeds,
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
     };
   }
 
@@ -151,7 +169,18 @@ export class FeedService {
       ids = await this.feedSelectRepository.findTodayPopularIds();
       await this.redisService.cacheArray('todayPopularFeedIds', ids, 60 * 30);
     }
-    return await this.feedSelectRepository.findTodayPopularByIds(userId, ids);
+    const feeds = await this.feedSelectRepository.findTodayPopularByIds(
+      userId,
+      ids,
+    );
+    return feeds.map((feed) => ({
+      ...feed,
+      thumbnail: getImageUrl(feed.thumbnail),
+      author: {
+        ...feed.author,
+        image: getImageUrl(feed.author.image),
+      },
+    }));
   }
 
   async getFollowingFeeds(
@@ -188,7 +217,15 @@ export class FeedService {
             separator +
             feeds[size - 1].id
           : null,
-      feeds,
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        cards: feed.cards.map((card) => getImageUrl(card)),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
     };
   }
 
@@ -245,7 +282,14 @@ export class FeedService {
     return {
       totalCount,
       nextCursor,
-      feeds: returnFeeds,
+      feeds: returnFeeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
     };
   }
 
@@ -270,11 +314,14 @@ export class FeedService {
         return {
           id: feed.id,
           title: feed.title,
-          thumbnail: feed.thumbnail,
+          thumbnail: getImageUrl(feed.thumbnail),
           createdAt: feed.createdAt,
           viewCount: feed.viewCount,
           likeCount: feed.likeCount,
-          author: feed.author,
+          author: {
+            ...feed.author,
+            image: getImageUrl(feed.author.image),
+          },
           isLike: feed.isLike,
         };
       }),
@@ -282,11 +329,19 @@ export class FeedService {
   }
 
   async getLikes(feedId: string) {
-    return await this.feedSelectRepository.findLikesById(feedId);
+    const users = await this.feedSelectRepository.findLikesById(feedId);
+    return users.map((user) => ({
+      ...user,
+      image: getImageUrl(user.image),
+    }));
   }
 
   async getMeta(id: string) {
-    return await this.feedSelectRepository.findMeta(id);
+    const feed = await this.feedSelectRepository.findMeta(id);
+    return {
+      ...feed,
+      thumbnail: getImageUrl(feed.thumbnail),
+    };
   }
 }
 

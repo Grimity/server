@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FeedCommentRepository } from 'src/repository/feed-comment.repository';
 import { AwsService } from './aws.service';
+import { getImageUrl } from './util/get-image-url';
 
 @Injectable()
 export class FeedCommentService {
@@ -43,7 +44,13 @@ export class FeedCommentService {
     ]);
 
     return {
-      comments,
+      comments: comments.map((comment) => ({
+        ...comment,
+        writer: {
+          ...comment.writer,
+          image: getImageUrl(comment.writer.image),
+        },
+      })),
       commentCount,
     };
   }
@@ -55,7 +62,24 @@ export class FeedCommentService {
       parentId: string;
     },
   ) {
-    return await this.feedCommentRepository.findAllChildComments(userId, input);
+    const comments = await this.feedCommentRepository.findAllChildComments(
+      userId,
+      input,
+    );
+
+    return comments.map((comment) => ({
+      ...comment,
+      writer: {
+        ...comment.writer,
+        image: getImageUrl(comment.writer.image),
+      },
+      mentionedUser: comment.mentionedUser
+        ? {
+            ...comment.mentionedUser,
+            image: getImageUrl(comment.mentionedUser.image),
+          }
+        : null,
+    }));
   }
 
   async deleteOne(userId: string, commentId: string) {

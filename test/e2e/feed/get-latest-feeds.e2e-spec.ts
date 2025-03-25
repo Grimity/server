@@ -5,6 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
+import { getImageUrl } from 'src/provider/util/get-image-url';
 
 describe('GET /feeds/latest - 최신 피드 조회', () => {
   let app: INestApplication;
@@ -104,7 +105,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 1,
-      thumbnail: 'test',
+      thumbnail: getImageUrl('test'),
       isLike: true,
       author: {
         id: user.id,
