@@ -87,8 +87,13 @@ export class AuthService {
       email = kakaoProfile.email;
     }
 
-    const urlUser = await this.userSelectRepository.findOneByUrl(input.url);
-    if (urlUser !== null) throw new HttpException('URL', 409);
+    const [urlConflictUser, nameConflictUser] = await Promise.all([
+      this.userSelectRepository.findOneByUrl(input.url),
+      this.userSelectRepository.findOneByName(input.name),
+    ]);
+
+    if (nameConflictUser !== null) throw new HttpException('NAME', 409);
+    if (urlConflictUser !== null) throw new HttpException('URL', 409);
 
     const user = await this.userRepository.create({
       provider: input.provider,
