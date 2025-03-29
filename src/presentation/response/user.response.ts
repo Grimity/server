@@ -103,6 +103,9 @@ class SearchedUserResponse extends UserBaseResponse {
 
   @ApiProperty()
   isFollowing: boolean;
+
+  @ApiProperty()
+  followerCount: number;
 }
 
 export class SearchedUsersResponse extends CursorAndCountResponse {
