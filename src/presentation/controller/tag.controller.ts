@@ -13,8 +13,8 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TagService } from 'src/provider/tag.service';
-import { OptionalJwtGuard } from 'src/common/guard';
-import { CurrentUser } from 'src/common/decorator';
+import { OptionalJwtGuard } from 'src/core/guard';
+import { CurrentUser } from 'src/core/decorator';
 
 import { PopularTagResponse } from '../response/tag.response';
 import { SearchedFeedByTagsResponse } from '../response/feed.response';

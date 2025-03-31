@@ -7,8 +7,8 @@ import {
 } from '@nestjs/swagger';
 import { ReportService } from 'src/provider/report.service';
 import { CreateReportRequest } from '../request/report.request';
-import { CurrentUser } from 'src/common/decorator';
-import { JwtGuard } from 'src/common/guard';
+import { CurrentUser } from 'src/core/decorator';
+import { JwtGuard } from 'src/core/guard';
 
 @ApiBearerAuth()
 @ApiTags('/reports')

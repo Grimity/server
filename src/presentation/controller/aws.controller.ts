@@ -13,7 +13,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { AwsService } from 'src/provider/aws.service';
-import { JwtGuard } from 'src/common/guard';
+import { JwtGuard } from 'src/core/guard';
 
 import { GetPresignedUrlRequest } from '../request/aws.request';
 import { PresignedUrlResponse } from '../response/aws.response';

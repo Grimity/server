@@ -15,8 +15,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { NotificationService } from 'src/provider/notification.service';
-import { JwtGuard } from 'src/common/guard';
-import { CurrentUser } from 'src/common/decorator';
+import { JwtGuard } from 'src/core/guard';
+import { CurrentUser } from 'src/core/decorator';
 import { NotificationResponse } from '../response/notification.response';
 
 @ApiBearerAuth()

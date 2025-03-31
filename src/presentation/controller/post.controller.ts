@@ -18,8 +18,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PostService } from 'src/provider/post.service';
-import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
-import { CurrentUser } from 'src/common/decorator';
+import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
+import { CurrentUser } from 'src/core/decorator';
 
 import {
   CreatePostRequest,
