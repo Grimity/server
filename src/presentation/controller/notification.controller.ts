@@ -31,7 +31,7 @@ export class NotificationController {
   @ApiOperation({ summary: '알림 목록 조회' })
   @ApiResponse({ status: 200, type: [NotificationResponse] })
   @Get()
-  async getAll(@CurrentUser() userId: string) {
+  async getAll(@CurrentUser() userId: string): Promise<NotificationResponse[]> {
     return this.notificationService.getAll(userId);
   }
 

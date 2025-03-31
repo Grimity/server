@@ -14,7 +14,7 @@ export class NotificationResponse {
   link: string;
 
   @ApiProperty()
-  image: string;
+  image: string | null;
 
   @ApiProperty()
   message: string;
