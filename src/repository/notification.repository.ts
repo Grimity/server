@@ -15,7 +15,9 @@ export class NotificationRepository {
         id: true,
         isRead: true,
         createdAt: true,
-        data: true,
+        link: true,
+        image: true,
+        message: true,
       },
       orderBy: {
         createdAt: 'desc',

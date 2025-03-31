@@ -85,15 +85,9 @@ describe('DELETE /notifications/:id - 개별 알림 삭제', () => {
       data: {
         id: uuid(),
         userId: user.id,
-        data: {
-          type: 'FEED_COMMENT',
-          feedId: uuid(),
-          actor: {
-            id: uuid(),
-            name: 'test',
-            image: 'test',
-          },
-        },
+        image: 'test1',
+        message: 'test1',
+        link: 'test1',
       },
     });
 

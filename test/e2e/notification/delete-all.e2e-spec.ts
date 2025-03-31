@@ -59,26 +59,16 @@ describe('DELETE /notifications - 전체 알림 삭제', () => {
         {
           id: uuid(),
           userId: user.id,
-          data: {
-            type: 'FEED_COMMENT',
-            feedId: uuid(),
-            actor: {
-              id: uuid(),
-              name: 'test',
-            },
-          },
+          image: 'test1',
+          message: 'test1',
+          link: 'test1',
         },
         {
           id: uuid(),
           userId: user.id,
-          data: {
-            type: 'FEED_ANSWER',
-            feedId: uuid(),
-            actor: {
-              id: uuid(),
-              name: 'test',
-            },
-          },
+          image: 'test2',
+          message: 'test2',
+          link: 'test2',
         },
       ],
     });
