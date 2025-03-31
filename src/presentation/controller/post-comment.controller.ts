@@ -18,8 +18,8 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { PostCommentService } from 'src/provider/post-comment.service';
-import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
-import { CurrentUser } from 'src/common/decorator';
+import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
+import { CurrentUser } from 'src/core/decorator';
 
 import { CreatePostCommentRequest } from '../request/post-comment.request';
 import { IdResponse } from '../response/shared';

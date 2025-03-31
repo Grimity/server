@@ -18,8 +18,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { UserService } from 'src/provider/user.service';
-import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
-import { CurrentUser } from 'src/common/decorator';
+import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
+import { CurrentUser } from 'src/core/decorator';
 
 import {
   UpdateUserRequest,

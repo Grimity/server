@@ -2,6 +2,7 @@ import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post.repository';
 import { postTypes } from 'src/common/constants';
 import * as striptags from 'striptags';
+import * as he from 'he';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { SearchService } from 'src/database/search/search.service';
@@ -17,14 +18,16 @@ export class PostService {
     @Inject(SearchService) private searchService: SearchService,
   ) {}
 
+  removeHtml(content: string) {
+    return he.decode(striptags(content));
+  }
+
   async create(userId: string, { title, content, type }: CreateInput) {
-    const parsedContent = striptags(content).trim();
+    const parsedContent = this.removeHtml(content);
 
     if (parsedContent.length < 1) {
       throw new HttpException('내용을 입력해주세요', 400);
     }
-
-    const cleanedText = parsedContent.replace(/&nbsp;|&amp;/g, ' ');
 
     const thumbnail = extractImage(content);
 
@@ -41,7 +44,7 @@ export class PostService {
     await this.searchService.insertPost({
       id,
       title,
-      content: cleanedText,
+      content: parsedContent,
     });
     return { id };
   }
@@ -50,7 +53,7 @@ export class PostService {
     userId: string,
     { postId, title, content, type }: CreateInput & { postId: string },
   ) {
-    const parsedContent = striptags(content).trim();
+    const parsedContent = this.removeHtml(content);
 
     if (parsedContent.length < 1) {
       throw new HttpException('내용을 입력해주세요', 400);
@@ -84,6 +87,7 @@ export class PostService {
       return {
         ...post,
         type: 'NOTICE' as const,
+        content: this.removeHtml(post.content).slice(0, 100),
       };
     });
   }
@@ -102,6 +106,7 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
+          content: this.removeHtml(post.content).slice(0, 100),
         };
       }),
     };
@@ -162,6 +167,7 @@ export class PostService {
       return {
         ...post,
         type: convertPostTypeFromNumber(post.type),
+        content: this.removeHtml(post.content).slice(0, 100),
       };
     });
   }
@@ -188,6 +194,7 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
+          content: this.removeHtml(post.content).slice(0, 100),
         };
       }),
     };
@@ -207,6 +214,7 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
+          content: this.removeHtml(post.content).slice(0, 100),
         };
       }),
     };

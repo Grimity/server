@@ -28,9 +28,9 @@ import {
   GetClientInfo,
   GetRefreshToken,
   CurrentUser,
-} from 'src/common/decorator';
+} from 'src/core/decorator';
 import { ClientInfo } from 'src/types';
-import { UserAgentGuard, JwtRefreshGuard } from 'src/common/guard';
+import { UserAgentGuard, JwtRefreshGuard } from 'src/core/guard';
 
 @ApiTags('/auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })

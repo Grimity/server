@@ -33,8 +33,8 @@ import {
 } from '../response/feed.response';
 import { FeedLikedUserResponse } from '../response/user.response';
 
-import { JwtGuard, OptionalJwtGuard } from 'src/common/guard';
-import { CurrentUser } from 'src/common/decorator';
+import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
+import { CurrentUser } from 'src/core/decorator';
 
 @ApiTags('/feeds')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
