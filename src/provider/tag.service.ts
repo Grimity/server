@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { TagRepository } from 'src/repository/tag.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { RedisService } from 'src/database/redis/redis.service';
+import { getImageUrl } from './util/get-image-url';
 
 @Injectable()
 export class TagService {
@@ -12,17 +13,19 @@ export class TagService {
   ) {}
 
   async findPopularTags() {
-    const cachedTags = (await this.redisService.getArray('popularTags')) as
+    let tags = (await this.redisService.getArray('popularTags')) as
       | tagWithThumbnail[]
       | null;
 
-    if (cachedTags) {
-      return cachedTags;
+    if (tags === null) {
+      tags = await this.tagRepository.findPopularTags();
+      await this.redisService.cacheArray('popularTags', tags, 60 * 30);
     }
-    const tags: tagWithThumbnail[] = await this.tagRepository.findPopularTags();
-    await this.redisService.cacheArray('popularTags', tags, 60 * 30);
 
-    return tags;
+    return tags.map((tag) => ({
+      tagName: tag.tagName,
+      thumbnail: getImageUrl(tag.thumbnail),
+    }));
   }
 
   async searchTags(userId: string | null, tagNames: string[]) {

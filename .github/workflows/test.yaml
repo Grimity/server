@@ -19,6 +19,7 @@ jobs:
       AWS_IMAGE_BUCKET_NAME: grimity-image-dev
       AWS_REGION: ap-northeast-2
       REDIS_HOST: localhost
+      IMAGE_URL: http://image.localhost
     steps:
       - name: Checkout
         uses: actions/checkout@v4
