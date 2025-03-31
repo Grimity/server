@@ -21,7 +21,9 @@ export class FeedService {
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
     const trimmedSet = new Set(
-      createFeedInput.tags.map((tag) => tag.replaceAll(' ', '')),
+      createFeedInput.tags.map((tag) =>
+        tag.replaceAll(' ', '').replaceAll('#', ''),
+      ),
     );
 
     const { id } = await this.feedRepository.create(userId, {
@@ -110,7 +112,9 @@ export class FeedService {
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
     const trimmedSet = new Set(
-      updateFeedInput.tags.map((tag) => tag.replaceAll(' ', '')),
+      updateFeedInput.tags.map((tag) =>
+        tag.replaceAll(' ', '').replaceAll('#', ''),
+      ),
     );
     await this.feedRepository.updateOne(userId, {
       ...updateFeedInput,
