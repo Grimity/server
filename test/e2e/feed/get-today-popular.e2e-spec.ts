@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
+import { getImageUrl } from 'src/provider/util/get-image-url';
 
 describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
   let app: INestApplication;
@@ -68,7 +69,7 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
       id: expect.any(String),
       title: 'test19',
       likeCount: 19,
-      thumbnail: 'test',
+      thumbnail: getImageUrl('test'),
       createdAt: expect.any(String),
       viewCount: 0,
       isLike: false,

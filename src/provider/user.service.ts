@@ -10,6 +10,7 @@ import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
+import { getImageUrl } from './util/get-image-url';
 
 @Injectable()
 export class UserService {
@@ -76,7 +77,7 @@ export class UserService {
       provider: user.provider,
       email: user.email,
       name: user.name,
-      image: user.image,
+      image: getImageUrl(user.image),
       description: user.description,
       links: user.links.map((link) => {
         const [linkName, linkUrl] = link.split(separator);
@@ -85,7 +86,7 @@ export class UserService {
           link: linkUrl,
         };
       }),
-      backgroundImage: user.backgroundImage,
+      backgroundImage: getImageUrl(user.backgroundImage),
       createdAt: user.createdAt,
       hasNotification: user.hasNotification,
     };
@@ -146,9 +147,9 @@ export class UserService {
     return {
       id: targetUser.id,
       name: targetUser.name,
-      image: targetUser.image,
+      image: getImageUrl(targetUser.image),
       url: targetUser.url,
-      backgroundImage: targetUser.backgroundImage,
+      backgroundImage: getImageUrl(targetUser.backgroundImage),
       description: targetUser.description,
       links: targetUser.links.map((link) => {
         const [linkName, linkUrl] = link.split(separator);
@@ -183,7 +184,10 @@ export class UserService {
     return {
       nextCursor:
         followers.length === size ? followers[followers.length - 1].id : null,
-      followers,
+      followers: followers.map((follower) => ({
+        ...follower,
+        image: getImageUrl(follower.image),
+      })),
     };
   }
 
@@ -210,7 +214,10 @@ export class UserService {
         followings.length === size
           ? followings[followings.length - 1].id
           : null,
-      followings,
+      followings: followings.map((user) => ({
+        ...user,
+        image: getImageUrl(user.image),
+      })),
     };
   }
 
@@ -234,7 +241,10 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds,
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+      })),
     };
   }
 
@@ -260,7 +270,14 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds,
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
     };
   }
 
@@ -286,7 +303,14 @@ export class UserService {
 
     return {
       nextCursor,
-      feeds,
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
     };
   }
 
@@ -300,10 +324,16 @@ export class UserService {
       await this.redisService.cacheArray('popularUserIds', userIds, 60 * 30);
     }
 
-    return await this.userSelectRepository.findPopularUsersByIds(
+    const users = await this.userSelectRepository.findPopularUsersByIds(
       userId,
       userIds,
     );
+
+    return users.map((user) => ({
+      ...user,
+      image: getImageUrl(user.image),
+      thumbnails: user.thumbnails.map((thumbnail) => getImageUrl(thumbnail)),
+    }));
   }
 
   async searchUsers(input: SearchUserInput) {
@@ -338,10 +368,10 @@ export class UserService {
         returnUsers.push({
           id: user.id,
           name: user.name,
-          image: user.image,
+          image: getImageUrl(user.image),
           url: user.url,
           description: user.description,
-          backgroundImage: user.backgroundImage,
+          backgroundImage: getImageUrl(user.backgroundImage),
           followerCount: user.followerCount,
           isFollowing: user.isFollowing,
         });
@@ -460,7 +490,7 @@ export class UserService {
       id: user.id,
       name: user.name,
       description: user.description,
-      image: user.image,
+      image: getImageUrl(user.image),
       url: user.url,
     };
   }

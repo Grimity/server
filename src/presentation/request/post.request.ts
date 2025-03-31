@@ -5,7 +5,7 @@ import {
   TrimAndUpperNullableString,
   TrimAndLowerNullableString,
 } from './helper';
-import { postTypes } from 'src/common/constants';
+import { postTypes } from '../../common/constants';
 import { PageRequest } from './shared';
 
 export class CreatePostRequest {

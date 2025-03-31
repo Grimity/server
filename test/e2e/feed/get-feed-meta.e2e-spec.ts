@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { getImageUrl } from 'src/provider/util/get-image-url';
 
 describe('GET /feeds/:id/meta - 피드 메타 정보', () => {
   let app: INestApplication;
@@ -80,7 +81,7 @@ describe('GET /feeds/:id/meta - 피드 메타 정보', () => {
       id: feed.id,
       title: feed.title,
       content: feed.content,
-      thumbnail: feed.thumbnail,
+      thumbnail: getImageUrl(feed.thumbnail),
       createdAt: feed.createdAt.toISOString(),
       tags: expect.arrayContaining(['tag1', 'tag2']),
     });

@@ -59,7 +59,7 @@ export class AuthController {
 
   @ApiOperation({ summary: '회원가입' })
   @ApiResponse({ status: 201, type: LoginResponse })
-  @ApiResponse({ status: 409, description: 'ID 중복' })
+  @ApiResponse({ status: 409, type: Register409Response })
   @UseGuards(UserAgentGuard)
   @Post('register')
   async register(

@@ -5,6 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
+import { getImageUrl } from 'src/provider/util/get-image-url';
 
 describe('GET /feeds/:feedId - 피드 상세', () => {
   let app: INestApplication;
@@ -93,8 +94,8 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
     expect(body).toEqual({
       id: feed.id,
       title: 'title',
-      cards: ['feed/test.jpg'],
-      thumbnail: 'feed/test.jpg',
+      cards: [getImageUrl('feed/test.jpg')],
+      thumbnail: getImageUrl('feed/test.jpg'),
       isAI: false,
       createdAt: expect.any(String),
       viewCount: 0,
@@ -164,8 +165,8 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
     expect(body).toEqual({
       id: feed.id,
       title: 'title',
-      cards: ['feed/test.jpg'],
-      thumbnail: 'feed/test.jpg',
+      cards: [getImageUrl('feed/test.jpg')],
+      thumbnail: getImageUrl('feed/test.jpg'),
       isAI: false,
       createdAt: expect.any(String),
       viewCount: 0,

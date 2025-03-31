@@ -5,6 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
+import { getImageUrl } from 'src/provider/util/get-image-url';
 
 describe('GET /users/me - 내 정보 조회', () => {
   let app: INestApplication;
@@ -74,7 +75,7 @@ describe('GET /users/me - 내 정보 조회', () => {
       provider: 'KAKAO',
       email: 'test@test.com',
       name: 'test',
-      image: 'profile/test.png',
+      image: getImageUrl('profile/test.png'),
       backgroundImage: null,
       description: 'test',
       links: [{ linkName: 'test1', link: 'https://test1.com' }],

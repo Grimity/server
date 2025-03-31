@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { socialProviders } from 'src/common/constants';
+import { socialProviders } from '../../common/constants';
 import {
   CursorResponse,
   CursorAndCountResponse,
@@ -103,6 +103,9 @@ class SearchedUserResponse extends UserBaseResponse {
 
   @ApiProperty()
   isFollowing: boolean;
+
+  @ApiProperty()
+  followerCount: number;
 }
 
 export class SearchedUsersResponse extends CursorAndCountResponse {
