@@ -11,6 +11,7 @@ import { RedisService } from 'src/database/redis/redis.service';
 import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from './util/get-image-url';
+import { removeHtml } from './util/remove-html';
 
 @Injectable()
 export class UserService {
@@ -422,7 +423,7 @@ export class UserService {
         id: post.id,
         type: convertPostTypeFromNumber(post.type),
         title: post.title,
-        content: post.content,
+        content: removeHtml(post.content).slice(0, 150),
         thumbnail: post.thumbnail,
         commentCount: post.commentCount,
         viewCount: post.viewCount,
@@ -452,7 +453,7 @@ export class UserService {
           id: post.id,
           type: convertPostTypeFromNumber(post.type),
           title: post.title,
-          content: post.content,
+          content: removeHtml(post.content).slice(0, 150),
           thumbnail: post.thumbnail,
           commentCount: post.commentCount,
           viewCount: post.viewCount,

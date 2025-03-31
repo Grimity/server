@@ -1,13 +1,12 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post.repository';
 import { postTypes } from 'src/common/constants';
-import * as striptags from 'striptags';
-import * as he from 'he';
 import { PostTypeEnum, convertPostTypeFromNumber } from 'src/common/constants';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { extractImage } from './util';
 import { RedisService } from 'src/database/redis/redis.service';
+import { removeHtml } from './util/remove-html';
 
 @Injectable()
 export class PostService {
@@ -18,12 +17,8 @@ export class PostService {
     @Inject(SearchService) private searchService: SearchService,
   ) {}
 
-  removeHtml(content: string) {
-    return he.decode(striptags(content));
-  }
-
   async create(userId: string, { title, content, type }: CreateInput) {
-    const parsedContent = this.removeHtml(content);
+    const parsedContent = removeHtml(content);
 
     if (parsedContent.length < 1) {
       throw new HttpException('내용을 입력해주세요', 400);
@@ -53,7 +48,7 @@ export class PostService {
     userId: string,
     { postId, title, content, type }: CreateInput & { postId: string },
   ) {
-    const parsedContent = this.removeHtml(content);
+    const parsedContent = removeHtml(content);
 
     if (parsedContent.length < 1) {
       throw new HttpException('내용을 입력해주세요', 400);
@@ -87,7 +82,7 @@ export class PostService {
       return {
         ...post,
         type: 'NOTICE' as const,
-        content: this.removeHtml(post.content).slice(0, 100),
+        content: removeHtml(post.content).slice(0, 100),
       };
     });
   }
@@ -106,7 +101,7 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
-          content: this.removeHtml(post.content).slice(0, 100),
+          content: removeHtml(post.content).slice(0, 100),
         };
       }),
     };
@@ -167,7 +162,7 @@ export class PostService {
       return {
         ...post,
         type: convertPostTypeFromNumber(post.type),
-        content: this.removeHtml(post.content).slice(0, 100),
+        content: removeHtml(post.content).slice(0, 100),
       };
     });
   }
@@ -194,7 +189,7 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
-          content: this.removeHtml(post.content).slice(0, 100),
+          content: removeHtml(post.content).slice(0, 100),
         };
       }),
     };
@@ -214,7 +209,7 @@ export class PostService {
         return {
           ...post,
           type: convertPostTypeFromNumber(post.type),
-          content: this.removeHtml(post.content).slice(0, 100),
+          content: removeHtml(post.content).slice(0, 100),
         };
       }),
     };
@@ -223,7 +218,7 @@ export class PostService {
   async getMeta(id: string) {
     const post = await this.postSelectRepository.findMeta(id);
 
-    const parsedContent = striptags(post.content);
+    const parsedContent = removeHtml(post.content).slice(0, 100);
     const cleanedText = parsedContent.replace(/&nbsp;|&amp;/g, ' ');
 
     return {
