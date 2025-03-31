@@ -13,7 +13,7 @@ export class NotificationResponse {
   @ApiProperty({ description: '클릭 시 이동할 페이지 FULL URL' })
   link: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string', nullable: true })
   image: string | null;
 
   @ApiProperty()
