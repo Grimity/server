@@ -52,7 +52,10 @@ export class FeedController {
     @CurrentUser() userId: string,
     @Body() dto: CreateFeedRequest,
   ): Promise<IdResponse> {
-    return await this.feedService.create(userId, dto);
+    return await this.feedService.create(userId, {
+      ...dto,
+      isAI: false,
+    });
   }
 
   @ApiBearerAuth()
@@ -167,7 +170,7 @@ export class FeedController {
     @Param('id', new ParseUUIDPipe()) feedId: string,
     @Body() dto: CreateFeedRequest,
   ) {
-    await this.feedService.update(userId, { feedId, ...dto });
+    await this.feedService.update(userId, { feedId, ...dto, isAI: false });
     return;
   }
 

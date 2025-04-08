@@ -133,7 +133,6 @@ describe('PUT /feeds/:id', () => {
       .send({
         title: 'updated title',
         content: 'updated content',
-        isAI: true,
         cards: ['feed/test3.jpg'],
         tags: ['tag1', 'tag2', 'tag3'],
         thumbnail: 'feed/test3.jpg',
@@ -152,7 +151,6 @@ describe('PUT /feeds/:id', () => {
 
     expect(updatedFeed.title).toBe('updated title');
     expect(updatedFeed.content).toBe('updated content');
-    expect(updatedFeed.isAI).toBe(true);
     expect(updatedFeed.cards).toEqual(['feed/test3.jpg']);
     expect(updatedFeed.tags.map(({ tagName }) => tagName)).toEqual([
       'tag1',

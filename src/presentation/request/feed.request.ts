@@ -34,10 +34,6 @@ export class CreateFeedRequest {
   @IsImageWithPrefix('feed/', { each: true })
   cards: string[];
 
-  @ApiProperty()
-  @IsBoolean()
-  isAI: boolean;
-
   @ApiProperty({
     minLength: 1,
     maxLength: 300,
