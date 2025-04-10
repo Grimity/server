@@ -66,7 +66,6 @@ model Feed {
   title     String
   cards     String[]
   thumbnail String
-  isAI      Boolean  @default(false)
   createdAt DateTime @default(now())
   viewCount Int      @default(0)
   likeCount Int      @default(0)

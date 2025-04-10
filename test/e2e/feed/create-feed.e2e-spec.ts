@@ -229,7 +229,6 @@ describe('POST /feeds - 피드 생성', () => {
       authorId: expect.any(String),
       title: 'test',
       content: 'test',
-      isAI: false,
       cards: ['feed/test.jpg'],
       thumbnail: 'feed/test.jpg',
       tags: expect.any(Array),

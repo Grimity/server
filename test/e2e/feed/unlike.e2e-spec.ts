@@ -70,7 +70,6 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
         authorId: user.id,
         title: 'test',
         content: 'test',
-        isAI: false,
         cards: ['test'],
         thumbnail: 'test',
       },

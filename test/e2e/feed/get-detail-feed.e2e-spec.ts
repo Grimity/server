@@ -73,7 +73,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         authorId: user.id,
         title: 'title',
         content: 'content',
-        isAI: false,
         cards: ['feed/test.jpg'],
         thumbnail: 'feed/test.jpg',
         tags: {
@@ -96,7 +95,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       title: 'title',
       cards: [getImageUrl('feed/test.jpg')],
       thumbnail: getImageUrl('feed/test.jpg'),
-      isAI: false,
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 0,
@@ -135,7 +133,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         authorId: user2.id,
         title: 'title',
         content: 'content',
-        isAI: false,
         cards: ['feed/test.jpg'],
         thumbnail: 'feed/test.jpg',
         tags: {
@@ -167,7 +164,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       title: 'title',
       cards: [getImageUrl('feed/test.jpg')],
       thumbnail: getImageUrl('feed/test.jpg'),
-      isAI: false,
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 1,

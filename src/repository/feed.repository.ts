@@ -12,7 +12,6 @@ export class FeedRepository {
         authorId: userId,
         title: createFeedInput.title,
         content: createFeedInput.content,
-        isAI: createFeedInput.isAI,
         cards: createFeedInput.cards,
         thumbnail: createFeedInput.thumbnail,
         tags: {
@@ -171,7 +170,6 @@ export class FeedRepository {
           data: {
             title: updateFeedInput.title,
             content: updateFeedInput.content,
-            isAI: updateFeedInput.isAI,
             cards: updateFeedInput.cards,
             thumbnail: updateFeedInput.thumbnail,
           },

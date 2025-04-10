@@ -83,7 +83,6 @@ describe('PUT /:feedId/view', () => {
           create: {
             title: 'test',
             content: 'test',
-            isAI: false,
             cards: ['feed/test.jpg'],
             thumbnail: 'feed/test.jpg',
           },
