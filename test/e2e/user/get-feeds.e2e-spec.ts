@@ -74,7 +74,6 @@ describe('GET /users/:id/feeds - 유저별 피드조회', () => {
         authorId: user.id,
         title: `title${index}`,
         content: `content${index}`,
-        isAI: false,
         thumbnail: 'test',
         createdAt: new Date(2021, 1, index + 1),
       })),

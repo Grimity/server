@@ -50,7 +50,6 @@ describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
           authorId: user.id,
           title: `test${i}`,
           content: `test${i}`,
-          isAI: false,
           likeCount: i,
           thumbnail: 'test',
         };

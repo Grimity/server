@@ -16,7 +16,6 @@ export class FeedSelectRepository {
         'title',
         'cards',
         'thumbnail',
-        'isAI',
         'Feed.createdAt',
         'viewCount',
         'likeCount',
@@ -62,7 +61,6 @@ export class FeedSelectRepository {
       title: feed.title,
       cards: feed.cards,
       thumbnail: feed.thumbnail,
-      isAI: feed.isAI,
       createdAt: feed.createdAt,
       viewCount: feed.viewCount,
       likeCount: feed.likeCount,
@@ -318,7 +316,6 @@ export class FeedSelectRepository {
         'viewCount',
         'likeCount',
         'Feed.createdAt as createdAt',
-        'isAI',
       ])
       .select((eb) =>
         eb
@@ -385,7 +382,6 @@ export class FeedSelectRepository {
         createdAt: feed.createdAt,
         viewCount: feed.viewCount,
         likeCount: feed.likeCount,
-        isAI: feed.isAI,
         commentCount:
           feed.commentCount === null ? 0 : Number(feed.commentCount),
         tags: feed.tags ?? [],

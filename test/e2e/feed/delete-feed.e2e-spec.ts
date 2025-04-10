@@ -84,7 +84,6 @@ describe('DELETE /feeds/:id - 피드 삭제', () => {
         authorId: user.id,
         title: 'test',
         content: 'test',
-        isAI: false,
         cards: ['feed/test.jpg'],
         thumbnail: 'test',
       },

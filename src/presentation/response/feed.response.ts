@@ -19,9 +19,6 @@ class FeedResponse extends FeedBaseResponse {
   cards: string[];
 
   @ApiProperty()
-  isAI: boolean;
-
-  @ApiProperty()
   createdAt: Date;
 
   @ApiProperty()
