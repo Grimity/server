@@ -145,6 +145,9 @@ export class FeedDetailResponse extends FeedResponse {
 
   @ApiProperty()
   isSave: boolean;
+
+  @ApiProperty()
+  commentCount: number;
 }
 
 export class FeedMetaResponse extends FeedBaseResponse {

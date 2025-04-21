@@ -98,6 +98,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 0,
+      commentCount: 0,
       content: 'content',
       tags: ['tag1', 'tag2'],
       author: {
@@ -167,6 +168,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       createdAt: expect.any(String),
       viewCount: 0,
       likeCount: 1,
+      commentCount: 0,
       content: 'content',
       tags: ['tag1', 'tag2'],
       author: {

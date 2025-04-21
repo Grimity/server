@@ -22,6 +22,15 @@ export class FeedSelectRepository {
         'content',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
       .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
       .select((eb) =>
         eb
@@ -64,6 +73,7 @@ export class FeedSelectRepository {
       createdAt: feed.createdAt,
       viewCount: feed.viewCount,
       likeCount: feed.likeCount,
+      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
       content: feed.content,
       tags: feed.tags ?? [],
       isLike: feed.isLike ?? false,
