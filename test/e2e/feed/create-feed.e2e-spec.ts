@@ -235,6 +235,7 @@ describe('POST /feeds - 피드 생성', () => {
       createdAt: expect.any(Date),
       likeCount: 0,
       viewCount: 0,
+      albumId: null,
     });
   });
 });
