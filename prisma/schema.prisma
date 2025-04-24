@@ -33,7 +33,6 @@ model User {
   feeds               Feed[]
   feedLikes           Like[]
   feedComments        FeedComment[]     @relation("FeedCommentWrite")
-  feedViews           View[]
   feedSaves           Save[]
   feedCommentMentions FeedComment[]     @relation("MentionedUser")
   feedCommentLikes    FeedCommentLike[]
@@ -44,6 +43,7 @@ model User {
   postCommentMentions PostComment[]     @relation("MentionedUser")
   postCommentLike     PostCommentLike[]
   refreshToken        RefreshToken[]
+  albums              Album[]
 
   @@unique([provider, providerId])
 }
@@ -70,16 +70,18 @@ model Feed {
   viewCount Int      @default(0)
   likeCount Int      @default(0)
   content   String   @default("")
+  albumId   String?  @db.Uuid
   tags      Tag[]
 
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes    Like[]
   comments FeedComment[]
-  views    View[]
   saves    Save[]
+  album    Album?        @relation(fields: [albumId], references: [id], onDelete: SetNull)
 
   @@index([authorId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
+  @@index([albumId])
 }
 
 model Tag {
@@ -102,17 +104,6 @@ model Like {
 
   @@id([userId, feedId])
   @@index([feedId])
-}
-
-model View {
-  userId    String   @db.Uuid
-  feedId    String   @db.Uuid
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  feed Feed @relation(fields: [feedId], references: [id], onDelete: Cascade)
-
-  @@id([userId, feedId])
 }
 
 model Save {
@@ -263,4 +254,16 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, token])
+}
+
+model Album {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  name   String
+  order  Int
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feeds Feed[]
+
+  @@index([userId])
 }
