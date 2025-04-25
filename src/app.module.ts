@@ -16,6 +16,7 @@ import { GlobalFilter } from './core/filter';
 import { APP_FILTER } from '@nestjs/core';
 import { RedisModule } from './database/redis/redis.module';
 import { ClientInfoMiddleware } from './core/middleware';
+import { AlbumModule } from './module/album.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ClientInfoMiddleware } from './core/middleware';
     PostCommentModule,
     ReportModule,
     RedisModule,
+    AlbumModule,
   ],
   providers: [
     globalPipe,
