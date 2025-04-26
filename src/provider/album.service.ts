@@ -21,4 +21,26 @@ export class AlbumService {
       order: albums.length === 0 ? 1 : albums[albums.length - 1].order + 1,
     });
   }
+
+  async updateOne({
+    userId,
+    id,
+    name,
+  }: {
+    userId: string;
+    id: string;
+    name: string;
+  }) {
+    const albums = await this.albumRepository.findManyByUserId(userId);
+
+    for (const album of albums) {
+      if (album.name === name) {
+        if (album.id === id) return;
+        throw new HttpException('NAME', 409);
+      }
+    }
+
+    await this.albumRepository.updateOne({ userId, id, name });
+    return;
+  }
 }

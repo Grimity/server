@@ -28,4 +28,19 @@ export class AlbumRepository {
       },
     });
   }
+
+  async updateOne({
+    userId,
+    id,
+    name,
+  }: {
+    userId: string;
+    id: string;
+    name: string;
+  }) {
+    return await this.prisma.album.update({
+      where: { id, userId },
+      data: { name },
+    });
+  }
 }

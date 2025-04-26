@@ -12,3 +12,5 @@ export class CreateAlbumRequest {
   @Length(1, 15)
   name: string;
 }
+
+export class UpdateAlbumRequest extends CreateAlbumRequest {}
