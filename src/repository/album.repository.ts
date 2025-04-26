@@ -12,6 +12,9 @@ export class AlbumRepository {
       where: {
         userId,
       },
+      orderBy: {
+        order: 'asc',
+      },
     });
   }
 
@@ -66,5 +69,6 @@ export class AlbumRepository {
       WHERE id IN (${Prisma.join(toUpdate.map((item) => prismaUuid(item.id)))})
       AND "userId" = ${prismaUuid(userId)}
     `;
+    return;
   }
 }

@@ -12,6 +12,7 @@ import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from './util/get-image-url';
 import { removeHtml } from './util/remove-html';
+import { AlbumRepository } from 'src/repository/album.repository';
 
 @Injectable()
 export class UserService {
@@ -24,6 +25,7 @@ export class UserService {
     private postSelectRepository: PostSelectRepository,
     private ddb: DdbService,
     private redisService: RedisService,
+    private albumRepository: AlbumRepository,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -494,6 +496,15 @@ export class UserService {
       image: getImageUrl(user.image),
       url: user.url,
     };
+  }
+
+  async getAlbumsByUserId(userId: string) {
+    const albums = await this.albumRepository.findManyByUserId(userId);
+
+    return albums.map((album) => ({
+      id: album.id,
+      name: album.name,
+    }));
   }
 }
 
