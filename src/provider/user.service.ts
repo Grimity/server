@@ -531,4 +531,5 @@ type GetFeedsInput = {
   size: number;
   cursor: string | null;
   targetId: string;
+  albumId: string | null;
 };

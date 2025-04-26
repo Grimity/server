@@ -338,12 +338,13 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
     @Query() query: GetFeedsByUserRequest,
   ): Promise<UserFeedsResponse> {
-    const { sort, cursor, size } = query;
+    const { sort, cursor, size, albumId } = query;
     return this.userService.getFeedsByUser({
       sort: sort ?? 'latest',
       cursor: cursor ?? null,
       size: size ?? 20,
       targetId,
+      albumId: albumId ?? null,
     });
   }
 

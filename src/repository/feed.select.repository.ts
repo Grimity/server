@@ -92,6 +92,7 @@ export class FeedSelectRepository {
     size,
     cursor,
     targetId,
+    albumId,
   }: FindFeedsByUserInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
@@ -114,7 +115,10 @@ export class FeedSelectRepository {
           )
           .as('commentCount'),
       )
-      .limit(size);
+      .limit(size)
+      .$if(albumId !== null, (eb) => {
+        return eb.where('Feed.albumId', '=', kyselyUuid(albumId!));
+      });
 
     if (sort === 'latest') {
       query = query
@@ -728,4 +732,5 @@ type FindFeedsByUserInput = {
   size: number;
   cursor: string | null;
   targetId: string;
+  albumId: string | null;
 };
