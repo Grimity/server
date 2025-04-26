@@ -13,6 +13,7 @@ import { AlbumService } from 'src/provider/album.service';
 import {
   CreateAlbumRequest,
   UpdateAlbumRequest,
+  UpdateAlbumOrderRequest,
 } from '../request/album.request';
 import {
   ApiTags,
@@ -42,6 +43,20 @@ export class AlbumController {
     @Body() { name }: CreateAlbumRequest,
   ): Promise<IdResponse> {
     return await this.albumService.create(userId, name);
+  }
+
+  @ApiOperation({ summary: '앨범 순서 변경' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 204 })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put('order')
+  async updateOrder(
+    @CurrentUser() userId: string,
+    @Body() { ids }: UpdateAlbumOrderRequest,
+  ) {
+    await this.albumService.updateOrder(userId, ids);
+    return;
   }
 
   @ApiOperation({ summary: '앨범 수정' })

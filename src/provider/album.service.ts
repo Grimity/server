@@ -47,4 +47,14 @@ export class AlbumService {
   async deleteOne(userId: string, id: string) {
     await this.albumRepository.deleteOne(userId, id);
   }
+
+  async updateOrder(userId: string, ids: string[]) {
+    const toUpdate = ids.map((id, index) => ({
+      id,
+      order: index + 1,
+    }));
+
+    await this.albumRepository.updateOrder(userId, toUpdate);
+    return;
+  }
 }

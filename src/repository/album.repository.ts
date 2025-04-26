@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+import { prismaUuid } from './util';
 
 @Injectable()
 export class AlbumRepository {
@@ -48,5 +50,21 @@ export class AlbumRepository {
     return await this.prisma.album.delete({
       where: { id, userId },
     });
+  }
+
+  async updateOrder(userId: string, toUpdate: { id: string; order: number }[]) {
+    await this.prisma.$executeRaw`
+      UPDATE "Album"
+      SET "order" = CASE
+        ${Prisma.join(
+          toUpdate.map((item) => {
+            return Prisma.sql`WHEN id = ${prismaUuid(item.id)} THEN ${item.order}`;
+          }),
+          ' ',
+        )}
+        END
+      WHERE id IN (${Prisma.join(toUpdate.map((item) => prismaUuid(item.id)))})
+      AND "userId" = ${prismaUuid(userId)}
+    `;
   }
 }
