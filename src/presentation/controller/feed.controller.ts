@@ -20,7 +20,11 @@ import {
 import { FeedService } from 'src/provider/feed.service';
 
 import { CursorRequest } from '../request/shared';
-import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
+import {
+  CreateFeedRequest,
+  SearchFeedRequest,
+  UpdateFeedRequest,
+} from '../request/feed.request';
 import { IdResponse } from '../response/shared';
 import {
   SearchedFeedsResponse,
@@ -54,7 +58,7 @@ export class FeedController {
   ): Promise<IdResponse> {
     return await this.feedService.create(userId, {
       ...dto,
-      isAI: false,
+      albumId: dto.albumId ?? null,
     });
   }
 
@@ -168,9 +172,13 @@ export class FeedController {
   async update(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) feedId: string,
-    @Body() dto: CreateFeedRequest,
+    @Body() dto: UpdateFeedRequest,
   ) {
-    await this.feedService.update(userId, { feedId, ...dto, isAI: false });
+    await this.feedService.update(userId, {
+      feedId,
+      ...dto,
+      albumId: dto.albumId ?? null,
+    });
     return;
   }
 

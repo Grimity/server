@@ -7,6 +7,7 @@ import {
   Validate,
   IsIn,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 import {
   TrimString,
@@ -58,7 +59,14 @@ export class CreateFeedRequest {
   })
   @IsImageWithPrefix('feed/')
   thumbnail: string;
+
+  @ApiProperty({ type: 'string', nullable: true, required: false })
+  @IsOptional()
+  @IsUUID()
+  albumId?: string | null;
 }
+
+export class UpdateFeedRequest extends CreateFeedRequest {}
 
 const searchFeedSortTypes = ['latest', 'popular', 'accuracy'] as const;
 export class SearchFeedRequest extends CursorKeywordRequest {

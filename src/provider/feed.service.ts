@@ -357,10 +357,10 @@ export type GetPopularFeedsInput = {
 export type CreateFeedInput = {
   title: string;
   cards: string[];
-  isAI: boolean;
   content: string;
   tags: string[];
   thumbnail: string;
+  albumId: string | null;
 };
 
 export type GetFeedsInput = {

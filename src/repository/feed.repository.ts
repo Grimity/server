@@ -14,6 +14,7 @@ export class FeedRepository {
         content: createFeedInput.content,
         cards: createFeedInput.cards,
         thumbnail: createFeedInput.thumbnail,
+        albumId: createFeedInput.albumId,
         tags: {
           createMany: {
             data: createFeedInput.tags.map((tag) => {
@@ -172,6 +173,7 @@ export class FeedRepository {
             content: updateFeedInput.content,
             cards: updateFeedInput.cards,
             thumbnail: updateFeedInput.thumbnail,
+            albumId: updateFeedInput.albumId,
           },
           select: { id: true },
         }),
@@ -234,8 +236,8 @@ export class FeedRepository {
 type CreateFeedInput = {
   title: string;
   cards: string[];
-  isAI: boolean;
   content: string;
   tags: string[];
   thumbnail: string;
+  albumId: string | null;
 };

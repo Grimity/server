@@ -197,6 +197,28 @@ describe('POST /feeds - 피드 생성', () => {
     expect(status).toBe(400);
   });
 
+  it('albumId가 UUID 형식이 아니면 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/feeds')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'test',
+        cards: ['feed/test.jpg'],
+        isAI: false,
+        content: 'test',
+        tags: ['test', 'test2'],
+        thumbnail: 'feed/test.jpg',
+        albumId: 'INVALID',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
   it('201와 함께 feed를 생성한다', async () => {
     // given
     const accessToken = await register(app, 'test');
@@ -236,6 +258,59 @@ describe('POST /feeds - 피드 생성', () => {
       likeCount: 0,
       viewCount: 0,
       albumId: null,
+    });
+  });
+
+  it('201과 함께 피드를 생성한다 - albumId가 있을 때', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.findFirstOrThrow();
+
+    const album = await prisma.album.create({
+      data: {
+        name: 'test1',
+        order: 1,
+        userId: user.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/feeds')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'test',
+        cards: ['feed/test.jpg'],
+        isAI: false,
+        content: 'test',
+        tags: ['test', 'test2'],
+        thumbnail: 'feed/test.jpg',
+        albumId: album.id,
+      });
+
+    // then
+    expect(status).toBe(201);
+    expect(body).toEqual({
+      id: expect.any(String),
+    });
+    const feed = await prisma.feed.findFirstOrThrow({
+      include: {
+        tags: true,
+      },
+    });
+    expect(feed).toEqual({
+      id: body.id,
+      authorId: expect.any(String),
+      title: 'test',
+      content: 'test',
+      cards: ['feed/test.jpg'],
+      thumbnail: 'feed/test.jpg',
+      tags: expect.any(Array),
+      createdAt: expect.any(Date),
+      likeCount: 0,
+      viewCount: 0,
+      albumId: album.id,
     });
   });
 });
