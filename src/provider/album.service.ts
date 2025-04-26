@@ -1,10 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
+import { AlbumRepository } from 'src/repository/album.repository';
 
 @Injectable()
 export class AlbumService {
-  constructor() {}
+  constructor(private readonly albumRepository: AlbumRepository) {}
 
-  async create(userId: string) {
-    console.log(userId);
+  async create(userId: string, name: string) {
+    const albums = await this.albumRepository.findManyByUserId(userId);
+
+    if (albums.length === 8) {
+      throw new HttpException('앨범 개수 최대 8개', 400);
+    }
+
+    if (albums.some((album) => album.name === name)) {
+      throw new HttpException('NAME', 409);
+    }
+
+    return await this.albumRepository.create(userId, {
+      name,
+      order: albums.length === 0 ? 1 : albums[albums.length - 1].order + 1,
+    });
   }
 }
