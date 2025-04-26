@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Param,
   HttpCode,
+  Delete,
 } from '@nestjs/common';
 import { AlbumService } from 'src/provider/album.service';
 import {
@@ -60,6 +61,20 @@ export class AlbumController {
       id,
       name,
     });
+    return;
+  }
+
+  @ApiOperation({ summary: '앨범 삭제' })
+  @ApiBearerAuth()
+  @ApiResponse({ status: 204 })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id')
+  async deleteOne(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
+    await this.albumService.deleteOne(userId, id);
     return;
   }
 }

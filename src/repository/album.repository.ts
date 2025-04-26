@@ -43,4 +43,10 @@ export class AlbumRepository {
       data: { name },
     });
   }
+
+  async deleteOne(userId: string, id: string) {
+    return await this.prisma.album.delete({
+      where: { id, userId },
+    });
+  }
 }

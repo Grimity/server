@@ -43,4 +43,8 @@ export class AlbumService {
     await this.albumRepository.updateOne({ userId, id, name });
     return;
   }
+
+  async deleteOne(userId: string, id: string) {
+    await this.albumRepository.deleteOne(userId, id);
+  }
 }
