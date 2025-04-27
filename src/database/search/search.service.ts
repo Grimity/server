@@ -4,6 +4,7 @@ export interface SearchService {
   insertFeed(input: InsertFeedInput): Promise<void>;
   updateFeed(input: InsertFeedInput): Promise<void>;
   deleteFeed(id: string): Promise<void>;
+  deleteFeeds(ids: string[]): Promise<void>;
   insertPost(input: InsertPostInput): Promise<void>;
   updatePost(input: InsertPostInput): Promise<void>;
   deletePost(id: string): Promise<void>;

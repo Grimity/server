@@ -347,6 +347,16 @@ export class FeedService {
       thumbnail: getImageUrl(feed.thumbnail),
     };
   }
+
+  async deleteMany(userId: string, ids: string[]) {
+    const count = await this.feedRepository.deleteMany(userId, ids);
+
+    if (count === ids.length) {
+      await this.searchService.deleteFeeds(ids);
+    }
+
+    return;
+  }
 }
 
 export type GetPopularFeedsInput = {

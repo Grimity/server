@@ -18,6 +18,9 @@ export class OpenSearchMockService implements SearchService {
   async deleteFeed() {
     return;
   }
+  async deleteFeeds() {
+    return;
+  }
   async insertPost() {
     return;
   }

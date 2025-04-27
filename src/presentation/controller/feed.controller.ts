@@ -24,6 +24,7 @@ import {
   CreateFeedRequest,
   SearchFeedRequest,
   UpdateFeedRequest,
+  DeleteFeedsRequest,
 } from '../request/feed.request';
 import { IdResponse } from '../response/shared';
 import {
@@ -60,6 +61,19 @@ export class FeedController {
       ...dto,
       albumId: dto.albumId ?? null,
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 여러개 삭제' })
+  @ApiResponse({ status: 204 })
+  @UseGuards(JwtGuard)
+  @Post('batch-delete')
+  async deleteMany(
+    @CurrentUser() userId: string,
+    @Body() { ids }: DeleteFeedsRequest,
+  ) {
+    await this.feedService.deleteMany(userId, ids);
+    return;
   }
 
   @ApiBearerAuth()

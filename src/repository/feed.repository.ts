@@ -231,6 +231,25 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async deleteMany(userId: string, ids: string[]) {
+    const result = await this.prisma.feed.deleteMany({
+      where: {
+        AND: [
+          {
+            authorId: userId,
+          },
+          {
+            id: {
+              in: ids,
+            },
+          },
+        ],
+      },
+    });
+
+    return result.count;
+  }
 }
 
 type CreateFeedInput = {
