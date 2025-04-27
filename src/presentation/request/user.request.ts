@@ -7,6 +7,7 @@ import {
   IsIn,
   IsOptional,
   Validate,
+  IsUUID,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import {
@@ -102,4 +103,9 @@ export class GetFeedsByUserRequest extends CursorRequest {
   @IsOptional()
   @IsIn(GetFeedsByUserSort)
   sort?: (typeof GetFeedsByUserSort)[number];
+
+  @ApiProperty({ required: false, type: 'string', description: '없으면 전체' })
+  @IsOptional()
+  @IsUUID()
+  albumId?: string | null;
 }

@@ -56,7 +56,7 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 정보 조회' })
+  @ApiOperation({ summary: '내 정보 조회', deprecated: true })
   @ApiResponse({ status: 200, type: MyProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
   @UseGuards(JwtGuard)
@@ -66,7 +66,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 정보 변경' })
+  @ApiOperation({ summary: '내 정보 변경', deprecated: true })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 409, type: UpdateProfileConflictResponse })
   @UseGuards(JwtGuard)
@@ -81,7 +81,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '회원 탈퇴' })
+  @ApiOperation({ summary: '회원 탈퇴', deprecated: true })
   @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -92,7 +92,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '프로필 이미지 변경' })
+  @ApiOperation({ summary: '프로필 이미지 변경', deprecated: true })
   @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -106,7 +106,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '프로필 이미지 삭제' })
+  @ApiOperation({ summary: '프로필 이미지 삭제', deprecated: true })
   @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -117,7 +117,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '배경사진 변경' })
+  @ApiOperation({ summary: '배경사진 변경', deprecated: true })
   @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -131,7 +131,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '배경사진 삭제' })
+  @ApiOperation({ summary: '배경사진 삭제', deprecated: true })
   @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @HttpCode(204)
@@ -142,7 +142,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '알림 구독 여부 조회' })
+  @ApiOperation({ summary: '알림 구독 여부 조회', deprecated: true })
   @ApiResponse({ status: 200, type: SubscriptionResponse })
   @UseGuards(JwtGuard)
   @Get('me/subscribe')
@@ -153,7 +153,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '알림 구독 여부 수정' })
+  @ApiOperation({ summary: '알림 구독 여부 수정', deprecated: true })
   @ApiResponse({ status: 204 })
   @UseGuards(JwtGuard)
   @Put('me/subscribe')
@@ -169,7 +169,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 팔로워 조회' })
+  @ApiOperation({ summary: '내 팔로워 조회', deprecated: true })
   @ApiResponse({ status: 200, type: MyFollowersResponse })
   @UseGuards(JwtGuard)
   @Get('me/followers')
@@ -184,7 +184,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 팔로잉 조회' })
+  @ApiOperation({ summary: '내 팔로잉 조회', deprecated: true })
   @ApiResponse({ status: 200, type: MyFollowingsResponse })
   @UseGuards(JwtGuard)
   @Get('me/followings')
@@ -199,7 +199,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 팔로워 삭제' })
+  @ApiOperation({ summary: '내 팔로워 삭제', deprecated: true })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '팔로우하지 않은 유저' })
   @UseGuards(JwtGuard)
@@ -214,7 +214,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내 좋아요한 피드 조회' })
+  @ApiOperation({ summary: '내 좋아요한 피드 조회', deprecated: true })
   @ApiResponse({ status: 200, type: MyLikeFeedsResponse })
   @UseGuards(JwtGuard)
   @Get('me/like-feeds')
@@ -229,7 +229,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내가 저장한 피드 조회' })
+  @ApiOperation({ summary: '내가 저장한 피드 조회', deprecated: true })
   @ApiResponse({ status: 200, type: MyLikeFeedsResponse })
   @UseGuards(JwtGuard)
   @Get('me/save-feeds')
@@ -244,7 +244,7 @@ export class UserController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '내가 저장한 게시글 조회' })
+  @ApiOperation({ summary: '내가 저장한 게시글 조회', deprecated: true })
   @ApiResponse({ status: 200, type: MySavePostsResponse })
   @UseGuards(JwtGuard)
   @Get('me/save-posts')
@@ -338,12 +338,13 @@ export class UserController {
     @Param('id', ParseUUIDPipe) targetId: string,
     @Query() query: GetFeedsByUserRequest,
   ): Promise<UserFeedsResponse> {
-    const { sort, cursor, size } = query;
+    const { sort, cursor, size, albumId } = query;
     return this.userService.getFeedsByUser({
       sort: sort ?? 'latest',
       cursor: cursor ?? null,
       size: size ?? 20,
       targetId,
+      albumId: albumId ?? null,
     });
   }
 

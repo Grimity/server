@@ -20,7 +20,12 @@ import {
 import { FeedService } from 'src/provider/feed.service';
 
 import { CursorRequest } from '../request/shared';
-import { CreateFeedRequest, SearchFeedRequest } from '../request/feed.request';
+import {
+  CreateFeedRequest,
+  SearchFeedRequest,
+  UpdateFeedRequest,
+  DeleteFeedsRequest,
+} from '../request/feed.request';
 import { IdResponse } from '../response/shared';
 import {
   SearchedFeedsResponse,
@@ -54,8 +59,21 @@ export class FeedController {
   ): Promise<IdResponse> {
     return await this.feedService.create(userId, {
       ...dto,
-      isAI: false,
+      albumId: dto.albumId ?? null,
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '피드 여러개 삭제' })
+  @ApiResponse({ status: 204 })
+  @UseGuards(JwtGuard)
+  @Post('batch-delete')
+  async deleteMany(
+    @CurrentUser() userId: string,
+    @Body() { ids }: DeleteFeedsRequest,
+  ) {
+    await this.feedService.deleteMany(userId, ids);
+    return;
   }
 
   @ApiBearerAuth()
@@ -168,9 +186,13 @@ export class FeedController {
   async update(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) feedId: string,
-    @Body() dto: CreateFeedRequest,
+    @Body() dto: UpdateFeedRequest,
   ) {
-    await this.feedService.update(userId, { feedId, ...dto, isAI: false });
+    await this.feedService.update(userId, {
+      feedId,
+      ...dto,
+      albumId: dto.albumId ?? null,
+    });
     return;
   }
 

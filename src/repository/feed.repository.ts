@@ -14,6 +14,7 @@ export class FeedRepository {
         content: createFeedInput.content,
         cards: createFeedInput.cards,
         thumbnail: createFeedInput.thumbnail,
+        albumId: createFeedInput.albumId,
         tags: {
           createMany: {
             data: createFeedInput.tags.map((tag) => {
@@ -172,6 +173,7 @@ export class FeedRepository {
             content: updateFeedInput.content,
             cards: updateFeedInput.cards,
             thumbnail: updateFeedInput.thumbnail,
+            albumId: updateFeedInput.albumId,
           },
           select: { id: true },
         }),
@@ -229,13 +231,56 @@ export class FeedRepository {
       throw e;
     }
   }
+
+  async deleteMany(userId: string, ids: string[]) {
+    const result = await this.prisma.feed.deleteMany({
+      where: {
+        AND: [
+          {
+            authorId: userId,
+          },
+          {
+            id: {
+              in: ids,
+            },
+          },
+        ],
+      },
+    });
+
+    return result.count;
+  }
+
+  async updateAlbum(
+    userId: string,
+    { albumId, feedIds }: { albumId: string; feedIds: string[] },
+  ) {
+    await this.prisma.feed.updateMany({
+      where: {
+        AND: [
+          {
+            authorId: userId,
+          },
+          {
+            id: {
+              in: feedIds,
+            },
+          },
+        ],
+      },
+      data: {
+        albumId,
+      },
+    });
+    return;
+  }
 }
 
 type CreateFeedInput = {
   title: string;
   cards: string[];
-  isAI: boolean;
   content: string;
   tags: string[];
   thumbnail: string;
+  albumId: string | null;
 };

@@ -81,6 +81,28 @@ describe('PUT /feeds/:id', () => {
     expect(status).toBe(404);
   });
 
+  it('albumId가 UUID가 아닐 때 400을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put('/feeds/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'updated title',
+        content: 'updated content',
+        isAI: true,
+        cards: ['feed/test3.jpg'],
+        tags: ['tag1', 'tag2', 'tag3'],
+        thumbnail: 'feed/test3.jpg',
+        albumId: 'INVALID',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
   it('204와 함께 피드를 수정한다', async () => {
     // given
     const accessToken = await register(app, 'test');
@@ -159,5 +181,92 @@ describe('PUT /feeds/:id', () => {
     ]);
     expect(tagCount).toBe(7);
     expect(updatedFeed.thumbnail).toBe('feed/test3.jpg');
+  });
+
+  it('204와 함께 피드를 수정한다 - albumId가 있는 버전', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.findFirstOrThrow();
+
+    const album = await prisma.album.create({
+      data: {
+        userId: user.id,
+        name: 'test1',
+        order: 1,
+      },
+    });
+
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: user.id,
+        title: 'feed1',
+        content: 'content1',
+        cards: ['feed/test.jpg', 'feed/test2.jpg'],
+        thumbnail: 'feed/test.jpg',
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put(`/feeds/${feed.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'updated title',
+        content: 'updated content',
+        cards: ['feed/test3.jpg'],
+        tags: ['tag1', 'tag2', 'tag3'],
+        thumbnail: 'feed/test3.jpg',
+        albumId: album.id,
+      });
+
+    // then
+    expect(status).toBe(204);
+    const updatedFeed = await prisma.feed.findFirstOrThrow();
+    expect(updatedFeed.albumId).toBe(album.id);
+  });
+
+  it('204와 함께 피드를 수정한다 - albumId가 없는 버전', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.findFirstOrThrow();
+
+    const album = await prisma.album.create({
+      data: {
+        userId: user.id,
+        name: 'test1',
+        order: 1,
+      },
+    });
+
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: user.id,
+        title: 'feed1',
+        content: 'content1',
+        cards: ['feed/test.jpg', 'feed/test2.jpg'],
+        thumbnail: 'feed/test.jpg',
+        albumId: album.id,
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put(`/feeds/${feed.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'updated title',
+        content: 'updated content',
+        cards: ['feed/test3.jpg'],
+        tags: ['tag1', 'tag2', 'tag3'],
+        thumbnail: 'feed/test3.jpg',
+        albumId: null,
+      });
+
+    // then
+    expect(status).toBe(204);
+    const updatedFeed = await prisma.feed.findFirstOrThrow();
+    expect(updatedFeed.albumId).toBe(null);
   });
 });

@@ -9,6 +9,8 @@ import { SearchModule } from 'src/database/search/search.module';
 import { PostModule } from './post.module';
 import { DdbModule } from 'src/database/ddb/ddb.module';
 import { RedisModule } from 'src/database/redis/redis.module';
+import { MeController } from 'src/presentation/controller/me.controller';
+import { AlbumModule } from './album.module';
 
 @Module({
   imports: [
@@ -18,8 +20,9 @@ import { RedisModule } from 'src/database/redis/redis.module';
     PostModule,
     DdbModule,
     RedisModule,
+    AlbumModule,
   ],
-  controllers: [UserController],
+  controllers: [UserController, MeController],
   providers: [UserRepository, UserService, UserSelectRepository],
   exports: [UserRepository, UserSelectRepository],
 })

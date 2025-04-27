@@ -302,6 +302,7 @@ export class FeedService {
       userId,
       size,
       cursor,
+      likeCount: 3,
     });
 
     let nextCursor: string | null = null;
@@ -347,6 +348,16 @@ export class FeedService {
       thumbnail: getImageUrl(feed.thumbnail),
     };
   }
+
+  async deleteMany(userId: string, ids: string[]) {
+    const count = await this.feedRepository.deleteMany(userId, ids);
+
+    if (count === ids.length) {
+      await this.searchService.deleteFeeds(ids);
+    }
+
+    return;
+  }
 }
 
 export type GetPopularFeedsInput = {
@@ -357,10 +368,10 @@ export type GetPopularFeedsInput = {
 export type CreateFeedInput = {
   title: string;
   cards: string[];
-  isAI: boolean;
   content: string;
   tags: string[];
   thumbnail: string;
+  albumId: string | null;
 };
 
 export type GetFeedsInput = {

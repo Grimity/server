@@ -17,5 +17,6 @@
     "paths": {
       "src/*": ["src/*"]
     }
-  }
+  },
+  "exclude": ["share"]
 }

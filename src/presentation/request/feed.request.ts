@@ -1,12 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsBoolean,
+  ArrayMinSize,
   Length,
   ArrayNotEmpty,
   ArrayMaxSize,
   Validate,
   IsIn,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 import {
   TrimString,
@@ -58,7 +59,14 @@ export class CreateFeedRequest {
   })
   @IsImageWithPrefix('feed/')
   thumbnail: string;
+
+  @ApiProperty({ type: 'string', nullable: true, required: false })
+  @IsOptional()
+  @IsUUID()
+  albumId?: string | null;
 }
+
+export class UpdateFeedRequest extends CreateFeedRequest {}
 
 const searchFeedSortTypes = ['latest', 'popular', 'accuracy'] as const;
 export class SearchFeedRequest extends CursorKeywordRequest {
@@ -67,4 +75,11 @@ export class SearchFeedRequest extends CursorKeywordRequest {
   @IsOptional()
   @IsIn(searchFeedSortTypes)
   sort?: (typeof searchFeedSortTypes)[number];
+}
+
+export class DeleteFeedsRequest {
+  @ApiProperty({ type: 'string', isArray: true, minLength: 1 })
+  @ArrayMinSize(1)
+  @IsUUID('4', { each: true })
+  ids: string[];
 }

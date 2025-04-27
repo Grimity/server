@@ -12,6 +12,6 @@ import { RedisModule } from 'src/database/redis/redis.module';
   imports: [AwsModule, SearchModule, DdbModule, RedisModule],
   controllers: [FeedController],
   providers: [FeedService, FeedRepository, FeedSelectRepository],
-  exports: [FeedSelectRepository],
+  exports: [FeedSelectRepository, FeedRepository],
 })
 export class FeedModule {}

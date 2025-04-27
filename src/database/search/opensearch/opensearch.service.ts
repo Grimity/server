@@ -140,6 +140,29 @@ export class OpenSearchService implements SearchService {
     }
   }
 
+  async deleteFeeds(ids: string[]) {
+    try {
+      await this.client.deleteByQuery(
+        {
+          index: 'feed',
+          body: {
+            query: {
+              ids: {
+                values: ids,
+              },
+            },
+          },
+        },
+        {
+          requestTimeout,
+        },
+      );
+    } catch (e) {
+      this.logger.error(e);
+      return;
+    }
+  }
+
   async insertPost({ id, title, content }: InsertPostInput): Promise<void> {
     try {
       await this.client.index(

@@ -12,6 +12,7 @@ import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from './util/get-image-url';
 import { removeHtml } from './util/remove-html';
+import { AlbumRepository } from 'src/repository/album.repository';
 
 @Injectable()
 export class UserService {
@@ -24,6 +25,7 @@ export class UserService {
     private postSelectRepository: PostSelectRepository,
     private ddb: DdbService,
     private redisService: RedisService,
+    private albumRepository: AlbumRepository,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -140,10 +142,10 @@ export class UserService {
   }
 
   async getUserProfileById(userId: string | null, targetUserId: string) {
-    const targetUser = await this.userSelectRepository.getUserProfile(
-      userId,
-      targetUserId,
-    );
+    const [targetUser, albums] = await Promise.all([
+      this.userSelectRepository.getUserProfile(userId, targetUserId),
+      this.albumRepository.findManyWithCountByUserId(targetUserId),
+    ]);
 
     return {
       id: targetUser.id,
@@ -164,6 +166,7 @@ export class UserService {
       feedCount: targetUser.feedCount,
       postCount: targetUser.postCount,
       isFollowing: targetUser.isFollowing,
+      albums,
     };
   }
 
@@ -495,6 +498,15 @@ export class UserService {
       url: user.url,
     };
   }
+
+  async getAlbumsByUserId(userId: string) {
+    const albums = await this.albumRepository.findManyByUserId(userId);
+
+    return albums.map((album) => ({
+      id: album.id,
+      name: album.name,
+    }));
+  }
 }
 
 export type SearchUserInput = {
@@ -520,4 +532,5 @@ type GetFeedsInput = {
   size: number;
   cursor: string | null;
   targetId: string;
+  albumId: string | null;
 };

@@ -5,6 +5,7 @@ import {
   CursorAndCountResponse,
 } from './shared/cursor.response';
 import { ConflictResponse } from './shared';
+import { AlbumBaseResponse } from './album.response';
 
 // 최소단위 User
 export class UserBaseResponse {
@@ -127,6 +128,11 @@ export class PopularUserResponse extends UserBaseResponse {
   thumbnails: string[];
 }
 
+export class AlbumWithCountResponse extends AlbumBaseResponse {
+  @ApiProperty()
+  feedCount: number;
+}
+
 export class UserProfileResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
@@ -155,6 +161,9 @@ export class UserProfileResponse extends UserBaseResponse {
 
   @ApiProperty()
   isFollowing: boolean;
+
+  @ApiProperty({ type: AlbumWithCountResponse, isArray: true })
+  albums: AlbumWithCountResponse[];
 }
 
 export class UserMetaResponse extends UserBaseResponse {

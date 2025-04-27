@@ -64,10 +64,10 @@ describe('GET /feeds/popular - 인기 그림 조회', () => {
     // then
     expect(status).toBe(200);
     expect(body.feeds.length).toBe(10);
-    expect(body.feeds[0].likeCount).toBe(1);
+    expect(body.feeds[0].likeCount).toBe(4);
     expect(body.nextCursor).not.toBeNull();
     expect(status2).toBe(200);
-    expect(body2.feeds.length).toBe(9);
+    expect(body2.feeds.length).toBe(6);
     expect(body2.nextCursor).toBeNull();
   });
 });

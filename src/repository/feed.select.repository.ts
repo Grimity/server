@@ -92,6 +92,7 @@ export class FeedSelectRepository {
     size,
     cursor,
     targetId,
+    albumId,
   }: FindFeedsByUserInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
@@ -114,7 +115,10 @@ export class FeedSelectRepository {
           )
           .as('commentCount'),
       )
-      .limit(size);
+      .limit(size)
+      .$if(albumId !== null, (eb) => {
+        return eb.where('Feed.albumId', '=', kyselyUuid(albumId!));
+      });
 
     if (sort === 'latest') {
       query = query
@@ -592,10 +596,10 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findPopular({ userId, size, cursor }: FindPopularInput) {
+  async findPopular({ userId, size, cursor, likeCount }: FindPopularInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
-      .where('likeCount', '>', 0)
+      .where('likeCount', '>', likeCount)
       .select([
         'Feed.id',
         'title',
@@ -707,6 +711,7 @@ type FindPopularInput = {
   userId: string | null;
   size: number;
   cursor: string | null;
+  likeCount: number;
 };
 
 type FindFollowingFeedsInput = {
@@ -728,4 +733,5 @@ type FindFeedsByUserInput = {
   size: number;
   cursor: string | null;
   targetId: string;
+  albumId: string | null;
 };
