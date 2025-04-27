@@ -142,10 +142,10 @@ export class UserService {
   }
 
   async getUserProfileById(userId: string | null, targetUserId: string) {
-    const targetUser = await this.userSelectRepository.getUserProfile(
-      userId,
-      targetUserId,
-    );
+    const [targetUser, albums] = await Promise.all([
+      this.userSelectRepository.getUserProfile(userId, targetUserId),
+      this.albumRepository.findManyWithCountByUserId(targetUserId),
+    ]);
 
     return {
       id: targetUser.id,
@@ -166,6 +166,7 @@ export class UserService {
       feedCount: targetUser.feedCount,
       postCount: targetUser.postCount,
       isFollowing: targetUser.isFollowing,
+      albums,
     };
   }
 

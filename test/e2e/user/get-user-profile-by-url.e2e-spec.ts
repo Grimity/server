@@ -68,6 +68,88 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
       postCount: 0,
       isFollowing: false,
       url: 'test',
+      albums: [],
+    });
+  });
+
+  it('피드와 앨범이 있는 경우', async () => {
+    // given
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test',
+        email: 'testtest2@test.com',
+        name: 'test',
+        url: 'test',
+      },
+    });
+
+    const albums = await prisma.album.createManyAndReturn({
+      data: [
+        {
+          userId: user.id,
+          name: 'test1',
+          order: 1,
+        },
+        {
+          userId: user.id,
+          name: 'test2',
+          order: 2,
+        },
+      ],
+    });
+
+    await prisma.feed.createMany({
+      data: [
+        {
+          title: 'test1',
+          content: 'test1',
+          authorId: user.id,
+          thumbnail: 'test1',
+          albumId: albums[0].id,
+        },
+        {
+          title: 'test2',
+          content: 'test2',
+          authorId: user.id,
+          thumbnail: 'test2',
+          albumId: albums[0].id,
+        },
+      ],
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer()).get(
+      `/users/profile/${user.url}`,
+    );
+
+    // then
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      id: user.id,
+      name: 'test',
+      image: null,
+      backgroundImage: null,
+      description: '',
+      links: [],
+      followerCount: 0,
+      followingCount: 0,
+      feedCount: 2,
+      postCount: 0,
+      isFollowing: false,
+      url: 'test',
+      albums: [
+        {
+          id: albums[0].id,
+          name: 'test1',
+          feedCount: 2,
+        },
+        {
+          id: albums[1].id,
+          name: 'test2',
+          feedCount: 0,
+        },
+      ],
     });
   });
 
@@ -111,6 +193,7 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
       postCount: 0,
       isFollowing: true,
       url: 'test2',
+      albums: [],
     });
   });
 

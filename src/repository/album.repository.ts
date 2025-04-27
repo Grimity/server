@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { prismaUuid } from './util';
+import { kyselyUuid, prismaUuid } from './util';
 
 @Injectable()
 export class AlbumRepository {
@@ -76,5 +76,27 @@ export class AlbumRepository {
     return await this.prisma.album.findUnique({
       where: { id },
     });
+  }
+
+  async findManyWithCountByUserId(userId: string) {
+    const albums = await this.prisma.$kysely
+      .selectFrom('Album')
+      .where('Album.userId', '=', kyselyUuid(userId))
+      .select((eb) =>
+        eb
+          .selectFrom('Feed')
+          .whereRef('Feed.albumId', '=', 'Album.id')
+          .select((eb) => eb.fn.count<bigint>('Feed.id').as('feedCount'))
+          .as('feedCount'),
+      )
+      .select(['Album.id', 'Album.name'])
+      .orderBy('Album.order asc')
+      .execute();
+
+    return albums.map((album) => ({
+      id: album.id,
+      name: album.name,
+      feedCount: album.feedCount ? Number(album.feedCount) : 0,
+    }));
   }
 }
