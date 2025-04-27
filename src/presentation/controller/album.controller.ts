@@ -8,6 +8,7 @@ import {
   Param,
   HttpCode,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { AlbumService } from 'src/provider/album.service';
 import {
@@ -65,7 +66,7 @@ export class AlbumController {
   @ApiResponse({ status: 409, description: '앨범 이름 중복' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
-  @Put(':id')
+  @Patch(':id')
   async updateOne(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) id: string,

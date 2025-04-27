@@ -6,7 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /albums/:id - 앨범 수정', () => {
+describe('PATCH /albums/:id - 앨범 수정', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -39,7 +39,7 @@ describe('PUT /albums/:id - 앨범 수정', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/albums/1')
+      .patch('/albums/1')
       .send();
 
     // then
@@ -52,7 +52,7 @@ describe('PUT /albums/:id - 앨범 수정', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/albums/invalid-id')
+      .patch('/albums/invalid-id')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ name: 'test' });
 
@@ -66,7 +66,7 @@ describe('PUT /albums/:id - 앨범 수정', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/albums/1')
+      .patch('/albums/1')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ name: 'a'.repeat(16) });
 
@@ -90,7 +90,7 @@ describe('PUT /albums/:id - 앨범 수정', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/albums/00000000-0000-0000-0000-000000000000')
+      .patch('/albums/00000000-0000-0000-0000-000000000000')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ name: 'test' });
 
@@ -113,7 +113,7 @@ describe('PUT /albums/:id - 앨범 수정', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/albums/${album.id}`)
+      .patch(`/albums/${album.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ name: 'updated' });
 
