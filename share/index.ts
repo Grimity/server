@@ -7,6 +7,7 @@ export type * from '../src/presentation/request/post.request';
 export type * from '../src/presentation/request/report.request';
 export type * from '../src/presentation/request/user.request';
 export type * from '../src/presentation/request/shared';
+export type * from '../src/presentation/request/album.request';
 
 export type * from '../src/presentation/response/auth.response';
 export type * from '../src/presentation/response/aws.response';
@@ -18,3 +19,4 @@ export type * from '../src/presentation/response/post.response';
 export type * from '../src/presentation/response/tag.response';
 export type * from '../src/presentation/response/user.response';
 export type * from '../src/presentation/response/shared';
+export type * from '../src/presentation/response/album.response';
