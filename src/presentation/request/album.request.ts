@@ -28,3 +28,10 @@ export class UpdateAlbumOrderRequest {
   @IsUUID('4', { each: true })
   ids: string[];
 }
+
+export class InsertFeedsRequest {
+  @ApiProperty({ minLength: 1, type: 'string', isArray: true })
+  @ArrayMinSize(1)
+  @IsUUID('4', { each: true })
+  ids: string[];
+}
