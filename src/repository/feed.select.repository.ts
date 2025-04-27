@@ -596,10 +596,10 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findPopular({ userId, size, cursor }: FindPopularInput) {
+  async findPopular({ userId, size, cursor, likeCount }: FindPopularInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
-      .where('likeCount', '>', 0)
+      .where('likeCount', '>', likeCount)
       .select([
         'Feed.id',
         'title',
@@ -711,6 +711,7 @@ type FindPopularInput = {
   userId: string | null;
   size: number;
   cursor: string | null;
+  likeCount: number;
 };
 
 type FindFollowingFeedsInput = {

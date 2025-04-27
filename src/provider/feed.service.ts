@@ -302,6 +302,7 @@ export class FeedService {
       userId,
       size,
       cursor,
+      likeCount: 3,
     });
 
     let nextCursor: string | null = null;
