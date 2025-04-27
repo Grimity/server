@@ -250,6 +250,30 @@ export class FeedRepository {
 
     return result.count;
   }
+
+  async updateAlbum(
+    userId: string,
+    { albumId, feedIds }: { albumId: string; feedIds: string[] },
+  ) {
+    await this.prisma.feed.updateMany({
+      where: {
+        AND: [
+          {
+            authorId: userId,
+          },
+          {
+            id: {
+              in: feedIds,
+            },
+          },
+        ],
+      },
+      data: {
+        albumId,
+      },
+    });
+    return;
+  }
 }
 
 type CreateFeedInput = {

@@ -71,4 +71,10 @@ export class AlbumRepository {
     `;
     return;
   }
+
+  async findOneById(id: string) {
+    return await this.prisma.album.findUnique({
+      where: { id },
+    });
+  }
 }

@@ -65,8 +65,12 @@ export class AlbumController {
   @Put(':id')
   async insertFeeds(
     @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) albumId: string,
     @Body() { ids }: InsertFeedsRequest,
-  ) {}
+  ) {
+    await this.albumService.insertFeeds(userId, { albumId, feedIds: ids });
+    return;
+  }
 
   @ApiOperation({ summary: '앨범 수정' })
   @ApiResponse({ status: 204 })
