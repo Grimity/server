@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserBaseResponse } from './user.response';
 import { CursorAndCountResponse, CursorResponse } from './shared';
+import { AlbumBaseResponse } from './album.response';
 
 // 최소단위
 export class FeedBaseResponse {
@@ -148,6 +149,9 @@ export class FeedDetailResponse extends FeedResponse {
 
   @ApiProperty()
   commentCount: number;
+
+  @ApiProperty({ type: AlbumBaseResponse, nullable: true })
+  album: AlbumBaseResponse | null;
 }
 
 export class FeedMetaResponse extends FeedBaseResponse {

@@ -109,6 +109,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       },
       isLike: false,
       isSave: false,
+      album: null,
     });
   });
 
@@ -116,7 +117,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
     // given
     const accessToken = await register(app, 'test');
 
-    const [, user2] = await Promise.all([
+    const [user1, user2] = await Promise.all([
       prisma.user.findFirstOrThrow(),
       prisma.user.create({
         data: {
@@ -128,6 +129,14 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         },
       }),
     ]);
+
+    const album = await prisma.album.create({
+      data: {
+        name: 'test1',
+        order: 1,
+        userId: user1.id,
+      },
+    });
 
     const feed = await prisma.feed.create({
       data: {
@@ -141,6 +150,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
             data: [{ tagName: 'tag1' }, { tagName: 'tag2' }],
           },
         },
+        albumId: album.id,
       },
     });
 
@@ -179,6 +189,10 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
       },
       isLike: true,
       isSave: false,
+      album: {
+        id: album.id,
+        name: album.name,
+      },
     });
   });
 });

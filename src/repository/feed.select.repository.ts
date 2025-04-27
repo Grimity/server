@@ -22,6 +22,8 @@ export class FeedSelectRepository {
         'content',
       ])
       .innerJoin('User', 'Feed.authorId', 'User.id')
+      .leftJoin('Album', 'Album.id', 'Feed.albumId')
+      .select(['Album.id as albumId', 'Album.name as albumName'])
       .select((eb) =>
         eb
           .selectFrom('FeedComment')
@@ -31,7 +33,12 @@ export class FeedSelectRepository {
           )
           .as('commentCount'),
       )
-      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
+      .select([
+        'User.id as authorId',
+        'User.name',
+        'User.image as image',
+        'url',
+      ])
       .select((eb) =>
         eb
           .selectFrom('Tag')
@@ -84,6 +91,13 @@ export class FeedSelectRepository {
         image: feed.image,
         url: feed.url,
       },
+      album:
+        feed.albumId && feed.albumName
+          ? {
+              id: feed.albumId,
+              name: feed.albumName,
+            }
+          : null,
     };
   }
 
