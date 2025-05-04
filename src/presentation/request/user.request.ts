@@ -60,7 +60,7 @@ export class UpdateUserRequest {
     maximum: 3,
   })
   @Transform(({ value }) => (value === null ? [] : value))
-  @ArrayMaxSize(3)
+  @ArrayMaxSize(30)
   @ValidateNested({ each: true })
   @Type(() => UpdateLinkRequest)
   links: UpdateLinkRequest[];

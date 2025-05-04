@@ -117,7 +117,7 @@ describe('PUT /users/me', () => {
     expect(status).toBe(400);
   });
 
-  it('links가 4개 이상일 때 400을 반환한다', async () => {
+  it('links가 31개 이상일 때 400을 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
@@ -129,24 +129,10 @@ describe('PUT /users/me', () => {
         name: 'test',
         description: 'test',
         url: 'test',
-        links: [
-          {
-            linkName: 'test',
-            link: 'https://test.com',
-          },
-          {
-            linkName: 'test',
-            link: 'https://test.com',
-          },
-          {
-            linkName: 'test',
-            link: 'https://test.com',
-          },
-          {
-            linkName: 'test',
-            link: 'https://test.com',
-          },
-        ],
+        links: new Array(31).fill({
+          linkName: 'test',
+          link: 'https://test.com',
+        }),
       });
 
     // then
