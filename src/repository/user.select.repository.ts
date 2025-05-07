@@ -2,6 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid } from './util';
+import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
 export class UserSelectRepository {
@@ -285,12 +286,20 @@ export class UserSelectRepository {
     }));
   }
 
-  async findManyByUserIds(myId: string | null, userIds: string[]) {
-    if (userIds.length === 0) return [];
-
+  async findManyByName({
+    userId,
+    name,
+    cursor,
+    size,
+  }: {
+    userId: string | null;
+    name: string;
+    cursor: string | null;
+    size: number;
+  }) {
     const users = await this.prisma.$kysely
       .selectFrom('User')
-      .where('id', 'in', userIds.map(kyselyUuid))
+      .where('name', 'like', `${name}%`)
       .select([
         'User.id',
         'name',
@@ -300,18 +309,32 @@ export class UserSelectRepository {
         'followerCount',
         'url',
       ])
-      .$if(myId !== null, (eb) =>
+      .$if(userId !== null, (eb) =>
         eb.select((eb) => [
           eb
             .fn<boolean>('EXISTS', [
               eb
                 .selectFrom('Follow')
                 .whereRef('Follow.followingId', '=', 'User.id')
-                .where('followerId', '=', kyselyUuid(myId!)),
+                .where('followerId', '=', kyselyUuid(userId!)),
             ])
             .as('isFollowing'),
         ]),
       )
+      .orderBy(['User.followerCount desc', 'User.id desc'])
+      .limit(size)
+      .$if(cursor !== null, (eb) => {
+        const [followerCount, id] = cursor!.split(separator);
+        return eb.where((eb) =>
+          eb.or([
+            eb('User.followerCount', '<', Number(followerCount)),
+            eb.and([
+              eb('User.followerCount', '=', Number(followerCount)),
+              eb('User.id', '<', kyselyUuid(id)),
+            ]),
+          ]),
+        );
+      })
       .execute();
 
     return users.map((user) => ({
@@ -324,6 +347,16 @@ export class UserSelectRepository {
       followerCount: user.followerCount,
       isFollowing: user.isFollowing ?? false,
     }));
+  }
+
+  async countByName(name: string) {
+    return await this.prisma.user.count({
+      where: {
+        name: {
+          startsWith: name,
+        },
+      },
+    });
   }
 
   async findRefreshToken(userId: string, token: string) {

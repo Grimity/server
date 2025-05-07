@@ -341,55 +341,38 @@ export class UserService {
   }
 
   async searchUsers(input: SearchUserInput) {
-    const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const { ids, totalCount } = await this.searchService.searchUser({
-      keyword: input.keyword,
-      cursor: currentCursor,
-      size: input.size,
-      sort: input.sort,
-    });
-
     let nextCursor: string | null = null;
 
-    if (ids.length === 0) {
-      return {
-        totalCount,
-        nextCursor,
-        users: [],
-      };
-    }
+    const [users, totalCount] = await Promise.all([
+      this.userSelectRepository.findManyByName({
+        userId: input.userId,
+        name: input.keyword,
+        cursor: input.cursor,
+        size: input.size,
+      }),
+      this.userSelectRepository.countByName(input.keyword),
+    ]);
 
-    const users = await this.userSelectRepository.findManyByUserIds(
-      input.userId,
-      ids,
-    );
-
-    const returnUsers = [];
-
-    for (const searchedId of ids) {
-      const user = users.find((user) => user.id === searchedId);
-      if (user) {
-        returnUsers.push({
-          id: user.id,
-          name: user.name,
-          image: getImageUrl(user.image),
-          url: user.url,
-          description: user.description,
-          backgroundImage: getImageUrl(user.backgroundImage),
-          followerCount: user.followerCount,
-          isFollowing: user.isFollowing,
-        });
-      }
-    }
-
-    if (ids.length === input.size) {
-      nextCursor = String(currentCursor + 1);
+    if (users.length === input.size) {
+      nextCursor =
+        users[users.length - 1].followerCount +
+        separator +
+        users[users.length - 1].id;
     }
 
     return {
       totalCount,
       nextCursor,
-      users: returnUsers,
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        image: getImageUrl(user.image),
+        url: user.url,
+        description: user.description,
+        backgroundImage: getImageUrl(user.backgroundImage),
+        followerCount: user.followerCount,
+        isFollowing: user.isFollowing,
+      })),
     };
   }
 
@@ -514,7 +497,6 @@ export type SearchUserInput = {
   keyword: string;
   cursor: string | null;
   size: number;
-  sort: 'popular' | 'accuracy';
 };
 
 export type UpdateProfileInput = {
