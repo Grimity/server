@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import {
   Kysely,
   PostgresAdapter,
@@ -16,11 +16,32 @@ declare module '@prisma/client' {
 }
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
+export class PrismaService
+  extends PrismaClient<
+    Prisma.PrismaClientOptions,
+    'query' | 'info' | 'warn' | 'error'
+  >
+  implements OnModuleInit
+{
   constructor() {
     super({
-      log: process.env.NODE_ENV === 'production' ? ['info'] : [],
+      // log: process.env.NODE_ENV === 'production' ? ['info'] : [],
       // log: ['query', 'warn'],
+      log: [
+        {
+          emit: 'event',
+          level: 'query',
+        },
+      ],
+    });
+
+    this.$on('query', (e) => {
+      if (e.duration > 500) {
+        console.log('Query: ', e.query);
+        console.log('Duration: ', e.duration);
+        console.log('Params: ', e.params);
+        console.log('Target: ', e.target);
+      }
     });
   }
   async onModuleInit() {
@@ -38,6 +59,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       }),
     );
     this.$kysely = extension.$kysely;
+
     await this.$connect();
   }
 
