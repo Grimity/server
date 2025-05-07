@@ -7,7 +7,6 @@ import { FeedModule } from './feed.module';
 import { AwsModule } from './aws.module';
 import { SearchModule } from 'src/database/search/search.module';
 import { PostModule } from './post.module';
-import { DdbModule } from 'src/database/ddb/ddb.module';
 import { RedisModule } from 'src/database/redis/redis.module';
 import { MeController } from 'src/presentation/controller/me.controller';
 import { AlbumModule } from './album.module';
@@ -18,7 +17,6 @@ import { AlbumModule } from './album.module';
     AwsModule,
     SearchModule,
     PostModule,
-    DdbModule,
     RedisModule,
     AlbumModule,
   ],

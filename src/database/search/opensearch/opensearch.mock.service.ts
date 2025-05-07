@@ -3,12 +3,6 @@ import { SearchService } from '../search.service';
 
 @Injectable()
 export class OpenSearchMockService implements SearchService {
-  async insertUser() {
-    return;
-  }
-  async updateUser() {
-    return;
-  }
   async insertFeed() {
     return;
   }
@@ -32,12 +26,6 @@ export class OpenSearchMockService implements SearchService {
   }
   async deleteAll() {
     return;
-  }
-  async searchUser() {
-    return {
-      totalCount: 0,
-      ids: [] as string[],
-    };
   }
   async searchFeed() {
     return {

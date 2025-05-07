@@ -18,7 +18,7 @@ export class DdbService {
     id,
     count,
   }: {
-    type: 'FEED' | 'USER';
+    type: 'FEED';
     id: string;
     count: number;
   }) {
