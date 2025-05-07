@@ -6,7 +6,6 @@ import { UserSelectRepository } from 'src/repository/user.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from 'src/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants';
-import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { UpdateInput } from 'src/repository/user.repository';
 import { separator } from 'src/common/constants/separator-text';
@@ -23,7 +22,6 @@ export class UserService {
     private userSelectRepository: UserSelectRepository,
     @Inject(SearchService) private searchService: SearchService,
     private postSelectRepository: PostSelectRepository,
-    private ddb: DdbService,
     private redisService: RedisService,
     private albumRepository: AlbumRepository,
   ) {}
@@ -67,7 +65,6 @@ export class UserService {
     else toUpdateInput.url = input.url;
 
     await this.userRepository.update(userId, toUpdateInput);
-    await this.searchService.updateUser(userId, input.name, input.description);
     return;
   }
 
@@ -99,23 +96,10 @@ export class UserService {
     const user = await this.userRepository.follow(userId, targetUserId);
 
     if (user.subscription.includes('FOLLOW')) {
-      await Promise.all([
-        this.awsService.pushEvent({
-          type: 'FOLLOW',
-          actorId: userId,
-          userId: targetUserId,
-        }),
-        this.ddb.putItemForUpdate({
-          type: 'USER',
-          id: targetUserId,
-          count: user.followerCount,
-        }),
-      ]);
-    } else {
-      await this.ddb.putItemForUpdate({
-        type: 'USER',
-        id: targetUserId,
-        count: user.followerCount,
+      await this.awsService.pushEvent({
+        type: 'FOLLOW',
+        actorId: userId,
+        userId: targetUserId,
       });
     }
 
@@ -123,12 +107,7 @@ export class UserService {
   }
 
   async unfollow(userId: string, targetUserId: string) {
-    const user = await this.userRepository.unfollow(userId, targetUserId);
-    await this.ddb.putItemForUpdate({
-      type: 'USER',
-      id: targetUserId,
-      count: user.followerCount,
-    });
+    await this.userRepository.unfollow(userId, targetUserId);
 
     return;
   }
@@ -456,7 +435,7 @@ export class UserService {
       this.postSelectRepository.findAllIdsByUserId(userId),
     ]);
     await Promise.all([
-      this.searchService.deleteAll({ userId, feedIds, postIds }),
+      this.searchService.deleteAll({ feedIds, postIds }),
       this.userRepository.deleteOne(userId),
     ]);
     return;

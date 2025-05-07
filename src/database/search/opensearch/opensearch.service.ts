@@ -26,56 +26,6 @@ export class OpenSearchService implements SearchService {
     });
   }
 
-  async insertUser(id: string, name: string): Promise<void> {
-    try {
-      await this.client.index(
-        {
-          index: 'user',
-          id,
-          body: {
-            name,
-            description: '',
-            followerCount: 0,
-            id,
-          },
-        },
-        {
-          requestTimeout,
-        },
-      );
-    } catch (e) {
-      this.logger.error(e);
-      return;
-    }
-  }
-
-  async updateUser(
-    id: string,
-    name: string,
-    description: string,
-  ): Promise<void> {
-    try {
-      await this.client.update(
-        {
-          index: 'user',
-          id,
-          body: {
-            doc: {
-              name,
-              description,
-            },
-          },
-        },
-        {
-          requestTimeout: 100,
-        },
-      );
-    } catch (e) {
-      this.logger.error(e);
-      return;
-    }
-  }
-
   async insertFeed({ id, title, tag }: InsertFeedInput): Promise<void> {
     try {
       await this.client.index(
@@ -226,11 +176,9 @@ export class OpenSearchService implements SearchService {
   }
 
   async deleteAll({
-    userId,
     feedIds,
     postIds,
   }: {
-    userId: string;
     feedIds: string[];
     postIds: string[];
   }) {
@@ -266,97 +214,10 @@ export class OpenSearchService implements SearchService {
             requestTimeout,
           },
         ),
-        this.client.delete(
-          {
-            index: 'user',
-            id: userId,
-          },
-          {
-            requestTimeout,
-          },
-        ),
       ]);
     } catch (e) {
       this.logger.error(e);
       return;
-    }
-  }
-
-  async searchUser({
-    sort,
-    cursor,
-    size,
-    keyword,
-  }: CursorInput & { sort: 'popular' | 'accuracy' }): Promise<SearchOutput> {
-    let sortQuery: SortOptions[] = [];
-
-    if (sort === 'popular') {
-      sortQuery = [
-        {
-          followerCount: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-    } else {
-      sortQuery = [
-        {
-          _score: 'desc',
-        },
-        {
-          id: 'desc',
-        },
-      ];
-    }
-
-    try {
-      const response = await this.client.search(
-        {
-          index: 'user',
-          body: {
-            query: {
-              bool: {
-                should: [
-                  {
-                    wildcard: {
-                      name: {
-                        value: `*${keyword}*`,
-                        boost: 3,
-                      },
-                    },
-                  },
-                  {
-                    match: {
-                      description: keyword,
-                    },
-                  },
-                ],
-              },
-            },
-            size,
-            sort: sortQuery,
-            from: size * cursor,
-          },
-        },
-        {
-          requestTimeout: searchTimeout,
-        },
-      );
-
-      const totalCount = (response.body.hits.total as TotalHits).value;
-      const hits = response.body.hits.hits as UserHitData[];
-
-      return {
-        totalCount,
-        ids: hits.map((hit) => hit._id),
-      };
-    } catch (e) {
-      this.logger.error(e);
-      return {
-        totalCount: 0,
-        ids: [],
-      };
     }
   }
 
@@ -465,17 +326,6 @@ export class OpenSearchService implements SearchService {
     }
   }
 }
-
-type UserHitData = {
-  _index: string;
-  _id: string;
-  _score: number;
-  _source: {
-    name: string;
-    description: string;
-    followerCount: number;
-  };
-};
 
 type FeedHitData = {
   _index: string;
