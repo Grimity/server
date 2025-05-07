@@ -272,7 +272,6 @@ export class UserController {
       keyword: query.keyword,
       cursor: query.cursor ?? null,
       size: query.size ?? 10,
-      sort: query.sort ?? 'popular',
       userId,
     });
   }

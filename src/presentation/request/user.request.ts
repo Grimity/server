@@ -84,16 +84,7 @@ export class UpdateSubscriptionRequest {
   subscription: SubscriptionType[];
 }
 
-export class SearchUserRequest extends CursorKeywordRequest {
-  @ApiProperty({ required: false, enum: ['popular', 'accuracy'] })
-  @Transform(({ value }) => {
-    if (typeof value === 'string') return value.toLowerCase();
-    return value;
-  })
-  @IsOptional()
-  @IsIn(['popular', 'accuracy'])
-  sort?: 'popular' | 'accuracy';
-}
+export class SearchUserRequest extends CursorKeywordRequest {}
 
 const GetFeedsByUserSort = ['latest', 'like', 'oldest'] as const;
 
