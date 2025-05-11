@@ -102,7 +102,7 @@ describe('POST /auth/login', () => {
     });
 
     const { status: status2 } = await request(app.getHttpServer())
-      .get('/users/me')
+      .get('/me')
       .set('Authorization', `Bearer ${body.accessToken}`);
 
     expect(status2).toBe(200);
