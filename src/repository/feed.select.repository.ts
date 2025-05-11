@@ -136,7 +136,8 @@ export class FeedSelectRepository {
 
     if (sort === 'latest') {
       query = query
-        .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
+        .orderBy('Feed.createdAt', 'desc')
+        .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
           const [createdAt, id] = cursor!.split(separator);
           return eb.where((eb) =>
@@ -151,7 +152,8 @@ export class FeedSelectRepository {
         });
     } else if (sort === 'like') {
       query = query
-        .orderBy(['Feed.likeCount desc', 'Feed.id desc'])
+        .orderBy('Feed.likeCount', 'desc')
+        .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
           const [likeCount, id] = cursor!.split(separator);
           return eb.where((eb) =>
@@ -166,7 +168,8 @@ export class FeedSelectRepository {
         });
     } else {
       query = query
-        .orderBy(['Feed.createdAt asc', 'Feed.id desc'])
+        .orderBy('Feed.createdAt', 'asc')
+        .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
           const [createdAt, id] = cursor!.split(separator);
           return eb.where((eb) =>
@@ -220,7 +223,8 @@ export class FeedSelectRepository {
             .as('isLike'),
         ]),
       )
-      .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
+      .orderBy('Feed.createdAt', 'desc')
+      .orderBy('Feed.id', 'desc')
       .limit(size);
 
     if (lastCreatedAt && lastId) {
@@ -304,7 +308,7 @@ export class FeedSelectRepository {
             .as('isLike'),
         ]),
       )
-      .orderBy(['likeCount desc'])
+      .orderBy('likeCount', 'desc')
       .limit(12)
       .execute();
 
@@ -383,7 +387,8 @@ export class FeedSelectRepository {
       )
       .innerJoin('User', 'followingId', 'User.id')
       .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
-      .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
+      .orderBy('Feed.createdAt', 'desc')
+      .orderBy('Feed.id', 'desc')
       .limit(size);
 
     if (lastCreatedAt && lastId) {
@@ -463,7 +468,7 @@ export class FeedSelectRepository {
       )
       .innerJoin('User', 'Feed.authorId', 'User.id')
       .select(['name', 'User.image as image', 'url'])
-      .orderBy('Like.createdAt desc')
+      .orderBy('Like.createdAt', 'desc')
       .limit(size)
       .execute();
 
@@ -523,7 +528,7 @@ export class FeedSelectRepository {
       )
       .innerJoin('User', 'Feed.authorId', 'User.id')
       .select(['name', 'User.image as image', 'url'])
-      .orderBy('Save.createdAt desc')
+      .orderBy('Save.createdAt', 'desc')
       .limit(size)
       .execute();
 
@@ -636,7 +641,8 @@ export class FeedSelectRepository {
             .as('isLike'),
         ]),
       )
-      .orderBy(['Feed.createdAt desc', 'Feed.id desc'])
+      .orderBy('Feed.createdAt', 'desc')
+      .orderBy('Feed.id', 'desc')
       .limit(size);
 
     if (cursor) {

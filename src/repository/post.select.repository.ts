@@ -273,7 +273,7 @@ export class PostSelectRepository {
         'url',
         'User.image as image',
       ])
-      .orderBy('Post.createdAt desc')
+      .orderBy('Post.createdAt', 'desc')
       .offset((page - 1) * size)
       .limit(size)
       .execute();

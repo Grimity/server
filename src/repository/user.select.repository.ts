@@ -321,7 +321,8 @@ export class UserSelectRepository {
             .as('isFollowing'),
         ]),
       )
-      .orderBy(['User.followerCount desc', 'User.id desc'])
+      .orderBy('User.followerCount', 'desc')
+      .orderBy('User.id', 'desc')
       .limit(size)
       .$if(cursor !== null, (eb) => {
         const [followerCount, id] = cursor!.split(separator);

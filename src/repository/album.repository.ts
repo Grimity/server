@@ -90,7 +90,7 @@ export class AlbumRepository {
           .as('feedCount'),
       )
       .select(['Album.id', 'Album.name'])
-      .orderBy('Album.order asc')
+      .orderBy('Album.order', 'asc')
       .execute();
 
     return albums.map((album) => ({
