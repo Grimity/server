@@ -2,7 +2,6 @@ import {
   Controller,
   Put,
   UseGuards,
-  Body,
   HttpCode,
   Delete,
   ParseUUIDPipe,
@@ -20,33 +19,19 @@ import {
 import { UserService } from 'src/provider/user.service';
 import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
-
 import {
-  UpdateUserRequest,
-  UpdateProfileImageRequest,
-  UpdateBackgroundImageRequest,
-  UpdateSubscriptionRequest,
   SearchUserRequest,
   GetFeedsByUserRequest,
 } from '../request/user.request';
-import { CursorRequest, PageRequest } from '../request/shared';
-
+import { PageRequest } from '../request/shared';
 import {
-  MyProfileResponse,
-  SubscriptionResponse,
-  MyFollowersResponse,
-  MyFollowingsResponse,
   SearchedUsersResponse,
   PopularUserResponse,
   UserProfileResponse,
   UserMetaResponse,
-  UpdateProfileConflictResponse,
 } from '../response/user.response';
-import {
-  MyLikeFeedsResponse,
-  UserFeedsResponse,
-} from '../response/feed.response';
-import { MySavePostsResponse, MyPostResponse } from '../response/post.response';
+import { UserFeedsResponse } from '../response/feed.response';
+import { MyPostResponse } from '../response/post.response';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -54,210 +39,6 @@ import { MySavePostsResponse, MyPostResponse } from '../response/post.response';
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내 정보 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: MyProfileResponse })
-  @ApiResponse({ status: 404, description: '없는 유저' })
-  @UseGuards(JwtGuard)
-  @Get('me')
-  async getMe(@CurrentUser() userId: string): Promise<MyProfileResponse> {
-    return this.userService.getMyProfile(userId);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내 정보 변경', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 409, type: UpdateProfileConflictResponse })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Put('me')
-  async updateProfile(
-    @CurrentUser() userId: string,
-    @Body() dto: UpdateUserRequest,
-  ) {
-    await this.userService.updateProfile(userId, dto);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '회원 탈퇴', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Delete('me')
-  async deleteUser(@CurrentUser() userId: string) {
-    await this.userService.deleteMe(userId);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '프로필 이미지 변경', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Put('me/image')
-  async updateProfileImage(
-    @CurrentUser() userId: string,
-    @Body() { imageName }: UpdateProfileImageRequest,
-  ) {
-    await this.userService.updateProfileImage(userId, imageName);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '프로필 이미지 삭제', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Delete('me/image')
-  async deleteProfileImage(@CurrentUser() userId: string) {
-    await this.userService.updateProfileImage(userId, null);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '배경사진 변경', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Put('me/background')
-  async updateBackgroundImage(
-    @CurrentUser() userId: string,
-    @Body() { imageName }: UpdateBackgroundImageRequest,
-  ) {
-    await this.userService.updateBackgroundImage(userId, imageName);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '배경사진 삭제', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Delete('me/background')
-  async deleteBackgroundImage(@CurrentUser() userId: string) {
-    await this.userService.updateBackgroundImage(userId, null);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '알림 구독 여부 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: SubscriptionResponse })
-  @UseGuards(JwtGuard)
-  @Get('me/subscribe')
-  async getSubscriptions(
-    @CurrentUser() userId: string,
-  ): Promise<SubscriptionResponse> {
-    return await this.userService.getSubscription(userId);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '알림 구독 여부 수정', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @UseGuards(JwtGuard)
-  @Put('me/subscribe')
-  @HttpCode(204)
-  async updateSubscriptions(
-    @CurrentUser() userId: string,
-    @Body() { subscription }: UpdateSubscriptionRequest,
-  ) {
-    await this.userService.updateSubscription(userId, [
-      ...new Set(subscription),
-    ]);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내 팔로워 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: MyFollowersResponse })
-  @UseGuards(JwtGuard)
-  @Get('me/followers')
-  async getMyFollowers(
-    @CurrentUser() userId: string,
-    @Query() query: CursorRequest,
-  ): Promise<MyFollowersResponse> {
-    return this.userService.getMyFollowers(userId, {
-      cursor: query.cursor ?? null,
-      size: query.size ?? 20,
-    });
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내 팔로잉 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: MyFollowingsResponse })
-  @UseGuards(JwtGuard)
-  @Get('me/followings')
-  async getMyFollowings(
-    @CurrentUser() userId: string,
-    @Query() query: CursorRequest,
-  ): Promise<MyFollowingsResponse> {
-    return this.userService.getMyFollowings(userId, {
-      cursor: query.cursor ?? null,
-      size: query.size ?? 20,
-    });
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내 팔로워 삭제', deprecated: true })
-  @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 404, description: '팔로우하지 않은 유저' })
-  @UseGuards(JwtGuard)
-  @HttpCode(204)
-  @Delete('me/followers/:id')
-  async deleteMyFollower(
-    @CurrentUser() userId: string,
-    @Param('id', ParseUUIDPipe) targetId: string,
-  ) {
-    await this.userService.unfollow(targetId, userId);
-    return;
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내 좋아요한 피드 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: MyLikeFeedsResponse })
-  @UseGuards(JwtGuard)
-  @Get('me/like-feeds')
-  async getMyLikeFeeds(
-    @CurrentUser() userId: string,
-    @Query() query: CursorRequest,
-  ): Promise<MyLikeFeedsResponse> {
-    return await this.userService.getMyLikeFeeds(userId, {
-      cursor: query.cursor ?? null,
-      size: query.size ?? 20,
-    });
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내가 저장한 피드 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: MyLikeFeedsResponse })
-  @UseGuards(JwtGuard)
-  @Get('me/save-feeds')
-  async getMySaveFeeds(
-    @CurrentUser() userId: string,
-    @Query() query: CursorRequest,
-  ): Promise<MyLikeFeedsResponse> {
-    return await this.userService.getMySaveFeeds(userId, {
-      cursor: query.cursor ?? null,
-      size: query.size ?? 20,
-    });
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '내가 저장한 게시글 조회', deprecated: true })
-  @ApiResponse({ status: 200, type: MySavePostsResponse })
-  @UseGuards(JwtGuard)
-  @Get('me/save-posts')
-  async getMySavePosts(
-    @CurrentUser() userId: string,
-    @Query() { page, size }: PageRequest,
-  ): Promise<MySavePostsResponse> {
-    return await this.userService.getMySavePosts({
-      userId,
-      page: page ?? 1,
-      size: size ?? 10,
-    });
-  }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })
