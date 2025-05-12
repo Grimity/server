@@ -79,6 +79,8 @@ describe('GET /me - 내 정보 조회', () => {
       links: [{ linkName: 'test1', link: 'https://test1.com' }],
       createdAt: expect.any(String),
       hasNotification: false,
+      followerCount: 0,
+      followingCount: 0,
     });
   });
 });
