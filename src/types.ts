@@ -8,7 +8,7 @@ declare module 'express' {
   }
 }
 
-export type ClientInfo = WebInfo;
+export type ClientInfo = WebInfo | AppInfo;
 
 export type WebInfo = {
   type: 'WEB';
@@ -18,9 +18,16 @@ export type WebInfo = {
   ip: string;
 };
 
+export type AppInfo = {
+  type: 'APP';
+  device: 'mobile' | 'tablet';
+  model: string;
+  ip: string;
+};
+
 export type RefreshTokenPayload = {
   id: string;
-  type: 'WEB';
+  type: 'WEB' | 'APP';
   device: string;
   model: string;
 };

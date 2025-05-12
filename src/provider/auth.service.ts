@@ -35,12 +35,24 @@ export class AuthService {
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
+
+    const refreshTokenPayload =
+      clientInfo.type === 'WEB'
+        ? {
+            type: clientInfo.type,
+            device: clientInfo.device,
+            model: `${clientInfo.os} ${clientInfo.browser}`,
+          }
+        : {
+            type: clientInfo.type,
+            device: clientInfo.device,
+            model: clientInfo.model,
+          };
+
     const refreshToken = this.jwtService.sign(
       {
+        ...refreshTokenPayload,
         id: user.id,
-        type: clientInfo.type,
-        device: clientInfo.device,
-        model: `${clientInfo.os} ${clientInfo.browser}`,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -49,11 +61,9 @@ export class AuthService {
     );
 
     await this.userRepository.createRefreshToken({
+      ...refreshTokenPayload,
       userId: user.id,
       refreshToken,
-      type: clientInfo.type,
-      device: clientInfo.device,
-      model: `${clientInfo.os} ${clientInfo.browser}`,
       ip: clientInfo.ip,
     });
 
@@ -102,12 +112,23 @@ export class AuthService {
     });
 
     const accessToken = this.jwtService.sign({ id: user.id });
+    const refreshTokenPayload =
+      clientInfo.type === 'WEB'
+        ? {
+            type: clientInfo.type,
+            device: clientInfo.device,
+            model: `${clientInfo.os} ${clientInfo.browser}`,
+          }
+        : {
+            type: clientInfo.type,
+            device: clientInfo.device,
+            model: clientInfo.model,
+          };
+
     const refreshToken = this.jwtService.sign(
       {
+        ...refreshTokenPayload,
         id: user.id,
-        type: clientInfo.type,
-        device: clientInfo.device,
-        model: `${clientInfo.os} ${clientInfo.browser}`,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -118,9 +139,7 @@ export class AuthService {
     await this.userRepository.createRefreshToken({
       userId: user.id,
       refreshToken,
-      type: clientInfo.type,
-      device: clientInfo.device,
-      model: `${clientInfo.os} ${clientInfo.browser}`,
+      ...refreshTokenPayload,
       ip: clientInfo.ip,
     });
 
@@ -137,12 +156,23 @@ export class AuthService {
     }
 
     const accessToken = this.jwtService.sign({ id: userId });
+    const refreshTokenPayload =
+      clientInfo.type === 'WEB'
+        ? {
+            type: clientInfo.type,
+            device: clientInfo.device,
+            model: `${clientInfo.os} ${clientInfo.browser}`,
+          }
+        : {
+            type: clientInfo.type,
+            device: clientInfo.device,
+            model: clientInfo.model,
+          };
+
     const refreshToken = this.jwtService.sign(
       {
         id: userId,
-        type: clientInfo.type,
-        device: clientInfo.device,
-        model: `${clientInfo.os} ${clientInfo.browser}`,
+        ...refreshTokenPayload,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),

@@ -12,6 +12,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiHeader,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
 import {
@@ -32,6 +33,17 @@ import {
 import { ClientInfo } from 'src/types';
 import { UserAgentGuard, JwtRefreshGuard } from 'src/core/guard';
 
+@ApiHeader({
+  name: 'grimity-app-device',
+  description: '앱에서만 사용되는 속성입니다',
+  required: false,
+  enum: ['mobile', 'tablet'],
+})
+@ApiHeader({
+  name: 'grimity-app-model',
+  description: '앱에서만 사용되는 속성입니다',
+  required: false,
+})
 @ApiTags('/auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('auth')

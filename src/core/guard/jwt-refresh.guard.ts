@@ -31,11 +31,14 @@ export class JwtRefreshGuard implements CanActivate {
       if (!request.clientInfo) {
         throw Error;
       }
+      const currentModel =
+        request.clientInfo.type === 'WEB'
+          ? `${request.clientInfo.os} ${request.clientInfo.browser}`
+          : request.clientInfo.model;
       if (
         payload.type !== request.clientInfo.type ||
         payload.device !== request.clientInfo.device ||
-        payload.model !==
-          `${request.clientInfo.os} ${request.clientInfo.browser}`
+        payload.model !== currentModel
       ) {
         throw Error;
       }
