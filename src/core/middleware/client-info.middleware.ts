@@ -46,9 +46,8 @@ export class ClientInfoMiddleware implements NestMiddleware {
 
       req.clientInfo = {
         type: 'WEB',
-        browser: browser.name,
-        os: os.name,
         device: device.type ?? 'desktop',
+        model: `${os.name} ${browser.name}`,
         ip,
       };
 

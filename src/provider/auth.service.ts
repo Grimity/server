@@ -36,23 +36,12 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign({ id: user.id });
 
-    const refreshTokenPayload =
-      clientInfo.type === 'WEB'
-        ? {
-            type: clientInfo.type,
-            device: clientInfo.device,
-            model: `${clientInfo.os} ${clientInfo.browser}`,
-          }
-        : {
-            type: clientInfo.type,
-            device: clientInfo.device,
-            model: clientInfo.model,
-          };
-
     const refreshToken = this.jwtService.sign(
       {
-        ...refreshTokenPayload,
         id: user.id,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: clientInfo.model,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -61,10 +50,9 @@ export class AuthService {
     );
 
     await this.userRepository.createRefreshToken({
-      ...refreshTokenPayload,
+      ...clientInfo,
       userId: user.id,
       refreshToken,
-      ip: clientInfo.ip,
     });
 
     return { id: user.id, accessToken, refreshToken };
@@ -112,23 +100,13 @@ export class AuthService {
     });
 
     const accessToken = this.jwtService.sign({ id: user.id });
-    const refreshTokenPayload =
-      clientInfo.type === 'WEB'
-        ? {
-            type: clientInfo.type,
-            device: clientInfo.device,
-            model: `${clientInfo.os} ${clientInfo.browser}`,
-          }
-        : {
-            type: clientInfo.type,
-            device: clientInfo.device,
-            model: clientInfo.model,
-          };
 
     const refreshToken = this.jwtService.sign(
       {
-        ...refreshTokenPayload,
         id: user.id,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: clientInfo.model,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -137,10 +115,9 @@ export class AuthService {
     );
 
     await this.userRepository.createRefreshToken({
+      ...clientInfo,
       userId: user.id,
       refreshToken,
-      ...refreshTokenPayload,
-      ip: clientInfo.ip,
     });
 
     return { accessToken, id: user.id, refreshToken };
@@ -156,23 +133,12 @@ export class AuthService {
     }
 
     const accessToken = this.jwtService.sign({ id: userId });
-    const refreshTokenPayload =
-      clientInfo.type === 'WEB'
-        ? {
-            type: clientInfo.type,
-            device: clientInfo.device,
-            model: `${clientInfo.os} ${clientInfo.browser}`,
-          }
-        : {
-            type: clientInfo.type,
-            device: clientInfo.device,
-            model: clientInfo.model,
-          };
-
     const refreshToken = this.jwtService.sign(
       {
         id: userId,
-        ...refreshTokenPayload,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: clientInfo.model,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
