@@ -35,12 +35,13 @@ export class AuthService {
     );
 
     const accessToken = this.jwtService.sign({ id: user.id });
+
     const refreshToken = this.jwtService.sign(
       {
         id: user.id,
         type: clientInfo.type,
         device: clientInfo.device,
-        model: `${clientInfo.os} ${clientInfo.browser}`,
+        model: clientInfo.model,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -49,12 +50,9 @@ export class AuthService {
     );
 
     await this.userRepository.createRefreshToken({
+      ...clientInfo,
       userId: user.id,
       refreshToken,
-      type: clientInfo.type,
-      device: clientInfo.device,
-      model: `${clientInfo.os} ${clientInfo.browser}`,
-      ip: clientInfo.ip,
     });
 
     return { id: user.id, accessToken, refreshToken };
@@ -102,12 +100,13 @@ export class AuthService {
     });
 
     const accessToken = this.jwtService.sign({ id: user.id });
+
     const refreshToken = this.jwtService.sign(
       {
         id: user.id,
         type: clientInfo.type,
         device: clientInfo.device,
-        model: `${clientInfo.os} ${clientInfo.browser}`,
+        model: clientInfo.model,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
@@ -116,12 +115,9 @@ export class AuthService {
     );
 
     await this.userRepository.createRefreshToken({
+      ...clientInfo,
       userId: user.id,
       refreshToken,
-      type: clientInfo.type,
-      device: clientInfo.device,
-      model: `${clientInfo.os} ${clientInfo.browser}`,
-      ip: clientInfo.ip,
     });
 
     return { accessToken, id: user.id, refreshToken };
@@ -142,7 +138,7 @@ export class AuthService {
         id: userId,
         type: clientInfo.type,
         device: clientInfo.device,
-        model: `${clientInfo.os} ${clientInfo.browser}`,
+        model: clientInfo.model,
       },
       {
         secret: this.configService.get('JWT_REFRESH_SECRET'),
