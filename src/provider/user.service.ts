@@ -89,6 +89,8 @@ export class UserService {
       backgroundImage: getImageUrl(user.backgroundImage),
       createdAt: user.createdAt,
       hasNotification: user.hasNotification,
+      followerCount: user.followerCount,
+      followingCount: user.followingCount,
     };
   }
 

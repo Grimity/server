@@ -74,6 +74,12 @@ export class MyProfileResponse extends UserBaseResponse {
 
   @ApiProperty()
   hasNotification: boolean;
+
+  @ApiProperty()
+  followerCount: number;
+
+  @ApiProperty()
+  followingCount: number;
 }
 
 class FollowUserResponse extends UserBaseResponse {

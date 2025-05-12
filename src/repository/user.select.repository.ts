@@ -70,6 +70,7 @@ export class UserSelectRepository {
         'links',
         'backgroundImage',
         'url',
+        'followerCount',
       ])
       .select((eb) =>
         eb
@@ -80,6 +81,15 @@ export class UserSelectRepository {
               .where('isRead', '=', false),
           ])
           .as('hasNotification'),
+      )
+      .select((eb) =>
+        eb
+          .selectFrom('Follow')
+          .whereRef('Follow.followerId', '=', 'User.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('Follow.followerId').as('followingCount'),
+          )
+          .as('followingCount'),
       )
       .execute();
 
@@ -97,6 +107,9 @@ export class UserSelectRepository {
       backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
       hasNotification: user.hasNotification,
+      followerCount: user.followerCount,
+      followingCount:
+        user.followingCount !== null ? Number(user.followingCount) : 0,
     };
   }
 
