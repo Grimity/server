@@ -31,28 +31,15 @@ export class UserSelectRepository {
     });
   }
 
-  async findOneByProviderOrThrow(provider: string, providerId: string) {
-    try {
-      return await this.prisma.user.findUniqueOrThrow({
-        where: {
-          provider_providerId: {
-            provider,
-            providerId,
-          },
+  async findOneByProvider(provider: string, providerId: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        provider_providerId: {
+          provider,
+          providerId,
         },
-        select: {
-          id: true,
-        },
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('USER', 404);
-      }
-      throw e;
-    }
+      },
+    });
   }
 
   async getMyProfile(userId: string) {
