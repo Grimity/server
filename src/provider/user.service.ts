@@ -130,6 +130,8 @@ export class UserService {
       this.albumRepository.findManyWithCountByUserId(targetUserId),
     ]);
 
+    if (targetUser === null) throw new HttpException('USER', 404);
+
     return {
       id: targetUser.id,
       name: targetUser.name,

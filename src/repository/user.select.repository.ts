@@ -102,7 +102,7 @@ export class UserSelectRepository {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    const [user] = await this.prisma.$kysely
+    const response = await this.prisma.$kysely
       .selectFrom('User')
       .where('User.id', '=', kyselyUuid(targetUserId))
       .select([
@@ -154,7 +154,8 @@ export class UserSelectRepository {
       )
       .execute();
 
-    if (!user) throw new HttpException('USER', 404);
+    if (response.length === 0) return null;
+    const user = response[0];
 
     return {
       id: user.id,
