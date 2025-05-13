@@ -62,6 +62,13 @@ export class AlbumService {
     return;
   }
 
+  async removeFeedsAlbum(userId: string, ids: string[]) {
+    await this.feedRepository.updateAlbum(userId, {
+      feedIds: ids,
+      albumId: null,
+    });
+  }
+
   async insertFeeds(
     userId: string,
     {

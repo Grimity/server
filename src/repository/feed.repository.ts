@@ -253,7 +253,7 @@ export class FeedRepository {
 
   async updateAlbum(
     userId: string,
-    { albumId, feedIds }: { albumId: string; feedIds: string[] },
+    { albumId, feedIds }: { albumId: string | null; feedIds: string[] },
   ) {
     await this.prisma.feed.updateMany({
       where: {
