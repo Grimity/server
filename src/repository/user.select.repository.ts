@@ -9,12 +9,9 @@ export class UserSelectRepository {
   constructor(private prisma: PrismaService) {}
 
   async findOneById(id: string) {
-    const user = await this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: { id },
     });
-
-    if (user === null) throw new HttpException('USER', 404);
-    return user;
   }
 
   async findOneByUrl(url: string) {

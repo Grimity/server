@@ -367,10 +367,10 @@ export class UserService {
   }
 
   async getSubscription(userId: string) {
-    const { subscription } =
-      await this.userSelectRepository.findOneById(userId);
+    const user = await this.userSelectRepository.findOneById(userId);
+    if (user === null) throw new HttpException('USER', 404);
     return {
-      subscription,
+      subscription: user.subscription,
     };
   }
 
@@ -457,6 +457,8 @@ export class UserService {
 
   async getMetaById(id: string) {
     const user = await this.userSelectRepository.findOneById(id);
+
+    if (!user) throw new HttpException('USER', 404);
 
     return {
       id: user.id,
