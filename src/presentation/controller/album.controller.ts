@@ -16,6 +16,7 @@ import {
   UpdateAlbumRequest,
   UpdateAlbumOrderRequest,
   InsertFeedsRequest,
+  RemoveFeedsAlbumRequest,
 } from '../request/album.request';
 import {
   ApiTags,
@@ -56,6 +57,18 @@ export class AlbumController {
     @Body() { ids }: UpdateAlbumOrderRequest,
   ) {
     await this.albumService.updateOrder(userId, ids);
+    return;
+  }
+
+  @ApiOperation({ summary: '앨범에서 피드 빼기' })
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  @Put('null')
+  async removeFeeds(
+    @CurrentUser() userId: string,
+    @Body() { ids }: RemoveFeedsAlbumRequest,
+  ) {
+    await this.albumService.removeFeedsAlbum(userId, ids);
     return;
   }
 

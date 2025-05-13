@@ -6,7 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/provider/auth.service';
 import { register } from '../helper';
 
-describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
+describe('PUT /albums/null - 앨범에서 피드 빼기', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -38,9 +38,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
-    const { status } = await request(app.getHttpServer()).put(
-      '/albums/00000000-0000-0000-0000-000000000000',
-    );
+    const { status } = await request(app.getHttpServer()).put('/albums/null');
 
     // then
     expect(status).toBe(401);
@@ -52,7 +50,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/albums/00000000-0000-0000-0000-000000000000')
+      .put('/albums/null')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         ids: [],
@@ -68,7 +66,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/albums/INVALID')
+      .put('/albums/null')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         ids: ['invalid'],
@@ -78,60 +76,9 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
     expect(status).toBe(400);
   });
 
-  it('요청자와 앨범소유자가 다르면 403를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test1');
-
-    const user2 = await prisma.user.create({
-      data: {
-        name: 'test2',
-        provider: 'KAKAO',
-        providerId: 'test2',
-        url: 'test2',
-        email: 'test2@test.com',
-      },
-    });
-
-    const album = await prisma.album.create({
-      data: {
-        userId: user2.id,
-        name: 'test',
-        order: 1,
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/albums/${album.id}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        ids: ['00000000-0000-0000-0000-000000000000'],
-      });
-
-    // then
-    expect(status).toBe(403);
-  });
-
-  it('앨범이 없으면 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test1');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/albums/00000000-0000-0000-0000-000000000000`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        ids: ['00000000-0000-0000-0000-000000000000'],
-      });
-
-    // then
-    expect(status).toBe(404);
-  });
-
-  it('204와 함께 피드를 앨범으로 이동시킨다', async () => {
+  it('204와 함께 피드의 앨범ID를 null로 변경한다', async () => {
     // given
     const accessToken = await register(app, 'test');
-
     const user = await prisma.user.findFirstOrThrow();
 
     const album = await prisma.album.create({
@@ -143,17 +90,27 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
     });
 
     const feeds = await prisma.feed.createManyAndReturn({
-      data: new Array(10).fill(0).map((_, index) => ({
-        authorId: user.id,
-        title: `title${index}`,
-        content: `content${index}`,
-        thumbnail: 'test',
-      })),
+      data: [
+        {
+          title: 'test',
+          content: 'test',
+          thumbnail: '',
+          albumId: album.id,
+          authorId: user.id,
+        },
+        {
+          title: 'test',
+          content: 'test',
+          thumbnail: '',
+          albumId: album.id,
+          authorId: user.id,
+        },
+      ],
     });
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/albums/${album.id}`)
+      .put('/albums/null')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         ids: feeds.map(({ id }) => id),
@@ -162,12 +119,12 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
     // then
     expect(status).toBe(204);
 
-    const count = await prisma.feed.count({
+    const afterFeeds = await prisma.feed.findMany({
       where: {
-        albumId: album.id,
+        albumId: null,
       },
     });
 
-    expect(count).toBe(10);
+    expect(afterFeeds.length).toBe(2);
   });
 });

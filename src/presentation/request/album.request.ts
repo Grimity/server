@@ -32,6 +32,8 @@ export class UpdateAlbumOrderRequest {
 export class InsertFeedsRequest {
   @ApiProperty({ minLength: 1, type: 'string', isArray: true })
   @ArrayMinSize(1)
-  // @IsUUID('4', { each: true })
+  @IsUUID('all', { each: true })
   ids: string[];
 }
+
+export class RemoveFeedsAlbumRequest extends InsertFeedsRequest {}
