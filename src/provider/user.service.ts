@@ -71,6 +71,8 @@ export class UserService {
   async getMyProfile(userId: string) {
     const user = await this.userSelectRepository.getMyProfile(userId);
 
+    if (user === null) throw new HttpException('USER', 404);
+
     return {
       id: user.id,
       url: user.url,
