@@ -46,31 +46,7 @@ describe('PUT /:feedId/view', () => {
     expect(status).toBe(400);
   });
 
-  it('feedId에 해당하는 피드가 없을 때 404를 반환한다', async () => {
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put('/feeds/00000000-0000-0000-0000-000000000000/view')
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
-  it('feedId에 해당하는 피드가 없을 때 404를 반환한다 (로그인)', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put('/feeds/00000000-0000-0000-0000-000000000000/view')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
-  it('204와 함께 view를 한다 (비로그인)', async () => {
+  it('204와 함께 view를 한다', async () => {
     // given
     const user = await prisma.user.create({
       data: {

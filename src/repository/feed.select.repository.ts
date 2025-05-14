@@ -7,6 +7,15 @@ import { separator } from 'src/common/constants/separator-text';
 export class FeedSelectRepository {
   constructor(private prisma: PrismaService) {}
 
+  async exists(feedId: string) {
+    const feed = await this.prisma.feed.findUnique({
+      where: { id: feedId },
+      select: { id: true },
+    });
+
+    return !!feed;
+  }
+
   async getFeed(userId: string | null, feedId: string) {
     const [feed] = await this.prisma.$kysely
       .selectFrom('Feed')
