@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { FeedCommentRepository } from 'src/repository/feed-comment.repository';
 import { AwsService } from './aws.service';
 import { getImageUrl } from './util/get-image-url';
@@ -11,6 +11,23 @@ export class FeedCommentService {
   ) {}
 
   async create(userId: string, input: CreateFeedCommentInput) {
+    const promiseMethods = [
+      this.feedCommentRepository.existsFeed(input.feedId),
+    ];
+
+    if (input.parentCommentId) {
+      promiseMethods.push(
+        this.feedCommentRepository.existsComment(input.parentCommentId),
+      );
+    }
+
+    const [feedExists, commentExists] = await Promise.all(promiseMethods);
+
+    if (!feedExists) throw new HttpException('FEED', 404);
+    if (input.parentCommentId && !commentExists) {
+      throw new HttpException('COMMENT', 404);
+    }
+
     await this.feedCommentRepository.create(userId, input);
 
     if (input.mentionedUserId && input.parentCommentId) {
@@ -88,11 +105,21 @@ export class FeedCommentService {
   }
 
   async like(userId: string, commentId: string) {
+    const commentExists =
+      await this.feedCommentRepository.existsComment(commentId);
+
+    if (!commentExists) throw new HttpException('COMMENT', 404);
+
     await this.feedCommentRepository.createLike(userId, commentId);
     return;
   }
 
   async unlike(userId: string, commentId: string) {
+    const commentExists =
+      await this.feedCommentRepository.existsComment(commentId);
+
+    if (!commentExists) throw new HttpException('COMMENT', 404);
+
     await this.feedCommentRepository.deleteLike(userId, commentId);
     return;
   }

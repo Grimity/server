@@ -60,20 +60,6 @@ describe('DELETE /feed-comments/:commentId', () => {
     expect(status).toBe(400);
   });
 
-  it('존재하지 않는 댓글일 때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete('/feed-comments/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
   it('204와 함께 댓글을 삭제한다', async () => {
     // given
     const accessToken = await register(app, 'test');

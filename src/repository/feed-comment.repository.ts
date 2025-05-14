@@ -2,31 +2,40 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid } from './util';
+import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class FeedCommentRepository {
   constructor(private prisma: PrismaService) {}
 
+  async existsFeed(feedId: string) {
+    const result = await this.prisma.feed.findUnique({
+      where: { id: feedId },
+      select: { id: true },
+    });
+
+    return result !== null;
+  }
+
+  async existsComment(commentId: string) {
+    const result = await this.prisma.feedComment.findUnique({
+      where: { id: commentId },
+      select: { id: true },
+    });
+    return result !== null;
+  }
+
   async create(userId: string, input: CreateFeedCommentInput) {
-    try {
-      return await this.prisma.feedComment.create({
-        data: {
-          writerId: userId,
-          feedId: input.feedId,
-          parentId: input.parentCommentId ?? null,
-          content: input.content,
-          mentionedUserId: input.mentionedUserId ?? null,
-        },
-        select: { id: true },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') {
-          throw new HttpException('FEED', 404);
-        }
-      }
-      throw e;
-    }
+    return await this.prisma.feedComment.create({
+      data: {
+        writerId: userId,
+        feedId: input.feedId,
+        parentId: input.parentCommentId ?? null,
+        content: input.content,
+        mentionedUserId: input.mentionedUserId ?? null,
+      },
+      select: { id: true },
+    });
   }
 
   async findAllParentsByFeedId(userId: string | null, feedId: string) {
@@ -174,23 +183,13 @@ export class FeedCommentRepository {
   }
 
   async deleteOne(userId: string, commentId: string) {
-    try {
-      await this.prisma.feedComment.delete({
-        where: {
-          id: commentId,
-          writerId: userId,
-        },
-        select: { id: true },
-      });
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('COMMENT', 404);
-        }
-      }
-      throw e;
-    }
+    await this.prisma.feedComment.deleteMany({
+      where: {
+        id: commentId,
+        writerId: userId,
+      },
+    });
+    return;
   }
 
   async createLike(userId: string, commentId: string) {
@@ -217,48 +216,33 @@ export class FeedCommentRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new HttpException('LIKE', 409);
-        } else if (e.code === 'P2003') {
-          throw new HttpException('COMMENT', 404);
-        }
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return;
       }
       throw e;
     }
   }
 
   async deleteLike(userId: string, commentId: string) {
-    try {
-      await this.prisma.$transaction([
-        this.prisma.feedCommentLike.delete({
-          where: {
-            feedCommentId_userId: {
-              feedCommentId: commentId,
-              userId,
-            },
+    await this.prisma.$transaction([
+      this.prisma.feedCommentLike.deleteMany({
+        where: {
+          userId,
+          feedCommentId: commentId,
+        },
+      }),
+      this.prisma.feedComment.update({
+        where: {
+          id: commentId,
+        },
+        data: {
+          likeCount: {
+            decrement: 1,
           },
-        }),
-        this.prisma.feedComment.update({
-          where: {
-            id: commentId,
-          },
-          data: {
-            likeCount: {
-              decrement: 1,
-            },
-          },
-          select: { id: true },
-        }),
-      ]);
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('COMMENT', 404);
-        }
-      }
-      throw e;
-    }
+        },
+        select: { id: true },
+      }),
+    ]);
+    return;
   }
 }
 
