@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class NotificationRepository {
@@ -47,47 +48,25 @@ export class NotificationRepository {
   }
 
   async readOne(userId: string, notificationId: string) {
-    try {
-      await this.prisma.notification.update({
-        where: {
-          userId,
-          id: notificationId,
-        },
-        data: {
-          isRead: true,
-        },
-        select: { id: true },
-      });
-      return;
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('NOTIFICATION', 404);
-      }
-      throw e;
-    }
+    await this.prisma.notification.updateMany({
+      where: {
+        userId,
+        id: notificationId,
+      },
+      data: {
+        isRead: true,
+      },
+    });
+    return;
   }
 
   async deleteOne(userId: string, notificationId: string) {
-    try {
-      await this.prisma.notification.delete({
-        where: {
-          userId,
-          id: notificationId,
-        },
-        select: { id: true },
-      });
-      return;
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('NOTIFICATION', 404);
-      }
-      throw e;
-    }
+    await this.prisma.notification.deleteMany({
+      where: {
+        userId,
+        id: notificationId,
+      },
+    });
+    return;
   }
 }
