@@ -16,7 +16,6 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from 'src/provider/auth.service';
 import { LoginRequest, RegisterRequest } from '../request/auth.request';
-import { CheckNameRequest } from '../request/user.request';
 import {
   LoginResponse,
   JwtResponse,
@@ -89,16 +88,6 @@ export class AuthController {
       },
       clientInfo,
     );
-  }
-
-  @ApiOperation({ summary: '이름 중복 확인', deprecated: true })
-  @ApiResponse({ status: 204, description: '중복 이름 없음' })
-  @ApiResponse({ status: 409, description: '중복' })
-  @Post('register/name')
-  @HttpCode(204)
-  async checkName(@Body() { name }: CheckNameRequest) {
-    await this.authService.checkNameOrThrow(name);
-    return;
   }
 
   @ApiBearerAuth()
