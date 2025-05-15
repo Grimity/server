@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
-describe('POST /auth/register/name - 이름 중복 확인', () => {
+describe('POST /users/name-check - 이름 중복 확인', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -30,7 +30,7 @@ describe('POST /auth/register/name - 이름 중복 확인', () => {
   it('name이 2글자 미만일때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/auth/register/name')
+      .post('/users/name-check')
       .send({
         name: 'a',
       });
@@ -42,7 +42,7 @@ describe('POST /auth/register/name - 이름 중복 확인', () => {
   it('name이 12글자 초과일때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/auth/register/name')
+      .post('/users/name-check')
       .send({
         name: 'a'.repeat(13),
       });
@@ -54,7 +54,7 @@ describe('POST /auth/register/name - 이름 중복 확인', () => {
   it('중복이 없으면 204를 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/auth/register/name')
+      .post('/users/name-check')
       .send({
         name: 'aa',
       });
@@ -77,7 +77,7 @@ describe('POST /auth/register/name - 이름 중복 확인', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/auth/register/name')
+      .post('/users/name-check')
       .send({
         name: 'test',
       });

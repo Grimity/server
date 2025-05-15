@@ -9,6 +9,8 @@ import {
   Get,
   Query,
   HttpException,
+  Post,
+  Body,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,6 +24,7 @@ import { CurrentUser } from 'src/core/decorator';
 import {
   SearchUserRequest,
   GetFeedsByUserRequest,
+  CheckNameRequest,
 } from '../request/user.request';
 import { PageRequest } from '../request/shared';
 import {
@@ -39,6 +42,14 @@ import { MyPostResponse } from '../response/post.response';
 @Controller('users')
 export class UserController {
   constructor(private userService: UserService) {}
+  @ApiOperation({ summary: '닉네임 중복 체크' })
+  @ApiResponse({ status: 204, description: '중복 이름 없음' })
+  @ApiResponse({ status: 409, description: '중복된 닉네임' })
+  @HttpCode(204)
+  @Post('name-check')
+  async checkName(@Body() { name }: CheckNameRequest) {
+    return await this.userService.checkNameOrThrow(name);
+  }
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })

@@ -62,6 +62,7 @@ export class AuthService {
     return { id: user.id, accessToken, refreshToken };
   }
 
+  // 삭제
   async checkNameOrThrow(name: string) {
     const user = await this.userSelectRepository.findOneByName(name);
     if (user !== null) {

@@ -100,3 +100,10 @@ export class GetFeedsByUserRequest extends CursorRequest {
   @IsUUID()
   albumId?: string | null;
 }
+
+export class CheckNameRequest {
+  @ApiProperty({ minLength: 2, maxLength: 12 })
+  @TrimString()
+  @Length(2, 12)
+  name: string;
+}

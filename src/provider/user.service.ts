@@ -481,6 +481,14 @@ export class UserService {
       name: album.name,
     }));
   }
+
+  async checkNameOrThrow(name: string) {
+    const user = await this.userSelectRepository.findOneByName(name);
+    if (user !== null) {
+      throw new HttpException('NAME', 409);
+    }
+    return true;
+  }
 }
 
 export type SearchUserInput = {

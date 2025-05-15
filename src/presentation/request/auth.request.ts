@@ -46,10 +46,3 @@ export class RegisterRequest extends LoginRequest {
   @Validate(UrlValidator)
   url: string;
 }
-
-export class CheckNameRequest {
-  @ApiProperty({ minLength: 2, maxLength: 12 })
-  @TrimString()
-  @Length(2, 12)
-  name: string;
-}
