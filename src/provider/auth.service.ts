@@ -62,15 +62,6 @@ export class AuthService {
     return { id: user.id, accessToken, refreshToken };
   }
 
-  // 삭제
-  async checkNameOrThrow(name: string) {
-    const user = await this.userSelectRepository.findOneByName(name);
-    if (user !== null) {
-      throw new HttpException('NAME', 409);
-    }
-    return true;
-  }
-
   async register(input: RegisterInput, clientInfo: ClientInfo) {
     let providerId;
     let email;
