@@ -54,7 +54,36 @@ export class FeedCommentService {
     return;
   }
 
-  async getAllByFeedId(userId: string | null, feedId: string) {
+  async getComments(userId: string | null, feedId: string) {
+    const comments = await this.feedCommentRepository.findManyByFeedId(
+      userId,
+      feedId,
+    );
+
+    return comments.map((comment) => ({
+      ...comment,
+      writer: {
+        ...comment.writer,
+        image: getImageUrl(comment.writer.image),
+      },
+      childComments: comment.childComments.map((childComment) => ({
+        ...childComment,
+        writer: {
+          ...childComment.writer,
+          image: getImageUrl(childComment.writer.image),
+        },
+        mentionedUser: childComment.mentionedUser
+          ? {
+              ...childComment.mentionedUser,
+              image: getImageUrl(childComment.mentionedUser.image),
+            }
+          : null,
+      })),
+    }));
+  }
+
+  // 삭제
+  async getAllParentsByFeedId(userId: string | null, feedId: string) {
     const [comments, commentCount] = await Promise.all([
       this.feedCommentRepository.findAllParentsByFeedId(userId, feedId),
       this.feedCommentRepository.countByFeedId(feedId),
@@ -72,6 +101,7 @@ export class FeedCommentService {
     };
   }
 
+  // 삭제
   async getChildComments(
     userId: string | null,
     input: {

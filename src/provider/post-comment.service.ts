@@ -42,28 +42,7 @@ export class PostCommentService {
       postId,
     );
 
-    return comments.map((comment) => {
-      return {
-        id: comment.id,
-        content: comment.content,
-        createdAt: comment.createdAt,
-        likeCount: comment.likeCount,
-        isDeleted: comment.isDeleted,
-        writer: comment.writer,
-        isLike: comment.isLike,
-        childComments: comment.childComments.map((child) => {
-          return {
-            id: child.id,
-            content: child.content,
-            createdAt: child.createdAt,
-            likeCount: child.likeCount,
-            writer: child.writer,
-            mentionedUser: child.mentionedUser,
-            isLike: child.isLike,
-          };
-        }),
-      };
-    });
+    return comments;
   }
 
   async like(userId: string, commentId: string) {

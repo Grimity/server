@@ -120,7 +120,8 @@ export class PostCommentRepository {
         isLike: boolean;
       }[];
     }[] = [];
-    const parentRecord: Record<string, number> = {};
+
+    const parentRecord = new Map<string, number>();
 
     for (const comment of result) {
       if (comment.parentId === null) {
@@ -142,9 +143,9 @@ export class PostCommentRepository {
           isLike: comment.isLike ?? false,
           childComments: [],
         });
-        parentRecord[comment.id] = comments.length - 1;
+        parentRecord.set(comment.id, comments.length - 1);
       } else {
-        comments[parentRecord[comment.parentId]].childComments.push({
+        comments[parentRecord.get(comment.parentId)!].childComments.push({
           id: comment.id,
           content: comment.content,
           createdAt: comment.createdAt,

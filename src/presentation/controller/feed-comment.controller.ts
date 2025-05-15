@@ -29,6 +29,7 @@ import {
 import {
   FeedCommentsResponse,
   FeedChildCommentResponse,
+  ParentFeedCommentResponse,
 } from '../response/feed-comment.response';
 
 @ApiTags('/feed-comments')
@@ -56,7 +57,22 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 최상위 댓글 조회 - Optional Guard' })
+  @ApiOperation({ summary: '피드 댓글 조회 v2 - Optional Guard' })
+  @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
+  @UseGuards(OptionalJwtGuard)
+  @Get('v2')
+  async findAllV2(
+    @CurrentUser() userId: string | null,
+    @Query() { feedId }: GetFeedCommentRequest,
+  ): Promise<ParentFeedCommentResponse[]> {
+    return await this.feedCommentService.getComments(userId, feedId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '피드 최상위 댓글 조회 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: FeedCommentsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get()
@@ -64,11 +80,14 @@ export class FeedCommentController {
     @CurrentUser() userId: string | null,
     @Query() { feedId }: GetFeedCommentRequest,
   ): Promise<FeedCommentsResponse> {
-    return await this.feedCommentService.getAllByFeedId(userId, feedId);
+    return await this.feedCommentService.getAllParentsByFeedId(userId, feedId);
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 자식 댓글 조회 - Optional Guard' })
+  @ApiOperation({
+    summary: '피드 자식 댓글 조회 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: [FeedChildCommentResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('child-comments')
