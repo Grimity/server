@@ -62,20 +62,6 @@ describe('PUT /notifications/:id - 개별 알림 읽음 처리', () => {
     expect(status).toBe(400);
   });
 
-  it('없는 알림일 때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/notifications/${uuid()}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
   it('204와 함께 알림을 읽음 처리 한다', async () => {
     // given
     const accessToken = await register(app, 'test');

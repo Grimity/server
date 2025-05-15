@@ -1,6 +1,7 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class UserRepository {
@@ -55,16 +56,8 @@ export class UserRepository {
       ]);
       return user;
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2002'
-      ) {
-        throw new HttpException('이미 팔로우한 유저', 409);
-      } else if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2003'
-      ) {
-        throw new HttpException('없는 유저', 404);
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return null;
       }
       throw e;
     }
@@ -97,9 +90,7 @@ export class UserRepository {
       return user;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('FOLLOW', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
       }
       throw e;
     }
@@ -135,7 +126,7 @@ export class UserRepository {
     newToken: string,
   ) {
     try {
-      await this.prisma.refreshToken.update({
+      return await this.prisma.refreshToken.update({
         where: {
           userId_token: {
             userId,
@@ -151,9 +142,9 @@ export class UserRepository {
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
+        convertCode(e.code) === 'NOT_FOUND'
       ) {
-        throw new HttpException('만료된 refT', 401);
+        return null;
       }
       throw e;
     }
@@ -161,7 +152,7 @@ export class UserRepository {
 
   async deleteRefreshToken(userId: string, token: string) {
     try {
-      await this.prisma.refreshToken.delete({
+      return await this.prisma.refreshToken.delete({
         where: {
           userId_token: {
             userId,
@@ -170,13 +161,12 @@ export class UserRepository {
         },
         select: { userId: true },
       });
-      return;
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
+        convertCode(e.code) === 'NOT_FOUND'
       ) {
-        throw new HttpException('만료된 refT', 401);
+        return null;
       }
       throw e;
     }

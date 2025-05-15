@@ -1,12 +1,20 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { kyselyUuid } from './util';
 import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
 export class UserSelectRepository {
   constructor(private prisma: PrismaService) {}
+
+  async exists(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    return user !== null;
+  }
 
   async findOneById(id: string) {
     return await this.prisma.user.findUnique({

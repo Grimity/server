@@ -1,4 +1,4 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from './util';
 import { separator } from 'src/common/constants/separator-text';
@@ -79,7 +79,7 @@ export class FeedSelectRepository {
       )
       .execute();
 
-    if (!feed) throw new HttpException('FEED', 404);
+    if (!feed) return null;
 
     return {
       id: feed.id,
@@ -723,7 +723,7 @@ export class FeedSelectRepository {
       )
       .execute();
 
-    if (!feed) throw new HttpException('FEED', 404);
+    if (!feed) return null;
 
     return {
       id: feed.id,

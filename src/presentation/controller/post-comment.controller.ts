@@ -78,7 +78,6 @@ export class PostCommentController {
   @ApiOperation({ summary: '댓글 좋아요' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '없는 댓글' })
-  @ApiResponse({ status: 409, description: '이미 좋아요한 댓글' })
   @UseGuards(JwtGuard)
   @Put(':id/like')
   @HttpCode(204)
@@ -93,10 +92,7 @@ export class PostCommentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '댓글 좋아요 취소' })
   @ApiResponse({ status: 204 })
-  @ApiResponse({
-    status: 404,
-    description: '없는 댓글이거나 좋아요한적이 없을때',
-  })
+  @ApiResponse({ status: 404, description: '없는 댓글' })
   @UseGuards(JwtGuard)
   @Delete(':id/like')
   @HttpCode(204)

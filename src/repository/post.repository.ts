@@ -1,6 +1,7 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class PostRepository {
@@ -23,7 +24,7 @@ export class PostRepository {
 
   async update(input: UpdateInput) {
     try {
-      await this.prisma.post.update({
+      return await this.prisma.post.update({
         where: {
           id: input.postId,
           authorId: input.userId,
@@ -36,12 +37,9 @@ export class PostRepository {
         },
         select: { id: true },
       });
-      return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('POST', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
       }
       throw e;
     }
@@ -58,11 +56,7 @@ export class PostRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new HttpException('LIKE', 409);
-        } else if (e.code === 'P2003') {
-          throw new HttpException('POST', 404);
-        }
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return;
       }
       throw e;
     }
@@ -81,9 +75,7 @@ export class PostRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('LIKE', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return;
       }
       throw e;
     }
@@ -101,11 +93,7 @@ export class PostRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new HttpException('SAVE', 409);
-        } else if (e.code === 'P2003') {
-          throw new HttpException('POST', 404);
-        }
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return;
       }
       throw e;
     }
@@ -125,9 +113,7 @@ export class PostRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('SAVE', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return;
       }
       throw e;
     }
@@ -153,19 +139,16 @@ export class PostRepository {
 
   async deleteOne(userId: string, postId: string) {
     try {
-      await this.prisma.post.delete({
+      return await this.prisma.post.delete({
         where: {
           id: postId,
           authorId: userId,
         },
         select: { id: true },
       });
-      return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('POST', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
       }
       throw e;
     }

@@ -1,11 +1,30 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { prismaUuid, kyselyUuid } from './util';
+import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class PostCommentRepository {
   constructor(private prisma: PrismaService) {}
+
+  async existsPost(postId: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+
+    return !!post;
+  }
+
+  async existsComment(commentId: string) {
+    const comment = await this.prisma.postComment.findUnique({
+      where: { id: commentId },
+      select: { id: true },
+    });
+
+    return !!comment;
+  }
 
   async create({
     userId,
@@ -14,32 +33,23 @@ export class PostCommentRepository {
     mentionedUserId,
     content,
   }: CreateInput) {
-    try {
-      const [post] = await this.prisma.$transaction([
-        this.prisma.postComment.create({
-          data: {
-            writerId: userId,
-            postId,
-            parentId: parentCommentId,
-            mentionedUserId,
-            content,
-          },
-        }),
-        this.prisma.post.update({
-          where: { id: postId },
-          data: { commentCount: { increment: 1 } },
-          select: { id: true },
-        }),
-      ]);
-      return post;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') {
-          throw new HttpException('POST', 404);
-        }
-      }
-      throw e;
-    }
+    const [post] = await this.prisma.$transaction([
+      this.prisma.postComment.create({
+        data: {
+          writerId: userId,
+          postId,
+          parentId: parentCommentId,
+          mentionedUserId,
+          content,
+        },
+      }),
+      this.prisma.post.update({
+        where: { id: postId },
+        data: { commentCount: { increment: 1 } },
+        select: { id: true },
+      }),
+    ]);
+    return post;
   }
 
   async findManyByPostId(userId: string | null, postId: string) {
@@ -194,11 +204,7 @@ export class PostCommentRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new HttpException('LIKE', 409);
-        } else if (e.code === 'P2003') {
-          throw new HttpException('COMMENT', 404);
-        }
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return;
       }
       throw e;
     }
@@ -224,32 +230,21 @@ export class PostCommentRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('LIKE', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return;
       }
       throw e;
     }
   }
 
   async findOneById(commentId: string) {
-    try {
-      return await this.prisma.postComment.findUniqueOrThrow({
-        where: { id: commentId },
-        select: {
-          id: true,
-          parentId: true,
-          postId: true,
-        },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('COMMENT', 404);
-        }
-      }
-      throw e;
-    }
+    return await this.prisma.postComment.findUnique({
+      where: { id: commentId },
+      select: {
+        id: true,
+        parentId: true,
+        postId: true,
+      },
+    });
   }
 
   async deleteParent({
@@ -261,46 +256,37 @@ export class PostCommentRepository {
     postId: string;
     commentId: string;
   }) {
-    try {
-      const [_, count] = await this.prisma.$transaction([
-        this.prisma.postComment.update({
-          where: {
-            id: commentId,
-            writerId: userId,
-            parentId: null,
-            isDeleted: false,
-          },
-          data: { isDeleted: true, content: '', writerId: null },
-          select: { id: true },
-        }),
-        this.prisma.postComment.count({
-          where: {
-            parentId: commentId,
-            postId,
-          },
-        }),
-        this.prisma.post.update({
-          where: { id: postId },
-          data: { commentCount: { decrement: 1 } },
-          select: { id: true },
-        }),
-      ]);
+    const [_, count] = await this.prisma.$transaction([
+      this.prisma.postComment.update({
+        where: {
+          id: commentId,
+          writerId: userId,
+          parentId: null,
+          isDeleted: false,
+        },
+        data: { isDeleted: true, content: '', writerId: null },
+        select: { id: true },
+      }),
+      this.prisma.postComment.count({
+        where: {
+          parentId: commentId,
+          postId,
+        },
+      }),
+      this.prisma.post.update({
+        where: { id: postId },
+        data: { commentCount: { decrement: 1 } },
+        select: { id: true },
+      }),
+    ]);
 
-      if (count === 0) {
-        await this.prisma.postComment.delete({
-          where: { id: commentId },
-          select: { id: true },
-        });
-      }
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') {
-          throw new HttpException('COMMENT', 404);
-        }
-      }
-      throw e;
+    if (count === 0) {
+      await this.prisma.postComment.delete({
+        where: { id: commentId },
+        select: { id: true },
+      });
     }
+    return;
   }
 
   async deleteChild({
@@ -314,54 +300,43 @@ export class PostCommentRepository {
     commentId: string;
     parentId: string;
   }) {
-    try {
-      const [_, [parentComment]] = await this.prisma.$transaction([
-        this.prisma.postComment.delete({
-          where: {
-            id: commentId,
-            writerId: userId,
-          },
-          select: { id: true },
-        }),
-        this.prisma.$queryRaw`
+    const [_, [parentComment]] = await this.prisma.$transaction([
+      this.prisma.postComment.delete({
+        where: {
+          id: commentId,
+          writerId: userId,
+        },
+        select: { id: true },
+      }),
+      this.prisma.$queryRaw`
           SELECT
             "isDeleted",
             (select count(*) from "PostComment" where "parentId" = ${prismaUuid(parentId)} and "postId" = ${prismaUuid(postId)}) as "childCommentCount"
           FROM "PostComment"
           WHERE id = ${prismaUuid(parentId)}
         ` as Prisma.PrismaPromise<
-          {
-            isDeleted: boolean;
-            childCommentCount: bigint;
-          }[]
-        >,
-        this.prisma.post.update({
-          where: { id: postId },
-          data: { commentCount: { decrement: 1 } },
-          select: { id: true },
-        }),
-      ]);
+        {
+          isDeleted: boolean;
+          childCommentCount: bigint;
+        }[]
+      >,
+      this.prisma.post.update({
+        where: { id: postId },
+        data: { commentCount: { decrement: 1 } },
+        select: { id: true },
+      }),
+    ]);
 
-      if (!parentComment) throw new HttpException('COMMENT', 404);
-
-      if (
-        parentComment.isDeleted &&
-        Number(parentComment.childCommentCount) === 0
-      ) {
-        await this.prisma.postComment.delete({
-          where: { id: parentId },
-          select: { id: true },
-        });
-      }
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2003') {
-          throw new HttpException('COMMENT', 404);
-        }
-      }
-      throw e;
+    if (
+      parentComment.isDeleted &&
+      Number(parentComment.childCommentCount) === 0
+    ) {
+      await this.prisma.postComment.delete({
+        where: { id: parentId },
+        select: { id: true },
+      });
     }
+    return;
   }
 }
 

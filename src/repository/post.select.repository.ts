@@ -1,4 +1,4 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid } from './util';
@@ -6,6 +6,15 @@ import { kyselyUuid } from './util';
 @Injectable()
 export class PostSelectRepository {
   constructor(private prisma: PrismaService) {}
+
+  async exists(postId: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+
+    return post !== null;
+  }
 
   async findAllNotices() {
     const result = await this.prisma.$kysely
@@ -145,7 +154,7 @@ export class PostSelectRepository {
       )
       .execute();
 
-    if (!post) throw new HttpException('POST', 404);
+    if (!post) return null;
 
     return {
       id: post.id,
@@ -420,22 +429,18 @@ export class PostSelectRepository {
   }
 
   async findMeta(id: string) {
-    try {
-      return await this.prisma.post.findUniqueOrThrow({
-        where: {
-          id,
-        },
-        select: {
-          id: true,
-          title: true,
-          content: true,
-          thumbnail: true,
-          createdAt: true,
-        },
-      });
-    } catch (e) {
-      throw new HttpException('POST', 404);
-    }
+    return await this.prisma.post.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        thumbnail: true,
+        createdAt: true,
+      },
+    });
   }
 }
 

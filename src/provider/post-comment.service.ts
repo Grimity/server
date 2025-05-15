@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PostCommentRepository } from 'src/repository/post-comment.repository';
 import { AwsService } from './aws.service';
 
@@ -10,6 +10,21 @@ export class PostCommentService {
   ) {}
 
   async create(input: CreateInput) {
+    const promiseMethods = [
+      this.postCommentRepository.existsPost(input.postId),
+    ];
+
+    if (input.parentCommentId) {
+      promiseMethods.push(
+        this.postCommentRepository.existsComment(input.parentCommentId),
+      );
+    }
+    const [postExists, commentExists] = await Promise.all(promiseMethods);
+    if (!postExists) throw new HttpException('POST', 404);
+    if (input.parentCommentId && !commentExists) {
+      throw new HttpException('COMMENT', 404);
+    }
+
     const comment = await this.postCommentRepository.create(input);
 
     if (input.mentionedUserId && input.parentCommentId) {
@@ -46,17 +61,24 @@ export class PostCommentService {
   }
 
   async like(userId: string, commentId: string) {
+    const exists = await this.postCommentRepository.existsComment(commentId);
+    if (!exists) throw new HttpException('COMMENT', 404);
+
     await this.postCommentRepository.createLike(userId, commentId);
     return;
   }
 
   async unlike(userId: string, commentId: string) {
+    const exists = await this.postCommentRepository.existsComment(commentId);
+    if (!exists) throw new HttpException('COMMENT', 404);
+
     await this.postCommentRepository.deleteLike(userId, commentId);
     return;
   }
 
   async deleteOne(userId: string, commentId: string) {
     const comment = await this.postCommentRepository.findOneById(commentId);
+    if (!comment) throw new HttpException('COMMENT', 404);
 
     if (comment.parentId) {
       // 대댓글 삭제

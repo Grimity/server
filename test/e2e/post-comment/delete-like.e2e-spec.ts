@@ -72,37 +72,6 @@ describe('DELETE /post-comments/:id/like - 게시판 댓글 좋아요 취소', (
     expect(status).toBe(404);
   });
 
-  it('좋아요하지 않은 댓글일 때도 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const post = await prisma.post.create({
-      data: {
-        authorId: user.id,
-        title: 'test',
-        content: 'test',
-        type: 1,
-      },
-    });
-
-    const comment = await prisma.postComment.create({
-      data: {
-        writerId: user.id,
-        postId: post.id,
-        content: 'test',
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete(`/post-comments/${comment.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`);
-
-    // then
-    expect(status).toBe(404);
-  });
-
   it('204와 함께 좋아요를 취소한다', async () => {
     // given
     const accessToken = await register(app, 'test');
