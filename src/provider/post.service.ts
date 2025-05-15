@@ -58,7 +58,7 @@ export class PostService {
 
     const typeNumber = PostTypeEnum[type];
 
-    await this.postRepository.update({
+    const post = await this.postRepository.update({
       userId,
       postId,
       title,
@@ -66,6 +66,10 @@ export class PostService {
       type: typeNumber,
       thumbnail,
     });
+
+    if (!post) {
+      throw new HttpException('POST', 404);
+    }
 
     await this.searchService.updatePost({
       id: postId,
@@ -108,6 +112,9 @@ export class PostService {
   }
 
   async like(userId: string, postId: string) {
+    const exists = await this.postSelectRepository.exists(postId);
+    if (!exists) throw new HttpException('POST', 404);
+
     await this.postRepository.createLike(userId, postId);
     return;
   }
@@ -118,6 +125,9 @@ export class PostService {
   }
 
   async save(userId: string, postId: string) {
+    const exists = await this.postSelectRepository.exists(postId);
+    if (!exists) throw new HttpException('POST', 404);
+
     await this.postRepository.createSave(userId, postId);
     return;
   }
@@ -140,7 +150,9 @@ export class PostService {
   }
 
   async deleteOne(userId: string, postId: string) {
-    await this.postRepository.deleteOne(userId, postId);
+    const post = await this.postRepository.deleteOne(userId, postId);
+    if (!post) throw new HttpException('POST', 404);
+
     await this.searchService.deletePost(postId);
     return;
   }

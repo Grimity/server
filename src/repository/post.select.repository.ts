@@ -7,6 +7,15 @@ import { kyselyUuid } from './util';
 export class PostSelectRepository {
   constructor(private prisma: PrismaService) {}
 
+  async exists(postId: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+
+    return post !== null;
+  }
+
   async findAllNotices() {
     const result = await this.prisma.$kysely
       .selectFrom('Post')

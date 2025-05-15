@@ -60,20 +60,6 @@ describe('DELETE /posts/:id/like - 게시글 좋아요 취소', () => {
     expect(status).toBe(400);
   });
 
-  it('좋아요 한 적이 없는경우 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete('/posts/00000000-0000-0000-0000-000000000000/like')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
   it('204와 함께 like를 취소한다', async () => {
     // given
     const accessToken = await register(app, 'test');

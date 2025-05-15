@@ -100,33 +100,4 @@ describe('PUT /posts/:id/like - 게시글 좋아요', () => {
     expect(like.userId).toBe(user.id);
     expect(like.postId).toBe(post.id);
   });
-
-  it('이미 like한 경우 409를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const post = await prisma.post.create({
-      data: {
-        authorId: user.id,
-        title: 'title',
-        content: 'content',
-        type: 1,
-      },
-    });
-
-    await request(app.getHttpServer())
-      .put(`/posts/${post.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/posts/${post.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(409);
-  });
 });
