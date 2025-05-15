@@ -21,6 +21,17 @@ class FeedCommentBaseResponse {
   writer: UserBaseResponse;
 }
 
+class ChildFeedCommentResponse extends FeedCommentBaseResponse {
+  @ApiProperty({ type: UserBaseResponse, nullable: true })
+  mentionedUser: UserBaseResponse | null;
+}
+
+export class ParentFeedCommentResponse extends FeedCommentBaseResponse {
+  @ApiProperty({ type: ChildFeedCommentResponse, isArray: true })
+  childComments: ChildFeedCommentResponse[];
+}
+
+// TODO: 이 밑으로 다 삭제
 class FeedParentCommentResponse extends FeedCommentBaseResponse {
   @ApiProperty()
   childCommentCount: number;

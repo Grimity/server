@@ -55,33 +55,43 @@ export class FeedService {
   }
 
   async like(userId: string, feedId: string) {
-    const { likeCount } = await this.feedRepository.like(userId, feedId);
+    const exists = await this.feedSelectRepository.exists(feedId);
+    if (!exists) throw new HttpException('FEED', 404);
 
-    if ([1, 5, 10, 20, 50, 100].includes(likeCount)) {
+    const feed = await this.feedRepository.like(userId, feedId);
+
+    if (feed === null) return;
+
+    if ([1, 5, 10, 20, 50, 100].includes(feed.likeCount)) {
       await Promise.all([
         this.awsService.pushEvent({
           type: 'FEED_LIKE',
           feedId,
-          likeCount,
+          likeCount: feed.likeCount,
         }),
         this.ddb.putItemForUpdate({
           type: 'FEED',
           id: feedId,
-          count: likeCount,
+          count: feed.likeCount,
         }),
       ]);
     } else {
       await this.ddb.putItemForUpdate({
         type: 'FEED',
         id: feedId,
-        count: likeCount,
+        count: feed.likeCount,
       });
     }
     return;
   }
 
   async unlike(userId: string, feedId: string) {
+    const exists = await this.feedSelectRepository.exists(feedId);
+    if (!exists) throw new HttpException('FEED', 404);
+
     const feed = await this.feedRepository.unlike(userId, feedId);
+    if (feed === null) return;
+
     await this.ddb.putItemForUpdate({
       type: 'FEED',
       id: feedId,
@@ -97,11 +107,10 @@ export class FeedService {
   }
 
   async deleteOne(userId: string, feedId: string) {
-    const feed = await this.feedRepository.deleteOne(userId, feedId);
+    const exists = await this.feedSelectRepository.exists(feedId);
+    if (!exists) throw new HttpException('FEED', 404);
 
-    if (!feed) {
-      throw new HttpException('FEED', 404);
-    }
+    const feed = await this.feedRepository.deleteOne(userId, feedId);
 
     await this.searchService.deleteFeed(feedId);
     return;
@@ -111,6 +120,11 @@ export class FeedService {
     userId: string,
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
+    const exists = await this.feedSelectRepository.exists(
+      updateFeedInput.feedId,
+    );
+    if (!exists) throw new HttpException('FEED', 404);
+
     const trimmedSet = new Set(
       updateFeedInput.tags.map((tag) =>
         tag.replaceAll(' ', '').replaceAll('#', ''),
@@ -234,6 +248,9 @@ export class FeedService {
   }
 
   async save(userId: string, feedId: string) {
+    const exists = await this.feedSelectRepository.exists(feedId);
+    if (!exists) throw new HttpException('FEED', 404);
+
     await this.feedRepository.createSave(userId, feedId);
     return;
   }

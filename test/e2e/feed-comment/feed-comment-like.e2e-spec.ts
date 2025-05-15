@@ -118,48 +118,4 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
     const afterComment = await prisma.feedComment.findFirstOrThrow();
     expect(afterComment.likeCount).toBe(1);
   });
-
-  it('이미 좋아요를 했을 경우 409를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-        url: 'test2',
-      },
-    });
-    const feed = await prisma.feed.create({
-      data: {
-        title: 'test',
-        content: 'test',
-        authorId: user.id,
-        thumbnail: 'feed/test.png',
-      },
-    });
-    const comment = await prisma.feedComment.create({
-      data: {
-        writerId: user.id,
-        feedId: feed.id,
-        content: 'test',
-      },
-    });
-
-    // when
-    await request(app.getHttpServer())
-      .put(`/feed-comments/${comment.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    const { status } = await request(app.getHttpServer())
-      .put(`/feed-comments/${comment.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(409);
-  });
 });

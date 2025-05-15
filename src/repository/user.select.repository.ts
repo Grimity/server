@@ -9,12 +9,9 @@ export class UserSelectRepository {
   constructor(private prisma: PrismaService) {}
 
   async findOneById(id: string) {
-    const user = await this.prisma.user.findUnique({
+    return await this.prisma.user.findUnique({
       where: { id },
     });
-
-    if (user === null) throw new HttpException('USER', 404);
-    return user;
   }
 
   async findOneByUrl(url: string) {
@@ -31,32 +28,19 @@ export class UserSelectRepository {
     });
   }
 
-  async findOneByProviderOrThrow(provider: string, providerId: string) {
-    try {
-      return await this.prisma.user.findUniqueOrThrow({
-        where: {
-          provider_providerId: {
-            provider,
-            providerId,
-          },
+  async findOneByProvider(provider: string, providerId: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        provider_providerId: {
+          provider,
+          providerId,
         },
-        select: {
-          id: true,
-        },
-      });
-    } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === 'P2025'
-      ) {
-        throw new HttpException('USER', 404);
-      }
-      throw e;
-    }
+      },
+    });
   }
 
   async getMyProfile(userId: string) {
-    const [user] = await this.prisma.$kysely
+    const response = await this.prisma.$kysely
       .selectFrom('User')
       .where('id', '=', kyselyUuid(userId))
       .select([
@@ -93,7 +77,8 @@ export class UserSelectRepository {
       )
       .execute();
 
-    if (!user) throw new HttpException('USER', 404);
+    if (response.length === 0) return null;
+    const user = response[0];
 
     return {
       id: user.id,
@@ -114,7 +99,7 @@ export class UserSelectRepository {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    const [user] = await this.prisma.$kysely
+    const response = await this.prisma.$kysely
       .selectFrom('User')
       .where('User.id', '=', kyselyUuid(targetUserId))
       .select([
@@ -166,7 +151,8 @@ export class UserSelectRepository {
       )
       .execute();
 
-    if (!user) throw new HttpException('USER', 404);
+    if (response.length === 0) return null;
+    const user = response[0];
 
     return {
       id: user.id,

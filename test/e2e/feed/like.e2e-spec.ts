@@ -99,36 +99,6 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
     expect(like.userId).not.toBe(user.id);
   });
 
-  it('이미 like한 경우 409를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const feed = await prisma.feed.create({
-      data: {
-        authorId: user.id,
-        title: 'test',
-        content: 'test',
-        cards: ['feed/test.jpg'],
-        thumbnail: 'feed/test.jpg',
-      },
-    });
-
-    // when
-    await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`);
-    const { status } = await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/like`)
-      .set('Authorization', `Bearer ${accessToken}`);
-
-    // then
-    expect(status).toBe(409);
-
-    const afterFeed = await prisma.feed.findFirstOrThrow();
-    expect(afterFeed.likeCount).toBe(1);
-  });
-
   it('없는 피드일때 404를 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');

@@ -91,42 +91,4 @@ describe('DELETE /feeds/:id/save - 피드 저장 취소', () => {
     const saved = await prisma.save.findFirst();
     expect(saved).toBeNull();
   });
-
-  it('저장하지 않은 경우 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const feed = await prisma.feed.create({
-      data: {
-        authorId: user.id,
-        title: 'test',
-        content: 'test',
-        cards: ['feed/test.jpg'],
-        thumbnail: 'feed/test.jpg',
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete(`/feeds/${feed.id}/save`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-    // then
-    expect(status).toBe(404);
-  });
-
-  it('없는 피드에 unsave를 하면 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete('/feeds/00000000-0000-0000-0000-000000000000/save')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
 });

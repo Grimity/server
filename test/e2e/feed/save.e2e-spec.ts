@@ -94,33 +94,6 @@ describe('PUT /feeds/:id/save - 피드 저장', () => {
     expect(saved.userId).toBeDefined();
   });
 
-  it('이미 save한 경우 409를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-    const feed = await prisma.feed.create({
-      data: {
-        authorId: user.id,
-        title: 'test',
-        content: 'test',
-        cards: ['feed/test.jpg'],
-        thumbnail: 'feed/test.jpg',
-      },
-    });
-
-    // when
-    await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/save`)
-      .set('Authorization', `Bearer ${accessToken}`);
-    const { status } = await request(app.getHttpServer())
-      .put(`/feeds/${feed.id}/save`)
-      .set('Authorization', `Bearer ${accessToken}`);
-
-    // then
-    expect(status).toBe(409);
-  });
-
   it('피드가 없는 경우 404를 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');

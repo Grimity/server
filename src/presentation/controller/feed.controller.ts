@@ -226,7 +226,6 @@ export class FeedController {
   @ApiOperation({ summary: 'like' })
   @ApiResponse({ status: 204, description: '좋아요 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
-  @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/like')
@@ -241,7 +240,6 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'unlike' })
   @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
-  @ApiResponse({ status: 404, description: '좋아요를 안했음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/like')
@@ -257,7 +255,6 @@ export class FeedController {
   @ApiOperation({ summary: 'save' })
   @ApiResponse({ status: 204, description: '저장 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
-  @ApiResponse({ status: 409, description: '이미 저장함' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/save')
@@ -272,7 +269,6 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'unsave' })
   @ApiResponse({ status: 204, description: '저장 취소 성공' })
-  @ApiResponse({ status: 404, description: '저장을 안했음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/save')
@@ -284,10 +280,8 @@ export class FeedController {
     return;
   }
 
-  @ApiBearerAuth()
   @ApiOperation({ summary: '피드 조회수 증가용 api' })
   @ApiResponse({ status: 204, description: '조회 성공' })
-  @ApiResponse({ status: 404, description: '피드가 없음' })
   @HttpCode(204)
   @Put(':id/view')
   async view(@Param('id', new ParseUUIDPipe()) feedId: string) {

@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class FeedRepository {
@@ -56,49 +57,33 @@ export class FeedRepository {
       return feed;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new HttpException('LIKE', 409);
-        } else if (e.code === 'P2003') {
-          throw new HttpException('FEED', 404);
-        }
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return null;
       }
       throw e;
     }
   }
 
   async unlike(userId: string, feedId: string) {
-    try {
-      const [_, feed] = await this.prisma.$transaction([
-        this.prisma.like.delete({
-          where: {
-            userId_feedId: {
-              userId,
-              feedId,
-            },
+    const [_, feed] = await this.prisma.$transaction([
+      this.prisma.like.deleteMany({
+        where: {
+          userId,
+          feedId,
+        },
+      }),
+      this.prisma.feed.update({
+        where: {
+          id: feedId,
+        },
+        data: {
+          likeCount: {
+            decrement: 1,
           },
-          select: { userId: true },
-        }),
-        this.prisma.feed.update({
-          where: {
-            id: feedId,
-          },
-          data: {
-            likeCount: {
-              decrement: 1,
-            },
-          },
-          select: { likeCount: true },
-        }),
-      ]);
-      return feed;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('LIKE', 404);
-        }
-      }
-      throw e;
-    }
+        },
+        select: { likeCount: true },
+      }),
+    ]);
+    return feed;
   }
 
   async increaseViewCount(feedId: string) {
@@ -117,75 +102,55 @@ export class FeedRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('FEED', 404);
-        }
+        if (convertCode(e.code) === 'NOT_FOUND') return;
       }
       throw e;
     }
   }
 
   async deleteOne(userId: string, feedId: string) {
-    try {
-      return await this.prisma.feed.delete({
-        where: {
-          id: feedId,
-          authorId: userId,
-        },
-        select: { id: true },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('FEED', 404);
-        }
-      }
-      throw e;
-    }
+    return await this.prisma.feed.delete({
+      where: {
+        id: feedId,
+        authorId: userId,
+      },
+      select: { id: true },
+    });
   }
 
   async updateOne(
     userId: string,
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
-    try {
-      await this.prisma.$transaction([
-        this.prisma.tag.deleteMany({
-          where: {
+    await this.prisma.$transaction([
+      this.prisma.tag.deleteMany({
+        where: {
+          feedId: updateFeedInput.feedId,
+        },
+      }),
+      this.prisma.tag.createMany({
+        data: updateFeedInput.tags.map((tag) => {
+          return {
             feedId: updateFeedInput.feedId,
-          },
+            tagName: tag,
+          };
         }),
-        this.prisma.tag.createMany({
-          data: updateFeedInput.tags.map((tag) => {
-            return {
-              feedId: updateFeedInput.feedId,
-              tagName: tag,
-            };
-          }),
-        }),
-        this.prisma.feed.update({
-          where: {
-            id: updateFeedInput.feedId,
-            authorId: userId,
-          },
-          data: {
-            title: updateFeedInput.title,
-            content: updateFeedInput.content,
-            cards: updateFeedInput.cards,
-            thumbnail: updateFeedInput.thumbnail,
-            albumId: updateFeedInput.albumId,
-          },
-          select: { id: true },
-        }),
-      ]);
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025' || e.code === 'P2003') {
-          throw new HttpException('FEED', 404);
-        }
-      }
-      throw e;
-    }
+      }),
+      this.prisma.feed.update({
+        where: {
+          id: updateFeedInput.feedId,
+          authorId: userId,
+        },
+        data: {
+          title: updateFeedInput.title,
+          content: updateFeedInput.content,
+          cards: updateFeedInput.cards,
+          thumbnail: updateFeedInput.thumbnail,
+          albumId: updateFeedInput.albumId,
+        },
+        select: { id: true },
+      }),
+    ]);
   }
 
   async createSave(userId: string, feedId: string) {
@@ -200,36 +165,20 @@ export class FeedRepository {
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new HttpException('SAVE', 409);
-        } else if (e.code === 'P2003') {
-          throw new HttpException('FEED', 404);
-        }
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return;
       }
       throw e;
     }
   }
 
   async deleteSave(userId: string, feedId: string) {
-    try {
-      await this.prisma.save.delete({
-        where: {
-          userId_feedId: {
-            userId,
-            feedId,
-          },
-        },
-        select: { userId: true },
-      });
-      return;
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2025') {
-          throw new HttpException('SAVE', 404);
-        }
-      }
-      throw e;
-    }
+    await this.prisma.save.deleteMany({
+      where: {
+        userId,
+        feedId,
+      },
+    });
+    return;
   }
 
   async deleteMany(userId: string, ids: string[]) {

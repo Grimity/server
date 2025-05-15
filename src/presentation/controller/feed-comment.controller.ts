@@ -29,6 +29,7 @@ import {
 import {
   FeedCommentsResponse,
   FeedChildCommentResponse,
+  ParentFeedCommentResponse,
 } from '../response/feed-comment.response';
 
 @ApiTags('/feed-comments')
@@ -41,7 +42,10 @@ export class FeedCommentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 댓글 생성' })
   @ApiResponse({ status: 201 })
-  @ApiResponse({ status: 404, description: '피드를 찾을 수 없음' })
+  @ApiResponse({
+    status: 404,
+    description: '피드가 없거나..상위댓글이 없거나..',
+  })
   @Post()
   @UseGuards(JwtGuard)
   async create(
@@ -53,7 +57,22 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 최상위 댓글 조회 - Optional Guard' })
+  @ApiOperation({ summary: '피드 댓글 조회 v2 - Optional Guard' })
+  @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
+  @UseGuards(OptionalJwtGuard)
+  @Get('v2')
+  async findAllV2(
+    @CurrentUser() userId: string | null,
+    @Query() { feedId }: GetFeedCommentRequest,
+  ): Promise<ParentFeedCommentResponse[]> {
+    return await this.feedCommentService.getComments(userId, feedId);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: '피드 최상위 댓글 조회 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: FeedCommentsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get()
@@ -61,11 +80,14 @@ export class FeedCommentController {
     @CurrentUser() userId: string | null,
     @Query() { feedId }: GetFeedCommentRequest,
   ): Promise<FeedCommentsResponse> {
-    return await this.feedCommentService.getAllByFeedId(userId, feedId);
+    return await this.feedCommentService.getAllParentsByFeedId(userId, feedId);
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 자식 댓글 조회 - Optional Guard' })
+  @ApiOperation({
+    summary: '피드 자식 댓글 조회 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: [FeedChildCommentResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('child-comments')
@@ -95,7 +117,6 @@ export class FeedCommentController {
   @ApiOperation({ summary: '피드 댓글 좋아요' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
-  @ApiResponse({ status: 409, description: '이미 좋아요를 누름' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/like')

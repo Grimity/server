@@ -26,10 +26,7 @@ class PostCommentBaseResponse {
 }
 
 class ChildPostCommentResponse extends PostCommentBaseResponse {
-  @ApiProperty({
-    type: UserBaseResponse,
-    nullable: true,
-  })
+  @ApiProperty({ type: UserBaseResponse, nullable: true })
   mentionedUser: UserBaseResponse | null;
 }
 

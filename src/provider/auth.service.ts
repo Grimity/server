@@ -29,10 +29,14 @@ export class AuthService {
       providerId = kakaoProfile.kakaoId;
     }
 
-    const user = await this.userSelectRepository.findOneByProviderOrThrow(
+    const user = await this.userSelectRepository.findOneByProvider(
       input.provider,
       providerId,
     );
+
+    if (user === null) {
+      throw new HttpException('USER', 404);
+    }
 
     const accessToken = this.jwtService.sign({ id: user.id });
 
