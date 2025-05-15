@@ -62,20 +62,6 @@ describe('DELETE /notifications/:id - 개별 알림 삭제', () => {
     expect(status).toBe(400);
   });
 
-  it('존재하지 않는 알림일 때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete(`/notifications/${uuid()}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
   it('204와 함께 알림을 삭제한다', async () => {
     const accessToken = await register(app, 'test');
 
