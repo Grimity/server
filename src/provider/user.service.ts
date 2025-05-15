@@ -97,9 +97,13 @@ export class UserService {
   }
 
   async follow(userId: string, targetUserId: string) {
-    const user = await this.userRepository.follow(userId, targetUserId);
+    const exists = await this.userSelectRepository.exists(targetUserId);
+    if (!exists) throw new HttpException('USER', 404);
 
-    if (user.subscription.includes('FOLLOW')) {
+    const targetUser = await this.userRepository.follow(userId, targetUserId);
+    if (targetUser === null) return;
+
+    if (targetUser.subscription.includes('FOLLOW')) {
       await this.awsService.pushEvent({
         type: 'FOLLOW',
         actorId: userId,

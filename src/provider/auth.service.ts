@@ -150,13 +150,20 @@ export class AuthService {
       },
     );
 
-    await this.userRepository.updateRefreshToken(userId, token, refreshToken);
+    const result = await this.userRepository.updateRefreshToken(
+      userId,
+      token,
+      refreshToken,
+    );
+    if (result === null) throw new HttpException('만료된 refT', 401);
 
     return { accessToken, refreshToken };
   }
 
   async logout(userId: string, token: string, clientInfo: ClientInfo) {
-    await this.userRepository.deleteRefreshToken(userId, token);
+    const result = await this.userRepository.deleteRefreshToken(userId, token);
+    if (result === null) throw new HttpException('만료된 refT', 401);
+
     return;
   }
 

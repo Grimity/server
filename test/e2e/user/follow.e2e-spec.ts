@@ -74,35 +74,6 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
     expect(follow.followingId).toBe(targetUser.id);
   });
 
-  it('두번 팔로우하면 409를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const targetUser = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-        url: 'test2',
-      },
-    });
-
-    await request(app.getHttpServer())
-      .put(`/users/${targetUser.id}/follow`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/users/${targetUser.id}/follow`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(409);
-  });
-
   it('없는 유저를 팔로우하면 404를 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');

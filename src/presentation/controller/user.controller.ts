@@ -154,7 +154,6 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '팔로우' })
   @ApiResponse({ status: 204 })
-  @ApiResponse({ status: 409, description: '이미 팔로우 했음' })
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/follow')

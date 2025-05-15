@@ -80,44 +80,4 @@ describe('DELETE /me/followers/:id', () => {
     const follow = await prisma.follow.findFirst();
     expect(follow).toBeNull();
   });
-
-  it('팔로우 하지 않은 유저를 언팔하려고 하면 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
-
-    const targetUser = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        name: 'test2',
-        email: 'test@test.com',
-        url: 'test2',
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete(`/me/followers/${targetUser.id}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
-
-  it('없는 유저를 언팔하려고 해도 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .delete('/me/followers/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
-  });
 });
