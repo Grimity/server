@@ -143,6 +143,8 @@ export class PostService {
       this.postRepository.increaseViewCount(postId),
     ]);
 
+    if (!post) throw new HttpException('POST', 404);
+
     return {
       ...post,
       type: convertPostTypeFromNumber(post.type),
@@ -229,6 +231,7 @@ export class PostService {
 
   async getMeta(id: string) {
     const post = await this.postSelectRepository.findMeta(id);
+    if (!post) throw new HttpException('POST', 404);
 
     const parsedContent = removeHtml(post.content).slice(0, 100);
     const cleanedText = parsedContent.replace(/&nbsp;|&amp;/g, ' ');

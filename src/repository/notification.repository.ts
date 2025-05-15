@@ -1,7 +1,5 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { convertCode } from './util/prisma-error-code';
 
 @Injectable()
 export class NotificationRepository {

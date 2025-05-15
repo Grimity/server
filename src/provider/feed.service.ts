@@ -42,6 +42,7 @@ export class FeedService {
 
   async getFeed(userId: string | null, feedId: string) {
     const feed = await this.feedSelectRepository.getFeed(userId, feedId);
+    if (!feed) throw new HttpException('FEED', 404);
 
     return {
       ...feed,
@@ -360,6 +361,8 @@ export class FeedService {
 
   async getMeta(id: string) {
     const feed = await this.feedSelectRepository.findMeta(id);
+    if (!feed) throw new HttpException('FEED', 404);
+
     return {
       ...feed,
       thumbnail: getImageUrl(feed.thumbnail),
