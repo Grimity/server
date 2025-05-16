@@ -18,5 +18,5 @@
       "src/*": ["src/*"]
     }
   },
-  "exclude": ["share"]
+  "exclude": ["share", "dist"]
 }

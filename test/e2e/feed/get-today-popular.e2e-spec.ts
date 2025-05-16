@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { getImageUrl } from 'src/provider/util/get-image-url';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 describe('GET /feeds/today-popular - 오늘의 인기 그림 조회', () => {
   let app: INestApplication;

@@ -3,9 +3,9 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/provider/auth.service';
+import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper';
-import { getImageUrl } from 'src/provider/util/get-image-url';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 describe('GET /me - 내 정보 조회', () => {
   let app: INestApplication;

@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { getImageUrl } from 'src/provider/util/get-image-url';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 describe('GET /feeds/:id/meta - 피드 메타 정보', () => {
   let app: INestApplication;
