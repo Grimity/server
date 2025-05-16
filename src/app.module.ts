@@ -3,20 +3,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from './database/prisma/prisma.module';
 import { globalPipe } from './core/pipe/global.pipe';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthModule } from './module/auth.module';
-import { AwsModule } from './module/aws.module';
-import { FeedModule } from './module/feed.module';
-import { FeedCommentModule } from './module/feed-comment.module';
-import { NotificationModule } from './module/notification.module';
-import { TagModule } from './module/tag.module';
-import { PostModule } from './module/post.module';
-import { PostCommentModule } from './module/post-comment.module';
-import { ReportModule } from './module/report.module';
+import { AuthModule } from './module/auth/auth.module';
+import { AwsModule } from './module/aws/aws.module';
+import { FeedModule } from './module/feed/feed.module';
+import { FeedCommentModule } from './module/feed-comment/feed-comment.module';
+import { NotificationModule } from './module/notification/notification.module';
+import { TagModule } from './module/tag/tag.module';
+import { PostModule } from './module/post/post.module';
+import { PostCommentModule } from './module/post-comment/post-comment.module';
+import { ReportModule } from './module/report/report.module';
 import { GlobalFilter } from './core/filter';
 import { APP_FILTER } from '@nestjs/core';
 import { RedisModule } from './database/redis/redis.module';
 import { ClientInfoMiddleware } from './core/middleware';
-import { AlbumModule } from './module/album.module';
+import { AlbumModule } from './module/album/album.module';
 
 @Module({
   imports: [

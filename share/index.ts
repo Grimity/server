@@ -1,22 +1,25 @@
-export type * from '../src/presentation/request/auth.request';
-export type * from '../src/presentation/request/aws.request';
-export type * from '../src/presentation/request/feed-comment.request';
-export type * from '../src/presentation/request/feed.request';
-export type * from '../src/presentation/request/post-comment.request';
-export type * from '../src/presentation/request/post.request';
-export type * from '../src/presentation/request/report.request';
-export type * from '../src/presentation/request/user.request';
-export type * from '../src/presentation/request/shared';
-export type * from '../src/presentation/request/album.request';
+// shared
+export type * from '../src/shared/request';
+export type * from '../src/shared/response';
 
-export type * from '../src/presentation/response/auth.response';
-export type * from '../src/presentation/response/aws.response';
-export type * from '../src/presentation/response/feed-comment.response';
-export type * from '../src/presentation/response/feed.response';
-export type * from '../src/presentation/response/notification.response';
-export type * from '../src/presentation/response/post-comment.response';
-export type * from '../src/presentation/response/post.response';
-export type * from '../src/presentation/response/tag.response';
-export type * from '../src/presentation/response/user.response';
-export type * from '../src/presentation/response/shared';
-export type * from '../src/presentation/response/album.response';
+export type * from '../src/module/album/dto';
+
+export type * from '../src/module/auth/dto';
+
+export type * from '../src/module/aws/dto';
+
+export type * from '../src/module/feed/dto';
+
+export type * from '../src/module/feed-comment/dto';
+
+export type * from '../src/module/notification/dto';
+
+export type * from '../src/module/post/dto';
+
+export type * from '../src/module/post-comment/dto';
+
+export type * from '../src/module/report/dto';
+
+export type * from '../src/module/tag/dto';
+
+export type * from '../src/module/user/dto';

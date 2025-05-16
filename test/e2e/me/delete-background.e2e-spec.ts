@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/provider/auth.service';
+import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper';
 
 describe('DELETE /me/background - 배경사진 삭제', () => {

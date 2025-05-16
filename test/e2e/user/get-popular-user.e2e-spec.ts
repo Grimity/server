@@ -3,8 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/provider/auth.service';
-import { UserService } from 'src/provider/user.service';
+import { AuthService } from 'src/module/auth/auth.service';
+import { UserService } from 'src/module/user/user.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { register } from '../helper';
 
