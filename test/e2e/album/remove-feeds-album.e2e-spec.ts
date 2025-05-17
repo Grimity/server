@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper';
+import { register } from '../helper/register';
 
 describe('PUT /albums/null - 앨범에서 피드 빼기', () => {
   let app: INestApplication;

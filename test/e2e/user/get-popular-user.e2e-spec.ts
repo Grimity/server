@@ -6,7 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
 import { UserService } from 'src/module/user/user.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { register } from '../helper';
+import { register } from '../helper/register';
 
 describe('GET /users/popular - 인기 유저 조회', () => {
   let app: INestApplication;

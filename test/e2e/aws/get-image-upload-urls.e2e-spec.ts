@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper';
+import { register } from '../helper/register';
 
 describe('POST /aws/image-upload-urls - presignedURL 여러장', () => {
   let app: INestApplication;

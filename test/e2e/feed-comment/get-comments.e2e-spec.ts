@@ -3,7 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { register } from '../helper';
+import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 
 describe('GET /feed-comments/v2?feedId={feedId} - 피드 댓글 조회', () => {
