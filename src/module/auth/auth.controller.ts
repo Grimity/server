@@ -26,7 +26,7 @@ import {
   GetRefreshToken,
   CurrentUser,
 } from 'src/core/decorator';
-import { ClientInfo } from 'src/types';
+import type { ClientInfo } from 'src/shared/types/client-info';
 import { UserAgentGuard, JwtRefreshGuard } from 'src/core/guard';
 
 @ApiHeader({
