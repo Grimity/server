@@ -3,7 +3,7 @@ import { UserRepository } from '../user/repository/user.repository';
 import { UserSelectRepository } from '../user/repository/user.select.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { ClientInfo } from 'src/types';
+import type { ClientInfo } from 'src/shared/types/client-info';
 
 @Injectable()
 export class AuthService {

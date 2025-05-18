@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper';
+import { register } from '../helper/register';
 
 describe('GET /feeds/:id/like - 피드 좋아요 사용자 조회', () => {
   let app: INestApplication;

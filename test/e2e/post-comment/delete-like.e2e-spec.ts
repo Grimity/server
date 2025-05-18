@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper';
+import { register } from '../helper/register';
 
 describe('DELETE /post-comments/:id/like - 게시판 댓글 좋아요 취소', () => {
   let app: INestApplication;
