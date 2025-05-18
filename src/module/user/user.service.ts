@@ -11,18 +11,19 @@ import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
 import { AlbumRepository } from '../album/repository/album.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UserService {
   constructor(
     private userRepository: UserRepository,
     private feedSelectRepository: FeedSelectRepository,
-    private awsService: AwsService,
     private userSelectRepository: UserSelectRepository,
     @Inject(SearchService) private searchService: SearchService,
     private postSelectRepository: PostSelectRepository,
     private redisService: RedisService,
     private albumRepository: AlbumRepository,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -103,11 +104,16 @@ export class UserService {
     if (targetUser === null) return;
 
     if (targetUser.subscription.includes('FOLLOW')) {
-      await this.awsService.pushEvent({
+      this.eventEmitter.emit('notification.FOLLOW', {
         type: 'FOLLOW',
         actorId: userId,
         userId: targetUserId,
       });
+      // await this.awsService.pushEvent({
+      //   type: 'FOLLOW',
+      //   actorId: userId,
+      //   userId: targetUserId,
+      // });
     }
 
     return;

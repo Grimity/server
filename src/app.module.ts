@@ -17,6 +17,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { RedisModule } from './database/redis/redis.module';
 import { ClientInfoMiddleware } from './core/middleware';
 import { AlbumModule } from './module/album/album.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -46,6 +47,9 @@ import { AlbumModule } from './module/album/album.module';
     ReportModule,
     RedisModule,
     AlbumModule,
+    EventEmitterModule.forRoot({
+      delimiter: '.',
+    }),
   ],
   providers: [
     globalPipe,

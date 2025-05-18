@@ -1,12 +1,13 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PostCommentRepository } from './repository/post-comment.repository';
 import { AwsService } from '../aws/aws.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PostCommentService {
   constructor(
     private postCommentRepository: PostCommentRepository,
-    private awsService: AwsService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async create(input: CreateInput) {
@@ -28,22 +29,19 @@ export class PostCommentService {
     const comment = await this.postCommentRepository.create(input);
 
     if (input.mentionedUserId && input.parentCommentId) {
-      await this.awsService.pushEvent({
-        type: 'POST_MENTION',
+      this.eventEmitter.emit('notification.POST_MENTION', {
         actorId: input.userId,
         postId: input.postId,
         mentionedUserId: input.mentionedUserId,
       });
     } else if (input.parentCommentId) {
-      await this.awsService.pushEvent({
-        type: 'POST_REPLY',
+      this.eventEmitter.emit('notification.POST_REPLY', {
         actorId: input.userId,
         postId: input.postId,
         parentId: input.parentCommentId,
       });
     } else {
-      await this.awsService.pushEvent({
-        type: 'POST_COMMENT',
+      this.eventEmitter.emit('notification.POST_COMMENT', {
         actorId: input.userId,
         postId: input.postId,
       });

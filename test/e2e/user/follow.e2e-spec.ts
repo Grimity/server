@@ -30,6 +30,7 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await prisma.notification.deleteMany();
   });
 
   afterAll(async () => {

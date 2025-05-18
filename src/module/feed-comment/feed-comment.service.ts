@@ -2,12 +2,13 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { FeedCommentRepository } from './repository/feed-comment.repository';
 import { AwsService } from '../aws/aws.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class FeedCommentService {
   constructor(
     private feedCommentRepository: FeedCommentRepository,
-    private awsService: AwsService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async create(userId: string, input: CreateFeedCommentInput) {
@@ -31,22 +32,19 @@ export class FeedCommentService {
     await this.feedCommentRepository.create(userId, input);
 
     if (input.mentionedUserId && input.parentCommentId) {
-      await this.awsService.pushEvent({
-        type: 'FEED_MENTION',
+      this.eventEmitter.emit('FEED_MENTION', {
         actorId: userId,
         feedId: input.feedId,
         mentionedUserId: input.mentionedUserId,
       });
     } else if (input.parentCommentId) {
-      await this.awsService.pushEvent({
-        type: 'FEED_REPLY',
+      this.eventEmitter.emit('FEED_REPLY', {
         actorId: userId,
         feedId: input.feedId,
         parentId: input.parentCommentId,
       });
     } else {
-      await this.awsService.pushEvent({
-        type: 'FEED_COMMENT',
+      this.eventEmitter.emit('FEED_COMMENT', {
         actorId: userId,
         feedId: input.feedId,
       });

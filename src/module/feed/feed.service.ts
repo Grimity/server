@@ -7,6 +7,7 @@ import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from 'src/shared/util/get-image-url';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class FeedService {
@@ -17,6 +18,7 @@ export class FeedService {
     private ddb: DdbService,
     private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
@@ -64,25 +66,18 @@ export class FeedService {
     if (feed === null) return;
 
     if ([1, 5, 10, 20, 50, 100].includes(feed.likeCount)) {
-      await Promise.all([
-        this.awsService.pushEvent({
-          type: 'FEED_LIKE',
-          feedId,
-          likeCount: feed.likeCount,
-        }),
-        this.ddb.putItemForUpdate({
-          type: 'FEED',
-          id: feedId,
-          count: feed.likeCount,
-        }),
-      ]);
-    } else {
-      await this.ddb.putItemForUpdate({
-        type: 'FEED',
-        id: feedId,
-        count: feed.likeCount,
+      this.eventEmitter.emit('notification.FEED_LIKE', {
+        feedId,
+        likeCount: feed.likeCount,
       });
     }
+
+    await this.ddb.putItemForUpdate({
+      type: 'FEED',
+      id: feedId,
+      count: feed.likeCount,
+    });
+
     return;
   }
 
