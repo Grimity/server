@@ -101,7 +101,7 @@ export class NotificationListener {
     });
   }
 
-  @OnEvent('notification.Feed_REPLY')
+  @OnEvent('notification.FEED_REPLY')
   async handleFeedReply({ feedId, actorId, parentId }: Event.FeedReplyEvent) {
     const [result] = await this.prisma.$kysely
       .selectFrom('FeedComment')
