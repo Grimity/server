@@ -11,11 +11,11 @@ function getProfileLink(url: string) {
 }
 
 function getFeedLink(id: string) {
-  return `${process.env.SERVICE_URL}/feed/${id}`;
+  return `${process.env.SERVICE_URL}/feeds/${id}`;
 }
 
 function getPostLink(id: string) {
-  return `${process.env.SERVICE_URL}/post/${id}`;
+  return `${process.env.SERVICE_URL}/posts/${id}`;
 }
 
 @Injectable()
