@@ -3,18 +3,15 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { imageTypes, exts } from 'src/common/constants/image';
 
 @Injectable()
 export class AwsService {
   private configService: ConfigService;
   private s3Client: S3Client;
-  private sqsClient: SQSClient;
   constructor(configService: ConfigService) {
     this.configService = configService;
     this.s3Client = new S3Client();
-    this.sqsClient = new SQSClient();
   }
 
   async getUploadUrl(
