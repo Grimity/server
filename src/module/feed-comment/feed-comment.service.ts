@@ -32,19 +32,19 @@ export class FeedCommentService {
     await this.feedCommentRepository.create(userId, input);
 
     if (input.mentionedUserId && input.parentCommentId) {
-      this.eventEmitter.emit('FEED_MENTION', {
+      this.eventEmitter.emit('notification.FEED_MENTION', {
         actorId: userId,
         feedId: input.feedId,
         mentionedUserId: input.mentionedUserId,
       });
     } else if (input.parentCommentId) {
-      this.eventEmitter.emit('FEED_REPLY', {
+      this.eventEmitter.emit('notification.FEED_REPLY', {
         actorId: userId,
         feedId: input.feedId,
         parentId: input.parentCommentId,
       });
     } else {
-      this.eventEmitter.emit('FEED_COMMENT', {
+      this.eventEmitter.emit('notification.FEED_COMMENT', {
         actorId: userId,
         feedId: input.feedId,
       });
