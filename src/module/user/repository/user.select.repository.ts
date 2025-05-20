@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
-import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
 export class UserSelectRepository {
@@ -181,7 +180,7 @@ export class UserSelectRepository {
     };
   }
 
-  async findMyFollowers(
+  async findMyFollowersWithCursor(
     userId: string,
     {
       cursor,
@@ -191,7 +190,7 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    return await this.prisma.$kysely
+    const users = await this.prisma.$kysely
       .selectFrom('Follow')
       .where('followingId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followerId', 'id')
@@ -202,9 +201,14 @@ export class UserSelectRepository {
         eb.where('followerId', '<', kyselyUuid(cursor!)),
       )
       .execute();
+
+    return {
+      nextCursor: users.length === size ? `${users[size - 1].id}` : null,
+      users,
+    };
   }
 
-  async findMyFollowings(
+  async findMyFollowingsWithCursor(
     userId: string,
     {
       cursor,
@@ -214,7 +218,7 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    return await this.prisma.$kysely
+    const users = await this.prisma.$kysely
       .selectFrom('Follow')
       .where('followerId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followingId', 'id')
@@ -225,6 +229,11 @@ export class UserSelectRepository {
         eb.where('followingId', '>', kyselyUuid(cursor!)),
       )
       .execute();
+
+    return {
+      nextCursor: users.length === size ? `${users[size - 1].id}` : null,
+      users,
+    };
   }
 
   async findPopularUserIds() {
@@ -293,7 +302,7 @@ export class UserSelectRepository {
     }));
   }
 
-  async findManyByName({
+  async findManyByNameWithCursor({
     userId,
     name,
     cursor,
@@ -332,7 +341,7 @@ export class UserSelectRepository {
       .orderBy('User.id', 'desc')
       .limit(size)
       .$if(cursor !== null, (eb) => {
-        const [followerCount, id] = cursor!.split(separator);
+        const [followerCount, id] = cursor!.split('_');
         return eb.where((eb) =>
           eb.or([
             eb('User.followerCount', '<', Number(followerCount)),
@@ -345,16 +354,22 @@ export class UserSelectRepository {
       })
       .execute();
 
-    return users.map((user) => ({
-      id: user.id,
-      name: user.name,
-      url: user.url,
-      image: user.image,
-      description: user.description,
-      backgroundImage: user.backgroundImage,
-      followerCount: user.followerCount,
-      isFollowing: user.isFollowing ?? false,
-    }));
+    return {
+      nextCursor:
+        users.length === size
+          ? `${users[size - 1].followerCount}_${users[size - 1].id}`
+          : null,
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        url: user.url,
+        image: user.image,
+        description: user.description,
+        backgroundImage: user.backgroundImage,
+        followerCount: user.followerCount,
+        isFollowing: user.isFollowing ?? false,
+      })),
+    };
   }
 
   async countByName(name: string) {

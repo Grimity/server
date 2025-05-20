@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
-import { separator } from 'src/common/constants/separator-text';
 
 @Injectable()
 export class FeedSelectRepository {
@@ -110,7 +109,7 @@ export class FeedSelectRepository {
     };
   }
 
-  async findManyByUserId({
+  async findManyByUserIdWithCursor({
     sort,
     size,
     cursor,
@@ -148,7 +147,7 @@ export class FeedSelectRepository {
         .orderBy('Feed.createdAt', 'desc')
         .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
-          const [createdAt, id] = cursor!.split(separator);
+          const [createdAt, id] = cursor!.split('_');
           return eb.where((eb) =>
             eb.or([
               eb('Feed.createdAt', '<', new Date(createdAt)),
@@ -164,7 +163,7 @@ export class FeedSelectRepository {
         .orderBy('Feed.likeCount', 'desc')
         .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
-          const [likeCount, id] = cursor!.split(separator);
+          const [likeCount, id] = cursor!.split('_');
           return eb.where((eb) =>
             eb.or([
               eb('Feed.likeCount', '<', Number(likeCount)),
@@ -180,7 +179,7 @@ export class FeedSelectRepository {
         .orderBy('Feed.createdAt', 'asc')
         .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
-          const [createdAt, id] = cursor!.split(separator);
+          const [createdAt, id] = cursor!.split('_');
           return eb.where((eb) =>
             eb.or([
               eb('Feed.createdAt', '>', new Date(createdAt)),
@@ -195,19 +194,33 @@ export class FeedSelectRepository {
 
     const feeds = await query.execute();
 
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      cards: feed.cards,
-      thumbnail: feed.thumbnail,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
-    }));
+    let nextCursor: string | null = null;
+
+    if (feeds.length === size) {
+      if (sort === 'latest' || sort === 'oldest') {
+        nextCursor = `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`;
+      } else {
+        nextCursor = `${feeds[size - 1].likeCount}_${feeds[size - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        cards: feed.cards,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        commentCount:
+          feed.commentCount === null ? 0 : Number(feed.commentCount),
+      })),
+    };
   }
 
-  async findManyLatest({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
+  async findManyLatestWithCursor({ userId, cursor, size }: GetFeedsInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
       .select([
@@ -236,7 +249,17 @@ export class FeedSelectRepository {
       .orderBy('Feed.id', 'desc')
       .limit(size);
 
-    if (lastCreatedAt && lastId) {
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2) {
+        return {
+          nextCursor: null,
+          feeds: [],
+        };
+      }
+      const lastCreatedAt = new Date(arr[0]);
+      const lastId = arr[1];
+
       query = query.where((eb) => {
         return eb.or([
           eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
@@ -249,8 +272,13 @@ export class FeedSelectRepository {
     }
 
     const feeds = await query.execute();
-    return feeds.map((feed) => {
-      return {
+
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => ({
         id: feed.id,
         title: feed.title,
         thumbnail: feed.thumbnail,
@@ -264,8 +292,8 @@ export class FeedSelectRepository {
           image: feed.image,
           url: feed.url,
         },
-      };
-    });
+      })),
+    };
   }
 
   async findTodayPopularIds() {
@@ -338,11 +366,10 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findFollowingFeeds({
+  async findFollowingFeedsWithCursor({
     userId,
     size,
-    lastCreatedAt,
-    lastId,
+    cursor,
   }: FindFollowingFeedsInput) {
     let query = this.prisma.$kysely
       .selectFrom('Follow')
@@ -400,7 +427,17 @@ export class FeedSelectRepository {
       .orderBy('Feed.id', 'desc')
       .limit(size);
 
-    if (lastCreatedAt && lastId) {
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2)
+        return {
+          nextCursor: null,
+          feeds: [],
+        };
+
+      const lastCreatedAt = new Date(arr[0]);
+      const lastId = arr[1];
+
       query = query.where((eb) => {
         return eb.or([
           eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
@@ -414,8 +451,12 @@ export class FeedSelectRepository {
 
     const feeds = await query.execute();
 
-    return feeds.map((feed) => {
-      return {
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => ({
         id: feed.id,
         title: feed.title,
         cards: feed.cards ?? [],
@@ -435,11 +476,11 @@ export class FeedSelectRepository {
         },
         isLike: feed.isLike,
         isSave: feed.isSave,
-      };
-    });
+      })),
+    };
   }
 
-  async findMyLikeFeeds(
+  async findMyLikeFeedsWithCursor(
     userId: string,
     {
       cursor,
@@ -481,25 +522,30 @@ export class FeedSelectRepository {
       .limit(size)
       .execute();
 
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      thumbnail: feed.thumbnail,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      cards: feed.cards,
-      createdAt: feed.createdAt,
-      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
-      author: {
-        id: feed.authorId,
-        name: feed.name,
-        image: feed.image,
-        url: feed.url,
-      },
-    }));
+    return {
+      nextCursor:
+        feeds.length === size ? feeds[size - 1].createdAt.toISOString() : null,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        cards: feed.cards,
+        createdAt: feed.createdAt,
+        commentCount:
+          feed.commentCount === null ? 0 : Number(feed.commentCount),
+        author: {
+          id: feed.authorId,
+          name: feed.name,
+          image: feed.image,
+          url: feed.url,
+        },
+      })),
+    };
   }
 
-  async findMySaveFeeds(
+  async findMySaveFeedsWithCursor(
     userId: string,
     {
       cursor,
@@ -541,22 +587,27 @@ export class FeedSelectRepository {
       .limit(size)
       .execute();
 
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      thumbnail: feed.thumbnail,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      cards: feed.cards,
-      createdAt: feed.createdAt,
-      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
-      author: {
-        id: feed.authorId,
-        name: feed.name,
-        image: feed.image,
-        url: feed.url,
-      },
-    }));
+    return {
+      nextCursor:
+        feeds.length === size ? feeds[size - 1].createdAt.toISOString() : null,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        cards: feed.cards,
+        createdAt: feed.createdAt,
+        commentCount:
+          feed.commentCount === null ? 0 : Number(feed.commentCount),
+        author: {
+          id: feed.authorId,
+          name: feed.name,
+          image: feed.image,
+          url: feed.url,
+        },
+      })),
+    };
   }
 
   async findManyByIds(userId: string | null, feedIds: string[]) {
@@ -624,7 +675,12 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findPopular({ userId, size, cursor, likeCount }: FindPopularInput) {
+  async findPopularWithCursor({
+    userId,
+    size,
+    cursor,
+    likeCount,
+  }: FindPopularInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
       .where('likeCount', '>', likeCount)
@@ -655,35 +711,41 @@ export class FeedSelectRepository {
       .limit(size);
 
     if (cursor) {
-      const [firstCursor, secondCursor] = cursor.split(separator);
+      const [lastCreatedAt, lastId] = cursor.split('_');
 
       query = query.where((eb) => {
         return eb.or([
-          eb('Feed.createdAt', '<', new Date(firstCursor)),
+          eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
           eb.and([
-            eb('Feed.createdAt', '=', new Date(firstCursor)),
-            eb('Feed.id', '<', kyselyUuid(secondCursor)),
+            eb('Feed.createdAt', '=', new Date(lastCreatedAt)),
+            eb('Feed.id', '<', kyselyUuid(lastId)),
           ]),
         ]);
       });
     }
 
     const feeds = await query.execute();
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      thumbnail: feed.thumbnail,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      isLike: feed.isLike ?? false,
-      author: {
-        id: feed.authorId,
-        name: feed.name,
-        image: feed.image,
-        url: feed.url,
-      },
-    }));
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        isLike: feed.isLike ?? false,
+        author: {
+          id: feed.authorId,
+          name: feed.name,
+          image: feed.image,
+          url: feed.url,
+        },
+      })),
+    };
   }
 
   async findLikesById(feedId: string) {
@@ -746,14 +808,12 @@ type FindPopularInput = {
 type FindFollowingFeedsInput = {
   userId: string;
   size: number;
-  lastCreatedAt: Date | null;
-  lastId: string | null;
+  cursor: string | null;
 };
 
 type GetFeedsInput = {
   userId?: string | null;
-  lastId: string | null;
-  lastCreatedAt: Date | null;
+  cursor: string | null;
   size: number;
 };
 

@@ -211,7 +211,7 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '좋아요 누른 유저 목록 조회' })
+  @ApiOperation({ summary: '좋아요 누른 유저 목록 조회', deprecated: true })
   @ApiResponse({ status: 200, type: [FeedLikedUserResponse] })
   @UseGuards(JwtGuard)
   @Get(':id/like')

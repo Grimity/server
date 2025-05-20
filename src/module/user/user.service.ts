@@ -1,17 +1,17 @@
 import { HttpException, Injectable, Inject } from '@nestjs/common';
 import { UserRepository, UpdateInput } from './repository/user.repository';
 import { FeedSelectRepository } from '../feed/repository/feed.select.repository';
-import { AwsService } from '../aws/aws.service';
 import { UserSelectRepository } from './repository/user.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from '../post/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants/post-type';
 import { RedisService } from 'src/database/redis/redis.service';
-import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
 import { AlbumRepository } from '../album/repository/album.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+
+const linkSeparator = '|~|';
 
 @Injectable()
 export class UserService {
@@ -42,7 +42,7 @@ export class UserService {
     let transformedLinks: string[] = [];
     if (links.length > 0) {
       transformedLinks = links.map(({ linkName, link }) => {
-        return linkName.trim() + separator + link.trim();
+        return linkName.trim() + linkSeparator + link.trim();
       });
     }
 
@@ -82,7 +82,7 @@ export class UserService {
       image: getImageUrl(user.image),
       description: user.description,
       links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split(separator);
+        const [linkName, linkUrl] = link.split(linkSeparator);
         return {
           linkName,
           link: linkUrl,
@@ -109,11 +109,6 @@ export class UserService {
         actorId: userId,
         userId: targetUserId,
       });
-      // await this.awsService.pushEvent({
-      //   type: 'FOLLOW',
-      //   actorId: userId,
-      //   userId: targetUserId,
-      // });
     }
 
     return;
@@ -149,7 +144,7 @@ export class UserService {
       backgroundImage: getImageUrl(targetUser.backgroundImage),
       description: targetUser.description,
       links: targetUser.links.map((link) => {
-        const [linkName, linkUrl] = link.split(separator);
+        const [linkName, linkUrl] = link.split(linkSeparator);
         return {
           linkName,
           link: linkUrl,
@@ -174,17 +169,19 @@ export class UserService {
       size: number;
     },
   ) {
-    const followers = await this.userSelectRepository.findMyFollowers(userId, {
-      cursor,
-      size,
-    });
+    const result = await this.userSelectRepository.findMyFollowersWithCursor(
+      userId,
+      {
+        cursor,
+        size,
+      },
+    );
 
     return {
-      nextCursor:
-        followers.length === size ? followers[followers.length - 1].id : null,
-      followers: followers.map((follower) => ({
-        ...follower,
-        image: getImageUrl(follower.image),
+      nextCursor: result.nextCursor,
+      followers: result.users.map((user) => ({
+        ...user,
+        image: getImageUrl(user.image),
       })),
     };
   }
@@ -199,7 +196,7 @@ export class UserService {
       size: number;
     },
   ) {
-    const followings = await this.userSelectRepository.findMyFollowings(
+    const result = await this.userSelectRepository.findMyFollowingsWithCursor(
       userId,
       {
         cursor,
@@ -208,11 +205,8 @@ export class UserService {
     );
 
     return {
-      nextCursor:
-        followings.length === size
-          ? followings[followings.length - 1].id
-          : null,
-      followings: followings.map((user) => ({
+      nextCursor: result.nextCursor,
+      followings: result.users.map((user) => ({
         ...user,
         image: getImageUrl(user.image),
       })),
@@ -220,26 +214,12 @@ export class UserService {
   }
 
   async getFeedsByUser(input: GetFeedsInput) {
-    const feeds = await this.feedSelectRepository.findManyByUserId(input);
-
-    let nextCursor: string | null = null;
-    if (feeds.length === input.size) {
-      if (input.sort === 'latest' || input.sort === 'oldest') {
-        nextCursor =
-          feeds[feeds.length - 1].createdAt.toISOString() +
-          separator +
-          feeds[feeds.length - 1].id;
-      } else {
-        nextCursor =
-          feeds[feeds.length - 1].likeCount +
-          separator +
-          feeds[feeds.length - 1].id;
-      }
-    }
+    const result =
+      await this.feedSelectRepository.findManyByUserIdWithCursor(input);
 
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
       })),
@@ -256,19 +236,17 @@ export class UserService {
       size: number;
     },
   ) {
-    const feeds = await this.feedSelectRepository.findMyLikeFeeds(userId, {
-      cursor,
-      size,
-    });
-
-    let nextCursor: string | null = null;
-    if (feeds.length === size) {
-      nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}`;
-    }
+    const result = await this.feedSelectRepository.findMyLikeFeedsWithCursor(
+      userId,
+      {
+        cursor,
+        size,
+      },
+    );
 
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
         author: {
@@ -289,19 +267,17 @@ export class UserService {
       size: number;
     },
   ) {
-    const feeds = await this.feedSelectRepository.findMySaveFeeds(userId, {
-      cursor,
-      size,
-    });
-
-    let nextCursor: string | null = null;
-    if (feeds.length === size) {
-      nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}`;
-    }
+    const result = await this.feedSelectRepository.findMySaveFeedsWithCursor(
+      userId,
+      {
+        cursor,
+        size,
+      },
+    );
 
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
         author: {
@@ -335,10 +311,8 @@ export class UserService {
   }
 
   async searchUsers(input: SearchUserInput) {
-    let nextCursor: string | null = null;
-
-    const [users, totalCount] = await Promise.all([
-      this.userSelectRepository.findManyByName({
+    const [result, totalCount] = await Promise.all([
+      this.userSelectRepository.findManyByNameWithCursor({
         userId: input.userId,
         name: input.keyword,
         cursor: input.cursor,
@@ -347,17 +321,10 @@ export class UserService {
       this.userSelectRepository.countByName(input.keyword),
     ]);
 
-    if (users.length === input.size) {
-      nextCursor =
-        users[users.length - 1].followerCount +
-        separator +
-        users[users.length - 1].id;
-    }
-
     return {
       totalCount,
-      nextCursor,
-      users: users.map((user) => ({
+      nextCursor: result.nextCursor,
+      users: result.users.map((user) => ({
         id: user.id,
         name: user.name,
         image: getImageUrl(user.image),

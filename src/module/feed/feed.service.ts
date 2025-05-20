@@ -1,11 +1,9 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { FeedRepository } from './repository/feed.repository';
 import { FeedSelectRepository } from './repository/feed.select.repository';
-import { AwsService } from '../aws/aws.service';
 import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -14,7 +12,6 @@ export class FeedService {
   constructor(
     private feedRepository: FeedRepository,
     private feedSelectRepository: FeedSelectRepository,
-    private awsService: AwsService,
     private ddb: DdbService,
     private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
@@ -139,31 +136,15 @@ export class FeedService {
   }
 
   async getLatestFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
-    let lastCreatedAt: Date | null = null;
-    let lastId: string | null = null;
-    if (cursor) {
-      const arr = cursor.split(separator);
-      if (arr.length !== 2) {
-        throw new HttpException('Invalid cursor', 400);
-      }
-      lastCreatedAt = new Date(arr[0]);
-      lastId = arr[1];
-    }
-    const feeds = await this.feedSelectRepository.findManyLatest({
+    const result = await this.feedSelectRepository.findManyLatestWithCursor({
       userId,
-      lastCreatedAt,
-      lastId,
+      cursor,
       size,
     });
 
     return {
-      nextCursor:
-        feeds.length === size
-          ? feeds[size - 1].createdAt.toISOString() +
-            separator +
-            feeds[size - 1].id
-          : null,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
         author: {
@@ -207,31 +188,17 @@ export class FeedService {
       cursor: string | null;
     },
   ) {
-    let lastCreatedAt: Date | null = null;
-    let lastId: string | null = null;
-    if (cursor) {
-      const arr = cursor.split(separator);
-      if (arr.length !== 2) {
-        throw new HttpException('Invalid cursor', 400);
-      }
-      lastCreatedAt = new Date(arr[0]);
-      lastId = arr[1];
-    }
-    const feeds = await this.feedSelectRepository.findFollowingFeeds({
-      userId,
-      lastCreatedAt,
-      lastId,
-      size,
-    });
+    const result = await this.feedSelectRepository.findFollowingFeedsWithCursor(
+      {
+        userId,
+        cursor,
+        size,
+      },
+    );
 
     return {
-      nextCursor:
-        feeds.length === size
-          ? feeds[size - 1].createdAt.toISOString() +
-            separator +
-            feeds[size - 1].id
-          : null,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
         cards: feed.cards.map((card) => getImageUrl(card)),
@@ -311,24 +278,16 @@ export class FeedService {
   }
 
   async getPopularFeeds({ userId, size, cursor }: GetPopularFeedsInput) {
-    const feeds = await this.feedSelectRepository.findPopular({
+    const result = await this.feedSelectRepository.findPopularWithCursor({
       userId,
       size,
       cursor,
       likeCount: 3,
     });
 
-    let nextCursor: string | null = null;
-    if (feeds.length === size) {
-      nextCursor =
-        feeds[size - 1].createdAt.toISOString() +
-        separator +
-        feeds[size - 1].id;
-    }
-
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => {
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => {
         return {
           id: feed.id,
           title: feed.title,
