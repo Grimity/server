@@ -546,7 +546,7 @@ export class FeedSelectRepository {
     };
   }
 
-  async findMySaveFeeds(
+  async findMySaveFeedsWithCursor(
     userId: string,
     {
       cursor,
@@ -588,22 +588,27 @@ export class FeedSelectRepository {
       .limit(size)
       .execute();
 
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      thumbnail: feed.thumbnail,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      cards: feed.cards,
-      createdAt: feed.createdAt,
-      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
-      author: {
-        id: feed.authorId,
-        name: feed.name,
-        image: feed.image,
-        url: feed.url,
-      },
-    }));
+    return {
+      nextCursor:
+        feeds.length === size ? feeds[size - 1].createdAt.toISOString() : null,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        cards: feed.cards,
+        createdAt: feed.createdAt,
+        commentCount:
+          feed.commentCount === null ? 0 : Number(feed.commentCount),
+        author: {
+          id: feed.authorId,
+          name: feed.name,
+          image: feed.image,
+          url: feed.url,
+        },
+      })),
+    };
   }
 
   async findManyByIds(userId: string | null, feedIds: string[]) {
