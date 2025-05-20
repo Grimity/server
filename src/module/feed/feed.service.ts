@@ -280,24 +280,16 @@ export class FeedService {
   }
 
   async getPopularFeeds({ userId, size, cursor }: GetPopularFeedsInput) {
-    const feeds = await this.feedSelectRepository.findPopular({
+    const result = await this.feedSelectRepository.findPopular({
       userId,
       size,
       cursor,
       likeCount: 3,
     });
 
-    let nextCursor: string | null = null;
-    if (feeds.length === size) {
-      nextCursor =
-        feeds[size - 1].createdAt.toISOString() +
-        separator +
-        feeds[size - 1].id;
-    }
-
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => {
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => {
         return {
           id: feed.id,
           title: feed.title,

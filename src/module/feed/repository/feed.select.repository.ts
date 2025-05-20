@@ -683,35 +683,41 @@ export class FeedSelectRepository {
       .limit(size);
 
     if (cursor) {
-      const [firstCursor, secondCursor] = cursor.split(separator);
+      const [lastCreatedAt, lastId] = cursor.split(separator);
 
       query = query.where((eb) => {
         return eb.or([
-          eb('Feed.createdAt', '<', new Date(firstCursor)),
+          eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
           eb.and([
-            eb('Feed.createdAt', '=', new Date(firstCursor)),
-            eb('Feed.id', '<', kyselyUuid(secondCursor)),
+            eb('Feed.createdAt', '=', new Date(lastCreatedAt)),
+            eb('Feed.id', '<', kyselyUuid(lastId)),
           ]),
         ]);
       });
     }
 
     const feeds = await query.execute();
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      thumbnail: feed.thumbnail,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      isLike: feed.isLike ?? false,
-      author: {
-        id: feed.authorId,
-        name: feed.name,
-        image: feed.image,
-        url: feed.url,
-      },
-    }));
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        isLike: feed.isLike ?? false,
+        author: {
+          id: feed.authorId,
+          name: feed.name,
+          image: feed.image,
+          url: feed.url,
+        },
+      })),
+    };
   }
 
   async findLikesById(feedId: string) {
