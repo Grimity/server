@@ -1,7 +1,6 @@
 import { HttpException, Injectable, Inject } from '@nestjs/common';
 import { UserRepository, UpdateInput } from './repository/user.repository';
 import { FeedSelectRepository } from '../feed/repository/feed.select.repository';
-import { AwsService } from '../aws/aws.service';
 import { UserSelectRepository } from './repository/user.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from '../post/repository/post.select.repository';
@@ -109,11 +108,6 @@ export class UserService {
         actorId: userId,
         userId: targetUserId,
       });
-      // await this.awsService.pushEvent({
-      //   type: 'FOLLOW',
-      //   actorId: userId,
-      //   userId: targetUserId,
-      // });
     }
 
     return;
@@ -174,17 +168,19 @@ export class UserService {
       size: number;
     },
   ) {
-    const followers = await this.userSelectRepository.findMyFollowers(userId, {
-      cursor,
-      size,
-    });
+    const result = await this.userSelectRepository.findMyFollowersWithCursor(
+      userId,
+      {
+        cursor,
+        size,
+      },
+    );
 
     return {
-      nextCursor:
-        followers.length === size ? followers[followers.length - 1].id : null,
-      followers: followers.map((follower) => ({
-        ...follower,
-        image: getImageUrl(follower.image),
+      nextCursor: result.nextCursor,
+      followers: result.users.map((user) => ({
+        ...user,
+        image: getImageUrl(user.image),
       })),
     };
   }

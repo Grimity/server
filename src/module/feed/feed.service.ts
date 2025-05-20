@@ -1,11 +1,9 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { FeedRepository } from './repository/feed.repository';
 import { FeedSelectRepository } from './repository/feed.select.repository';
-import { AwsService } from '../aws/aws.service';
 import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -280,7 +278,7 @@ export class FeedService {
   }
 
   async getPopularFeeds({ userId, size, cursor }: GetPopularFeedsInput) {
-    const result = await this.feedSelectRepository.findPopular({
+    const result = await this.feedSelectRepository.findPopularWithCursor({
       userId,
       size,
       cursor,

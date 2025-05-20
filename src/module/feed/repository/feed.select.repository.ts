@@ -652,7 +652,12 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findPopular({ userId, size, cursor, likeCount }: FindPopularInput) {
+  async findPopularWithCursor({
+    userId,
+    size,
+    cursor,
+    likeCount,
+  }: FindPopularInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
       .where('likeCount', '>', likeCount)
@@ -683,7 +688,7 @@ export class FeedSelectRepository {
       .limit(size);
 
     if (cursor) {
-      const [lastCreatedAt, lastId] = cursor.split(separator);
+      const [lastCreatedAt, lastId] = cursor.split('_');
 
       query = query.where((eb) => {
         return eb.or([
