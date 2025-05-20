@@ -6,11 +6,12 @@ import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from '../post/repository/post.select.repository';
 import { convertPostTypeFromNumber } from 'src/common/constants/post-type';
 import { RedisService } from 'src/database/redis/redis.service';
-import { separator } from 'src/common/constants/separator-text';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
 import { AlbumRepository } from '../album/repository/album.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+
+const linkSeparator = '|~|';
 
 @Injectable()
 export class UserService {
@@ -41,7 +42,7 @@ export class UserService {
     let transformedLinks: string[] = [];
     if (links.length > 0) {
       transformedLinks = links.map(({ linkName, link }) => {
-        return linkName.trim() + separator + link.trim();
+        return linkName.trim() + linkSeparator + link.trim();
       });
     }
 
@@ -81,7 +82,7 @@ export class UserService {
       image: getImageUrl(user.image),
       description: user.description,
       links: user.links.map((link) => {
-        const [linkName, linkUrl] = link.split(separator);
+        const [linkName, linkUrl] = link.split(linkSeparator);
         return {
           linkName,
           link: linkUrl,
@@ -143,7 +144,7 @@ export class UserService {
       backgroundImage: getImageUrl(targetUser.backgroundImage),
       description: targetUser.description,
       links: targetUser.links.map((link) => {
-        const [linkName, linkUrl] = link.split(separator);
+        const [linkName, linkUrl] = link.split(linkSeparator);
         return {
           linkName,
           link: linkUrl,
