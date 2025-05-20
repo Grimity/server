@@ -110,7 +110,7 @@ export class FeedSelectRepository {
     };
   }
 
-  async findManyByUserId({
+  async findManyByUserIdWithCursor({
     sort,
     size,
     cursor,
@@ -148,7 +148,7 @@ export class FeedSelectRepository {
         .orderBy('Feed.createdAt', 'desc')
         .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
-          const [createdAt, id] = cursor!.split(separator);
+          const [createdAt, id] = cursor!.split('_');
           return eb.where((eb) =>
             eb.or([
               eb('Feed.createdAt', '<', new Date(createdAt)),
@@ -164,7 +164,7 @@ export class FeedSelectRepository {
         .orderBy('Feed.likeCount', 'desc')
         .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
-          const [likeCount, id] = cursor!.split(separator);
+          const [likeCount, id] = cursor!.split('_');
           return eb.where((eb) =>
             eb.or([
               eb('Feed.likeCount', '<', Number(likeCount)),
@@ -180,7 +180,7 @@ export class FeedSelectRepository {
         .orderBy('Feed.createdAt', 'asc')
         .orderBy('Feed.id', 'desc')
         .$if(cursor !== null, (eb) => {
-          const [createdAt, id] = cursor!.split(separator);
+          const [createdAt, id] = cursor!.split('_');
           return eb.where((eb) =>
             eb.or([
               eb('Feed.createdAt', '>', new Date(createdAt)),
@@ -195,16 +195,30 @@ export class FeedSelectRepository {
 
     const feeds = await query.execute();
 
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      cards: feed.cards,
-      thumbnail: feed.thumbnail,
-      createdAt: feed.createdAt,
-      viewCount: feed.viewCount,
-      likeCount: feed.likeCount,
-      commentCount: feed.commentCount === null ? 0 : Number(feed.commentCount),
-    }));
+    let nextCursor: string | null = null;
+
+    if (feeds.length === size) {
+      if (sort === 'latest' || sort === 'oldest') {
+        nextCursor = `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`;
+      } else {
+        nextCursor = `${feeds[size - 1].likeCount}_${feeds[size - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      feeds: feeds.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        cards: feed.cards,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        commentCount:
+          feed.commentCount === null ? 0 : Number(feed.commentCount),
+      })),
+    };
   }
 
   async findManyLatestWithCursor({ userId, cursor, size }: GetFeedsInput) {

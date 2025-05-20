@@ -213,26 +213,12 @@ export class UserService {
   }
 
   async getFeedsByUser(input: GetFeedsInput) {
-    const feeds = await this.feedSelectRepository.findManyByUserId(input);
-
-    let nextCursor: string | null = null;
-    if (feeds.length === input.size) {
-      if (input.sort === 'latest' || input.sort === 'oldest') {
-        nextCursor =
-          feeds[feeds.length - 1].createdAt.toISOString() +
-          separator +
-          feeds[feeds.length - 1].id;
-      } else {
-        nextCursor =
-          feeds[feeds.length - 1].likeCount +
-          separator +
-          feeds[feeds.length - 1].id;
-      }
-    }
+    const result =
+      await this.feedSelectRepository.findManyByUserIdWithCursor(input);
 
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
       })),
