@@ -207,7 +207,7 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findManyLatest({ userId, lastId, lastCreatedAt, size }: GetFeedsInput) {
+  async findManyLatest({ userId, cursor, size }: GetFeedsInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
       .select([
@@ -236,7 +236,17 @@ export class FeedSelectRepository {
       .orderBy('Feed.id', 'desc')
       .limit(size);
 
-    if (lastCreatedAt && lastId) {
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2) {
+        return {
+          nextCursor: null,
+          feeds: [],
+        };
+      }
+      const lastCreatedAt = new Date(arr[0]);
+      const lastId = arr[1];
+
       query = query.where((eb) => {
         return eb.or([
           eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
@@ -249,8 +259,13 @@ export class FeedSelectRepository {
     }
 
     const feeds = await query.execute();
-    return feeds.map((feed) => {
-      return {
+
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => ({
         id: feed.id,
         title: feed.title,
         thumbnail: feed.thumbnail,
@@ -264,8 +279,8 @@ export class FeedSelectRepository {
           image: feed.image,
           url: feed.url,
         },
-      };
-    });
+      })),
+    };
   }
 
   async findTodayPopularIds() {
@@ -752,8 +767,7 @@ type FindFollowingFeedsInput = {
 
 type GetFeedsInput = {
   userId?: string | null;
-  lastId: string | null;
-  lastCreatedAt: Date | null;
+  cursor: string | null;
   size: number;
 };
 

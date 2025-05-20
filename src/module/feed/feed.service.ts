@@ -14,7 +14,6 @@ export class FeedService {
   constructor(
     private feedRepository: FeedRepository,
     private feedSelectRepository: FeedSelectRepository,
-    private awsService: AwsService,
     private ddb: DdbService,
     private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
@@ -139,31 +138,15 @@ export class FeedService {
   }
 
   async getLatestFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
-    let lastCreatedAt: Date | null = null;
-    let lastId: string | null = null;
-    if (cursor) {
-      const arr = cursor.split(separator);
-      if (arr.length !== 2) {
-        throw new HttpException('Invalid cursor', 400);
-      }
-      lastCreatedAt = new Date(arr[0]);
-      lastId = arr[1];
-    }
-    const feeds = await this.feedSelectRepository.findManyLatest({
+    const result = await this.feedSelectRepository.findManyLatest({
       userId,
-      lastCreatedAt,
-      lastId,
+      cursor,
       size,
     });
 
     return {
-      nextCursor:
-        feeds.length === size
-          ? feeds[size - 1].createdAt.toISOString() +
-            separator +
-            feeds[size - 1].id
-          : null,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
         author: {
