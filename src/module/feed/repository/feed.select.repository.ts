@@ -207,7 +207,7 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findManyLatest({ userId, cursor, size }: GetFeedsInput) {
+  async findManyLatestWithCursor({ userId, cursor, size }: GetFeedsInput) {
     let query = this.prisma.$kysely
       .selectFrom('Feed')
       .select([
@@ -353,11 +353,10 @@ export class FeedSelectRepository {
     }));
   }
 
-  async findFollowingFeeds({
+  async findFollowingFeedsWithCursor({
     userId,
     size,
-    lastCreatedAt,
-    lastId,
+    cursor,
   }: FindFollowingFeedsInput) {
     let query = this.prisma.$kysely
       .selectFrom('Follow')
@@ -415,7 +414,17 @@ export class FeedSelectRepository {
       .orderBy('Feed.id', 'desc')
       .limit(size);
 
-    if (lastCreatedAt && lastId) {
+    if (cursor) {
+      const arr = cursor.split('_');
+      if (arr.length !== 2)
+        return {
+          nextCursor: null,
+          feeds: [],
+        };
+
+      const lastCreatedAt = new Date(arr[0]);
+      const lastId = arr[1];
+
       query = query.where((eb) => {
         return eb.or([
           eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
@@ -429,8 +438,12 @@ export class FeedSelectRepository {
 
     const feeds = await query.execute();
 
-    return feeds.map((feed) => {
-      return {
+    return {
+      nextCursor:
+        feeds.length === size
+          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
+          : null,
+      feeds: feeds.map((feed) => ({
         id: feed.id,
         title: feed.title,
         cards: feed.cards ?? [],
@@ -450,8 +463,8 @@ export class FeedSelectRepository {
         },
         isLike: feed.isLike,
         isSave: feed.isSave,
-      };
-    });
+      })),
+    };
   }
 
   async findMyLikeFeeds(
@@ -761,8 +774,7 @@ type FindPopularInput = {
 type FindFollowingFeedsInput = {
   userId: string;
   size: number;
-  lastCreatedAt: Date | null;
-  lastId: string | null;
+  cursor: string | null;
 };
 
 type GetFeedsInput = {
