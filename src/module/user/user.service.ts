@@ -195,7 +195,7 @@ export class UserService {
       size: number;
     },
   ) {
-    const followings = await this.userSelectRepository.findMyFollowings(
+    const result = await this.userSelectRepository.findMyFollowingsWithCursor(
       userId,
       {
         cursor,
@@ -204,11 +204,8 @@ export class UserService {
     );
 
     return {
-      nextCursor:
-        followings.length === size
-          ? followings[followings.length - 1].id
-          : null,
-      followings: followings.map((user) => ({
+      nextCursor: result.nextCursor,
+      followings: result.users.map((user) => ({
         ...user,
         image: getImageUrl(user.image),
       })),

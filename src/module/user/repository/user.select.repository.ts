@@ -209,7 +209,7 @@ export class UserSelectRepository {
     };
   }
 
-  async findMyFollowings(
+  async findMyFollowingsWithCursor(
     userId: string,
     {
       cursor,
@@ -219,7 +219,7 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    return await this.prisma.$kysely
+    const users = await this.prisma.$kysely
       .selectFrom('Follow')
       .where('followerId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followingId', 'id')
@@ -230,6 +230,11 @@ export class UserSelectRepository {
         eb.where('followingId', '>', kyselyUuid(cursor!)),
       )
       .execute();
+
+    return {
+      nextCursor: users.length === size ? `${users[size - 1].id}` : null,
+      users,
+    };
   }
 
   async findPopularUserIds() {
