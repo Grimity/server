@@ -303,7 +303,7 @@ export class UserSelectRepository {
     }));
   }
 
-  async findManyByName({
+  async findManyByNameWithCursor({
     userId,
     name,
     cursor,
@@ -342,7 +342,7 @@ export class UserSelectRepository {
       .orderBy('User.id', 'desc')
       .limit(size)
       .$if(cursor !== null, (eb) => {
-        const [followerCount, id] = cursor!.split(separator);
+        const [followerCount, id] = cursor!.split('_');
         return eb.where((eb) =>
           eb.or([
             eb('User.followerCount', '<', Number(followerCount)),
@@ -355,16 +355,22 @@ export class UserSelectRepository {
       })
       .execute();
 
-    return users.map((user) => ({
-      id: user.id,
-      name: user.name,
-      url: user.url,
-      image: user.image,
-      description: user.description,
-      backgroundImage: user.backgroundImage,
-      followerCount: user.followerCount,
-      isFollowing: user.isFollowing ?? false,
-    }));
+    return {
+      nextCursor:
+        users.length === size
+          ? `${users[size - 1].followerCount}_${users[size - 1].id}`
+          : null,
+      users: users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        url: user.url,
+        image: user.image,
+        description: user.description,
+        backgroundImage: user.backgroundImage,
+        followerCount: user.followerCount,
+        isFollowing: user.isFollowing ?? false,
+      })),
+    };
   }
 
   async countByName(name: string) {

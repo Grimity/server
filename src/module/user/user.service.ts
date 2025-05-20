@@ -310,10 +310,8 @@ export class UserService {
   }
 
   async searchUsers(input: SearchUserInput) {
-    let nextCursor: string | null = null;
-
-    const [users, totalCount] = await Promise.all([
-      this.userSelectRepository.findManyByName({
+    const [result, totalCount] = await Promise.all([
+      this.userSelectRepository.findManyByNameWithCursor({
         userId: input.userId,
         name: input.keyword,
         cursor: input.cursor,
@@ -322,17 +320,10 @@ export class UserService {
       this.userSelectRepository.countByName(input.keyword),
     ]);
 
-    if (users.length === input.size) {
-      nextCursor =
-        users[users.length - 1].followerCount +
-        separator +
-        users[users.length - 1].id;
-    }
-
     return {
       totalCount,
-      nextCursor,
-      users: users.map((user) => ({
+      nextCursor: result.nextCursor,
+      users: result.users.map((user) => ({
         id: user.id,
         name: user.name,
         image: getImageUrl(user.image),
