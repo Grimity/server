@@ -235,19 +235,17 @@ export class UserService {
       size: number;
     },
   ) {
-    const feeds = await this.feedSelectRepository.findMyLikeFeeds(userId, {
-      cursor,
-      size,
-    });
-
-    let nextCursor: string | null = null;
-    if (feeds.length === size) {
-      nextCursor = `${feeds[feeds.length - 1].createdAt.toISOString()}`;
-    }
+    const result = await this.feedSelectRepository.findMyLikeFeedsWithCursor(
+      userId,
+      {
+        cursor,
+        size,
+      },
+    );
 
     return {
-      nextCursor,
-      feeds: feeds.map((feed) => ({
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
         author: {
