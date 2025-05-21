@@ -751,4 +751,235 @@ describe('NotificationListener', () => {
       expect(notification).toBeNull();
     });
   });
+
+  describe('POST_REPLY 이벤트', () => {
+    it('게시글 답글 알림을 생성한다', async () => {
+      const [actor, targetUser] = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            provider: 'kakao',
+            providerId: 'test1',
+            url: 'test1',
+            name: 'test1',
+            image: 'test1',
+            email: 'test1@test.com',
+          },
+          {
+            provider: 'kakao',
+            providerId: 'test2',
+            url: 'test2',
+            name: 'test2',
+            image: 'test2',
+            email: 'test2@test.com',
+            subscription: ['POST_REPLY'],
+          },
+        ],
+      });
+
+      const post = await prisma.post.create({
+        data: {
+          authorId: targetUser.id,
+          title: 'test1',
+          content: 'test1',
+          type: 1,
+        },
+      });
+
+      const postComment = await prisma.postComment.create({
+        data: {
+          writerId: targetUser.id,
+          postId: post.id,
+          content: 'test1',
+        },
+      });
+
+      // when
+      await notificationListener.handlePostReply({
+        postId: post.id,
+        actorId: actor.id,
+        parentId: postComment.id,
+      });
+
+      // then
+      const notification = await prisma.notification.findFirst({
+        where: { userId: targetUser.id },
+      });
+
+      expect(notification).toEqual({
+        id: expect.any(String),
+        userId: targetUser.id,
+        isRead: false,
+        createdAt: expect.any(Date),
+        link: `${process.env.SERVICE_URL}/posts/${post.id}`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
+        image: `${process.env.IMAGE_URL}/${actor.image}`,
+      });
+    });
+
+    it('구독하지 않았을 경우 알림 데이터를 생성하지 않는다', async () => {
+      const [actor, targetUser] = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            provider: 'kakao',
+            providerId: 'test1',
+            url: 'test1',
+            name: 'test1',
+            image: 'test1',
+            email: 'test1@test.com',
+          },
+          {
+            provider: 'kakao',
+            providerId: 'test2',
+            url: 'test2',
+            name: 'test2',
+            image: 'test2',
+            email: 'test2@test.com',
+            subscription: [],
+          },
+        ],
+      });
+
+      const post = await prisma.post.create({
+        data: {
+          authorId: targetUser.id,
+          title: 'test1',
+          content: 'test1',
+          type: 1,
+        },
+      });
+
+      const postComment = await prisma.postComment.create({
+        data: {
+          writerId: targetUser.id,
+          postId: post.id,
+          content: 'test1',
+        },
+      });
+
+      // when
+      await notificationListener.handlePostReply({
+        postId: post.id,
+        actorId: actor.id,
+        parentId: postComment.id,
+      });
+
+      // then
+      const notification = await prisma.notification.findFirst({
+        where: { userId: targetUser.id },
+      });
+
+      expect(notification).toBeNull();
+    });
+
+    it('부모댓글 작성자와 대댓글 작성자가 같을 경우 알림데이터를 생성하지 않는다', async () => {
+      const [actor, targetUser] = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            provider: 'kakao',
+            providerId: 'test1',
+            url: 'test1',
+            name: 'test1',
+            image: 'test1',
+            email: 'test1@test.com',
+          },
+          {
+            provider: 'kakao',
+            providerId: 'test2',
+            url: 'test2',
+            name: 'test2',
+            image: 'test2',
+            email: 'test2@test.com',
+            subscription: ['POST_REPLY'],
+          },
+        ],
+      });
+
+      const post = await prisma.post.create({
+        data: {
+          authorId: targetUser.id,
+          title: 'test1',
+          content: 'test1',
+          type: 1,
+        },
+      });
+
+      const postComment = await prisma.postComment.create({
+        data: {
+          writerId: targetUser.id,
+          postId: post.id,
+          content: 'test1',
+        },
+      });
+
+      // when
+      await notificationListener.handlePostReply({
+        postId: post.id,
+        actorId: targetUser.id,
+        parentId: postComment.id,
+      });
+
+      // then
+      const notification = await prisma.notification.findFirst({
+        where: { userId: targetUser.id },
+      });
+
+      expect(notification).toBeNull();
+    });
+
+    it('부모 댓글이 isDeleted 상태일 경우 알림데이터를 생성하지 않는다', async () => {
+      const [actor, targetUser] = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            provider: 'kakao',
+            providerId: 'test1',
+            url: 'test1',
+            name: 'test1',
+            image: 'test1',
+            email: 'test1@test.com',
+          },
+          {
+            provider: 'kakao',
+            providerId: 'test2',
+            url: 'test2',
+            name: 'test2',
+            image: 'test2',
+            email: 'test2@test.com',
+            subscription: ['POST_REPLY'],
+          },
+        ],
+      });
+
+      const post = await prisma.post.create({
+        data: {
+          authorId: targetUser.id,
+          title: 'test1',
+          content: 'test1',
+          type: 1,
+        },
+      });
+
+      const postComment = await prisma.postComment.create({
+        data: {
+          writerId: targetUser.id,
+          postId: post.id,
+          content: 'test1',
+          isDeleted: true,
+        },
+      });
+
+      // when
+      await notificationListener.handlePostReply({
+        postId: post.id,
+        actorId: actor.id,
+        parentId: postComment.id,
+      });
+
+      // then
+      const notification = await prisma.notification.findFirst({
+        where: { userId: targetUser.id },
+      });
+
+      expect(notification).toBeNull();
+    });
+  });
 });

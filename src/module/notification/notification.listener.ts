@@ -208,7 +208,7 @@ export class NotificationListener {
       !result?.writerId ||
       result.writerId === actorId ||
       result.isDeleted === true ||
-      !result.subscription.includes('POST_COMMENT')
+      !result.subscription.includes('POST_REPLY')
     )
       return;
 
