@@ -4,7 +4,7 @@ import { FeedSelectRepository } from '../feed/repository/feed.select.repository'
 import { UserSelectRepository } from './repository/user.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from '../post/repository/post.select.repository';
-import { convertPostTypeFromNumber } from 'src/common/constants/post-type';
+import { convertPostType } from 'src/shared/util/convert-post-type';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
@@ -368,7 +368,7 @@ export class UserService {
     return posts.map((post) => {
       return {
         id: post.id,
-        type: convertPostTypeFromNumber(post.type),
+        type: convertPostType(post.type),
         title: post.title,
         content: removeHtml(post.content).slice(0, 150),
         thumbnail: post.thumbnail,
@@ -398,7 +398,7 @@ export class UserService {
       posts: posts.map((post) => {
         return {
           id: post.id,
-          type: convertPostTypeFromNumber(post.type),
+          type: convertPostType(post.type),
           title: post.title,
           content: removeHtml(post.content).slice(0, 150),
           thumbnail: post.thumbnail,

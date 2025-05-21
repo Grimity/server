@@ -20,7 +20,7 @@ import {
 import {
   subscriptionTypes,
   SubscriptionType,
-} from '../../../common/constants/subscription';
+} from '../../../common/constants/subscription.constant';
 import {
   CursorRequest,
   CursorKeywordRequest,

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { socialProviders } from '../../../common/constants/social-provider';
+import { socialProviders } from '../../../common/constants/social-provider.constant';
 import {
   CursorResponse,
   CursorAndCountResponse,

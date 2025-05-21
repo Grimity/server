@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsIn, IsInt, IsUUID, IsOptional, MaxLength } from 'class-validator';
-import { refTypes } from '../../../common/constants/report';
+import { refTypes } from '../../../common/constants/report.constant';
 import {
   TrimAndUpperNullableString,
   TrimNullableString,
