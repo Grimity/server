@@ -25,6 +25,7 @@ describe('NotificationListener', () => {
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await prisma.notification.deleteMany();
   });
 
   describe('FOLLOW 이벤트', () => {
