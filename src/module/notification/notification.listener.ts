@@ -124,7 +124,7 @@ export class NotificationListener {
         userId: result.writerId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
@@ -154,7 +154,7 @@ export class NotificationListener {
         userId: mentionedUserId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
@@ -186,7 +186,7 @@ export class NotificationListener {
         userId: author.authorId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
-        message: `${actor.name}님이 내 게시글에 댓글을 달았어요`,
+        message: `${actor.name}님이 내 게시글에 댓글을 남겼어요`,
       },
     });
   }
@@ -223,7 +223,7 @@ export class NotificationListener {
         userId: result.writerId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
@@ -255,7 +255,7 @@ export class NotificationListener {
         userId: mentionedUserId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
