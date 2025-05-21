@@ -42,6 +42,10 @@ jobs:
           npm install
           npx prisma db push
 
-      - name: Run tests
+      - name: Run E2E tests
         run: |
           npm run test:e2e
+
+      - name: Run Unit tests
+        run: |
+          npm run test:unit
