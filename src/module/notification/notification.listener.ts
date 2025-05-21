@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type * as Event from './types/event';
-import { ConfigService } from '@nestjs/config';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
@@ -20,10 +19,7 @@ function getPostLink(id: string) {
 
 @Injectable()
 export class NotificationListener {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   @OnEvent('notification.FOLLOW')
   async handleFollowEvent({ actorId, userId }: Event.FollowEvent) {
