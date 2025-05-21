@@ -175,6 +175,43 @@ describe('POST /auth/register - 회원가입', () => {
     spy.mockRestore();
   });
 
+  it('앱 회원가입', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId',
+      email: 'test@test.com',
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set('grimity-app-device', 'mobile')
+      .set('grimity-app-model', 'Samsung Galaxy S22+')
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+        id: 'test',
+      });
+
+    // then
+    expect(status).toBe(201);
+    expect(body).toEqual({
+      accessToken: expect.any(String),
+      id: expect.any(String),
+      refreshToken: expect.any(String),
+    });
+
+    const { status: status2 } = await request(app.getHttpServer())
+      .get('/me')
+      .set('Authorization', `Bearer ${body.accessToken}`);
+
+    expect(status2).toBe(200);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
   it('id가 중복이면 409를 반환한다', async () => {
     // given
     const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({

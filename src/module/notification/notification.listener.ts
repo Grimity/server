@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import type * as Event from './types/event';
-import { ConfigService } from '@nestjs/config';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
@@ -20,10 +19,7 @@ function getPostLink(id: string) {
 
 @Injectable()
 export class NotificationListener {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   @OnEvent('notification.FOLLOW')
   async handleFollowEvent({ actorId, userId }: Event.FollowEvent) {
@@ -128,7 +124,7 @@ export class NotificationListener {
         userId: result.writerId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
@@ -158,7 +154,7 @@ export class NotificationListener {
         userId: mentionedUserId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
@@ -190,7 +186,7 @@ export class NotificationListener {
         userId: author.authorId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
-        message: `${actor.name}님이 내 게시글에 댓글을 달았어요`,
+        message: `${actor.name}님이 내 게시글에 댓글을 남겼어요`,
       },
     });
   }
@@ -212,7 +208,7 @@ export class NotificationListener {
       !result?.writerId ||
       result.writerId === actorId ||
       result.isDeleted === true ||
-      !result.subscription.includes('POST_COMMENT')
+      !result.subscription.includes('POST_REPLY')
     )
       return;
 
@@ -227,7 +223,7 @@ export class NotificationListener {
         userId: result.writerId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }
@@ -259,7 +255,7 @@ export class NotificationListener {
         userId: mentionedUserId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
-        message: `${actor.name}님이 내 댓글에 답글을 달았어요`,
+        message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
     });
   }

@@ -1,10 +1,7 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { PostRepository } from './repository/post.repository';
-import {
-  postTypes,
-  PostTypeEnum,
-  convertPostTypeFromNumber,
-} from 'src/common/constants/post-type';
+import { postTypes, PostTypeEnum } from 'src/common/constants/post.constant';
+import { convertPostType } from 'src/shared/util/convert-post-type';
 import { PostSelectRepository } from './repository/post.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { RedisService } from 'src/database/redis/redis.service';
@@ -114,7 +111,7 @@ export class PostService {
       posts: posts.map((post) => {
         return {
           ...post,
-          type: convertPostTypeFromNumber(post.type),
+          type: convertPostType(post.type),
           content: removeHtml(post.content).slice(0, 100),
         };
       }),
@@ -157,7 +154,7 @@ export class PostService {
 
     return {
       ...post,
-      type: convertPostTypeFromNumber(post.type),
+      type: convertPostType(post.type),
     };
   }
 
@@ -185,7 +182,7 @@ export class PostService {
     return resultPosts.map((post) => {
       return {
         ...post,
-        type: convertPostTypeFromNumber(post.type),
+        type: convertPostType(post.type),
         content: removeHtml(post.content).slice(0, 100),
       };
     });
@@ -212,7 +209,7 @@ export class PostService {
       posts: posts.map((post) => {
         return {
           ...post,
-          type: convertPostTypeFromNumber(post.type),
+          type: convertPostType(post.type),
           content: removeHtml(post.content).slice(0, 100),
         };
       }),
@@ -232,7 +229,7 @@ export class PostService {
       posts: posts.map((post) => {
         return {
           ...post,
-          type: convertPostTypeFromNumber(post.type),
+          type: convertPostType(post.type),
           content: removeHtml(post.content).slice(0, 100),
         };
       }),
