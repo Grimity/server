@@ -189,4 +189,106 @@ describe('NotificationListener', () => {
       expect(notification).toBeNull();
     });
   });
+
+  describe('FEED_COMMENT 이벤트', () => {
+    it('유저가 구독했을 때 알림 데이터를 생성한다', async () => {
+      // given
+      const [actor, targetUser] = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            provider: 'kakao',
+            providerId: 'test1',
+            url: 'test1',
+            name: 'test1',
+            image: 'test1',
+            email: 'test1@test.com',
+          },
+          {
+            provider: 'kakao',
+            providerId: 'test2',
+            url: 'test2',
+            name: 'test2',
+            image: 'test2',
+            email: 'test2@test.com',
+            subscription: ['FEED_COMMENT'],
+          },
+        ],
+      });
+
+      const feed = await prisma.feed.create({
+        data: {
+          authorId: targetUser.id,
+          title: 'test1',
+          thumbnail: 'test1',
+        },
+      });
+
+      // when
+      await notificationListener.handleFeedComment({
+        feedId: feed.id,
+        actorId: actor.id,
+      });
+
+      // then
+      const notification = await prisma.notification.findFirstOrThrow({
+        where: { userId: targetUser.id },
+      });
+
+      expect(notification).toEqual({
+        id: expect.any(String),
+        userId: targetUser.id,
+        isRead: false,
+        createdAt: expect.any(Date),
+        link: `${process.env.SERVICE_URL}/feeds/${feed.id}`,
+        message: `${actor.name}님이 내 그림에 댓글을 남겼어요`,
+        image: `${process.env.IMAGE_URL}/${actor.image}`,
+      });
+    });
+
+    it('유저가 구독하지 않았을 때 알림 데이터를 생성하지 않는다', async () => {
+      // given
+      const [actor, targetUser] = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            provider: 'kakao',
+            providerId: 'test1',
+            url: 'test1',
+            name: 'test1',
+            image: 'test1',
+            email: 'test1@test.com',
+          },
+          {
+            provider: 'kakao',
+            providerId: 'test2',
+            url: 'test2',
+            name: 'test2',
+            image: 'test2',
+            email: 'test2@test.com',
+            subscription: [],
+          },
+        ],
+      });
+
+      const feed = await prisma.feed.create({
+        data: {
+          authorId: targetUser.id,
+          title: 'test1',
+          thumbnail: 'test1',
+        },
+      });
+
+      // when
+      await notificationListener.handleFeedComment({
+        feedId: feed.id,
+        actorId: actor.id,
+      });
+
+      // then
+      const notification = await prisma.notification.findFirst({
+        where: { userId: targetUser.id },
+      });
+
+      expect(notification).toBeNull();
+    });
+  });
 });
