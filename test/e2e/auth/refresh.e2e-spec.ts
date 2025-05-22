@@ -74,7 +74,7 @@ describe('GET /auth/refresh - 토큰 갱신', () => {
     expect(status).toBe(401);
   });
 
-  it('200과 함께 accessToken과 refreshToken을 반환한다', async () => {
+  it('200과 함께 accessToken과 refreshToken을 반환한다 - 웹 유저', async () => {
     // given
     const response = await request(app.getHttpServer())
       .post('/auth/register')
@@ -117,5 +117,75 @@ describe('GET /auth/refresh - 토큰 갱신', () => {
     const savedRefreshToken = await prisma.refreshToken.findMany();
     expect(savedRefreshToken).toHaveLength(1);
     expect(savedRefreshToken[0].token).toEqual(newRefreshToken);
+  });
+
+  it('200과 함께 accessToken과 refreshToken을 반환한다 - 앱 유저', async () => {
+    // given
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set('grimity-app-device', 'mobile')
+      .set('grimity-app-model', 'iPhone 12')
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+        id: 'test',
+      });
+
+    const { accessToken, refreshToken } = response.body;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get('/auth/refresh')
+      .set('Authorization', `Bearer ${refreshToken}`)
+      .set('grimity-app-device', 'mobile')
+      .set('grimity-app-model', 'iPhone 12')
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      accessToken: expect.any(String),
+      refreshToken: expect.any(String),
+    });
+
+    const { accessToken: newAccessToken, refreshToken: newRefreshToken } = body;
+
+    expect(newAccessToken).not.toEqual(accessToken);
+    expect(newRefreshToken).not.toEqual(refreshToken);
+    const savedRefreshToken = await prisma.refreshToken.findMany();
+    expect(savedRefreshToken).toHaveLength(1);
+    expect(savedRefreshToken[0].token).toEqual(newRefreshToken);
+  });
+
+  it('refreshToken의 payload와 현재 클라이언트 정보가 다르면 401을 반환한다 - 앱 유저', async () => {
+    // given
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set('grimity-app-device', 'mobile')
+      .set('grimity-app-model', 'iPhone 12')
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+        id: 'test',
+      });
+
+    const { accessToken, refreshToken } = response.body;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .get('/auth/refresh')
+      .set('Authorization', `Bearer ${refreshToken}`)
+      .set('grimity-app-device', 'mobile')
+      .set('grimity-app-model', 'DIFFERENT')
+      .send();
+
+    // then
+    expect(status).toBe(401);
   });
 });
