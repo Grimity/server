@@ -303,7 +303,7 @@ export class FeedSelectRepository {
       },
       where: {
         createdAt: {
-          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 3),
+          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 7),
         },
       },
       orderBy: {
