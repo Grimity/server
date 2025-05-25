@@ -10,6 +10,7 @@ import {
   Delete,
   Get,
   Query,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -24,6 +25,7 @@ import {
   SearchFeedRequest,
   UpdateFeedRequest,
   DeleteFeedsRequest,
+  GetRankingsRequest,
 } from './dto/feed.request';
 import { IdResponse } from 'src/shared/response/id.response';
 import {
@@ -91,6 +93,30 @@ export class FeedController {
       size: size ?? 20,
       sort: sort ?? 'latest',
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '랭킹 조회' })
+  @ApiResponse({})
+  @UseGuards(OptionalJwtGuard)
+  @Get('rankings')
+  async getFeedRanks(
+    @CurrentUser() userId: string | null,
+    @Query() { month, startDate, endDate }: GetRankingsRequest,
+  ) {
+    if (month) {
+    } else if (startDate && endDate) {
+      return await this.feedService.getRankingsByDateRange({
+        userId,
+        startDate,
+        endDate,
+      });
+    }
+
+    throw new HttpException(
+      'month나 startDate,endDate 중 하나는 있어야 합니다',
+      400,
+    );
   }
 
   @ApiBearerAuth()

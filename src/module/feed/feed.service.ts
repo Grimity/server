@@ -332,6 +332,25 @@ export class FeedService {
 
     return;
   }
+
+  async getRankingsByDateRange(input: {
+    userId: string | null;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    const feeds = await this.feedSelectRepository.findManyByDateRange(input);
+
+    return {
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
+    };
+  }
 }
 
 export type GetPopularFeedsInput = {
