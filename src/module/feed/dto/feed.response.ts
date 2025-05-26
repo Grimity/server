@@ -16,6 +16,12 @@ export class FeedBaseResponse {
 
   @ApiProperty({ example: 'feed/UUID.webp' })
   thumbnail: string;
+
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  viewCount: number;
 }
 
 class FeedResponse extends FeedBaseResponse {
@@ -24,12 +30,6 @@ class FeedResponse extends FeedBaseResponse {
 
   @ApiProperty()
   createdAt: Date;
-
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
 
   @ApiProperty()
   content: string;
@@ -42,12 +42,6 @@ class FeedResponse extends FeedBaseResponse {
 }
 
 class SearchedFeedResponse extends FeedBaseResponse {
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 
@@ -67,12 +61,6 @@ export class SearchedFeedsResponse extends CursorAndCountResponse {
 }
 
 class LatestFeedResponse extends FeedBaseResponse {
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 
@@ -93,12 +81,6 @@ export class TodayPopularFeedResponse extends FeedBaseResponse {
   createdAt: Date;
 
   @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
   isLike: boolean;
 
   @ApiProperty({ type: UserBaseResponse })
@@ -108,12 +90,6 @@ export class TodayPopularFeedResponse extends FeedBaseResponse {
 class PopularFeedResponse extends FeedBaseResponse {
   @ApiProperty()
   createdAt: Date;
-
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
 
   @ApiProperty()
   isLike: boolean;
@@ -170,12 +146,6 @@ export class FeedMetaResponse extends FeedBaseResponse {
 
 export class SearchedFeedByTagsResponse extends FeedBaseResponse {
   @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
   isLike: boolean;
 
   @ApiProperty({ type: UserBaseResponse })
@@ -185,12 +155,6 @@ export class SearchedFeedByTagsResponse extends FeedBaseResponse {
 class MyLikeFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
   cards: string[];
-
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
-  viewCount: number;
 
   @ApiProperty()
   commentCount: number;
@@ -215,12 +179,6 @@ class UserFeedResponse extends FeedBaseResponse {
   createdAt: Date;
 
   @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
   commentCount: number;
 }
 
@@ -230,12 +188,6 @@ export class UserFeedsResponse extends CursorResponse {
 }
 
 export class FeedRankingResponse extends FeedBaseResponse {
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
-  viewCount: number;
-
   @ApiProperty()
   isLike: boolean;
 

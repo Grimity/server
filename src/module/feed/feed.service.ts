@@ -348,7 +348,6 @@ export class FeedService {
 
     if (ids === null) {
       ids = await this.feedSelectRepository.findIdsByDateRange({
-        userId,
         startDate,
         endDate,
       });

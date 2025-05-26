@@ -772,7 +772,15 @@ export class FeedSelectRepository {
     const [feed] = await this.prisma.$kysely
       .selectFrom('Feed')
       .where('id', '=', kyselyUuid(id))
-      .select(['Feed.id', 'title', 'thumbnail', 'Feed.createdAt', 'content'])
+      .select([
+        'Feed.id',
+        'title',
+        'thumbnail',
+        'Feed.createdAt',
+        'content',
+        'likeCount',
+        'viewCount',
+      ])
       .select((eb) =>
         eb
           .selectFrom('Tag')
@@ -793,15 +801,15 @@ export class FeedSelectRepository {
       createdAt: feed.createdAt,
       content: feed.content,
       tags: feed.tags ?? [],
+      likeCount: feed.likeCount,
+      viewCount: feed.viewCount,
     };
   }
 
   async findIdsByDateRange({
-    userId,
     startDate,
     endDate,
   }: {
-    userId: string | null;
     startDate: string;
     endDate: string;
   }) {
