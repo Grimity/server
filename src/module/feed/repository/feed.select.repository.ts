@@ -309,12 +309,12 @@ export class FeedSelectRepository {
       orderBy: {
         likeCount: 'desc',
       },
-      take: 20,
+      take: 12,
     });
     return result.map((feed) => feed.id);
   }
 
-  async findTodayPopularByIds(userId: string | null, ids: string[]) {
+  async findManyByIdsOrderByLikeCount(userId: string | null, ids: string[]) {
     if (ids.length === 0) return [];
     const feeds = await this.prisma.$kysely
       .selectFrom('Feed')
@@ -346,7 +346,6 @@ export class FeedSelectRepository {
         ]),
       )
       .orderBy('likeCount', 'desc')
-      .limit(12)
       .execute();
 
     return feeds.map((feed) => ({
@@ -852,6 +851,31 @@ export class FeedSelectRepository {
         image: feed.authorImage,
       },
     }));
+  }
+
+  async findRankingIdsByMonth({
+    year,
+    month,
+  }: {
+    year: number;
+    month: number;
+  }) {
+    const feeds = await this.prisma.feed.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(year, month - 1, 1), // 월은 0부터 시작
+          lt: new Date(year, month, 1),
+        },
+      },
+      select: {
+        id: true,
+      },
+      orderBy: {
+        likeCount: 'desc',
+      },
+    });
+
+    return feeds.map((feed) => feed.id);
   }
 }
 

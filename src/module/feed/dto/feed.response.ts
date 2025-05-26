@@ -228,3 +228,22 @@ export class UserFeedsResponse extends CursorResponse {
   @ApiProperty({ type: UserFeedResponse, isArray: true })
   feeds: UserFeedResponse[];
 }
+
+export class FeedRankingResponse extends FeedBaseResponse {
+  @ApiProperty()
+  likeCount: number;
+
+  @ApiProperty()
+  viewCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
+}
+
+export class FeedRankingsResponse {
+  @ApiProperty({ type: [FeedRankingResponse] })
+  feeds: FeedRankingResponse[];
+}

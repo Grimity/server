@@ -3,10 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { RedisService } from 'src/database/redis/redis.service';
 
 describe('GET /feeds/rankings - 랭킹 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let redis: RedisService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,12 +17,14 @@ describe('GET /feeds/rankings - 랭킹 조회', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
+    redis = module.get<RedisService>(RedisService);
 
     await app.init();
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await redis.flushall();
   });
 
   afterAll(async () => {
@@ -67,5 +71,40 @@ describe('GET /feeds/rankings - 랭킹 조회', () => {
     expect(status).toBe(200);
     expect(body.feeds.length).toBe(2);
     expect(body.feeds[0].likeCount).toBe(10);
+  });
+
+  it('월간 랭킹 목록을 반환한다', async () => {
+    // given
+    const user = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        providerId: 'test1',
+        name: 'test1',
+        url: 'test1',
+        email: 'test1@test1.com',
+      },
+    });
+
+    await prisma.feed.createMany({
+      data: Array.from({ length: 20 }).map((_, i) => ({
+        title: 'test' + i,
+        thumbnail: 'test' + i,
+        authorId: user.id,
+        likeCount: i,
+        createdAt: new Date(2025, 4, i + 2),
+      })),
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get('/feeds/rankings')
+      .query({
+        month: '2025-05',
+      });
+
+    // then
+    expect(status).toBe(200);
+    expect(body.feeds.length).toBe(20);
+    expect(body.feeds[0].likeCount).toBe(19);
   });
 });

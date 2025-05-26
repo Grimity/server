@@ -98,12 +98,13 @@ export function IsValidMonth(validationOptions?: ValidationOptions) {
       validator: {
         validate(value: any, args: ValidationArguments) {
           if (typeof value !== 'string') return false;
-          if (!/^\d{6}$/.test(value)) return false;
+          if (!/^\d{4}-\d{2}$/.test(value)) return false;
 
-          const year = parseInt(value.substring(0, 4));
-          const month = parseInt(value.substring(4, 6));
+          const [year, month] = value.split('-');
 
-          return month >= 1 && month <= 12;
+          const numberMonth = Number(month);
+
+          return numberMonth >= 1 && numberMonth <= 12;
         },
         defaultMessage(args: ValidationArguments) {
           return `${args.property} must be in YYYYMM format with valid month (e.g., 202505)`;
@@ -114,7 +115,7 @@ export function IsValidMonth(validationOptions?: ValidationOptions) {
 }
 
 export class GetRankingsRequest {
-  @ApiProperty({ required: false, example: 202505 })
+  @ApiProperty({ required: false, example: '2025-05' })
   @IsOptional()
   @IsValidMonth()
   month?: string;

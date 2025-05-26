@@ -36,6 +36,7 @@ import {
   FollowingFeedsResponse,
   FeedDetailResponse,
   FeedMetaResponse,
+  FeedRankingsResponse,
 } from './dto/feed.response';
 import { FeedLikedUserResponse } from '../user/dto/user.response';
 
@@ -97,14 +98,15 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '랭킹 조회' })
-  @ApiResponse({})
+  @ApiResponse({ type: FeedRankingsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('rankings')
   async getFeedRanks(
     @CurrentUser() userId: string | null,
     @Query() { month, startDate, endDate }: GetRankingsRequest,
-  ) {
+  ): Promise<FeedRankingsResponse> {
     if (month) {
+      return await this.feedService.getRankingsByMonth(userId, month);
     } else if (startDate && endDate) {
       return await this.feedService.getRankingsByDateRange({
         userId,
