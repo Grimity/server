@@ -94,13 +94,6 @@ export class PostController {
     }
   }
 
-  @ApiOperation({ summary: '오늘의 인기글 조회 - 최대 12개' })
-  @ApiResponse({ status: 200, type: [PostResponse] })
-  @Get('today-popular')
-  async getTodayPopularPosts(): Promise<PostResponse[]> {
-    return await this.postService.getTodayPopularPosts();
-  }
-
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 상세 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: PostDetailResponse })

@@ -166,28 +166,6 @@ export class PostService {
     return;
   }
 
-  async getTodayPopularPosts() {
-    let ids = (await this.redisService.getArray('todayPopularPostIds')) as
-      | string[]
-      | null;
-
-    if (ids === null) {
-      ids = await this.postSelectRepository.findTodayPopularIds();
-      await this.redisService.cacheArray('todayPopularPostIds', ids, 60 * 30);
-    }
-
-    const resultPosts =
-      await this.postSelectRepository.findTodayPopularByIds(ids);
-
-    return resultPosts.map((post) => {
-      return {
-        ...post,
-        type: convertPostType(post.type),
-        content: removeHtml(post.content).slice(0, 100),
-      };
-    });
-  }
-
   async searchByAuthorName({ keyword, page, size }: SearchPostInput) {
     const user = await this.postSelectRepository.countByAuthorName(keyword);
 
