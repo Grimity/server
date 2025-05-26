@@ -84,6 +84,8 @@ describe('GET /feeds/:id/meta - 피드 메타 정보', () => {
       thumbnail: getImageUrl(feed.thumbnail),
       createdAt: feed.createdAt.toISOString(),
       tags: expect.arrayContaining(['tag1', 'tag2']),
+      likeCount: 0,
+      viewCount: 0,
     });
   });
 });

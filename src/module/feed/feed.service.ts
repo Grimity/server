@@ -333,12 +333,35 @@ export class FeedService {
     return;
   }
 
-  async getRankingsByDateRange(input: {
+  async getRankingsByDateRange({
+    userId,
+    startDate,
+    endDate,
+  }: {
     userId: string | null;
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
   }) {
-    const feeds = await this.feedSelectRepository.findManyByDateRange(input);
+    let ids = (await this.redisService.getArray(
+      `${startDate}-${endDate}-feed-rankings`,
+    )) as string[] | null;
+
+    if (ids === null) {
+      ids = await this.feedSelectRepository.findIdsByDateRange({
+        startDate,
+        endDate,
+      });
+      await this.redisService.cacheArray(
+        `${startDate}-${endDate}-feed-rankings`,
+        ids,
+        60 * 30,
+      );
+    }
+
+    const feeds = await this.feedSelectRepository.findManyByIdsOrderByLikeCount(
+      userId,
+      ids,
+    );
 
     return {
       feeds: feeds.map((feed) => ({

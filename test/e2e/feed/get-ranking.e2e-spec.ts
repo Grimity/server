@@ -31,6 +31,29 @@ describe('GET /feeds/rankings - 랭킹 조회', () => {
     await app.close();
   });
 
+  it('month는 YYYY-MM 형식이어야 한다', async () => {
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get('/feeds/rankings')
+      .query({ month: '2025-05-01' });
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('startDate와 endDate는 YYYY-MM-DD 형식이어야 한다', async () => {
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get('/feeds/rankings')
+      .query({
+        startDate: '2025-05-01',
+        endDate: 'INVALID_DATE',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
   it('주간 랭킹 목록을 반환한다', async () => {
     // given
     const user = await prisma.user.create({
@@ -65,7 +88,7 @@ describe('GET /feeds/rankings - 랭킹 조회', () => {
       .get('/feeds/rankings')
       .query({
         startDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6),
-        endDate: new Date(),
+        endDate: new Date().toISOString().split('T')[0], // 오늘 날짜
       });
 
     expect(status).toBe(200);

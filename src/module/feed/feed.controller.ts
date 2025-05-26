@@ -97,7 +97,7 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '랭킹 조회' })
+  @ApiOperation({ summary: '랭킹 조회 - Optional Guard' })
   @ApiResponse({ type: FeedRankingsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('rankings')
@@ -139,7 +139,10 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '오늘의 인기 랭킹 조회 - Optional Guard' })
+  @ApiOperation({
+    summary: '주간 랭킹 조회 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: [TodayPopularFeedResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('today-popular')
@@ -150,7 +153,10 @@ export class FeedController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '인기 그림 목록 조회 - Optional Guard' })
+  @ApiOperation({
+    summary: '인기 그림 목록 조회 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: PopularFeedsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('popular')

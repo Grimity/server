@@ -11,7 +11,7 @@ import {
   ValidationArguments,
   registerDecorator,
   ValidationOptions,
-  IsDate,
+  IsDateString,
 } from 'class-validator';
 import {
   TrimString,
@@ -20,6 +20,7 @@ import {
   TrimAndLowerNullableString,
 } from '../../../shared/request/validator';
 import { CursorKeywordRequest } from '../../../shared/request/cursor.request';
+import { Transform } from 'class-transformer';
 
 export class CreateFeedRequest {
   @ApiProperty({ minLength: 1, maxLength: 32 })
@@ -115,18 +116,25 @@ export function IsValidMonth(validationOptions?: ValidationOptions) {
 }
 
 export class GetRankingsRequest {
-  @ApiProperty({ required: false, example: '2025-05' })
+  @ApiProperty({
+    required: false,
+    example: '2025-05',
+    description:
+      'month가 있으면 month 우선적용, month랑 (startDate, endDate) 둘 다 없으면 400에러입니다',
+  })
   @IsOptional()
   @IsValidMonth()
   month?: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, example: '2025-05-10' })
   @IsOptional()
-  @IsDate()
-  startDate?: Date;
+  @IsDateString()
+  @Transform(({ value }) => value?.split('T')[0]) // 날짜만 추출
+  startDate?: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty({ required: false, example: '2025-05-17' })
   @IsOptional()
-  @IsDate()
-  endDate?: Date;
+  @IsDateString()
+  @Transform(({ value }) => value?.split('T')[0]) // 날짜만 추출
+  endDate?: string;
 }

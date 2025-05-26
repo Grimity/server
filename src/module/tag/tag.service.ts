@@ -27,20 +27,6 @@ export class TagService {
       thumbnail: getImageUrl(tag.thumbnail),
     }));
   }
-
-  async searchTags(userId: string | null, tagNames: string[]) {
-    const { ids } = await this.searchService.searchFeed({
-      keyword: tagNames.join(' '),
-      cursor: 0,
-      size: 8,
-      sort: 'latest',
-    });
-    if (ids.length === 0) {
-      return [];
-    }
-
-    return await this.tagRepository.findFeedsByIds(userId, ids);
-  }
 }
 
 type tagWithThumbnail = {
