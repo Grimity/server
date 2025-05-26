@@ -116,7 +116,12 @@ export function IsValidMonth(validationOptions?: ValidationOptions) {
 }
 
 export class GetRankingsRequest {
-  @ApiProperty({ required: false, example: '2025-05' })
+  @ApiProperty({
+    required: false,
+    example: '2025-05',
+    description:
+      'month가 있으면 month 우선적용, month랑 (startDate, endDate) 둘 다 없으면 400에러입니다',
+  })
   @IsOptional()
   @IsValidMonth()
   month?: string;
