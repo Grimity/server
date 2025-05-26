@@ -796,61 +796,32 @@ export class FeedSelectRepository {
     };
   }
 
-  async findManyByDateRange({
+  async findIdsByDateRange({
     userId,
     startDate,
     endDate,
   }: {
     userId: string | null;
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
   }) {
-    const feeds = await this.prisma.$kysely
-      .selectFrom('Feed')
-      .where('Feed.createdAt', '>=', startDate)
-      .where('Feed.createdAt', '<=', endDate)
-      .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select([
-        'Feed.id',
-        'Feed.authorId',
-        'Feed.likeCount',
-        'Feed.viewCount',
-        'Feed.thumbnail',
-        'Feed.title',
-        'User.name as authorName',
-        'User.url as authorUrl',
-        'User.image as authorImage',
-      ])
-      .$if(userId !== null, (eb) =>
-        eb.select((eb) => [
-          eb
-            .fn<boolean>('EXISTS', [
-              eb
-                .selectFrom('Like')
-                .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', kyselyUuid(userId!)),
-            ])
-            .as('isLike'),
-        ]),
-      )
-      .orderBy('Feed.likeCount', 'desc')
-      .limit(40)
-      .execute();
-
-    return feeds.map((feed) => ({
-      id: feed.id,
-      title: feed.title,
-      thumbnail: feed.thumbnail,
-      likeCount: feed.likeCount,
-      viewCount: feed.viewCount,
-      isLike: feed.isLike ?? false,
-      author: {
-        id: feed.authorId,
-        name: feed.authorName,
-        url: feed.authorUrl,
-        image: feed.authorImage,
+    const feeds = await this.prisma.feed.findMany({
+      select: {
+        id: true,
       },
-    }));
+      where: {
+        createdAt: {
+          gte: new Date(startDate),
+          lt: new Date(endDate),
+        },
+      },
+      orderBy: {
+        likeCount: 'desc',
+      },
+      take: 40,
+    });
+
+    return feeds.map((feed) => feed.id);
   }
 
   async findRankingIdsByMonth({
