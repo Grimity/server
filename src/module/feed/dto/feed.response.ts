@@ -144,14 +144,6 @@ export class FeedMetaResponse extends FeedBaseResponse {
   tags: string[];
 }
 
-export class SearchedFeedByTagsResponse extends FeedBaseResponse {
-  @ApiProperty()
-  isLike: boolean;
-
-  @ApiProperty({ type: UserBaseResponse })
-  author: UserBaseResponse;
-}
-
 class MyLikeFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
   cards: string[];
