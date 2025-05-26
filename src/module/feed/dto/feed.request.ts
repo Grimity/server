@@ -8,6 +8,10 @@ import {
   IsIn,
   IsOptional,
   IsUUID,
+  ValidationArguments,
+  registerDecorator,
+  ValidationOptions,
+  IsDate,
 } from 'class-validator';
 import {
   TrimString,
@@ -82,4 +86,47 @@ export class DeleteFeedsRequest {
   @ArrayMinSize(1)
   @IsUUID('4', { each: true })
   ids: string[];
+}
+
+export function IsValidMonth(validationOptions?: ValidationOptions) {
+  return function (object: object, propertyName: string) {
+    registerDecorator({
+      name: 'isValidMonth',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          if (typeof value !== 'string') return false;
+          if (!/^\d{4}-\d{2}$/.test(value)) return false;
+
+          const [year, month] = value.split('-');
+
+          const numberMonth = Number(month);
+
+          return numberMonth >= 1 && numberMonth <= 12;
+        },
+        defaultMessage(args: ValidationArguments) {
+          return `${args.property} must be in YYYYMM format with valid month (e.g., 202505)`;
+        },
+      },
+    });
+  };
+}
+
+export class GetRankingsRequest {
+  @ApiProperty({ required: false, example: '2025-05' })
+  @IsOptional()
+  @IsValidMonth()
+  month?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDate()
+  startDate?: Date;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDate()
+  endDate?: Date;
 }

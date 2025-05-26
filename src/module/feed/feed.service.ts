@@ -164,7 +164,7 @@ export class FeedService {
       ids = await this.feedSelectRepository.findTodayPopularIds();
       await this.redisService.cacheArray('todayPopularFeedIds', ids, 60 * 30);
     }
-    const feeds = await this.feedSelectRepository.findTodayPopularByIds(
+    const feeds = await this.feedSelectRepository.findManyByIdsOrderByLikeCount(
       userId,
       ids,
     );
@@ -331,6 +331,57 @@ export class FeedService {
     }
 
     return;
+  }
+
+  async getRankingsByDateRange(input: {
+    userId: string | null;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    const feeds = await this.feedSelectRepository.findManyByDateRange(input);
+
+    return {
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
+    };
+  }
+
+  async getRankingsByMonth(userId: string | null, date: string) {
+    const [year, month] = date.split('-');
+
+    let ids = (await this.redisService.getArray(`${date}-feed-rankings`)) as
+      | string[]
+      | null;
+
+    if (ids === null) {
+      ids = await this.feedSelectRepository.findRankingIdsByMonth({
+        year: Number(year),
+        month: Number(month),
+      });
+      await this.redisService.cacheArray(`${date}-feed-rankings`, ids, 60 * 30);
+    }
+
+    const feeds = await this.feedSelectRepository.findManyByIdsOrderByLikeCount(
+      userId,
+      ids,
+    );
+
+    return {
+      feeds: feeds.map((feed) => ({
+        ...feed,
+        thumbnail: getImageUrl(feed.thumbnail),
+        author: {
+          ...feed.author,
+          image: getImageUrl(feed.author.image),
+        },
+      })),
+    };
   }
 }
 

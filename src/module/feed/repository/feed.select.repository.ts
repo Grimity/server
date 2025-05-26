@@ -309,12 +309,12 @@ export class FeedSelectRepository {
       orderBy: {
         likeCount: 'desc',
       },
-      take: 20,
+      take: 12,
     });
     return result.map((feed) => feed.id);
   }
 
-  async findTodayPopularByIds(userId: string | null, ids: string[]) {
+  async findManyByIdsOrderByLikeCount(userId: string | null, ids: string[]) {
     if (ids.length === 0) return [];
     const feeds = await this.prisma.$kysely
       .selectFrom('Feed')
@@ -346,7 +346,6 @@ export class FeedSelectRepository {
         ]),
       )
       .orderBy('likeCount', 'desc')
-      .limit(12)
       .execute();
 
     return feeds.map((feed) => ({
@@ -795,6 +794,88 @@ export class FeedSelectRepository {
       content: feed.content,
       tags: feed.tags ?? [],
     };
+  }
+
+  async findManyByDateRange({
+    userId,
+    startDate,
+    endDate,
+  }: {
+    userId: string | null;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    const feeds = await this.prisma.$kysely
+      .selectFrom('Feed')
+      .where('Feed.createdAt', '>=', startDate)
+      .where('Feed.createdAt', '<=', endDate)
+      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .select([
+        'Feed.id',
+        'Feed.authorId',
+        'Feed.likeCount',
+        'Feed.viewCount',
+        'Feed.thumbnail',
+        'Feed.title',
+        'User.name as authorName',
+        'User.url as authorUrl',
+        'User.image as authorImage',
+      ])
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .orderBy('Feed.likeCount', 'desc')
+      .limit(40)
+      .execute();
+
+    return feeds.map((feed) => ({
+      id: feed.id,
+      title: feed.title,
+      thumbnail: feed.thumbnail,
+      likeCount: feed.likeCount,
+      viewCount: feed.viewCount,
+      isLike: feed.isLike ?? false,
+      author: {
+        id: feed.authorId,
+        name: feed.authorName,
+        url: feed.authorUrl,
+        image: feed.authorImage,
+      },
+    }));
+  }
+
+  async findRankingIdsByMonth({
+    year,
+    month,
+  }: {
+    year: number;
+    month: number;
+  }) {
+    const feeds = await this.prisma.feed.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(year, month - 1, 1), // 월은 0부터 시작
+          lt: new Date(year, month, 1),
+        },
+      },
+      select: {
+        id: true,
+      },
+      orderBy: {
+        likeCount: 'desc',
+      },
+    });
+
+    return feeds.map((feed) => feed.id);
   }
 }
 
