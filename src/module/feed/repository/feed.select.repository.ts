@@ -813,6 +813,8 @@ export class FeedSelectRepository {
     startDate: string;
     endDate: string;
   }) {
+    const adjustedEndDate = new Date(endDate);
+    adjustedEndDate.setDate(adjustedEndDate.getDate() + 1); // +1일
     const feeds = await this.prisma.feed.findMany({
       select: {
         id: true,
@@ -820,7 +822,7 @@ export class FeedSelectRepository {
       where: {
         createdAt: {
           gte: new Date(startDate),
-          lt: new Date(endDate),
+          lt: adjustedEndDate,
         },
       },
       orderBy: {
