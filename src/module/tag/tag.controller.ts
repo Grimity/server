@@ -1,20 +1,6 @@
-import {
-  Controller,
-  Get,
-  UseGuards,
-  Query,
-  HttpException,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { TagService } from './tag.service';
-import { OptionalJwtGuard } from 'src/core/guard';
-import { CurrentUser } from 'src/core/decorator';
 
 import { PopularTagResponse } from './dto/tag.response';
 
