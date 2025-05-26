@@ -873,6 +873,7 @@ export class FeedSelectRepository {
       orderBy: {
         likeCount: 'desc',
       },
+      take: 40,
     });
 
     return feeds.map((feed) => feed.id);
