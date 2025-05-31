@@ -106,6 +106,7 @@ export class UrlValidator implements ValidatorConstraintInterface {
       'posts',
       'feeds',
       'mypage',
+      'ranking',
     ];
 
     if (forbiddenUrls.includes(id)) return false;
