@@ -155,29 +155,6 @@ export class FeedService {
     };
   }
 
-  async getTodayPopular(userId: string | null) {
-    let ids = (await this.redisService.getArray('todayPopularFeedIds')) as
-      | string[]
-      | null;
-
-    if (ids === null) {
-      ids = await this.feedSelectRepository.findTodayPopularIds();
-      await this.redisService.cacheArray('todayPopularFeedIds', ids, 60 * 30);
-    }
-    const feeds = await this.feedSelectRepository.findManyByIdsOrderByLikeCount(
-      userId,
-      ids,
-    );
-    return feeds.map((feed) => ({
-      ...feed,
-      thumbnail: getImageUrl(feed.thumbnail),
-      author: {
-        ...feed.author,
-        image: getImageUrl(feed.author.image),
-      },
-    }));
-  }
-
   async getFollowingFeeds(
     userId: string,
     {
@@ -274,34 +251,6 @@ export class FeedService {
           image: getImageUrl(feed.author.image),
         },
       })),
-    };
-  }
-
-  async getPopularFeeds({ userId, size, cursor }: GetPopularFeedsInput) {
-    const result = await this.feedSelectRepository.findPopularWithCursor({
-      userId,
-      size,
-      cursor,
-      likeCount: 3,
-    });
-
-    return {
-      nextCursor: result.nextCursor,
-      feeds: result.feeds.map((feed) => {
-        return {
-          id: feed.id,
-          title: feed.title,
-          thumbnail: getImageUrl(feed.thumbnail),
-          createdAt: feed.createdAt,
-          viewCount: feed.viewCount,
-          likeCount: feed.likeCount,
-          author: {
-            ...feed.author,
-            image: getImageUrl(feed.author.image),
-          },
-          isLike: feed.isLike,
-        };
-      }),
     };
   }
 

@@ -24,13 +24,8 @@ import { CurrentUser } from 'src/core/decorator';
 import {
   CreateFeedCommentRequest,
   GetFeedCommentRequest,
-  GetChildFeedCommentRequest,
 } from './dto/feed-comment.request';
-import {
-  FeedCommentsResponse,
-  FeedChildCommentResponse,
-  ParentFeedCommentResponse,
-} from './dto/feed-comment.response';
+import { ParentFeedCommentResponse } from './dto/feed-comment.response';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })

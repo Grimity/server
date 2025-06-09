@@ -31,8 +31,6 @@ import { IdResponse } from 'src/shared/response/id.response';
 import {
   SearchedFeedsResponse,
   LatestFeedsResponse,
-  TodayPopularFeedResponse,
-  PopularFeedsResponse,
   FollowingFeedsResponse,
   FeedDetailResponse,
   FeedMetaResponse,
@@ -135,39 +133,6 @@ export class FeedController {
     return await this.feedService.getLatestFeeds(userId, {
       cursor: cursor ?? null,
       size: size ?? 20,
-    });
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: '주간 랭킹 조회 - Optional Guard',
-    deprecated: true,
-  })
-  @ApiResponse({ status: 200, type: [TodayPopularFeedResponse] })
-  @UseGuards(OptionalJwtGuard)
-  @Get('today-popular')
-  async getHotFeeds(
-    @CurrentUser() userId: string | null,
-  ): Promise<TodayPopularFeedResponse[]> {
-    return await this.feedService.getTodayPopular(userId);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: '인기 그림 목록 조회 - Optional Guard',
-    deprecated: true,
-  })
-  @ApiResponse({ status: 200, type: PopularFeedsResponse })
-  @UseGuards(OptionalJwtGuard)
-  @Get('popular')
-  async getPopularFeeds(
-    @CurrentUser() userId: string | null,
-    @Query() { size, cursor }: CursorRequest,
-  ): Promise<PopularFeedsResponse> {
-    return await this.feedService.getPopularFeeds({
-      userId,
-      size: size ?? 20,
-      cursor: cursor ?? null,
     });
   }
 
