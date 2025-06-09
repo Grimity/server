@@ -6,7 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 
-describe('GET /feed-comments/v2?feedId={feedId} - 피드 댓글 조회', () => {
+describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -39,7 +39,7 @@ describe('GET /feed-comments/v2?feedId={feedId} - 피드 댓글 조회', () => {
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer()).get(
-      '/feed-comments/v2?feedId=1',
+      '/feed-comments?feedId=1',
     );
 
     // then
@@ -68,7 +68,7 @@ describe('GET /feed-comments/v2?feedId={feedId} - 피드 댓글 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer()).get(
-      `/feed-comments/v2?feedId=${feed.id}`,
+      `/feed-comments?feedId=${feed.id}`,
     );
 
     // then
@@ -155,7 +155,7 @@ describe('GET /feed-comments/v2?feedId={feedId} - 피드 댓글 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get(`/feed-comments/v2?feedId=${feed.id}`)
+      .get(`/feed-comments?feedId=${feed.id}`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     // then

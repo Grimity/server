@@ -24,13 +24,8 @@ import { CurrentUser } from 'src/core/decorator';
 import {
   CreateFeedCommentRequest,
   GetFeedCommentRequest,
-  GetChildFeedCommentRequest,
 } from './dto/feed-comment.request';
-import {
-  FeedCommentsResponse,
-  FeedChildCommentResponse,
-  ParentFeedCommentResponse,
-} from './dto/feed-comment.response';
+import { ParentFeedCommentResponse } from './dto/feed-comment.response';
 
 @ApiTags('/feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
@@ -57,7 +52,10 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: '피드 댓글 조회 v2 - Optional Guard' })
+  @ApiOperation({
+    summary: '피드 댓글 조회 v2 - Optional Guard',
+    deprecated: true,
+  })
   @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get('v2')
@@ -69,33 +67,15 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({
-    summary: '피드 최상위 댓글 조회 - Optional Guard',
-    deprecated: true,
-  })
-  @ApiResponse({ status: 200, type: FeedCommentsResponse })
+  @ApiOperation({ summary: '피드 댓글 조회 - Optional Guard' })
+  @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
   @UseGuards(OptionalJwtGuard)
   @Get()
   async findAll(
     @CurrentUser() userId: string | null,
     @Query() { feedId }: GetFeedCommentRequest,
-  ): Promise<FeedCommentsResponse> {
-    return await this.feedCommentService.getAllParentsByFeedId(userId, feedId);
-  }
-
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: '피드 자식 댓글 조회 - Optional Guard',
-    deprecated: true,
-  })
-  @ApiResponse({ status: 200, type: [FeedChildCommentResponse] })
-  @UseGuards(OptionalJwtGuard)
-  @Get('child-comments')
-  async findChildComments(
-    @CurrentUser() userId: string | null,
-    @Query() query: GetChildFeedCommentRequest,
-  ): Promise<FeedChildCommentResponse[]> {
-    return await this.feedCommentService.getChildComments(userId, query);
+  ): Promise<ParentFeedCommentResponse[]> {
+    return await this.feedCommentService.getComments(userId, feedId);
   }
 
   @ApiBearerAuth()

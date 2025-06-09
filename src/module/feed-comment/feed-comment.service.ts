@@ -80,53 +80,6 @@ export class FeedCommentService {
     }));
   }
 
-  // 삭제
-  async getAllParentsByFeedId(userId: string | null, feedId: string) {
-    const [comments, commentCount] = await Promise.all([
-      this.feedCommentRepository.findAllParentsByFeedId(userId, feedId),
-      this.feedCommentRepository.countByFeedId(feedId),
-    ]);
-
-    return {
-      comments: comments.map((comment) => ({
-        ...comment,
-        writer: {
-          ...comment.writer,
-          image: getImageUrl(comment.writer.image),
-        },
-      })),
-      commentCount,
-    };
-  }
-
-  // 삭제
-  async getChildComments(
-    userId: string | null,
-    input: {
-      feedId: string;
-      parentId: string;
-    },
-  ) {
-    const comments = await this.feedCommentRepository.findAllChildComments(
-      userId,
-      input,
-    );
-
-    return comments.map((comment) => ({
-      ...comment,
-      writer: {
-        ...comment.writer,
-        image: getImageUrl(comment.writer.image),
-      },
-      mentionedUser: comment.mentionedUser
-        ? {
-            ...comment.mentionedUser,
-            image: getImageUrl(comment.mentionedUser.image),
-          }
-        : null,
-    }));
-  }
-
   async deleteOne(userId: string, commentId: string) {
     await this.feedCommentRepository.deleteOne(userId, commentId);
     return;

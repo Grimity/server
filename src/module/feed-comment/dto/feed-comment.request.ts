@@ -38,9 +38,3 @@ export class GetFeedCommentRequest {
   @IsUUID()
   feedId: string;
 }
-
-export class GetChildFeedCommentRequest extends GetFeedCommentRequest {
-  @ApiProperty()
-  @IsUUID()
-  parentId: string;
-}

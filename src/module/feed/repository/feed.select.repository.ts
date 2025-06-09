@@ -296,24 +296,6 @@ export class FeedSelectRepository {
     };
   }
 
-  async findTodayPopularIds() {
-    const result = await this.prisma.feed.findMany({
-      select: {
-        id: true,
-      },
-      where: {
-        createdAt: {
-          gte: new Date(new Date().getTime() - 1000 * 60 * 60 * 24 * 7),
-        },
-      },
-      orderBy: {
-        likeCount: 'desc',
-      },
-      take: 12,
-    });
-    return result.map((feed) => feed.id);
-  }
-
   async findManyByIdsOrderByLikeCount(userId: string | null, ids: string[]) {
     if (ids.length === 0) return [];
     const feeds = await this.prisma.$kysely
@@ -672,79 +654,6 @@ export class FeedSelectRepository {
         url: feed.url,
       },
     }));
-  }
-
-  async findPopularWithCursor({
-    userId,
-    size,
-    cursor,
-    likeCount,
-  }: FindPopularInput) {
-    let query = this.prisma.$kysely
-      .selectFrom('Feed')
-      .where('likeCount', '>', likeCount)
-      .select([
-        'Feed.id',
-        'title',
-        'thumbnail',
-        'Feed.createdAt',
-        'viewCount',
-        'likeCount',
-      ])
-      .innerJoin('User', 'Feed.authorId', 'User.id')
-      .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
-      .$if(userId !== null, (eb) =>
-        eb.select((eb) => [
-          eb
-            .fn<boolean>('EXISTS', [
-              eb
-                .selectFrom('Like')
-                .whereRef('Like.feedId', '=', 'Feed.id')
-                .where('Like.userId', '=', kyselyUuid(userId!)),
-            ])
-            .as('isLike'),
-        ]),
-      )
-      .orderBy('Feed.createdAt', 'desc')
-      .orderBy('Feed.id', 'desc')
-      .limit(size);
-
-    if (cursor) {
-      const [lastCreatedAt, lastId] = cursor.split('_');
-
-      query = query.where((eb) => {
-        return eb.or([
-          eb('Feed.createdAt', '<', new Date(lastCreatedAt)),
-          eb.and([
-            eb('Feed.createdAt', '=', new Date(lastCreatedAt)),
-            eb('Feed.id', '<', kyselyUuid(lastId)),
-          ]),
-        ]);
-      });
-    }
-
-    const feeds = await query.execute();
-    return {
-      nextCursor:
-        feeds.length === size
-          ? `${feeds[size - 1].createdAt.toISOString()}_${feeds[size - 1].id}`
-          : null,
-      feeds: feeds.map((feed) => ({
-        id: feed.id,
-        title: feed.title,
-        thumbnail: feed.thumbnail,
-        createdAt: feed.createdAt,
-        viewCount: feed.viewCount,
-        likeCount: feed.likeCount,
-        isLike: feed.isLike ?? false,
-        author: {
-          id: feed.authorId,
-          name: feed.name,
-          image: feed.image,
-          url: feed.url,
-        },
-      })),
-    };
   }
 
   async findLikesById(feedId: string) {
