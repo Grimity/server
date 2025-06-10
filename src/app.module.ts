@@ -18,6 +18,10 @@ import { RedisModule } from './database/redis/redis.module';
 import { ClientInfoMiddleware } from './core/middleware';
 import { AlbumModule } from './module/album/album.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ClsModule } from 'nestjs-cls';
+import { PrismaService } from './database/prisma/prisma.service';
+import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Module({
   imports: [
@@ -49,6 +53,22 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AlbumModule,
     EventEmitterModule.forRoot({
       delimiter: '.',
+    }),
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+      plugins: [
+        new ClsPluginTransactional({
+          imports: [
+            // module in which the PrismaClient is provided
+            PrismaModule,
+          ],
+          adapter: new TransactionalAdapterPrisma({
+            // the injection token of the PrismaClient
+            prismaInjectionToken: PrismaService,
+          }),
+        }),
+      ],
     }),
   ],
   providers: [
