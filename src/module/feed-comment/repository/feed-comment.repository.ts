@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class FeedCommentRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async existsFeed(feedId: string) {
-    const result = await this.prisma.feed.findUnique({
+    const result = await this.txHost.tx.feed.findUnique({
       where: { id: feedId },
       select: { id: true },
     });
@@ -18,7 +21,7 @@ export class FeedCommentRepository {
   }
 
   async existsComment(commentId: string) {
-    const result = await this.prisma.feedComment.findUnique({
+    const result = await this.txHost.tx.feedComment.findUnique({
       where: { id: commentId },
       select: { id: true },
     });
@@ -26,7 +29,7 @@ export class FeedCommentRepository {
   }
 
   async create(userId: string, input: CreateFeedCommentInput) {
-    return await this.prisma.feedComment.create({
+    return await this.txHost.tx.feedComment.create({
       data: {
         writerId: userId,
         feedId: input.feedId,
@@ -39,7 +42,7 @@ export class FeedCommentRepository {
   }
 
   async findManyByFeedId(userId: string | null, feedId: string) {
-    const result = await this.prisma.$kysely
+    const result = await this.txHost.tx.$kysely
       .selectFrom('FeedComment')
       .where('feedId', '=', kyselyUuid(feedId))
       .select([
@@ -165,7 +168,7 @@ export class FeedCommentRepository {
   }
 
   async deleteOne(userId: string, commentId: string) {
-    await this.prisma.feedComment.deleteMany({
+    await this.txHost.tx.feedComment.deleteMany({
       where: {
         id: commentId,
         writerId: userId,
@@ -174,28 +177,40 @@ export class FeedCommentRepository {
     return;
   }
 
+  async increaseLikeCount(commentId: string) {
+    await this.txHost.tx.feedComment.update({
+      where: { id: commentId },
+      data: {
+        likeCount: {
+          increment: 1,
+        },
+      },
+      select: { id: true },
+    });
+    return;
+  }
+
+  async decreaseLikeCount(commentId: string) {
+    await this.txHost.tx.feedComment.update({
+      where: { id: commentId },
+      data: {
+        likeCount: {
+          decrement: 1,
+        },
+      },
+      select: { id: true },
+    });
+    return;
+  }
+
   async createLike(userId: string, commentId: string) {
     try {
-      await this.prisma.$transaction([
-        this.prisma.feedCommentLike.create({
-          data: {
-            userId,
-            feedCommentId: commentId,
-          },
-        }),
-        this.prisma.feedComment.update({
-          where: {
-            id: commentId,
-          },
-          data: {
-            likeCount: {
-              increment: 1,
-            },
-          },
-          select: { id: true },
-        }),
-      ]);
-      return;
+      await this.txHost.tx.feedCommentLike.create({
+        data: {
+          userId,
+          feedCommentId: commentId,
+        },
+      });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return;
@@ -205,25 +220,12 @@ export class FeedCommentRepository {
   }
 
   async deleteLike(userId: string, commentId: string) {
-    await this.prisma.$transaction([
-      this.prisma.feedCommentLike.deleteMany({
-        where: {
-          userId,
-          feedCommentId: commentId,
-        },
-      }),
-      this.prisma.feedComment.update({
-        where: {
-          id: commentId,
-        },
-        data: {
-          likeCount: {
-            decrement: 1,
-          },
-        },
-        select: { id: true },
-      }),
-    ]);
+    await this.txHost.tx.feedCommentLike.deleteMany({
+      where: {
+        userId,
+        feedCommentId: commentId,
+      },
+    });
     return;
   }
 }
