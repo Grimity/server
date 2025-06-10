@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid, prismaUuid } from 'src/shared/util/convert-uuid';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class AlbumRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async findManyByUserId(userId: string) {
-    return await this.prisma.album.findMany({
+    return await this.txHost.tx.album.findMany({
       where: {
         userId,
       },
@@ -22,7 +25,7 @@ export class AlbumRepository {
     userId: string,
     { name, order }: { name: string; order: number },
   ) {
-    return await this.prisma.album.create({
+    return await this.txHost.tx.album.create({
       data: {
         userId,
         name,
@@ -43,20 +46,20 @@ export class AlbumRepository {
     id: string;
     name: string;
   }) {
-    return await this.prisma.album.update({
+    return await this.txHost.tx.album.update({
       where: { id, userId },
       data: { name },
     });
   }
 
   async deleteOne(userId: string, id: string) {
-    return await this.prisma.album.delete({
+    return await this.txHost.tx.album.delete({
       where: { id, userId },
     });
   }
 
   async updateOrder(userId: string, toUpdate: { id: string; order: number }[]) {
-    await this.prisma.$executeRaw`
+    await this.txHost.tx.$executeRaw`
       UPDATE "Album"
       SET "order" = CASE
         ${Prisma.join(
@@ -73,13 +76,13 @@ export class AlbumRepository {
   }
 
   async findOneById(id: string) {
-    return await this.prisma.album.findUnique({
+    return await this.txHost.tx.album.findUnique({
       where: { id },
     });
   }
 
   async findManyWithCountByUserId(userId: string) {
-    const albums = await this.prisma.$kysely
+    const albums = await this.txHost.tx.$kysely
       .selectFrom('Album')
       .where('Album.userId', '=', kyselyUuid(userId))
       .select((eb) =>
