@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class PostRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async create(input: CreateInput) {
-    return await this.prisma.post.create({
+    return await this.txHost.tx.post.create({
       data: {
         authorId: input.userId,
         title: input.title,
@@ -24,7 +27,7 @@ export class PostRepository {
 
   async update(input: UpdateInput) {
     try {
-      return await this.prisma.post.update({
+      return await this.txHost.tx.post.update({
         where: {
           id: input.postId,
           authorId: input.userId,
@@ -47,7 +50,7 @@ export class PostRepository {
 
   async createLike(userId: string, postId: string) {
     try {
-      await this.prisma.postLike.create({
+      await this.txHost.tx.postLike.create({
         data: {
           userId,
           postId,
@@ -64,7 +67,7 @@ export class PostRepository {
 
   async deleteLike(userId: string, postId: string) {
     try {
-      await this.prisma.postLike.delete({
+      await this.txHost.tx.postLike.delete({
         where: {
           postId_userId: {
             postId,
@@ -83,7 +86,7 @@ export class PostRepository {
 
   async createSave(userId: string, postId: string) {
     try {
-      await this.prisma.postSave.create({
+      await this.txHost.tx.postSave.create({
         data: {
           userId,
           postId,
@@ -101,7 +104,7 @@ export class PostRepository {
 
   async deleteSave(userId: string, postId: string) {
     try {
-      await this.prisma.postSave.delete({
+      await this.txHost.tx.postSave.delete({
         where: {
           userId_postId: {
             userId,
@@ -121,7 +124,7 @@ export class PostRepository {
 
   async increaseViewCount(postId: string) {
     try {
-      await this.prisma.post.update({
+      await this.txHost.tx.post.update({
         where: {
           id: postId,
         },
@@ -139,7 +142,7 @@ export class PostRepository {
 
   async deleteOne(userId: string, postId: string) {
     try {
-      return await this.prisma.post.delete({
+      return await this.txHost.tx.post.delete({
         where: {
           id: postId,
           authorId: userId,
@@ -170,19 +173,4 @@ type UpdateInput = {
   content: string;
   type: number;
   thumbnail: string | null;
-};
-
-type CachedPost = {
-  createdAt: Date;
-  id: string;
-  title: string;
-  content: string;
-  type: number;
-  hasImage: boolean;
-  viewCount: number;
-  commentCount: number;
-  author: {
-    id: string;
-    name: string;
-  };
 };

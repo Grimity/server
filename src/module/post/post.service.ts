@@ -4,7 +4,6 @@ import { postTypes, PostTypeEnum } from 'src/common/constants/post.constant';
 import { convertPostType } from 'src/shared/util/convert-post-type';
 import { PostSelectRepository } from './repository/post.select.repository';
 import { SearchService } from 'src/database/search/search.service';
-import { RedisService } from 'src/database/redis/redis.service';
 import { removeHtml } from 'src/shared/util/remove-html';
 
 function extractImage(htmlString: string): string | null {
@@ -20,7 +19,6 @@ export class PostService {
   constructor(
     private postRepository: PostRepository,
     private postSelectRepository: PostSelectRepository,
-    private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
   ) {}
 
