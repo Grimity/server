@@ -2,13 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class FeedRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async create(userId: string, createFeedInput: CreateFeedInput) {
-    return await this.prisma.feed.create({
+    return await this.txHost.tx.feed.create({
       data: {
         authorId: userId,
         title: createFeedInput.title,
@@ -30,31 +35,38 @@ export class FeedRepository {
     });
   }
 
-  async like(userId: string, feedId: string) {
+  async increaseLikeCount(feedId: string) {
     try {
-      const [, feed] = await this.prisma.$transaction([
-        this.prisma.like.create({
-          data: {
-            userId,
-            feedId,
+      const feed = await this.txHost.tx.feed.update({
+        where: {
+          id: feedId,
+        },
+        data: {
+          likeCount: {
+            increment: 1,
           },
-          select: { userId: true },
-        }),
-        this.prisma.feed.update({
-          where: {
-            id: feedId,
-          },
-          data: {
-            likeCount: {
-              increment: 1,
-            },
-          },
-          select: {
-            likeCount: true,
-          },
-        }),
-      ]);
+        },
+        select: { likeCount: true },
+      });
       return feed;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
+      }
+      throw e;
+    }
+  }
+
+  async createLike(userId: string, feedId: string) {
+    try {
+      const like = await this.txHost.tx.like.create({
+        data: {
+          userId,
+          feedId,
+        },
+        select: { userId: true },
+      });
+      return like;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return null;
@@ -63,15 +75,9 @@ export class FeedRepository {
     }
   }
 
-  async unlike(userId: string, feedId: string) {
-    const [_, feed] = await this.prisma.$transaction([
-      this.prisma.like.deleteMany({
-        where: {
-          userId,
-          feedId,
-        },
-      }),
-      this.prisma.feed.update({
+  async decreaseLikeCount(feedId: string) {
+    try {
+      const feed = await this.txHost.tx.feed.update({
         where: {
           id: feedId,
         },
@@ -81,14 +87,36 @@ export class FeedRepository {
           },
         },
         select: { likeCount: true },
-      }),
-    ]);
-    return feed;
+      });
+      return feed;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
+      }
+      throw e;
+    }
+  }
+
+  async deleteLike(userId: string, feedId: string) {
+    try {
+      const like = await this.txHost.tx.like.deleteMany({
+        where: {
+          userId,
+          feedId,
+        },
+      });
+      return like;
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
+      }
+      throw e;
+    }
   }
 
   async increaseViewCount(feedId: string) {
     try {
-      await this.prisma.feed.update({
+      await this.txHost.tx.feed.update({
         where: {
           id: feedId,
         },
@@ -109,7 +137,7 @@ export class FeedRepository {
   }
 
   async deleteOne(userId: string, feedId: string) {
-    return await this.prisma.feed.delete({
+    return await this.txHost.tx.feed.delete({
       where: {
         id: feedId,
         authorId: userId,
@@ -118,6 +146,7 @@ export class FeedRepository {
     });
   }
 
+  // TODO: Transactional 처리 필요
   async updateOne(
     userId: string,
     updateFeedInput: CreateFeedInput & { feedId: string },
@@ -155,7 +184,7 @@ export class FeedRepository {
 
   async createSave(userId: string, feedId: string) {
     try {
-      await this.prisma.save.create({
+      await this.txHost.tx.save.create({
         data: {
           userId,
           feedId,
@@ -172,7 +201,7 @@ export class FeedRepository {
   }
 
   async deleteSave(userId: string, feedId: string) {
-    await this.prisma.save.deleteMany({
+    await this.txHost.tx.save.deleteMany({
       where: {
         userId,
         feedId,
@@ -182,7 +211,7 @@ export class FeedRepository {
   }
 
   async deleteMany(userId: string, ids: string[]) {
-    const result = await this.prisma.feed.deleteMany({
+    const result = await this.txHost.tx.feed.deleteMany({
       where: {
         AND: [
           {
@@ -204,7 +233,7 @@ export class FeedRepository {
     userId: string,
     { albumId, feedIds }: { albumId: string | null; feedIds: string[] },
   ) {
-    await this.prisma.feed.updateMany({
+    await this.txHost.tx.feed.updateMany({
       where: {
         AND: [
           {

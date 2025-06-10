@@ -6,6 +6,7 @@ import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
 export class FeedService {
@@ -58,8 +59,7 @@ export class FeedService {
     const exists = await this.feedSelectRepository.exists(feedId);
     if (!exists) throw new HttpException('FEED', 404);
 
-    const feed = await this.feedRepository.like(userId, feedId);
-
+    const feed = await this.likeTransaction(userId, feedId);
     if (feed === null) return;
 
     if ([1, 5, 10, 20, 50, 100].includes(feed.likeCount)) {
@@ -78,11 +78,20 @@ export class FeedService {
     return;
   }
 
+  @Transactional()
+  async likeTransaction(userId: string, feedId: string) {
+    const [_, feed] = await Promise.all([
+      this.feedRepository.createLike(userId, feedId),
+      this.feedRepository.increaseLikeCount(feedId),
+    ]);
+    return feed;
+  }
+
   async unlike(userId: string, feedId: string) {
     const exists = await this.feedSelectRepository.exists(feedId);
     if (!exists) throw new HttpException('FEED', 404);
 
-    const feed = await this.feedRepository.unlike(userId, feedId);
+    const feed = await this.unlikeTransaction(userId, feedId);
     if (feed === null) return;
 
     await this.ddb.putItemForUpdate({
@@ -91,6 +100,15 @@ export class FeedService {
       count: feed.likeCount,
     });
     return;
+  }
+
+  @Transactional()
+  async unlikeTransaction(userId: string, feedId: string) {
+    const [_, feed] = await Promise.all([
+      this.feedRepository.deleteLike(userId, feedId),
+      this.feedRepository.decreaseLikeCount(feedId),
+    ]);
+    return feed;
   }
 
   async view(feedId: string) {
