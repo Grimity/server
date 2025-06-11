@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class UserRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async create({ provider, providerId, email, name, url }: CreateInput) {
-    return await this.prisma.user.create({
+    return await this.txHost.tx.user.create({
       data: {
         provider,
         providerId,
@@ -21,7 +24,7 @@ export class UserRepository {
   }
 
   async update(id: string, input: UpdateInput) {
-    await this.prisma.user.update({
+    await this.txHost.tx.user.update({
       where: { id },
       data: input,
       select: { id: true },
@@ -29,32 +32,15 @@ export class UserRepository {
     return;
   }
 
-  async follow(userId: string, targetUserId: string) {
+  async createFollow(userId: string, targetUserId: string) {
     try {
-      const [_, user] = await this.prisma.$transaction([
-        this.prisma.follow.create({
-          data: {
-            followerId: userId,
-            followingId: targetUserId,
-          },
-          select: { followingId: true },
-        }),
-        this.prisma.user.update({
-          where: {
-            id: targetUserId,
-          },
-          data: {
-            followerCount: {
-              increment: 1,
-            },
-          },
-          select: {
-            subscription: true,
-            followerCount: true,
-          },
-        }),
-      ]);
-      return user;
+      await this.txHost.tx.follow.create({
+        data: {
+          followerId: userId,
+          followingId: targetUserId,
+        },
+        select: { followingId: true },
+      });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return null;
@@ -63,31 +49,17 @@ export class UserRepository {
     }
   }
 
-  async unfollow(userId: string, targetUserId: string) {
+  async deleteFollow(userId: string, targetUserId: string) {
     try {
-      const [_, user] = await this.prisma.$transaction([
-        this.prisma.follow.delete({
-          where: {
-            followerId_followingId: {
-              followerId: userId,
-              followingId: targetUserId,
-            },
+      await this.txHost.tx.follow.delete({
+        where: {
+          followerId_followingId: {
+            followerId: userId,
+            followingId: targetUserId,
           },
-          select: { followerId: true },
-        }),
-        this.prisma.user.update({
-          where: {
-            id: targetUserId,
-          },
-          data: {
-            followerCount: {
-              decrement: 1,
-            },
-          },
-          select: { followerCount: true },
-        }),
-      ]);
-      return user;
+        },
+        select: { followerId: true },
+      });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (convertCode(e.code) === 'NOT_FOUND') return null;
@@ -96,8 +68,31 @@ export class UserRepository {
     }
   }
 
+  async increaseFollowerCount(userId: string) {
+    return await this.txHost.tx.user.update({
+      where: { id: userId },
+      data: {
+        followerCount: {
+          increment: 1,
+        },
+      },
+      select: { subscription: true },
+    });
+  }
+
+  async decreaseFollowerCount(userId: string) {
+    await this.txHost.tx.user.update({
+      where: { id: userId },
+      data: {
+        followerCount: {
+          decrement: 1,
+        },
+      },
+    });
+  }
+
   async deleteOne(userId: string) {
-    await this.prisma.user.delete({
+    await this.txHost.tx.user.delete({
       where: {
         id: userId,
       },
@@ -106,7 +101,7 @@ export class UserRepository {
   }
 
   async createRefreshToken(input: CreateRefTInput) {
-    await this.prisma.refreshToken.create({
+    await this.txHost.tx.refreshToken.create({
       data: {
         userId: input.userId,
         token: input.refreshToken,
@@ -126,7 +121,7 @@ export class UserRepository {
     newToken: string,
   ) {
     try {
-      return await this.prisma.refreshToken.update({
+      return await this.txHost.tx.refreshToken.update({
         where: {
           userId_token: {
             userId,
@@ -152,7 +147,7 @@ export class UserRepository {
 
   async deleteRefreshToken(userId: string, token: string) {
     try {
-      return await this.prisma.refreshToken.delete({
+      return await this.txHost.tx.refreshToken.delete({
         where: {
           userId_token: {
             userId,
@@ -173,15 +168,15 @@ export class UserRepository {
   }
 }
 
-type CreateInput = {
+interface CreateInput {
   provider: string;
   providerId: string;
   email: string;
   name: string;
   url: string;
-};
+}
 
-export type UpdateInput = {
+export interface UpdateInput {
   url?: string;
   name?: string;
   image?: string | null;
@@ -189,13 +184,13 @@ export type UpdateInput = {
   backgroundImage?: string | null;
   links?: string[];
   subscription?: string[];
-};
+}
 
-type CreateRefTInput = {
+interface CreateRefTInput {
   userId: string;
   refreshToken: string;
   type: 'WEB' | 'APP';
   device: string;
   model: string;
   ip: string;
-};
+}

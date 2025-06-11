@@ -177,7 +177,7 @@ export class MeController {
     @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) targetId: string,
   ) {
-    await this.userService.unfollow(targetId, userId);
+    await this.userService.unfollowTransaction(targetId, userId);
     return;
   }
 
