@@ -161,11 +161,13 @@ export class FeedService {
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
     await this.feedRepository.deleteTags(updateFeedInput.feedId);
-    await this.feedRepository.createTags(
-      updateFeedInput.feedId,
-      updateFeedInput.tags,
-    );
-    await this.feedRepository.updateOne(userId, updateFeedInput);
+    await Promise.all([
+      this.feedRepository.createTags(
+        updateFeedInput.feedId,
+        updateFeedInput.tags,
+      ),
+      this.feedRepository.updateOne(userId, updateFeedInput),
+    ]);
   }
 
   async getLatestFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
