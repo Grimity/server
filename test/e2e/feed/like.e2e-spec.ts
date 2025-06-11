@@ -111,4 +111,47 @@ describe('PUT /feeds/:feedId/like - 피드 좋아요', () => {
     // then
     expect(status).toBe(404);
   });
+
+  it('이미 좋아요를 눌렀어도 204를 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        email: 'test@test.com',
+        name: 'test2',
+        url: 'test2',
+      },
+    });
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: user.id,
+        title: 'test',
+        content: 'test',
+        cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .put(`/feeds/${feed.id}/like`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .put(`/feeds/${feed.id}/like`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(204);
+    const like = await prisma.like.findFirstOrThrow({
+      include: {
+        user: true,
+        feed: true,
+      },
+    });
+    expect(like.userId).not.toBe(user.id);
+  });
 });

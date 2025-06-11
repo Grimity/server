@@ -56,8 +56,13 @@ export class FeedService {
   }
 
   async like(userId: string, feedId: string) {
-    const exists = await this.feedSelectRepository.exists(feedId);
-    if (!exists) throw new HttpException('FEED', 404);
+    const [feedExists, likeExists] = await Promise.all([
+      this.feedSelectRepository.exists(feedId),
+      this.feedSelectRepository.existsLike(userId, feedId),
+    ]);
+
+    if (!feedExists) throw new HttpException('FEED', 404);
+    if (likeExists) return;
 
     const feed = await this.likeTransaction(userId, feedId);
     if (feed === null) return;
@@ -88,8 +93,13 @@ export class FeedService {
   }
 
   async unlike(userId: string, feedId: string) {
-    const exists = await this.feedSelectRepository.exists(feedId);
-    if (!exists) throw new HttpException('FEED', 404);
+    const [feedExists, likeExists] = await Promise.all([
+      this.feedSelectRepository.exists(feedId),
+      this.feedSelectRepository.existsLike(userId, feedId),
+    ]);
+
+    if (!feedExists) throw new HttpException('FEED', 404);
+    if (!likeExists) return;
 
     const feed = await this.unlikeTransaction(userId, feedId);
     if (feed === null) return;

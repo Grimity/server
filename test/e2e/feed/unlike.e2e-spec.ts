@@ -116,4 +116,36 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
     // then
     expect(status).toBe(404);
   });
+
+  it('좋아요 하지 않은 피드에 unlike를 해도 204를 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const user = await prisma.user.findFirstOrThrow();
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: user.id,
+        title: 'test',
+        content: 'test',
+        cards: ['test'],
+        thumbnail: 'test',
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .delete(`/feeds/${feed.id}/like`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(204);
+
+    const afterFeed = await prisma.feed.findUnique({
+      where: {
+        id: feed.id,
+      },
+      select: { likeCount: true },
+    });
+    expect(afterFeed?.likeCount).toBe(0);
+  });
 });
