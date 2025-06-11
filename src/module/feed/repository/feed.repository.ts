@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
 import { TransactionHost } from '@nestjs-cls/transactional';
@@ -8,7 +7,6 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 @Injectable()
 export class FeedRepository {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
@@ -146,40 +144,40 @@ export class FeedRepository {
     });
   }
 
-  // TODO: Transactional 처리 필요
-  async updateOne(
-    userId: string,
-    updateFeedInput: CreateFeedInput & { feedId: string },
-  ) {
-    await this.prisma.$transaction([
-      this.prisma.tag.deleteMany({
-        where: {
-          feedId: updateFeedInput.feedId,
-        },
+  async deleteTags(feedId: string) {
+    await this.txHost.tx.tag.deleteMany({
+      where: { feedId },
+    });
+    return;
+  }
+
+  async createTags(feedId: string, tags: string[]) {
+    await this.txHost.tx.tag.createMany({
+      data: tags.map((tag) => {
+        return {
+          feedId,
+          tagName: tag,
+        };
       }),
-      this.prisma.tag.createMany({
-        data: updateFeedInput.tags.map((tag) => {
-          return {
-            feedId: updateFeedInput.feedId,
-            tagName: tag,
-          };
-        }),
-      }),
-      this.prisma.feed.update({
-        where: {
-          id: updateFeedInput.feedId,
-          authorId: userId,
-        },
-        data: {
-          title: updateFeedInput.title,
-          content: updateFeedInput.content,
-          cards: updateFeedInput.cards,
-          thumbnail: updateFeedInput.thumbnail,
-          albumId: updateFeedInput.albumId,
-        },
-        select: { id: true },
-      }),
-    ]);
+    });
+    return;
+  }
+
+  async updateOne(userId: string, input: UpdateFeedInput) {
+    return await this.txHost.tx.feed.update({
+      where: {
+        id: input.feedId,
+        authorId: userId,
+      },
+      data: {
+        title: input.title,
+        content: input.content,
+        cards: input.cards,
+        thumbnail: input.thumbnail,
+        albumId: input.albumId,
+      },
+      select: { id: true },
+    });
   }
 
   async createSave(userId: string, feedId: string) {
@@ -254,11 +252,15 @@ export class FeedRepository {
   }
 }
 
-type CreateFeedInput = {
+interface CreateFeedInput {
   title: string;
   cards: string[];
   content: string;
   tags: string[];
   thumbnail: string;
   albumId: string | null;
-};
+}
+
+interface UpdateFeedInput extends Omit<CreateFeedInput, 'tags'> {
+  feedId: string;
+}

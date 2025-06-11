@@ -141,16 +141,31 @@ export class FeedService {
         tag.replaceAll(' ', '').replaceAll('#', ''),
       ),
     );
-    await this.feedRepository.updateOne(userId, {
+
+    await this.updateTransaction(userId, {
       ...updateFeedInput,
       tags: [...trimmedSet],
     });
+
     await this.searchService.updateFeed({
       id: updateFeedInput.feedId,
       title: updateFeedInput.title,
       tag: [...trimmedSet].join(' '),
     });
     return;
+  }
+
+  @Transactional()
+  async updateTransaction(
+    userId: string,
+    updateFeedInput: CreateFeedInput & { feedId: string },
+  ) {
+    await this.feedRepository.deleteTags(updateFeedInput.feedId);
+    await this.feedRepository.createTags(
+      updateFeedInput.feedId,
+      updateFeedInput.tags,
+    );
+    await this.feedRepository.updateOne(userId, updateFeedInput);
   }
 
   async getLatestFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
