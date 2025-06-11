@@ -51,6 +51,7 @@ export class FeedRepository {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (convertCode(e.code) === 'NOT_FOUND') return null;
       }
+      console.log(e);
       throw e;
     }
   }

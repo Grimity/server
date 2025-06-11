@@ -18,6 +18,19 @@ export class FeedSelectRepository {
     return !!feed;
   }
 
+  async existsLike(userId: string, feedId: string) {
+    const like = await this.txHost.tx.like.findUnique({
+      where: {
+        userId_feedId: {
+          userId,
+          feedId,
+        },
+      },
+    });
+
+    return !!like;
+  }
+
   async getFeed(userId: string | null, feedId: string) {
     const [feed] = await this.txHost.tx.$kysely
       .selectFrom('Feed')
