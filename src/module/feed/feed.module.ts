@@ -7,10 +7,11 @@ import { AwsModule } from '../aws/aws.module';
 import { SearchModule } from 'src/database/search/search.module';
 import { DdbModule } from 'src/database/ddb/ddb.module';
 import { RedisModule } from 'src/database/redis/redis.module';
+import { TagController } from './tag.controller';
 
 @Module({
   imports: [AwsModule, SearchModule, DdbModule, RedisModule],
-  controllers: [FeedController],
+  controllers: [FeedController, TagController],
   providers: [FeedService, FeedRepository, FeedSelectRepository],
   exports: [FeedSelectRepository, FeedRepository],
 })

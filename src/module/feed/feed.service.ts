@@ -373,6 +373,22 @@ export class FeedService {
       })),
     };
   }
+
+  async findPopularTags() {
+    let tags = (await this.redisService.getArray('popularTags')) as
+      | tagWithThumbnail[]
+      | null;
+
+    if (tags === null) {
+      tags = await this.feedSelectRepository.findPopularTags();
+      await this.redisService.cacheArray('popularTags', tags, 60 * 30);
+    }
+
+    return tags.map((tag) => ({
+      tagName: tag.tagName,
+      thumbnail: getImageUrl(tag.thumbnail),
+    }));
+  }
 }
 
 export type GetPopularFeedsInput = {
@@ -400,4 +416,9 @@ export type SearchInput = {
   cursor: string | null;
   size: number;
   sort: 'latest' | 'popular' | 'accuracy';
+};
+
+type tagWithThumbnail = {
+  tagName: string;
+  thumbnail: string;
 };

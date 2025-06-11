@@ -8,7 +8,6 @@ import { AwsModule } from './module/aws/aws.module';
 import { FeedModule } from './module/feed/feed.module';
 import { FeedCommentModule } from './module/feed-comment/feed-comment.module';
 import { NotificationModule } from './module/notification/notification.module';
-import { TagModule } from './module/tag/tag.module';
 import { PostModule } from './module/post/post.module';
 import { PostCommentModule } from './module/post-comment/post-comment.module';
 import { ReportModule } from './module/report/report.module';
@@ -45,7 +44,6 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
     FeedModule,
     FeedCommentModule,
     NotificationModule,
-    TagModule,
     PostModule,
     PostCommentModule,
     ReportModule,
