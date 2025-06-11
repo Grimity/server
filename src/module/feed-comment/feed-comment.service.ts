@@ -1,8 +1,8 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { FeedCommentRepository } from './repository/feed-comment.repository';
-import { AwsService } from '../aws/aws.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
 export class FeedCommentService {
@@ -91,7 +91,16 @@ export class FeedCommentService {
 
     if (!commentExists) throw new HttpException('COMMENT', 404);
 
-    await this.feedCommentRepository.createLike(userId, commentId);
+    await this.likeTransaction(userId, commentId);
+    return;
+  }
+
+  @Transactional()
+  async likeTransaction(userId: string, commentId: string) {
+    await Promise.all([
+      this.feedCommentRepository.createLike(userId, commentId),
+      this.feedCommentRepository.increaseLikeCount(commentId),
+    ]);
     return;
   }
 
@@ -101,7 +110,16 @@ export class FeedCommentService {
 
     if (!commentExists) throw new HttpException('COMMENT', 404);
 
-    await this.feedCommentRepository.deleteLike(userId, commentId);
+    await this.unlikeTransaction(userId, commentId);
+    return;
+  }
+
+  @Transactional()
+  async unlikeTransaction(userId: string, commentId: string) {
+    await Promise.all([
+      this.feedCommentRepository.deleteLike(userId, commentId),
+      this.feedCommentRepository.decreaseLikeCount(commentId),
+    ]);
     return;
   }
 }

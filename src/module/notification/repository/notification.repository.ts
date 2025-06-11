@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class NotificationRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async findAll(userId: string) {
-    return this.prisma.notification.findMany({
+    return this.txHost.tx.notification.findMany({
       where: {
         userId,
       },
@@ -25,7 +28,7 @@ export class NotificationRepository {
   }
 
   async readAll(userId: string) {
-    await this.prisma.notification.updateMany({
+    await this.txHost.tx.notification.updateMany({
       where: {
         userId,
       },
@@ -37,7 +40,7 @@ export class NotificationRepository {
   }
 
   async deleteAll(userId: string) {
-    await this.prisma.notification.deleteMany({
+    await this.txHost.tx.notification.deleteMany({
       where: {
         userId,
       },
@@ -46,7 +49,7 @@ export class NotificationRepository {
   }
 
   async readOne(userId: string, notificationId: string) {
-    await this.prisma.notification.updateMany({
+    await this.txHost.tx.notification.updateMany({
       where: {
         userId,
         id: notificationId,
@@ -59,7 +62,7 @@ export class NotificationRepository {
   }
 
   async deleteOne(userId: string, notificationId: string) {
-    await this.prisma.notification.deleteMany({
+    await this.txHost.tx.notification.deleteMany({
       where: {
         userId,
         id: notificationId,

@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class PostSelectRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async exists(postId: string) {
-    const post = await this.prisma.post.findUnique({
+    const post = await this.txHost.tx.post.findUnique({
       where: { id: postId },
       select: { id: true },
     });
@@ -17,7 +20,7 @@ export class PostSelectRepository {
   }
 
   async findAllNotices() {
-    const result = await this.prisma.$kysely
+    const result = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where('type', '=', 0)
       .select([
@@ -60,13 +63,13 @@ export class PostSelectRepository {
       };
     } else where.type = type;
 
-    return await this.prisma.post.count({
+    return await this.txHost.tx.post.count({
       where,
     });
   }
 
   async findMany({ type, page, size }: FindManyInput) {
-    const result = await this.prisma.$kysely
+    const result = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where((eb) => {
         if (type === null) return eb('type', '!=', 0);
@@ -109,7 +112,7 @@ export class PostSelectRepository {
   }
 
   async findOneById(userId: string | null, postId: string) {
-    const [post] = await this.prisma.$kysely
+    const [post] = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where('Post.id', '=', kyselyUuid(postId))
       .select([
@@ -178,7 +181,7 @@ export class PostSelectRepository {
   }
 
   async countByAuthorName(name: string) {
-    const [user] = await this.prisma.$kysely
+    const [user] = await this.txHost.tx.$kysely
       .selectFrom('User')
       .where('name', '=', name)
       .select('User.id')
@@ -200,7 +203,7 @@ export class PostSelectRepository {
   }
 
   async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
-    const posts = await this.prisma.$kysely
+    const posts = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where('Post.authorId', '=', kyselyUuid(authorId))
       .select([
@@ -245,7 +248,7 @@ export class PostSelectRepository {
 
   async findManyByIds(ids: string[]) {
     if (ids.length === 0) return [];
-    const feeds = await this.prisma.$kysely
+    const feeds = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where('Post.id', 'in', ids.map(kyselyUuid))
       .select([
@@ -283,7 +286,7 @@ export class PostSelectRepository {
   }
 
   async findManyByUserId({ userId, page, size }: UserAndPageInput) {
-    return await this.prisma.post.findMany({
+    return await this.txHost.tx.post.findMany({
       where: {
         authorId: userId,
       },
@@ -306,7 +309,7 @@ export class PostSelectRepository {
   }
 
   async countSavedPosts(userId: string) {
-    return await this.prisma.postSave.count({
+    return await this.txHost.tx.postSave.count({
       where: {
         userId,
       },
@@ -314,7 +317,7 @@ export class PostSelectRepository {
   }
 
   async findManySavedPosts({ userId, page, size }: UserAndPageInput) {
-    const posts = await this.prisma.$kysely
+    const posts = await this.txHost.tx.$kysely
       .selectFrom('PostSave')
       .where('PostSave.userId', '=', kyselyUuid(userId))
       .innerJoin('Post', 'Post.id', 'PostSave.postId')
@@ -355,7 +358,7 @@ export class PostSelectRepository {
   }
 
   async findAllIdsByUserId(userId: string) {
-    const posts = await this.prisma.post.findMany({
+    const posts = await this.txHost.tx.post.findMany({
       where: {
         authorId: userId,
       },
@@ -367,7 +370,7 @@ export class PostSelectRepository {
   }
 
   async findMeta(id: string) {
-    return await this.prisma.post.findUnique({
+    return await this.txHost.tx.post.findUnique({
       where: {
         id,
       },

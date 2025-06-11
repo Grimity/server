@@ -10,6 +10,7 @@ import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
 import { AlbumRepository } from '../album/repository/album.repository';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Transactional } from '@nestjs-cls/transactional';
 
 const linkSeparator = '|~|';
 
@@ -97,11 +98,11 @@ export class UserService {
   }
 
   async follow(userId: string, targetUserId: string) {
-    const exists = await this.userSelectRepository.exists(targetUserId);
-    if (!exists) throw new HttpException('USER', 404);
+    const user = await this.userSelectRepository.findOneById(targetUserId);
 
-    const targetUser = await this.userRepository.follow(userId, targetUserId);
-    if (targetUser === null) return;
+    if (!user) throw new HttpException('USER', 404);
+
+    const targetUser = await this.followTransaction(userId, targetUserId);
 
     if (targetUser.subscription.includes('FOLLOW')) {
       this.eventEmitter.emit('notification.FOLLOW', {
@@ -114,8 +115,22 @@ export class UserService {
     return;
   }
 
-  async unfollow(userId: string, targetUserId: string) {
-    await this.userRepository.unfollow(userId, targetUserId);
+  @Transactional()
+  async followTransaction(userId: string, targetUserId: string) {
+    const [_, user] = await Promise.all([
+      this.userRepository.createFollow(userId, targetUserId),
+      this.userRepository.increaseFollowerCount(targetUserId),
+    ]);
+
+    return user;
+  }
+
+  @Transactional()
+  async unfollowTransaction(userId: string, targetUserId: string) {
+    await Promise.all([
+      this.userRepository.deleteFollow(userId, targetUserId),
+      this.userRepository.decreaseFollowerCount(targetUserId),
+    ]);
 
     return;
   }

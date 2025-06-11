@@ -1,42 +1,36 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class UserSelectRepository {
-  constructor(private prisma: PrismaService) {}
-
-  async exists(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-
-    return user !== null;
-  }
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async findOneById(id: string) {
-    return await this.prisma.user.findUnique({
+    return await this.txHost.tx.user.findUnique({
       where: { id },
     });
   }
 
   async findOneByUrl(url: string) {
-    return await this.prisma.user.findUnique({
+    return await this.txHost.tx.user.findUnique({
       where: { url },
       select: { id: true },
     });
   }
 
   async findOneByName(name: string) {
-    return await this.prisma.user.findUnique({
+    return await this.txHost.tx.user.findUnique({
       where: { name },
       select: { id: true },
     });
   }
 
   async findOneByProvider(provider: string, providerId: string) {
-    return await this.prisma.user.findUnique({
+    return await this.txHost.tx.user.findUnique({
       where: {
         provider_providerId: {
           provider,
@@ -47,7 +41,7 @@ export class UserSelectRepository {
   }
 
   async getMyProfile(userId: string) {
-    const response = await this.prisma.$kysely
+    const response = await this.txHost.tx.$kysely
       .selectFrom('User')
       .where('id', '=', kyselyUuid(userId))
       .select([
@@ -106,7 +100,7 @@ export class UserSelectRepository {
   }
 
   async getUserProfile(userId: string | null, targetUserId: string) {
-    const response = await this.prisma.$kysely
+    const response = await this.txHost.tx.$kysely
       .selectFrom('User')
       .where('User.id', '=', kyselyUuid(targetUserId))
       .select([
@@ -190,7 +184,7 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    const users = await this.prisma.$kysely
+    const users = await this.txHost.tx.$kysely
       .selectFrom('Follow')
       .where('followingId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followerId', 'id')
@@ -218,7 +212,7 @@ export class UserSelectRepository {
       size: number;
     },
   ) {
-    const users = await this.prisma.$kysely
+    const users = await this.txHost.tx.$kysely
       .selectFrom('Follow')
       .where('followerId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followingId', 'id')
@@ -237,7 +231,7 @@ export class UserSelectRepository {
   }
 
   async findPopularUserIds() {
-    const users = await this.prisma.user.findMany({
+    const users = await this.txHost.tx.user.findMany({
       select: {
         id: true,
       },
@@ -250,7 +244,7 @@ export class UserSelectRepository {
   }
 
   async findPopularUsersByIds(userId: string | null, userIds: string[]) {
-    const users = await this.prisma.$kysely
+    const users = await this.txHost.tx.$kysely
       .selectFrom('User')
       .where('User.id', 'in', userIds.map(kyselyUuid))
       .select([
@@ -313,7 +307,7 @@ export class UserSelectRepository {
     cursor: string | null;
     size: number;
   }) {
-    const users = await this.prisma.$kysely
+    const users = await this.txHost.tx.$kysely
       .selectFrom('User')
       .where('name', 'like', `${name}%`)
       .select([
@@ -373,7 +367,7 @@ export class UserSelectRepository {
   }
 
   async countByName(name: string) {
-    return await this.prisma.user.count({
+    return await this.txHost.tx.user.count({
       where: {
         name: {
           startsWith: name,
@@ -383,7 +377,7 @@ export class UserSelectRepository {
   }
 
   async findRefreshToken(userId: string, token: string) {
-    return await this.prisma.refreshToken.findUnique({
+    return await this.txHost.tx.refreshToken.findUnique({
       where: {
         userId_token: {
           userId,

@@ -160,14 +160,8 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
     expect(status).toBe(201);
     expect(body).toEqual({
       id: expect.any(String),
-      writerId: user.id,
-      postId: post.id,
-      parentId: null,
-      mentionedUserId: null,
-      content: 'content',
-      createdAt: expect.any(String),
-      isDeleted: false,
-      likeCount: 0,
     });
+    const afterPost = await prisma.post.findFirstOrThrow();
+    expect(afterPost.commentCount).toBe(1);
   });
 });

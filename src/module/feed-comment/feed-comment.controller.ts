@@ -52,21 +52,6 @@ export class FeedCommentController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({
-    summary: '피드 댓글 조회 v2 - Optional Guard',
-    deprecated: true,
-  })
-  @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
-  @UseGuards(OptionalJwtGuard)
-  @Get('v2')
-  async findAllV2(
-    @CurrentUser() userId: string | null,
-    @Query() { feedId }: GetFeedCommentRequest,
-  ): Promise<ParentFeedCommentResponse[]> {
-    return await this.feedCommentService.getComments(userId, feedId);
-  }
-
-  @ApiBearerAuth()
   @ApiOperation({ summary: '피드 댓글 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
   @UseGuards(OptionalJwtGuard)

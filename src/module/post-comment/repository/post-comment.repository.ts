@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { prismaUuid, kyselyUuid } from 'src/shared/util/convert-uuid';
+import { kyselyUuid } from 'src/shared/util/convert-uuid';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class PostCommentRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async existsPost(postId: string) {
-    const post = await this.prisma.post.findUnique({
+    const post = await this.txHost.tx.post.findUnique({
       where: { id: postId },
       select: { id: true },
     });
@@ -18,12 +21,30 @@ export class PostCommentRepository {
   }
 
   async existsComment(commentId: string) {
-    const comment = await this.prisma.postComment.findUnique({
+    const comment = await this.txHost.tx.postComment.findUnique({
       where: { id: commentId },
       select: { id: true },
     });
 
     return !!comment;
+  }
+
+  async increaseCommentCount(postId: string) {
+    await this.txHost.tx.post.update({
+      where: { id: postId },
+      data: { commentCount: { increment: 1 } },
+      select: { id: true },
+    });
+    return;
+  }
+
+  async decreaseCommentCount(postId: string) {
+    await this.txHost.tx.post.update({
+      where: { id: postId },
+      data: { commentCount: { decrement: 1 } },
+      select: { id: true },
+    });
+    return;
   }
 
   async create({
@@ -33,27 +54,20 @@ export class PostCommentRepository {
     mentionedUserId,
     content,
   }: CreateInput) {
-    const [post] = await this.prisma.$transaction([
-      this.prisma.postComment.create({
-        data: {
-          writerId: userId,
-          postId,
-          parentId: parentCommentId,
-          mentionedUserId,
-          content,
-        },
-      }),
-      this.prisma.post.update({
-        where: { id: postId },
-        data: { commentCount: { increment: 1 } },
-        select: { id: true },
-      }),
-    ]);
-    return post;
+    return await this.txHost.tx.postComment.create({
+      data: {
+        writerId: userId,
+        postId,
+        parentId: parentCommentId,
+        mentionedUserId,
+        content,
+      },
+      select: { id: true },
+    });
   }
 
   async findManyByPostId(userId: string | null, postId: string) {
-    const result = await this.prisma.$kysely
+    const result = await this.txHost.tx.$kysely
       .selectFrom('PostComment')
       .where('PostComment.postId', '=', kyselyUuid(postId))
       .select([
@@ -186,21 +200,32 @@ export class PostCommentRepository {
     return comments;
   }
 
+  async increaseLikeCount(commentId: string) {
+    await this.txHost.tx.postComment.update({
+      where: { id: commentId },
+      data: { likeCount: { increment: 1 } },
+      select: { id: true },
+    });
+    return;
+  }
+
+  async decreaseLikeCount(commentId: string) {
+    await this.txHost.tx.postComment.update({
+      where: { id: commentId },
+      data: { likeCount: { decrement: 1 } },
+      select: { id: true },
+    });
+    return;
+  }
+
   async createLike(userId: string, commentId: string) {
     try {
-      await this.prisma.$transaction([
-        this.prisma.postCommentLike.create({
-          data: {
-            userId,
-            postCommentId: commentId,
-          },
-        }),
-        this.prisma.postComment.update({
-          where: { id: commentId },
-          data: { likeCount: { increment: 1 } },
-          select: { id: true },
-        }),
-      ]);
+      await this.txHost.tx.postCommentLike.create({
+        data: {
+          userId,
+          postCommentId: commentId,
+        },
+      });
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -212,21 +237,14 @@ export class PostCommentRepository {
 
   async deleteLike(userId: string, commentId: string) {
     try {
-      await this.prisma.$transaction([
-        this.prisma.postCommentLike.delete({
-          where: {
-            postCommentId_userId: {
-              postCommentId: commentId,
-              userId,
-            },
+      await this.txHost.tx.postCommentLike.delete({
+        where: {
+          postCommentId_userId: {
+            postCommentId: commentId,
+            userId,
           },
-        }),
-        this.prisma.postComment.update({
-          where: { id: commentId },
-          data: { likeCount: { decrement: 1 } },
-          select: { id: true },
-        }),
-      ]);
+        },
+      });
       return;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -237,113 +255,50 @@ export class PostCommentRepository {
   }
 
   async findOneById(commentId: string) {
-    return await this.prisma.postComment.findUnique({
+    return await this.txHost.tx.postComment.findUnique({
       where: { id: commentId },
       select: {
         id: true,
         parentId: true,
         postId: true,
+        writerId: true,
+        isDeleted: true,
       },
     });
   }
 
-  async deleteParent({
-    userId,
-    postId,
-    commentId,
-  }: {
-    userId: string;
-    postId: string;
-    commentId: string;
-  }) {
-    const [_, count] = await this.prisma.$transaction([
-      this.prisma.postComment.update({
-        where: {
-          id: commentId,
-          writerId: userId,
-          parentId: null,
-          isDeleted: false,
-        },
-        data: { isDeleted: true, content: '', writerId: null },
-        select: { id: true },
-      }),
-      this.prisma.postComment.count({
-        where: {
-          parentId: commentId,
-          postId,
-        },
-      }),
-      this.prisma.post.update({
-        where: { id: postId },
-        data: { commentCount: { decrement: 1 } },
-        select: { id: true },
-      }),
-    ]);
-
-    if (count === 0) {
-      await this.prisma.postComment.delete({
-        where: { id: commentId },
-        select: { id: true },
-      });
-    }
-    return;
+  async updateOne(
+    commentId: string,
+    input: Prisma.PostCommentUncheckedUpdateInput,
+  ) {
+    return await this.txHost.tx.postComment.update({
+      where: { id: commentId },
+      data: input,
+      select: { id: true },
+    });
   }
 
-  async deleteChild({
-    userId,
-    postId,
-    commentId,
-    parentId,
-  }: {
-    userId: string;
-    postId: string;
-    commentId: string;
-    parentId: string;
-  }) {
-    const [_, [parentComment]] = await this.prisma.$transaction([
-      this.prisma.postComment.delete({
-        where: {
-          id: commentId,
-          writerId: userId,
-        },
-        select: { id: true },
-      }),
-      this.prisma.$queryRaw`
-          SELECT
-            "isDeleted",
-            (select count(*) from "PostComment" where "parentId" = ${prismaUuid(parentId)} and "postId" = ${prismaUuid(postId)}) as "childCommentCount"
-          FROM "PostComment"
-          WHERE id = ${prismaUuid(parentId)}
-        ` as Prisma.PrismaPromise<
-        {
-          isDeleted: boolean;
-          childCommentCount: bigint;
-        }[]
-      >,
-      this.prisma.post.update({
-        where: { id: postId },
-        data: { commentCount: { decrement: 1 } },
-        select: { id: true },
-      }),
-    ]);
+  async countChildComments(postId: string, parentId: string) {
+    return await this.txHost.tx.postComment.count({
+      where: {
+        postId,
+        parentId,
+      },
+    });
+  }
 
-    if (
-      parentComment.isDeleted &&
-      Number(parentComment.childCommentCount) === 0
-    ) {
-      await this.prisma.postComment.delete({
-        where: { id: parentId },
-        select: { id: true },
-      });
-    }
-    return;
+  async deleteOne(commentId: string) {
+    return await this.txHost.tx.postComment.delete({
+      where: { id: commentId },
+      select: { id: true },
+    });
   }
 }
 
-type CreateInput = {
+interface CreateInput {
   userId: string;
   postId: string;
   parentCommentId?: string | null;
   content: string;
   mentionedUserId?: string | null;
-};
+}

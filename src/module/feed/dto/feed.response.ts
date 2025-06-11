@@ -175,3 +175,11 @@ export class FeedRankingsResponse {
   @ApiProperty({ type: [FeedRankingResponse] })
   feeds: FeedRankingResponse[];
 }
+
+export class PopularTagResponse {
+  @ApiProperty()
+  tagName: string;
+
+  @ApiProperty({ example: 'feed/UUID.jpg' })
+  thumbnail: string;
+}

@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
 export class FeedSelectRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async exists(feedId: string) {
-    const feed = await this.prisma.feed.findUnique({
+    const feed = await this.txHost.tx.feed.findUnique({
       where: { id: feedId },
       select: { id: true },
     });
@@ -16,7 +19,7 @@ export class FeedSelectRepository {
   }
 
   async getFeed(userId: string | null, feedId: string) {
-    const [feed] = await this.prisma.$kysely
+    const [feed] = await this.txHost.tx.$kysely
       .selectFrom('Feed')
       .where('Feed.id', '=', kyselyUuid(feedId))
       .select([
@@ -116,7 +119,7 @@ export class FeedSelectRepository {
     targetId,
     albumId,
   }: FindFeedsByUserInput) {
-    let query = this.prisma.$kysely
+    let query = this.txHost.tx.$kysely
       .selectFrom('Feed')
       .where('authorId', '=', kyselyUuid(targetId))
       .select([
@@ -221,7 +224,7 @@ export class FeedSelectRepository {
   }
 
   async findManyLatestWithCursor({ userId, cursor, size }: GetFeedsInput) {
-    let query = this.prisma.$kysely
+    let query = this.txHost.tx.$kysely
       .selectFrom('Feed')
       .select([
         'Feed.id as id',
@@ -298,7 +301,7 @@ export class FeedSelectRepository {
 
   async findManyByIdsOrderByLikeCount(userId: string | null, ids: string[]) {
     if (ids.length === 0) return [];
-    const feeds = await this.prisma.$kysely
+    const feeds = await this.txHost.tx.$kysely
       .selectFrom('Feed')
       .where(
         'Feed.id',
@@ -352,7 +355,7 @@ export class FeedSelectRepository {
     size,
     cursor,
   }: FindFollowingFeedsInput) {
-    let query = this.prisma.$kysely
+    let query = this.txHost.tx.$kysely
       .selectFrom('Follow')
       .where('followerId', '=', kyselyUuid(userId))
       .innerJoin('Feed', 'authorId', 'followingId')
@@ -471,7 +474,7 @@ export class FeedSelectRepository {
       size: number;
     },
   ) {
-    const feeds = await this.prisma.$kysely
+    const feeds = await this.txHost.tx.$kysely
       .selectFrom('Like')
       .select('Like.createdAt')
       .where('Like.userId', '=', kyselyUuid(userId))
@@ -536,7 +539,7 @@ export class FeedSelectRepository {
       size: number;
     },
   ) {
-    const feeds = await this.prisma.$kysely
+    const feeds = await this.txHost.tx.$kysely
       .selectFrom('Save')
       .select('Save.createdAt')
       .where('Save.userId', '=', kyselyUuid(userId))
@@ -593,7 +596,7 @@ export class FeedSelectRepository {
 
   async findManyByIds(userId: string | null, feedIds: string[]) {
     if (feedIds.length === 0) return [];
-    const feeds = await this.prisma.$kysely
+    const feeds = await this.txHost.tx.$kysely
       .selectFrom('Feed')
       .where('Feed.id', 'in', feedIds.map(kyselyUuid))
       .select([
@@ -657,7 +660,7 @@ export class FeedSelectRepository {
   }
 
   async findLikesById(feedId: string) {
-    return await this.prisma.$kysely
+    return await this.txHost.tx.$kysely
       .selectFrom('Like')
       .where('feedId', '=', kyselyUuid(feedId))
       .innerJoin('User', 'Like.userId', 'User.id')
@@ -666,7 +669,7 @@ export class FeedSelectRepository {
   }
 
   async findAllIdsByUserId(userId: string) {
-    const feeds = await this.prisma.feed.findMany({
+    const feeds = await this.txHost.tx.feed.findMany({
       select: {
         id: true,
       },
@@ -678,7 +681,7 @@ export class FeedSelectRepository {
   }
 
   async findMeta(id: string) {
-    const [feed] = await this.prisma.$kysely
+    const [feed] = await this.txHost.tx.$kysely
       .selectFrom('Feed')
       .where('id', '=', kyselyUuid(id))
       .select([
@@ -724,7 +727,7 @@ export class FeedSelectRepository {
   }) {
     const adjustedEndDate = new Date(endDate);
     adjustedEndDate.setDate(adjustedEndDate.getDate() + 1); // +1일
-    const feeds = await this.prisma.feed.findMany({
+    const feeds = await this.txHost.tx.feed.findMany({
       select: {
         id: true,
       },
@@ -750,7 +753,7 @@ export class FeedSelectRepository {
     year: number;
     month: number;
   }) {
-    const feeds = await this.prisma.feed.findMany({
+    const feeds = await this.txHost.tx.feed.findMany({
       where: {
         createdAt: {
           gte: new Date(year, month - 1, 1), // 월은 0부터 시작
@@ -767,6 +770,38 @@ export class FeedSelectRepository {
     });
 
     return feeds.map((feed) => feed.id);
+  }
+
+  async findPopularTags() {
+    return (await this.txHost.tx.$queryRaw`
+      with top_tags as (
+        SELECT 
+          "tagName",
+          COUNT(*) AS tag_count
+        FROM "Tag"
+        GROUP BY "tagName"
+        ORDER BY tag_count DESC
+        LIMIT 30
+      ),
+      random_feed_per_tag as (
+        SELECT 
+          DISTINCT ON (t."tagName") 
+          t."tagName", 
+          f.id AS "feedId" ,
+          f.thumbnail
+        FROM 
+          "Tag" t
+        JOIN 
+          "Feed" f ON t."feedId" = f.id
+        WHERE 
+          t."tagName" IN (SELECT "tagName" FROM top_tags)
+      )
+      select
+        "tagName",
+        thumbnail
+      from
+        random_feed_per_tag
+    `) as { tagName: string; thumbnail: string }[];
   }
 }
 

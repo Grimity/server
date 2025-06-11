@@ -36,7 +36,7 @@ export class PrismaService
     });
 
     this.$on('query', (e) => {
-      if (e.duration > 500) {
+      if (e.duration > 100) {
         console.log('Query: ', e.query);
         console.log('Duration: ', e.duration);
         console.log('Params: ', e.params);

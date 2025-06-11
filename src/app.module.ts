@@ -8,7 +8,6 @@ import { AwsModule } from './module/aws/aws.module';
 import { FeedModule } from './module/feed/feed.module';
 import { FeedCommentModule } from './module/feed-comment/feed-comment.module';
 import { NotificationModule } from './module/notification/notification.module';
-import { TagModule } from './module/tag/tag.module';
 import { PostModule } from './module/post/post.module';
 import { PostCommentModule } from './module/post-comment/post-comment.module';
 import { ReportModule } from './module/report/report.module';
@@ -18,6 +17,10 @@ import { RedisModule } from './database/redis/redis.module';
 import { ClientInfoMiddleware } from './core/middleware';
 import { AlbumModule } from './module/album/album.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ClsModule } from 'nestjs-cls';
+import { PrismaService } from './database/prisma/prisma.service';
+import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Module({
   imports: [
@@ -41,7 +44,6 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     FeedModule,
     FeedCommentModule,
     NotificationModule,
-    TagModule,
     PostModule,
     PostCommentModule,
     ReportModule,
@@ -49,6 +51,22 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     AlbumModule,
     EventEmitterModule.forRoot({
       delimiter: '.',
+    }),
+    ClsModule.forRoot({
+      global: true,
+      middleware: { mount: true },
+      plugins: [
+        new ClsPluginTransactional({
+          imports: [
+            // module in which the PrismaClient is provided
+            PrismaModule,
+          ],
+          adapter: new TransactionalAdapterPrisma({
+            // the injection token of the PrismaClient
+            prismaInjectionToken: PrismaService,
+          }),
+        }),
+      ],
     }),
   ],
   providers: [
