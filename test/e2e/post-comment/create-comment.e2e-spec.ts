@@ -161,5 +161,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
     expect(body).toEqual({
       id: expect.any(String),
     });
+    const afterPost = await prisma.post.findFirstOrThrow();
+    expect(afterPost.commentCount).toBe(1);
   });
 });

@@ -26,7 +26,7 @@ export class PostCommentService {
       throw new HttpException('COMMENT', 404);
     }
 
-    const comment = await this.postCommentRepository.create(input);
+    const comment = await this.createTransaction(input);
 
     if (input.mentionedUserId && input.parentCommentId) {
       this.eventEmitter.emit('notification.POST_MENTION', {
