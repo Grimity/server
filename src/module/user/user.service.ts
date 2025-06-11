@@ -98,8 +98,9 @@ export class UserService {
   }
 
   async follow(userId: string, targetUserId: string) {
-    const exists = await this.userSelectRepository.exists(targetUserId);
-    if (!exists) throw new HttpException('USER', 404);
+    const user = await this.userSelectRepository.findOneById(targetUserId);
+
+    if (!user) throw new HttpException('USER', 404);
 
     const targetUser = await this.followTransaction(userId, targetUserId);
 

@@ -9,15 +9,6 @@ export class UserSelectRepository {
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
-  async exists(userId: string) {
-    const user = await this.txHost.tx.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-
-    return user !== null;
-  }
-
   async findOneById(id: string) {
     return await this.txHost.tx.user.findUnique({
       where: { id },
