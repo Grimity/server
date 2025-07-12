@@ -28,23 +28,23 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers           Follow[]           @relation("following")
-  followings          Follow[]           @relation("follower")
+  followers           Follow[]          @relation("following")
+  followings          Follow[]          @relation("follower")
   feeds               Feed[]
   feedLikes           Like[]
-  feedComments        FeedComment[]      @relation("FeedCommentWrite")
+  feedComments        FeedComment[]     @relation("FeedCommentWrite")
   feedSaves           Save[]
-  feedCommentMentions FeedComment[]      @relation("MentionedUser")
+  feedCommentMentions FeedComment[]     @relation("MentionedUser")
   feedCommentLikes    FeedCommentLike[]
   posts               Post[]
   postLikes           PostLike[]
   postSaves           PostSave[]
-  postComments        PostComment[]      @relation("PostCommentWrite")
-  postCommentMentions PostComment[]      @relation("MentionedUser")
+  postComments        PostComment[]     @relation("PostCommentWrite")
+  postCommentMentions PostComment[]     @relation("MentionedUser")
   postCommentLike     PostCommentLike[]
   refreshToken        RefreshToken[]
   albums              Album[]
-  conversationUsers   ConversationUser[]
+  chatUsers           ChatUser[]
 
   @@unique([provider, providerId])
 }
@@ -269,40 +269,41 @@ model Album {
   @@index([userId])
 }
 
-model Conversation {
+model Chat {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
 
-  messages Message[]
-  users    ConversationUser[]
+  messages ChatMessage[]
+  users    ChatUser[]
 
   @@index([createdAt(sort: Desc)])
 }
 
-model Message {
-  id             String   @id @default(uuid()) @db.Uuid
-  conversationId String   @db.Uuid
-  userId         String   @db.Uuid
-  content        String
-  createdAt      DateTime @default(now())
-  replyToId      String?  @db.Uuid
-  isLike         Boolean  @default(false)
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  chatId    String   @db.Uuid
+  userId    String   @db.Uuid
+  content   String?
+  image     String?
+  createdAt DateTime @default(now())
+  replyToId String?  @db.Uuid
+  isLike    Boolean  @default(false)
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-  @@index([conversationId, createdAt(sort: Asc)])
+  @@index([chatId, createdAt(sort: Asc)])
 }
 
-model ConversationUser {
-  conversationId String    @db.Uuid
-  userId         String    @db.Uuid
-  unreadCount    Int       @default(0)
-  enteredAt      DateTime  @default(now())
-  exitedAt       DateTime?
+model ChatUser {
+  chatId      String    @db.Uuid
+  userId      String    @db.Uuid
+  unreadCount Int       @default(0)
+  enteredAt   DateTime  @default(now())
+  exitedAt    DateTime?
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([conversationId, userId])
+  @@id([chatId, userId])
   @@index([userId])
 }
