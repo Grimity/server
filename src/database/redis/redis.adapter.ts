@@ -1,16 +1,21 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { Redis } from 'ioredis';
+import { RedisService } from './redis.service';
+import { INestApplication } from '@nestjs/common';
 
 export class RedisIoAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly app: INestApplication,
+  ) {
+    super(app);
+  }
 
-  async connectToRedis(): Promise<void> {
-    const pubClient = new Redis({
-      host: process.env.REDIS_HOST,
-    });
-    const subClient = pubClient.duplicate();
+  async connectToRedis() {
+    const pubClient = this.redisService.pubClient;
+    const subClient = this.redisService.subClient;
 
     this.adapterConstructor = createAdapter(pubClient, subClient);
   }

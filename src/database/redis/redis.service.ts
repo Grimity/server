@@ -5,14 +5,25 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private redis: Redis;
+  private subRedis: Redis;
   constructor(private configService: ConfigService) {
     this.redis = new Redis({
       host: this.configService.get('REDIS_HOST'),
     });
+    this.subRedis = this.redis.duplicate();
+  }
+
+  get pubClient() {
+    return this.redis;
+  }
+
+  get subClient() {
+    return this.subRedis;
   }
 
   async onModuleDestroy() {
     await this.redis.quit();
+    await this.subRedis.quit();
   }
 
   async cacheArray(key: string, arr: any[], second: number) {
