@@ -47,13 +47,27 @@ describe('GlobalGateway', () => {
     await redisService.flushall();
   });
 
-  it('accessToken이 없을 때 연결 실패', async () => {
+  it('accessToken이 없을 때 401응답을 보낸다', async () => {
     await new Promise((resolve, reject) => {
       clientSocket = io('http://localhost:3000');
 
-      clientSocket.on('Unauthorized', (err) => {
-        console.log('Unauthorized error:', err);
-        expect(err).toBe('No token provided');
+      clientSocket.on('error', (err) => {
+        expect(err.statusCode).toBe(401);
+        resolve(true);
+      });
+    });
+  });
+
+  it('accessToken이 유효하지 않을 때 401 응답을 반환한다', async () => {
+    await new Promise((resolve) => {
+      clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken: 'invalid',
+        },
+      });
+
+      clientSocket.on('error', (err) => {
+        expect(err.statusCode).toBe(401);
         resolve(true);
       });
     });

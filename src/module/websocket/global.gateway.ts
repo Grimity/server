@@ -27,13 +27,28 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket, ...args: any[]) {
     // jwt
-    const token = client.handshake.auth.accessToken;
+    const token = client.handshake.auth?.accessToken;
 
     if (!token) {
-      client.emit('Unauthorized', 'No token provided');
+      client.emit('error', {
+        statusCode: 401,
+        message: 'No token provided',
+      });
       client.disconnect();
+      return;
     }
-    console.log(token);
+
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      client.data.user = payload;
+    } catch (e) {
+      client.emit('error', {
+        statusCode: 401,
+        message: 'Invalid token',
+      });
+      client.disconnect();
+      return;
+    }
   }
 
   handleDisconnect(client: any) {
