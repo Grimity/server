@@ -8,7 +8,7 @@ import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
 import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 
-describe('GlobalGateway connect', () => {
+describe('GlobalGateway disconnect', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -48,74 +48,39 @@ describe('GlobalGateway connect', () => {
     await prisma.user.deleteMany();
   });
 
-  it('accessToken이 없을 때 401응답을 보낸다', async () => {
-    await new Promise((resolve, reject) => {
-      const clientSocket = io('http://localhost:3000');
-
-      clientSocket.on('error', (err) => {
-        expect(err.statusCode).toBe(401);
-        clientSocket.close();
-        resolve(true);
-      });
-    });
-  });
-
-  it('accessToken이 유효하지 않을 때 401 응답을 반환한다', async () => {
-    await new Promise((resolve) => {
-      const clientSocket = io('http://localhost:3000', {
-        auth: {
-          accessToken: 'invalid',
-        },
-      });
-
-      clientSocket.on('error', (err) => {
-        expect(err.statusCode).toBe(401);
-        clientSocket.close();
-        resolve(true);
-      });
-    });
-  });
-
-  it('connection 성공 시 redis에 connectionCount를 증가시킨다', async () => {
+  it('disconnect 후엔 connectionCount가 감소한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
     // when
-    const clientSocket = await new Promise<ClientSocket>((resolve) => {
+    await new Promise((resolve) => {
       const clientSocket = io('http://localhost:3000', {
         auth: {
           accessToken,
         },
       });
 
-      clientSocket.on('connect', async () => {
-        resolve(clientSocket);
-      });
-    });
-
-    const clientSocket2 = await new Promise<ClientSocket>((resolve) => {
-      const clientSocket = io('http://localhost:3000', {
+      const clientSocket2 = io('http://localhost:3000', {
         auth: {
           accessToken,
         },
       });
 
-      clientSocket.on('connect', async () => {
-        resolve(clientSocket);
+      clientSocket.on('connected', () => {
+        clientSocket.disconnect();
+      });
+
+      clientSocket2.on('connected', () => {
+        clientSocket2.disconnect();
+        resolve(true);
       });
     });
 
     // then
     const user = await prisma.user.findFirstOrThrow();
-    const count = await redisService.pubClient.get(
+    const connectionCount = await redisService.pubClient.get(
       `connectionCount:${user.id}`,
     );
-    expect(count).toBe('2');
-    expect(clientSocket.connected).toBe(true);
-    expect(clientSocket2.connected).toBe(true);
-
-    // cleanup
-    clientSocket.close();
-    clientSocket2.close();
+    expect(connectionCount).toBe('0');
   });
 });
