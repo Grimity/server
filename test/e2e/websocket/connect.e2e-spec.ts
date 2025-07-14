@@ -6,15 +6,16 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
-import { Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Redis } from 'ioredis';
+import { register } from '../helper/register';
+import { AuthService } from 'src/module/auth/auth.service';
 
 describe('GlobalGateway', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let authService: AuthService;
   let redisService: RedisService;
-  let clientSocket: ClientSocket | null = null;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -28,6 +29,12 @@ describe('GlobalGateway', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
     redisService = app.get<RedisService>(RedisService);
+    authService = app.get<AuthService>(AuthService);
+
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test',
+      email: 'test@test.com',
+    });
 
     const redisIoAdapter = new RedisIoAdapter(redisService, app);
     await redisIoAdapter.connectToRedis();
@@ -40,19 +47,17 @@ describe('GlobalGateway', () => {
 
   afterEach(async () => {
     // 각 테스트 후 클라이언트 소켓 닫기
-    if (clientSocket) {
-      clientSocket.close();
-      clientSocket = null;
-    }
     await redisService.flushall();
+    await prisma.user.deleteMany();
   });
 
   it('accessToken이 없을 때 401응답을 보낸다', async () => {
     await new Promise((resolve, reject) => {
-      clientSocket = io('http://localhost:3000');
+      const clientSocket = io('http://localhost:3000');
 
       clientSocket.on('error', (err) => {
         expect(err.statusCode).toBe(401);
+        clientSocket.close();
         resolve(true);
       });
     });
@@ -60,7 +65,7 @@ describe('GlobalGateway', () => {
 
   it('accessToken이 유효하지 않을 때 401 응답을 반환한다', async () => {
     await new Promise((resolve) => {
-      clientSocket = io('http://localhost:3000', {
+      const clientSocket = io('http://localhost:3000', {
         auth: {
           accessToken: 'invalid',
         },
@@ -68,8 +73,52 @@ describe('GlobalGateway', () => {
 
       clientSocket.on('error', (err) => {
         expect(err.statusCode).toBe(401);
+        clientSocket.close();
         resolve(true);
       });
     });
+  });
+
+  it('connection 성공 시 redis에 connectionCount를 증가시킨다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const clientSocket = await new Promise<ClientSocket>((resolve) => {
+      const clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken,
+        },
+      });
+
+      clientSocket.on('connect', async () => {
+        resolve(clientSocket);
+      });
+    });
+
+    const clientSocket2 = await new Promise<ClientSocket>((resolve) => {
+      const clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken,
+        },
+      });
+
+      clientSocket.on('connect', async () => {
+        resolve(clientSocket);
+      });
+    });
+
+    // then
+    const user = await prisma.user.findFirstOrThrow();
+    const count = await redisService.pubClient.get(
+      `connectionCount:${user.id}`,
+    );
+    expect(count).toBe('2');
+    expect(clientSocket.connected).toBe(true);
+    expect(clientSocket2.connected).toBe(true);
+
+    // cleanup
+    clientSocket.close();
+    clientSocket2.close();
   });
 });

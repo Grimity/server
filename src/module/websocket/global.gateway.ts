@@ -14,16 +14,23 @@ import { RedisService } from 'src/database/redis/redis.service';
 import { Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
+import Redis from 'ioredis';
 
 @WebSocketGateway({})
 export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private pubRedis: Redis;
+  private subRedis: Redis;
+
   constructor(
     private readonly redisService: RedisService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) {
+    this.pubRedis = redisService.pubClient;
+    this.subRedis = redisService.subClient;
+  }
 
   async handleConnection(client: Socket, ...args: any[]) {
     // jwt
@@ -49,9 +56,19 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.disconnect();
       return;
     }
+
+    const count = await this.pubRedis.incr(
+      `connectionCount:${client.data.user.id}`,
+    );
+    await this.pubRedis.expire(
+      `connectionCount:${client.data.user.id}`,
+      60 * 60 * 24,
+    );
   }
 
-  handleDisconnect(client: any) {
-    console.dir(`Client disconnected: ${client.id}`, { depth: null });
+  async handleDisconnect(client: any) {
+    if (client.data?.user) {
+      await this.pubRedis.decr(`connectionCount:${client.data.user.id}`);
+    }
   }
 }
