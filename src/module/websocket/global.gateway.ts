@@ -68,7 +68,11 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleDisconnect(client: any) {
     if (client.data?.user) {
-      await this.pubRedis.decr(`connectionCount:${client.data.user.id}`);
+      try {
+        await this.pubRedis.decr(`connectionCount:${client.data.user.id}`);
+      } catch (e) {
+        return;
+      }
     }
   }
 }
