@@ -31,4 +31,15 @@ export class ChatReader {
     });
     return result[0]?.chatId;
   }
+
+  async findOneStatusById(userId: string, chatId: string) {
+    return await this.txHost.tx.chatUser.findUnique({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+    });
+  }
 }

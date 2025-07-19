@@ -21,7 +21,7 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @ApiOperation({ summary: '채팅방 생성' })
-  @ApiResponse({ status: 200, type: IdResponse })
+  @ApiResponse({ status: 201, type: IdResponse })
   @Post()
   async createChat(
     @CurrentUser() userId: string,

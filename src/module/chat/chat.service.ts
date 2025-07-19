@@ -21,6 +21,16 @@ export class ChatService {
     ]);
 
     if (chatId) {
+      const chatStatus = await this.chatReader.findOneStatusById(
+        userId,
+        chatId,
+      );
+      if (chatStatus === null) throw new HttpException('CHAT', 404);
+
+      if (chatStatus.enteredAt) return { id: chatId };
+    }
+
+    if (chatId) {
       const { chatId: id } = await this.chatWriter.enterChat(userId, chatId);
       return { id };
     } else {

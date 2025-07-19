@@ -187,4 +187,49 @@ describe('POST /chats - 채팅방 생성', () => {
       unreadCount: 0,
     });
   });
+
+  it('원래 있던 방이고 나간적 없는 경우엔 기존 방 id를 그대로 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+    const me = await prisma.user.findFirstOrThrow();
+    const targetUser = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        email: 'test@test.com',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+                enteredAt: new Date(),
+              },
+              {
+                userId: targetUser.id,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/chats')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        targetUserId: targetUser.id,
+      });
+
+    // then
+    expect(status).toBe(201);
+    expect(body.id).toBe(chat.id);
+  });
 });
