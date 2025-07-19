@@ -298,7 +298,7 @@ model ChatUser {
   chatId      String    @db.Uuid
   userId      String    @db.Uuid
   unreadCount Int       @default(0)
-  enteredAt   DateTime  @default(now())
+  enteredAt   DateTime?
   exitedAt    DateTime?
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
