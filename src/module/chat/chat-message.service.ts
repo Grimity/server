@@ -55,4 +55,23 @@ export class ChatMessageService {
 
     return;
   }
+
+  async createLike(userId: string, messageId: string) {
+    const message = await this.chatReader.findMessageById(messageId);
+
+    if (!message) throw new HttpException('MESSAGE', 404);
+    if (message.isLike) return;
+
+    await this.chatWriter.updateMessageLike(messageId, true);
+    return;
+  }
+
+  async deleteLike(userId: string, messageId: string) {
+    const message = await this.chatReader.findMessageById(messageId);
+    if (!message) throw new HttpException('MESSAGE', 404);
+    if (message.isLike === false) return;
+
+    await this.chatWriter.updateMessageLike(messageId, false);
+    return;
+  }
 }

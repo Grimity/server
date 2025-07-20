@@ -74,4 +74,13 @@ export class ChatWriter {
       }),
     });
   }
+
+  async updateMessageLike(messageId: string, like: boolean) {
+    await this.txHost.tx.chatMessage.update({
+      where: { id: messageId },
+      data: {
+        isLike: like,
+      },
+    });
+  }
 }

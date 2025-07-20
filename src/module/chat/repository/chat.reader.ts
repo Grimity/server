@@ -50,4 +50,10 @@ export class ChatReader {
       },
     });
   }
+
+  async findMessageById(id: string) {
+    return await this.txHost.tx.chatMessage.findUnique({
+      where: { id },
+    });
+  }
 }

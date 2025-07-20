@@ -10,6 +10,11 @@ import {
   Post,
   UseGuards,
   HttpException,
+  Put,
+  Param,
+  ParseUUIDPipe,
+  Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { JwtGuard } from 'src/core/guard';
 import { CreateChatMessageRequest } from './dto/chat-message.request';
@@ -18,7 +23,7 @@ import { CurrentUser } from 'src/core/decorator';
 
 @ApiTags('/chat-messages')
 @ApiBearerAuth()
-@ApiResponse({ status: 401, description: 'unAuthorized' })
+@ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: 'Bad Request' })
 @UseGuards(JwtGuard)
 @Controller('chat-messages')
@@ -26,6 +31,9 @@ export class ChatMessageController {
   constructor(private readonly chatMessageService: ChatMessageService) {}
 
   @ApiOperation({ summary: '채팅 보내기' })
+  @ApiResponse({ status: 201 })
+  @ApiResponse({ status: 403, description: '내가 그 채팅방의 일원이 아님' })
+  @ApiResponse({ status: 404, description: '채팅방이 없음' })
   @Post()
   async create(
     @CurrentUser() userId: string,
@@ -44,6 +52,32 @@ export class ChatMessageController {
       replyToId,
       images,
     });
+    return;
+  }
+
+  @ApiOperation({ summary: '채팅 좋아요' })
+  @ApiResponse({ status: 204 })
+  @ApiResponse({ status: 404, description: '메시지가없음' })
+  @Put(':id/like')
+  @HttpCode(204)
+  async likeMessage(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) messageId: string,
+  ) {
+    await this.chatMessageService.createLike(userId, messageId);
+    return;
+  }
+
+  @ApiOperation({ summary: '채팅 좋아요 취소' })
+  @ApiResponse({ status: 204 })
+  @ApiResponse({ status: 404, description: '메시지가없음' })
+  @Delete(':id/like')
+  @HttpCode(204)
+  async unlikeMessage(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) messageId: string,
+  ) {
+    await this.chatMessageService.deleteLike(userId, messageId);
     return;
   }
 }
