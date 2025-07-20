@@ -43,4 +43,35 @@ export class ChatWriter {
       select: { id: true },
     });
   }
+
+  async createMessageByContent(input: {
+    userId: string;
+    chatId: string;
+    content: string;
+    replyToId: string | null;
+  }) {
+    return await this.txHost.tx.chatMessage.create({
+      data: input,
+    });
+  }
+
+  async createMessageByImages({
+    userId,
+    chatId,
+    images,
+  }: {
+    userId: string;
+    chatId: string;
+    images: string[];
+  }) {
+    await this.txHost.tx.chatMessage.createMany({
+      data: images.map((image) => {
+        return {
+          chatId,
+          userId,
+          image,
+        };
+      }),
+    });
+  }
 }

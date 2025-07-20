@@ -13,6 +13,8 @@ import {
 } from '@nestjs/common';
 import { JwtGuard } from 'src/core/guard';
 import { CreateChatMessageRequest } from './dto/chat-message.request';
+import { ChatMessageService } from './chat-message.service';
+import { CurrentUser } from 'src/core/decorator';
 
 @ApiTags('/chat-messages')
 @ApiBearerAuth()
@@ -21,15 +23,27 @@ import { CreateChatMessageRequest } from './dto/chat-message.request';
 @UseGuards(JwtGuard)
 @Controller('chat-messages')
 export class ChatMessageController {
-  constructor() {}
+  constructor(private readonly chatMessageService: ChatMessageService) {}
 
   @ApiOperation({ summary: '채팅 보내기' })
   @Post()
-  async create(@Body() dto: CreateChatMessageRequest) {
-    if (!dto.content && dto.images.length === 0)
+  async create(
+    @CurrentUser() userId: string,
+    @Body() { content, chatId, replyToId, images }: CreateChatMessageRequest,
+  ) {
+    if (!content && images.length === 0)
       throw new HttpException(
-        'content나 images 둘 중 하나는 반드시 있어야 합니다',
+        'content나 images 둘 중 하나는 있어야 합니다',
         400,
       );
+
+    await this.chatMessageService.create({
+      userId,
+      chatId,
+      content,
+      replyToId,
+      images,
+    });
+    return;
   }
 }

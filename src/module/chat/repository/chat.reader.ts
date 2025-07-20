@@ -42,4 +42,12 @@ export class ChatReader {
       },
     });
   }
+
+  async findUsersByChatId(chatId: string) {
+    return await this.txHost.tx.chatUser.findMany({
+      where: {
+        chatId,
+      },
+    });
+  }
 }
