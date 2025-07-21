@@ -311,4 +311,75 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     const chatMessages = await prisma.chatMessage.findMany();
     expect(chatMessages.length).toBe(3);
   });
+
+  it('reply와 여러 이미지를 한번에 만들면 첫 번째 이미지로 답장을 만든다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+    const me = await prisma.user.findFirstOrThrow();
+
+    const targetUser = await prisma.user.create({
+      data: {
+        name: 'test2',
+        url: 'test2',
+        email: 'test@test.com',
+        provider: 'kakao',
+        providerId: 'test2',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+                enteredAt: new Date(),
+              },
+              {
+                userId: targetUser.id,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const message = await prisma.chatMessage.create({
+      data: {
+        chatId: chat.id,
+        userId: me.id,
+        content: 'test',
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .post('/chat-messages')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        chatId: chat.id,
+        images: ['chat/test1.png', 'chat/test2.png'],
+        replyToId: message.id,
+      });
+
+    // then
+    expect(status).toBe(201);
+    const chatMessages = await prisma.chatMessage.findMany({
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+    expect(chatMessages.length).toBe(3);
+    expect(chatMessages[1]).toEqual({
+      chatId: chat.id,
+      content: null,
+      createdAt: expect.any(Date),
+      id: expect.any(String),
+      image: 'chat/test1.png',
+      isLike: false,
+      replyToId: message.id,
+      userId: me.id,
+    });
+  });
 });

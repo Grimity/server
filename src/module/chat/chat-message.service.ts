@@ -43,6 +43,15 @@ export class ChatMessageService {
         chatId,
         replyToId,
       });
+    } else if (replyToId) {
+      const image = images.shift()!;
+
+      await this.chatWriter.createMessageByImages({
+        userId,
+        chatId,
+        images: [image],
+        replyToId,
+      });
     }
 
     if (images.length >= 1) {
@@ -50,6 +59,7 @@ export class ChatMessageService {
         userId,
         chatId,
         images,
+        replyToId: null,
       });
     }
 

@@ -59,10 +59,12 @@ export class ChatWriter {
     userId,
     chatId,
     images,
+    replyToId,
   }: {
     userId: string;
     chatId: string;
     images: string[];
+    replyToId: string | null;
   }) {
     await this.txHost.tx.chatMessage.createMany({
       data: images.map((image) => {
@@ -70,6 +72,7 @@ export class ChatWriter {
           chatId,
           userId,
           image,
+          replyToId,
         };
       }),
     });
