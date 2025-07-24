@@ -15,6 +15,8 @@ import {
   ParseUUIDPipe,
   Delete,
   HttpCode,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { JwtGuard } from 'src/core/guard';
 import { CreateChatMessageRequest } from './dto/chat-message.request';
@@ -53,6 +55,14 @@ export class ChatMessageController {
       images,
     });
     return;
+  }
+
+  @Get()
+  async getMessages(
+    @CurrentUser() userId: string,
+    @Query('chatId', new ParseUUIDPipe()) chatId: string,
+  ) {
+    console.log(chatId);
   }
 
   @ApiOperation({ summary: '채팅 좋아요' })
