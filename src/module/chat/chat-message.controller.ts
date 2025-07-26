@@ -19,7 +19,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { JwtGuard } from 'src/core/guard';
-import { CreateChatMessageRequest } from './dto/chat-message.request';
+import {
+  CreateChatMessageRequest,
+  GetChatMessagesRequest,
+} from './dto/chat-message.request';
+import { ChatMessagesResponse } from './dto/chat-message.response';
 import { ChatMessageService } from './chat-message.service';
 import { CurrentUser } from 'src/core/decorator';
 
@@ -60,9 +64,13 @@ export class ChatMessageController {
   @Get()
   async getMessages(
     @CurrentUser() userId: string,
-    @Query('chatId', new ParseUUIDPipe()) chatId: string,
-  ) {
-    console.log(chatId);
+    @Query() { chatId, cursor, size }: GetChatMessagesRequest,
+  ): Promise<ChatMessagesResponse> {
+    return await this.chatMessageService.getMessages({
+      chatId,
+      cursor: cursor ?? null,
+      size: size ?? 10,
+    });
   }
 
   @ApiOperation({ summary: '채팅 좋아요' })
