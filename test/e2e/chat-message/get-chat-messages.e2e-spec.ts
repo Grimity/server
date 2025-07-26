@@ -61,4 +61,88 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
     // then
     expect(status).toBe(400);
   });
+
+  it('없는 chatId인 경우 빈 배열을 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/chat-messages?chatId=${sampleUuid}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      nextCursor: null,
+      messages: [],
+    });
+  });
+
+  it('200과 함께 메세지를 반환한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+    const me = await prisma.user.findFirstOrThrow();
+
+    const user = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+        email: 'test@test.com',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+              },
+              {
+                userId: user.id,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await prisma.chatMessage.createMany({
+      data: Array.from({ length: 15 }).map((_, i) => {
+        return {
+          chatId: chat.id,
+          userId: me.id,
+          content: `test${i}`,
+          createdAt: new Date(Date.now() + i * 1),
+        };
+      }),
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/chat-messages?chatId=${chat.id}&size=10`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    const { status: status2, body: body2 } = await request(app.getHttpServer())
+      .get(`/chat-messages?chatId=${chat.id}&cursor=${body.nextCursor}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.nextCursor).toBeDefined();
+    expect(body.messages.length).toBe(10);
+    expect(body.messages[0].content).toBe('test14');
+
+    expect(status2).toBe(200);
+    expect(body2.nextCursor).toBeNull();
+    expect(body2.messages.length).toBe(5);
+    expect(body2.messages[body2.messages.length - 1].content).toBe('test0');
+  });
 });
