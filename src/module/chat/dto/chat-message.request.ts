@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayMaxSize, IsOptional, IsUUID } from 'class-validator';
-import { IsImageWithPrefix } from 'src/shared/request/validator';
-import { TrimNullableString } from 'src/shared/request/validator';
+import { IsImageWithPrefix } from '../../../shared/request/validator';
+import { TrimNullableString } from '../../../shared/request/validator';
+import { CursorRequest } from '../../../shared/request';
 
 export class CreateChatMessageRequest {
   @ApiProperty()
@@ -33,4 +34,10 @@ export class CreateChatMessageRequest {
   @IsOptional()
   @IsUUID()
   replyToId: string | null;
+}
+
+export class GetChatMessagesRequest extends CursorRequest {
+  @ApiProperty({ description: '채팅방 ID' })
+  @IsUUID()
+  chatId: string;
 }
