@@ -61,6 +61,8 @@ export class ChatMessageController {
     return;
   }
 
+  @ApiOperation({ summary: '채팅방 메세지 조회' })
+  @ApiResponse({ status: 200, type: ChatMessagesResponse })
   @Get()
   async getMessages(
     @CurrentUser() userId: string,

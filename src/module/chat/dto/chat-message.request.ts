@@ -9,7 +9,12 @@ export class CreateChatMessageRequest {
   @IsUUID()
   chatId: string;
 
-  @ApiProperty({ description: '본문내용', required: false, nullable: true })
+  @ApiProperty({
+    description: '본문내용',
+    required: false,
+    nullable: true,
+    type: 'string',
+  })
   @TrimNullableString()
   @IsOptional()
   content: string | null;
@@ -29,6 +34,7 @@ export class CreateChatMessageRequest {
     description: '답장 채팅메시지 ID',
     required: false,
     nullable: true,
+    type: 'string',
   })
   @TrimNullableString()
   @IsOptional()
