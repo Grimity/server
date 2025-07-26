@@ -1,6 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { ChatWriter } from './repository/chat.writer';
 import { ChatReader } from './repository/chat.reader';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
 export class ChatMessageService {
@@ -83,5 +84,39 @@ export class ChatMessageService {
 
     await this.chatWriter.updateMessageLike(messageId, false);
     return;
+  }
+
+  async getMessages({
+    chatId,
+    cursor,
+    size,
+  }: {
+    chatId: string;
+    cursor: string | null;
+    size: number;
+  }) {
+    const result = await this.chatReader.findManyMessagesByCursor({
+      chatId,
+      cursor,
+      size,
+    });
+
+    return {
+      nextCursor: result.nextCursor,
+      messages: result.messages.map((message) => ({
+        ...message,
+        image: getImageUrl(message.image),
+        user: {
+          ...message.user,
+          image: getImageUrl(message.user.image),
+        },
+        replyTo: message.replyTo
+          ? {
+              ...message.replyTo,
+              image: getImageUrl(message.replyTo.image),
+            }
+          : null,
+      })),
+    };
   }
 }

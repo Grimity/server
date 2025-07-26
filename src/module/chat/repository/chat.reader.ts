@@ -56,4 +56,88 @@ export class ChatReader {
       where: { id },
     });
   }
+
+  async findManyMessagesByCursor({
+    chatId,
+    size,
+    cursor,
+  }: {
+    chatId: string;
+    size: number;
+    cursor: string | null;
+  }) {
+    const messages = await this.txHost.tx.$kysely
+      .selectFrom('ChatMessage')
+      .where('ChatMessage.chatId', '=', kyselyUuid(chatId))
+      .$if(cursor !== null, (eb) => {
+        const [lastCreatedAt, lastId] = cursor!.split('_');
+
+        return eb.where((eb) =>
+          eb.or([
+            eb('ChatMessage.createdAt', '<', new Date(lastCreatedAt)),
+            eb.and([
+              eb('ChatMessage.createdAt', '=', new Date(lastCreatedAt)),
+              eb('ChatMessage.id', '<', kyselyUuid(lastId)),
+            ]),
+          ]),
+        );
+      })
+      .select([
+        'ChatMessage.content',
+        'ChatMessage.createdAt',
+        'ChatMessage.id',
+        'ChatMessage.image',
+        'ChatMessage.isLike',
+      ])
+      .leftJoin(
+        'ChatMessage as replyMessage',
+        'ChatMessage.chatId',
+        'replyMessage.replyToId',
+      )
+      .select([
+        'replyMessage.id as replyId',
+        'replyMessage.content as replyContent',
+        'replyMessage.createdAt as replyCreatedAt',
+        'replyMessage.image as replyImage',
+      ])
+      .innerJoin('User', 'ChatMessage.userId', 'User.id')
+      .select([
+        'User.id as userId',
+        'User.url as userUrl',
+        'User.name as userName',
+        'User.image as userImage',
+      ])
+      .orderBy('ChatMessage.createdAt', 'desc')
+      .orderBy('ChatMessage.id', 'desc')
+      .limit(size)
+      .execute();
+
+    return {
+      nextCursor:
+        messages.length === size
+          ? `${messages[size - 1].createdAt.toISOString()}_${messages[size - 1].id}`
+          : null,
+      messages: messages.map((message) => ({
+        id: message.id,
+        content: message.content,
+        image: message.image,
+        createdAt: message.createdAt,
+        isLike: message.isLike,
+        user: {
+          id: message.userId,
+          image: message.userImage,
+          name: message.userName,
+          url: message.userUrl,
+        },
+        replyTo: message.replyId
+          ? {
+              id: message.replyId,
+              content: message.replyContent,
+              createdAt: message.replyCreatedAt!,
+              image: message.replyImage,
+            }
+          : null,
+      })),
+    };
+  }
 }
