@@ -8,7 +8,7 @@ export class CreateChatRequest {
   targetUserId: string;
 }
 
-export class SearchChatRequest extends CursorRequest {
+export class GetChatsRequest extends CursorRequest {
   @ApiProperty({
     required: false,
     description: '검색할 사용자 이름',
