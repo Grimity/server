@@ -15,8 +15,6 @@ export class ChatResponse {
   unreadCount: number;
 
   @ApiProperty({
-    type: Date,
-    example: '2023-10-01T12:00:00Z',
     description: '채팅방 생성 시간',
   })
   createdAt: Date;
