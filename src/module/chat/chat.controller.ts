@@ -4,7 +4,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Controller, Body, UseGuards, Post, Get } from '@nestjs/common';
+import { Controller, Body, UseGuards, Post, Get, Query } from '@nestjs/common';
 import { CreateChatRequest, SearchChatRequest } from './dto/chat.request';
 import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
@@ -36,7 +36,7 @@ export class ChatController {
   @Get('search')
   async search(
     @CurrentUser() userId: string,
-    @Body() { username, cursor, size }: SearchChatRequest,
+    @Query() { username, cursor, size }: SearchChatRequest,
   ): Promise<SearchedChatsResponse> {
     return await this.chatService.search({
       userId,
