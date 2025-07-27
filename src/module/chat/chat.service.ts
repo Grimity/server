@@ -1,7 +1,9 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserSelectRepository } from '../user/repository/user.select.repository';
+import { SearchChatInput } from './interfaces/chat.interface';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
 export class ChatService {
@@ -36,5 +38,31 @@ export class ChatService {
     } else {
       return await this.chatWriter.createChat(userId, targetUserId);
     }
+  }
+
+  async search(input: SearchChatInput) {
+    const result = await this.chatReader.findByUsernameWithCursor(
+      input.userId,
+      input.cursor || null,
+      input.size || 10,
+      input.username,
+    );
+
+    return {
+      nextCursor: result.nextCursor,
+      chats: result.chats.map((chat) => ({
+        ...chat,
+        lastMessage: {
+          ...chat.lastMessage,
+          image: getImageUrl(chat.lastMessage?.image),
+        },
+        opponent: {
+          id: chat.opponent.id ?? '',
+          name: chat.opponent.name ?? '',
+          image: getImageUrl(chat.opponent.image),
+          url: chat.opponent.url ?? '',
+        },
+      })),
+    };
   }
 }

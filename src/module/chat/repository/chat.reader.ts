@@ -57,6 +57,74 @@ export class ChatReader {
     });
   }
 
+  async findByUsernameWithCursor(
+    userId: string,
+    cursor: string | null,
+    size: number,
+    username?: string,
+  ) {
+    const chats = await this.txHost.tx.$kysely
+      .selectFrom('ChatUser')
+      .where('ChatUser.userId', '=', kyselyUuid(userId))
+      .innerJoin('Chat', 'ChatUser.chatId', 'Chat.id')
+      .$if(cursor !== null, (eb) => {
+        const [lastCreatedAt, lastId] = cursor!.split('_');
+        return eb.where((eb) =>
+          eb.and([
+            eb('Chat.createdAt', '<=', new Date(lastCreatedAt)),
+            eb('Chat.id', '!=', kyselyUuid(lastId)),
+          ]),
+        );
+      })
+      .innerJoin('ChatMessage', 'Chat.id', 'ChatMessage.chatId')
+      .leftJoin('User as Opponent', 'ChatMessage.replyToId', 'Opponent.id')
+      .select([
+        'Chat.id as id',
+        'Chat.createdAt as createdAt',
+        'ChatMessage.id as messageId',
+        'ChatMessage.content as messageContent',
+        'ChatMessage.image as messageImage',
+        'ChatMessage.createdAt as messageCreatedAt',
+        'ChatMessage.isLike as messageIsLike',
+        'ChatUser.unreadCount as unreadCount',
+        'Opponent.id as opponentId',
+        'Opponent.name as opponentName',
+        'Opponent.image as opponentImage',
+        'Opponent.url as opponentUrl',
+      ])
+      .$if(username !== null, (eb) =>
+        eb.where('Opponent.name', 'like', `%${username}%`),
+      )
+      .orderBy('Chat.createdAt', 'desc')
+      .orderBy('ChatMessage.createdAt', 'desc')
+      .limit(size)
+      .execute();
+
+    return {
+      nextCursor:
+        chats.length === size
+          ? `${chats[size - 1].createdAt.toISOString()}_${chats[size - 1].id}`
+          : null,
+      chats: chats.map((chat) => ({
+        id: chat.id,
+        unreadCount: chat.unreadCount,
+        createdAt: chat.createdAt,
+        lastMessage: {
+          id: chat.messageId,
+          content: chat.messageContent,
+          image: chat.messageImage,
+          createdAt: chat.messageCreatedAt,
+        },
+        opponent: {
+          id: chat.opponentId,
+          name: chat.opponentName,
+          image: chat.opponentImage,
+          url: chat.opponentUrl,
+        },
+      })),
+    };
+  }
+
   async findManyMessagesByCursor({
     chatId,
     size,

@@ -4,12 +4,13 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Controller, Body, UseGuards, Post } from '@nestjs/common';
-import { CreateChatRequest } from './dto/chat.request';
+import { Controller, Body, UseGuards, Post, Get } from '@nestjs/common';
+import { CreateChatRequest, SearchChatRequest } from './dto/chat.request';
 import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
+import { SearchedChatsResponse } from './dto/chat.response';
 
 @ApiTags('/chats')
 @ApiBearerAuth()
@@ -28,5 +29,20 @@ export class ChatController {
     @Body() { targetUserId }: CreateChatRequest,
   ): Promise<IdResponse> {
     return await this.chatService.createChat(userId, targetUserId);
+  }
+
+  @ApiOperation({ summary: '채팅방 목록 조회' })
+  @ApiResponse({ status: 200, type: SearchedChatsResponse })
+  @Get('search')
+  async search(
+    @CurrentUser() userId: string,
+    @Body() { username, cursor, size }: SearchChatRequest,
+  ): Promise<SearchedChatsResponse> {
+    return await this.chatService.search({
+      userId,
+      username,
+      cursor,
+      size,
+    });
   }
 }
