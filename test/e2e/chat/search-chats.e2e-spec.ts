@@ -53,7 +53,6 @@ describe('GET /chats/search - 채팅 검색(이름만)', () => {
     // given
     const accessToken = await register(app, 'test');
     const me = await prisma.user.findFirstOrThrow();
-    console.log(`me: ${JSON.stringify(me, null, 4)}`);
 
     const user = await prisma.user.create({
       data: {
@@ -104,6 +103,8 @@ describe('GET /chats/search - 채팅 검색(이름만)', () => {
     // then
     expect(status).toBe(200);
     expect(body.chats.length).toBe(1);
+    expect(body.chats[0].id).toBe(sampleUuid);
+    expect(body.chats[0].lastMessage.content).toBe('Hello back');
     expect(body.chats[0].opponent.name).toBe('test2');
     expect(body.chats[0].opponent.id).toBe(user.id);
   });

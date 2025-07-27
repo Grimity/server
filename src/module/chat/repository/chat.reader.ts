@@ -77,7 +77,7 @@ export class ChatReader {
         );
       })
       .innerJoin('ChatMessage', 'Chat.id', 'ChatMessage.chatId')
-      .leftJoin('User as Opponent', 'ChatMessage.replyToId', 'Opponent.id')
+      .innerJoin('User as Opponent', 'ChatMessage.userId', 'Opponent.id')
       .select([
         'Chat.id as id',
         'Chat.createdAt as createdAt',
