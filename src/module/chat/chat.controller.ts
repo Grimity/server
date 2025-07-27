@@ -33,7 +33,7 @@ export class ChatController {
 
   @ApiOperation({ summary: '채팅방 목록 조회' })
   @ApiResponse({ status: 200, type: SearchedChatsResponse })
-  @Get('search')
+  @Get()
   async search(
     @CurrentUser() userId: string,
     @Query() { username, cursor, size }: SearchChatRequest,
