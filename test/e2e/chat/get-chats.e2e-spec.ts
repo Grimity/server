@@ -7,7 +7,7 @@ import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 import { sampleUuid } from '../helper/sample-uuid';
 
-describe('GET /chats/search - 채팅 검색(이름만)', () => {
+describe('GET /chats - 채팅 검색(이름만)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -42,9 +42,8 @@ describe('GET /chats/search - 채팅 검색(이름만)', () => {
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
-    const { status } = await request(app.getHttpServer())
-      .get('/chats/search')
-      .send();
+    const { status } = await request(app.getHttpServer()).get('/chats').send();
+
     // then
     expect(status).toBe(401);
   });
@@ -94,7 +93,7 @@ describe('GET /chats/search - 채팅 검색(이름만)', () => {
 
     // when
     const { body, status } = await request(app.getHttpServer())
-      .get('/chats/search')
+      .get('/chats')
       .set('Authorization', `Bearer ${accessToken}`)
       .query({
         username: 'test2',
