@@ -2,7 +2,6 @@ import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserSelectRepository } from '../user/repository/user.select.repository';
-import { SearchChatInput } from './interfaces/chat.interface';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
@@ -40,12 +39,17 @@ export class ChatService {
     }
   }
 
-  async search(input: SearchChatInput) {
+  async search(
+    userId: string,
+    cursor?: string,
+    size?: number,
+    username?: string,
+  ) {
     const result = await this.chatReader.findByUsernameWithCursor(
-      input.userId,
-      input.cursor || null,
-      input.size || 10,
-      input.username,
+      userId,
+      cursor || null,
+      size || 10,
+      username,
     );
 
     return {

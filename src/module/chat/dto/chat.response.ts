@@ -1,17 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CursorResponse } from 'src/shared/response';
 import { UserBaseResponse } from 'src/module/user/dto';
-import { ChatMessageResponse, ReplyToResponse } from './chat-message.response';
+import { ReplyToResponse } from './chat-message.response';
 
 export class ChatResponse {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({
-    type: 'number',
-    example: 3,
-    description: '읽지 않은 메시지 수',
-  })
+  @ApiProperty()
   unreadCount: number;
 
   @ApiProperty({

@@ -38,11 +38,6 @@ export class ChatController {
     @CurrentUser() userId: string,
     @Query() { username, cursor, size }: GetChatsRequest,
   ): Promise<SearchedChatsResponse> {
-    return await this.chatService.search({
-      userId,
-      username,
-      cursor,
-      size,
-    });
+    return await this.chatService.search(userId, cursor, size, username);
   }
 }
