@@ -6,9 +6,10 @@ import { ChatWriter } from './repository/chat.writer';
 import { UserModule } from '../user/user.module';
 import { ChatMessageController } from './chat-message.controller';
 import { ChatMessageService } from './chat-message.service';
+import { WsModule } from '../websocket/ws.module';
 
 @Module({
-  imports: [UserModule],
+  imports: [UserModule, WsModule],
   controllers: [ChatController, ChatMessageController],
   providers: [ChatService, ChatReader, ChatWriter, ChatMessageService],
 })

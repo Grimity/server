@@ -4,8 +4,18 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Controller, Body, UseGuards, Post } from '@nestjs/common';
-import { CreateChatRequest } from './dto/chat.request';
+import {
+  Controller,
+  Body,
+  UseGuards,
+  Post,
+  Put,
+  Param,
+  ParseUUIDPipe,
+  Delete,
+  HttpCode,
+} from '@nestjs/common';
+import { CreateChatRequest, JoinChatRequest } from './dto/chat.request';
 import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
@@ -29,4 +39,29 @@ export class ChatController {
   ): Promise<IdResponse> {
     return await this.chatService.createChat(userId, targetUserId);
   }
+
+  @ApiOperation({ summary: '채팅방 입장' })
+  @ApiResponse({ status: 204 })
+  @Put(':id/join')
+  @HttpCode(204)
+  async joinChat(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) chatId: string,
+    @Body() { socketId }: JoinChatRequest,
+  ) {
+    return await this.chatService.joinChat({
+      userId,
+      chatId,
+      socketId,
+    });
+  }
+
+  @ApiOperation({ summary: '채팅방 나가기' })
+  @ApiResponse({ status: 204 })
+  @Delete(':id/join')
+  async leaveChat(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) chatId: string,
+    @Body() { socketId }: JoinChatRequest,
+  ) {}
 }

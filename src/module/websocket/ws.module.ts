@@ -5,5 +5,6 @@ import { RedisModule } from 'src/database/redis/redis.module';
 @Module({
   imports: [RedisModule],
   providers: [GlobalGateway],
+  exports: [GlobalGateway],
 })
 export class WsModule {}

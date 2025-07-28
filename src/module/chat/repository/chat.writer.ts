@@ -86,4 +86,18 @@ export class ChatWriter {
       },
     });
   }
+
+  async resetUnreadCount(userId: string, chatId: string) {
+    await this.txHost.tx.chatUser.update({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+      data: {
+        unreadCount: 0,
+      },
+    });
+  }
 }
