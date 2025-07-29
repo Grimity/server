@@ -90,15 +90,22 @@ export class ChatMessageService {
     chatId,
     cursor,
     size,
+    userId,
   }: {
+    userId: string;
     chatId: string;
     cursor: string | null;
     size: number;
   }) {
+    const chatStatus = await this.chatReader.findOneStatusById(userId, chatId);
+    if (chatStatus === null || chatStatus.enteredAt === null)
+      throw new HttpException('CHAT', 404);
+
     const result = await this.chatReader.findManyMessagesByCursor({
       chatId,
       cursor,
       size,
+      exitedAt: chatStatus.exitedAt,
     });
 
     return {
