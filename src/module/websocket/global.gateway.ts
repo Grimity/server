@@ -88,4 +88,8 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
   joinChat(socketId: string, chatId: string) {
     this.server.in(socketId).socketsJoin(`chat:${chatId}`);
   }
+
+  leaveChat(socketId: string, chatId: string) {
+    this.server.in(socketId).socketsLeave(`chat:${chatId}`);
+  }
 }

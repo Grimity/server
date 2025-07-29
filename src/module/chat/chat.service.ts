@@ -60,6 +60,7 @@ export class ChatService {
     await this.chatWriter.resetUnreadCount(userId, chatId);
 
     this.globalGateway.joinChat(socketId, chatId);
+    return;
   }
 
   async leaveChat({
@@ -70,5 +71,12 @@ export class ChatService {
     userId: string;
     chatId: string;
     socketId: string;
-  }) {}
+  }) {
+    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
+    if (socketUserId === null || socketUserId !== userId)
+      throw new HttpException('SOCKET', 404);
+
+    this.globalGateway.leaveChat(socketId, chatId);
+    return;
+  }
 }

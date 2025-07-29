@@ -12,7 +12,7 @@ import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
 
-describe('PUT chats/:id/join - 채팅방 입장', () => {
+describe('PUT /chats/:id/leave - 채팅방 나가기', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -59,7 +59,7 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/chats/test/join')
+      .put('/chats/test/leave')
       .send();
 
     // then
@@ -72,28 +72,12 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/chats/test/join')
+      .put('/chats/test/leave')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(400);
-  });
-
-  it('없는 chatId일때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/chats/${sampleUuid}/join`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        socketId: 'test',
-      });
-
-    // then
-    expect(status).toBe(404);
   });
 
   it('없는 socketId일때 404를 반환한다', async () => {
@@ -129,7 +113,7 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/chats/${chat.id}/join`)
+      .put(`/chats/${chat.id}/leave`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         socketId: 'test',
@@ -139,7 +123,7 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
     expect(status).toBe(404);
   });
 
-  it('204와 함께 방에 들어간다', async () => {
+  it('204와 함께 방에서 나간다', async () => {
     // given
     const accessToken = await register(app, 'test');
     const me = await prisma.user.findFirstOrThrow();
@@ -182,9 +166,16 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
       });
     });
 
+    await request(app.getHttpServer())
+      .put(`/chats/${chat.id}/join`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        socketId: clientSocket.id,
+      });
+
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/chats/${chat.id}/join`)
+      .put(`/chats/${chat.id}/leave`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         socketId: clientSocket.id,
@@ -193,8 +184,7 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
     // then
     expect(status).toBe(204);
     const sockets = await socketServer.in(`chat:${chat.id}`).fetchSockets();
-    expect(sockets.length).toBe(1);
-    expect(sockets[0].id).toBe(clientSocket.id);
+    expect(sockets.length).toBe(0);
 
     // cleanup
     clientSocket.disconnect();

@@ -10,6 +10,11 @@ export class CreateChatRequest {
 export class JoinChatRequest {
   @ApiProperty()
   @Length(1)
-  @IsString()
+  socketId: string;
+}
+
+export class LeaveChatRequest {
+  @ApiProperty()
+  @Length(1)
   socketId: string;
 }

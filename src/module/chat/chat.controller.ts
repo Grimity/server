@@ -15,7 +15,11 @@ import {
   Delete,
   HttpCode,
 } from '@nestjs/common';
-import { CreateChatRequest, JoinChatRequest } from './dto/chat.request';
+import {
+  CreateChatRequest,
+  JoinChatRequest,
+  LeaveChatRequest,
+} from './dto/chat.request';
 import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
@@ -49,19 +53,28 @@ export class ChatController {
     @Param('id', new ParseUUIDPipe()) chatId: string,
     @Body() { socketId }: JoinChatRequest,
   ) {
-    return await this.chatService.joinChat({
+    await this.chatService.joinChat({
       userId,
       chatId,
       socketId,
     });
+    return;
   }
 
   @ApiOperation({ summary: '채팅방 나가기' })
   @ApiResponse({ status: 204 })
-  @Delete(':id/join')
+  @Put(':id/leave')
+  @HttpCode(204)
   async leaveChat(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) chatId: string,
-    @Body() { socketId }: JoinChatRequest,
-  ) {}
+    @Body() { socketId }: LeaveChatRequest,
+  ) {
+    await this.chatService.leaveChat({
+      userId,
+      socketId,
+      chatId,
+    });
+    return;
+  }
 }
