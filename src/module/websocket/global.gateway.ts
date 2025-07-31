@@ -16,6 +16,7 @@ import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { HttpException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({})
 export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -28,6 +29,7 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly redisService: RedisService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {
     this.pubRedis = redisService.pubClient;
     this.subRedis = redisService.subClient;
@@ -76,7 +78,12 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleDisconnect(client: Socket) {
     // room 정보는 알아서 없어짐
-    await this.pubRedis.del(`socket:user:${client.id}`);
+    try {
+      await this.pubRedis.del(`socket:user:${client.id}`);
+    } catch (e) {
+      if (this.configService.get('NODE_ENV') !== 'production') return;
+      throw e;
+    }
   }
 
   async getUserIdByClientId(clientId: string) {
