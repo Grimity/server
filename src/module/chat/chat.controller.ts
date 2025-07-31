@@ -44,6 +44,18 @@ export class ChatController {
     return await this.chatService.createChat(userId, targetUserId);
   }
 
+  @ApiOperation({ summary: '채팅방 삭제' })
+  @ApiResponse({ status: 204 })
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteChat(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) chatId: string,
+  ) {
+    await this.chatService.deleteChat(userId, chatId);
+    return;
+  }
+
   @ApiOperation({ summary: '채팅방 입장' })
   @ApiResponse({ status: 204 })
   @Put(':id/join')

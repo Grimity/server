@@ -87,7 +87,26 @@ export class ChatWriter {
     });
   }
 
-  async resetUnreadCount(userId: string, chatId: string) {
+  async deleteChat(chatId: string) {
+    await this.txHost.tx.chat.delete({
+      where: {
+        id: chatId,
+      },
+    });
+    return;
+  }
+
+  async updateChatUser({
+    userId,
+    chatId,
+    ...data
+  }: {
+    userId: string;
+    chatId: string;
+    unreadCount?: number;
+    enteredAt?: Date | null;
+    exitedAt?: Date | null;
+  }) {
     await this.txHost.tx.chatUser.update({
       where: {
         chatId_userId: {
@@ -95,9 +114,7 @@ export class ChatWriter {
           userId,
         },
       },
-      data: {
-        unreadCount: 0,
-      },
+      data,
     });
   }
 }

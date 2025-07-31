@@ -57,7 +57,7 @@ export class ChatService {
     if (socketUserId === null || socketUserId !== userId)
       throw new HttpException('SOCKET', 404);
 
-    await this.chatWriter.resetUnreadCount(userId, chatId);
+    await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
 
     this.globalGateway.joinChat(socketId, chatId);
     return;
@@ -78,5 +78,27 @@ export class ChatService {
 
     this.globalGateway.leaveChat(socketId, chatId);
     return;
+  }
+
+  async deleteChat(userId: string, chatId: string) {
+    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+
+    const me = chatUsers.find((status) => status.userId === userId);
+    const opponent = chatUsers.find((status) => status.userId !== userId);
+
+    if (!me || !opponent) throw new HttpException('CHAT', 404);
+
+    if (opponent.enteredAt === null) {
+      // 찐 삭제
+      await this.chatWriter.deleteChat(chatId);
+    } else {
+      await this.chatWriter.updateChatUser({
+        userId,
+        chatId,
+        unreadCount: 0,
+        enteredAt: null,
+        exitedAt: new Date(),
+      });
+    }
   }
 }
