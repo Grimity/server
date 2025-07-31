@@ -61,14 +61,19 @@ export class ChatReader {
     chatId,
     size,
     cursor,
+    exitedAt,
   }: {
     chatId: string;
     size: number;
     cursor: string | null;
+    exitedAt: Date | null;
   }) {
     const messages = await this.txHost.tx.$kysely
       .selectFrom('ChatMessage')
       .where('ChatMessage.chatId', '=', kyselyUuid(chatId))
+      .$if(exitedAt !== null, (eb) => {
+        return eb.where('ChatMessage.createdAt', '>', exitedAt);
+      })
       .$if(cursor !== null, (eb) => {
         const [lastCreatedAt, lastId] = cursor!.split('_');
 

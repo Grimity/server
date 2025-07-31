@@ -15,6 +15,8 @@ import { Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 import Redis from 'ioredis';
+import { HttpException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({})
 export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -27,6 +29,7 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly redisService: RedisService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {
     this.pubRedis = redisService.pubClient;
     this.subRedis = redisService.subClient;
@@ -57,13 +60,16 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    await this.pubRedis.incr(`connectionCount:${client.data.user.id}`);
-    await this.pubRedis.expire(
-      `connectionCount:${client.data.user.id}`,
-      60 * 60 * 24,
-    );
+    const userId = client.data.user.id as string;
 
-    await client.join(`user:${client.data.user.id}`);
+    await this.pubRedis.set(
+      `socket:user:${client.id}`,
+      userId,
+      'EX',
+      60 * 60 * 6,
+    ); // TTL 6시간
+
+    await client.join(`user:${userId}`);
 
     client.emit('connected', {
       socketId: client.id,
@@ -71,14 +77,26 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async handleDisconnect(client: Socket) {
-    if (client.data?.user) {
-      try {
-        await this.pubRedis.decr(`connectionCount:${client.data.user.id}`);
-
-        await client.leave(`user:${client.data.user.id}`);
-      } catch (e) {
-        return;
-      }
+    // room 정보는 알아서 없어짐
+    try {
+      await this.pubRedis.del(`socket:user:${client.id}`);
+    } catch (e) {
+      if (this.configService.get('NODE_ENV') !== 'production') return;
+      throw e;
     }
+  }
+
+  async getUserIdByClientId(clientId: string) {
+    return (await this.pubRedis.get(`socket:user:${clientId}`)) as
+      | string
+      | null;
+  }
+
+  joinChat(socketId: string, chatId: string) {
+    this.server.in(socketId).socketsJoin(`chat:${chatId}`);
+  }
+
+  leaveChat(socketId: string, chatId: string) {
+    this.server.in(socketId).socketsLeave(`chat:${chatId}`);
   }
 }

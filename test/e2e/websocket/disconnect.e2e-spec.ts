@@ -48,7 +48,7 @@ describe('GlobalGateway disconnect', () => {
     await prisma.user.deleteMany();
   });
 
-  it('disconnect 후엔 connectionCount가 감소한다', async () => {
+  it('disconnect 후엔 socket:userId를 제거한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
@@ -78,9 +78,8 @@ describe('GlobalGateway disconnect', () => {
 
     // then
     const user = await prisma.user.findFirstOrThrow();
-    const connectionCount = await redisService.pubClient.get(
-      `connectionCount:${user.id}`,
-    );
-    expect(connectionCount).toBe('0');
+    const keys = await redisService.pubClient.keys('socket:user*');
+
+    expect(keys.length).toBe(0);
   });
 });
