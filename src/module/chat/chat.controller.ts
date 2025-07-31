@@ -46,6 +46,10 @@ export class ChatController {
 
   @ApiOperation({ summary: '채팅방 삭제' })
   @ApiResponse({ status: 204 })
+  @ApiResponse({
+    status: 404,
+    description: '채팅방이없거나 내가 그방 유저가 아니거나',
+  })
   @Delete(':id')
   @HttpCode(204)
   async deleteChat(
@@ -58,6 +62,7 @@ export class ChatController {
 
   @ApiOperation({ summary: '채팅방 입장' })
   @ApiResponse({ status: 204 })
+  @ApiResponse({ status: 404 })
   @Put(':id/join')
   @HttpCode(204)
   async joinChat(
