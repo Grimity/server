@@ -129,6 +129,7 @@ export class ChatWriter {
       data: {
         enteredAt: null,
         exitedAt: new Date(),
+        unreadCount: 0,
       },
     });
     return;

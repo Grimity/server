@@ -107,6 +107,7 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
             chatId: chats[i].id,
             enteredAt: new Date(),
             exitedAt: null,
+            unreadCount: i,
           },
           {
             userId: users[i].id,
@@ -137,14 +138,16 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
     });
 
     expect(
-      afterChatStatus.map(({ enteredAt, exitedAt }) => ({
+      afterChatStatus.map(({ enteredAt, exitedAt, unreadCount }) => ({
         enteredAt,
         exitedAt,
+        unreadCount,
       })),
     ).toEqual(
       Array.from({ length: 4 }).map(() => ({
         enteredAt: null,
         exitedAt: expect.any(Date),
+        unreadCount: 0,
       })),
     );
   });
