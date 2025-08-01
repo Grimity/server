@@ -19,6 +19,7 @@ import {
   CreateChatRequest,
   JoinChatRequest,
   LeaveChatRequest,
+  BatchDeleteChatsRequest,
 } from './dto/chat.request';
 import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
@@ -42,6 +43,17 @@ export class ChatController {
     @Body() { targetUserId }: CreateChatRequest,
   ): Promise<IdResponse> {
     return await this.chatService.createChat(userId, targetUserId);
+  }
+
+  @ApiOperation({ summary: '채팅방 여러개 삭제' })
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  @Post('batch-delete')
+  async deleteManyChat(
+    @CurrentUser() userId: string,
+    @Body() { ids }: BatchDeleteChatsRequest,
+  ) {
+    await this.chatService.deleteChats(userId, ids);
   }
 
   @ApiOperation({ summary: '채팅방 삭제' })

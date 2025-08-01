@@ -117,4 +117,20 @@ export class ChatWriter {
       data,
     });
   }
+
+  async exitManyChats(userId: string, chatIds: string[]) {
+    await this.txHost.tx.chatUser.updateMany({
+      where: {
+        userId,
+        chatId: {
+          in: chatIds,
+        },
+      },
+      data: {
+        enteredAt: null,
+        exitedAt: new Date(),
+      },
+    });
+    return;
+  }
 }
