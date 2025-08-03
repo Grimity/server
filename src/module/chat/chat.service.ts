@@ -39,16 +39,21 @@ export class ChatService {
     }
   }
 
-  async search(
-    userId: string,
-    cursor?: string,
-    size?: number,
-    username?: string,
-  ) {
+  async search({
+    userId,
+    size,
+    cursor,
+    username,
+  }: {
+    userId: string;
+    size: number;
+    cursor?: string | null;
+    username?: string | null;
+  }) {
     const result = await this.chatReader.findByUsernameWithCursor(
       userId,
-      cursor || null,
-      size || 10,
+      size,
+      cursor,
       username,
     );
 
@@ -58,7 +63,17 @@ export class ChatService {
         ...chat,
         lastMessage: {
           ...chat.lastMessage,
-          image: getImageUrl(chat.lastMessage?.image),
+          image: getImageUrl(chat.lastMessage?.image ?? null),
+          user: {
+            ...chat.lastMessage?.user,
+            image: getImageUrl(chat.lastMessage?.user?.image ?? null),
+          },
+          replyTo: chat.lastMessage?.replyTo
+            ? {
+                ...chat.lastMessage?.replyTo,
+                image: getImageUrl(chat.lastMessage?.replyTo?.image ?? null),
+              }
+            : null,
         },
         opponent: {
           id: chat.opponent.id ?? '',
