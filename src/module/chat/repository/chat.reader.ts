@@ -57,7 +57,7 @@ export class ChatReader {
     });
   }
 
-  async findByUsernameWithCursor(
+  async findManyByUsernameWithCursor(
     userId: string,
     size: number,
     cursor?: string | null,

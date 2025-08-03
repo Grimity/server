@@ -52,7 +52,7 @@ export class ChatService {
     cursor?: string | null;
     username?: string | null;
   }) {
-    const result = await this.chatReader.findByUsernameWithCursor(
+    const result = await this.chatReader.findManyByUsernameWithCursor(
       userId,
       size,
       cursor,
