@@ -2,6 +2,7 @@ import { Injectable, HttpException, Inject } from '@nestjs/common';
 import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserSelectRepository } from '../user/repository/user.select.repository';
+import { GlobalGateway } from '../websocket/global.gateway';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class ChatService {
     private readonly chatReader: ChatReader,
     private readonly chatWriter: ChatWriter,
     private readonly userReader: UserSelectRepository,
+    private readonly globalGateway: GlobalGateway,
   ) {}
 
   async createChat(userId: string, targetUserId: string) {
@@ -83,5 +85,67 @@ export class ChatService {
         },
       })),
     };
+  }
+
+  async joinChat({
+    userId,
+    chatId,
+    socketId,
+  }: {
+    userId: string;
+    chatId: string;
+    socketId: string;
+  }) {
+    const chat = await this.chatReader.findOneStatusById(userId, chatId);
+
+    if (!chat) throw new HttpException('CHAT', 404);
+
+    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
+    if (socketUserId === null || socketUserId !== userId)
+      throw new HttpException('SOCKET', 404);
+
+    await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
+
+    this.globalGateway.joinChat(socketId, chatId);
+    return;
+  }
+
+  async leaveChat({
+    userId,
+    chatId,
+    socketId,
+  }: {
+    userId: string;
+    chatId: string;
+    socketId: string;
+  }) {
+    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
+    if (socketUserId === null || socketUserId !== userId)
+      throw new HttpException('SOCKET', 404);
+
+    this.globalGateway.leaveChat(socketId, chatId);
+    return;
+  }
+
+  async deleteChat(userId: string, chatId: string) {
+    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+
+    const me = chatUsers.find((status) => status.userId === userId);
+    const opponent = chatUsers.find((status) => status.userId !== userId);
+
+    if (!me || !opponent) throw new HttpException('CHAT', 404);
+
+    if (opponent.enteredAt === null) {
+      // 찐 삭제
+      await this.chatWriter.deleteChat(chatId);
+    } else {
+      await this.chatWriter.updateChatUser({
+        userId,
+        chatId,
+        unreadCount: 0,
+        enteredAt: null,
+        exitedAt: new Date(),
+      });
+    }
   }
 }

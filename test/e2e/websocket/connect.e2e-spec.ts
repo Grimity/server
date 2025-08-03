@@ -76,7 +76,7 @@ describe('GlobalGateway connect', () => {
     });
   });
 
-  it('connection 성공 시 redis에 connectionCount를 증가시킨다', async () => {
+  it('connection 성공 시 redis에 socket:userId 정보를 저장한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
@@ -107,10 +107,16 @@ describe('GlobalGateway connect', () => {
 
     // then
     const user = await prisma.user.findFirstOrThrow();
-    const count = await redisService.pubClient.get(
-      `connectionCount:${user.id}`,
+    const result1 = await redisService.pubClient.get(
+      `socket:user:${clientSocket.id}`,
     );
-    expect(count).toBe('2');
+    const result2 = await redisService.pubClient.get(
+      `socket:user:${clientSocket2.id}`,
+    );
+
+    expect(result1).toBe(user.id);
+    expect(result2).toBe(user.id);
+
     expect(clientSocket.connected).toBe(true);
     expect(clientSocket2.connected).toBe(true);
 

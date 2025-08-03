@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import { CursorRequest } from 'src/shared/request';
 
 export class CreateChatRequest {
@@ -16,4 +16,16 @@ export class GetChatsRequest extends CursorRequest {
   })
   @IsOptional()
   username?: string;
+}
+
+export class JoinChatRequest {
+  @ApiProperty()
+  @Length(1)
+  socketId: string;
+}
+
+export class LeaveChatRequest {
+  @ApiProperty()
+  @Length(1)
+  socketId: string;
 }

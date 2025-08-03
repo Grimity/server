@@ -69,6 +69,7 @@ export class ChatMessageController {
     @Query() { chatId, cursor, size }: GetChatMessagesRequest,
   ): Promise<ChatMessagesResponse> {
     return await this.chatMessageService.getMessages({
+      userId,
       chatId,
       cursor: cursor ?? null,
       size: size ?? 10,

@@ -7,7 +7,7 @@ import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
 
-describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
+describe('DELETE /chats/:id - 채팅방 삭제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -41,20 +41,20 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get('/chat-messages?chatId=123')
+      .delete('/chats/test')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('chatId가 uuid가 아닐 경우 400을 반환한다', async () => {
+  it('chatId가 UUID가 아닐때 400을 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
     // when
     const { status } = await request(app.getHttpServer())
-      .get('/chat-messages?chatId=123')
+      .delete('/chats/test')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -62,13 +62,13 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
     expect(status).toBe(400);
   });
 
-  it('없는 chatId인 경우 404를 반환한다', async () => {
+  it('없는 chatId일때 404를 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
     // when
     const { status } = await request(app.getHttpServer())
-      .get(`/chat-messages?chatId=${sampleUuid}`)
+      .delete(`/chats/${sampleUuid}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
@@ -76,12 +76,41 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
     expect(status).toBe(404);
   });
 
-  it('채팅방에 나간 상태면 404를 반환한다', async () => {
+  it('채팅방은 있는데 본인이 들어가있는 방이 아닐때도 404를 반환한다', async () => {
     // given
     const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
 
-    const user = await prisma.user.create({
+    const me = await prisma.user.findFirstOrThrow();
+    const opponent = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+        email: 'test@test.com',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {},
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .delete(`/chats/${chat.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(404);
+  });
+
+  it('상대방이 나가지 않은 상태면 204와 함께 enteredAt과 exitedAt만 수정한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const me = await prisma.user.findFirstOrThrow();
+    const opponent = await prisma.user.create({
       data: {
         provider: 'kakao',
         providerId: 'test2',
@@ -98,10 +127,71 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
             data: [
               {
                 userId: me.id,
+                enteredAt: new Date(),
+                unreadCount: 10,
+              },
+              {
+                userId: opponent.id,
+                enteredAt: new Date(),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // when
+    const { status } = await request(app.getHttpServer())
+      .delete(`/chats/${chat.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(204);
+    const myStatus = await prisma.chatUser.findFirst({
+      where: {
+        userId: me.id,
+        chatId: chat.id,
+      },
+    });
+
+    expect(myStatus).toEqual({
+      chatId: chat.id,
+      userId: me.id,
+      unreadCount: 0,
+      enteredAt: null,
+      exitedAt: expect.any(Date),
+    });
+  });
+
+  it('상대방도 나가있는 상태면 채팅방을 삭제한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+    const me = await prisma.user.findFirstOrThrow();
+
+    const opponent = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+        email: 'test@test.com',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+                enteredAt: new Date(),
+              },
+              {
+                userId: opponent.id,
                 enteredAt: null,
-              },
-              {
-                userId: user.id,
+                exitedAt: new Date(),
               },
             ],
           },
@@ -111,137 +201,14 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
     // when
     const { status } = await request(app.getHttpServer())
-      .get(`/chat-messages?chatId=${chat.id}&size=10`)
+      .delete(`/chats/${chat.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
-    expect(status).toBe(404);
-  });
+    expect(status).toBe(204);
+    const afterChat = await prisma.chat.findFirst();
 
-  it('200과 함께 메세지를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
-
-    const user = await prisma.user.create({
-      data: {
-        provider: 'kakao',
-        providerId: 'test2',
-        name: 'test2',
-        url: 'test2',
-        email: 'test@test.com',
-      },
-    });
-
-    const chat = await prisma.chat.create({
-      data: {
-        users: {
-          createMany: {
-            data: [
-              {
-                userId: me.id,
-                enteredAt: new Date(),
-              },
-              {
-                userId: user.id,
-                enteredAt: new Date(),
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    await prisma.chatMessage.createMany({
-      data: Array.from({ length: 15 }).map((_, i) => {
-        return {
-          chatId: chat.id,
-          userId: me.id,
-          content: `test${i}`,
-          createdAt: new Date(Date.now() + i * 1),
-        };
-      }),
-    });
-
-    // when
-    const { status, body } = await request(app.getHttpServer())
-      .get(`/chat-messages?chatId=${chat.id}&size=10`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    const { status: status2, body: body2 } = await request(app.getHttpServer())
-      .get(`/chat-messages?chatId=${chat.id}&cursor=${body.nextCursor}`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(200);
-    expect(body.nextCursor).toBeDefined();
-    expect(body.messages.length).toBe(10);
-    expect(body.messages[0].content).toBe('test14');
-
-    expect(status2).toBe(200);
-    expect(body2.nextCursor).toBeNull();
-    expect(body2.messages.length).toBe(5);
-    expect(body2.messages[body2.messages.length - 1].content).toBe('test0');
-  });
-
-  it('exitedAt이 있으면 그 시점 이후에 생긴 메시지만 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
-
-    const user = await prisma.user.create({
-      data: {
-        provider: 'kakao',
-        providerId: 'test2',
-        name: 'test2',
-        url: 'test2',
-        email: 'test@test.com',
-      },
-    });
-
-    const chat = await prisma.chat.create({
-      data: {
-        users: {
-          createMany: {
-            data: [
-              {
-                userId: me.id,
-                enteredAt: new Date(),
-                exitedAt: new Date(Date.now() - 1000 * 3 - 500),
-              },
-              {
-                userId: user.id,
-                enteredAt: new Date(),
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    await prisma.chatMessage.createMany({
-      data: Array.from({ length: 15 }).map((_, i) => {
-        return {
-          chatId: chat.id,
-          userId: me.id,
-          content: `test${i}`,
-          createdAt: new Date(Date.now() - i * 1000),
-        };
-      }),
-    });
-
-    // when
-    const { status, body } = await request(app.getHttpServer())
-      .get(`/chat-messages?chatId=${chat.id}&size=10`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(200);
-    expect(body.messages.length).toBe(4);
-    expect(body.nextCursor).toBeNull();
+    expect(afterChat).toBeNull();
   });
 });
