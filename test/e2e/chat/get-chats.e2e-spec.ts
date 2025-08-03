@@ -99,6 +99,7 @@ describe('GET /chats - 채팅 검색(이름만)', () => {
         username: 'test2',
         size: 10,
       });
+
     // then
     expect(status).toBe(200);
     expect(body.chats.length).toBe(1);

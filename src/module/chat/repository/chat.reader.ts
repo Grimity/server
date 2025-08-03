@@ -69,7 +69,7 @@ export class ChatReader {
       .where('ChatUser.enteredAt', 'is not', null)
       .innerJoin('Chat', 'ChatUser.chatId', 'Chat.id')
       .innerJoin('ChatMessage', 'Chat.id', 'ChatMessage.chatId')
-      .$if(cursor !== null, (eb) => {
+      .$if(!!cursor, (eb) => {
         const [lastCreatedAt, lastId] = cursor!.split('_');
         return eb.where((eb) =>
           eb.and([
