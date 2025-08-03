@@ -59,25 +59,32 @@ export class ChatReader {
 
   async findByUsernameWithCursor(
     userId: string,
-    cursor: string | null,
     size: number,
-    username?: string,
+    cursor?: string | null,
+    username?: string | null,
   ) {
     const chats = await this.txHost.tx.$kysely
       .selectFrom('ChatUser')
       .where('ChatUser.userId', '=', kyselyUuid(userId))
+      .where('ChatUser.enteredAt', 'is not', null)
       .innerJoin('Chat', 'ChatUser.chatId', 'Chat.id')
+      .innerJoin('ChatMessage', 'Chat.id', 'ChatMessage.chatId')
       .$if(cursor !== null, (eb) => {
         const [lastCreatedAt, lastId] = cursor!.split('_');
         return eb.where((eb) =>
           eb.and([
-            eb('Chat.createdAt', '<=', new Date(lastCreatedAt)),
-            eb('Chat.id', '!=', kyselyUuid(lastId)),
+            eb('ChatMessage.createdAt', '<=', new Date(lastCreatedAt)),
+            eb('ChatMessage.id', '!=', kyselyUuid(lastId)),
           ]),
         );
       })
-      .innerJoin('ChatMessage', 'Chat.id', 'ChatMessage.chatId')
       .innerJoin('User as Opponent', 'ChatMessage.userId', 'Opponent.id')
+      .innerJoin('User as MessageUser', 'ChatMessage.userId', 'MessageUser.id')
+      .leftJoin(
+        'ChatMessage as ReplyMessage',
+        'ChatMessage.replyToId',
+        'ReplyMessage.id',
+      )
       .select([
         'Chat.id as id',
         'Chat.createdAt as createdAt',
@@ -86,6 +93,15 @@ export class ChatReader {
         'ChatMessage.image as messageImage',
         'ChatMessage.createdAt as messageCreatedAt',
         'ChatMessage.isLike as messageIsLike',
+        'MessageUser.id as messageUserId',
+        'MessageUser.name as messageUserName',
+        'MessageUser.image as messageUserImage',
+        'MessageUser.url as messageUserUrl',
+        'ChatMessage.replyToId as messageReplyToId',
+        'ReplyMessage.id as replyId',
+        'ReplyMessage.content as replyContent',
+        'ReplyMessage.createdAt as replyCreatedAt',
+        'ReplyMessage.image as replyImage',
         'ChatUser.unreadCount as unreadCount',
         'Opponent.id as opponentId',
         'Opponent.name as opponentName',
@@ -95,7 +111,6 @@ export class ChatReader {
       .$if(username !== null, (eb) =>
         eb.where('Opponent.name', 'like', `%${username}%`),
       )
-      .orderBy('Chat.createdAt', 'desc')
       .orderBy('ChatMessage.createdAt', 'desc')
       .limit(size)
       .execute();
@@ -111,9 +126,25 @@ export class ChatReader {
         createdAt: chat.createdAt,
         lastMessage: {
           id: chat.messageId,
+          user: {
+            id: chat.messageUserId,
+            name: chat.messageUserName,
+            image: chat.messageUserImage,
+            url: chat.messageUserUrl,
+          },
           content: chat.messageContent,
           image: chat.messageImage,
           createdAt: chat.messageCreatedAt,
+          isLike: chat.messageIsLike,
+          replyTo:
+            chat.replyId && chat.replyCreatedAt
+              ? {
+                  id: chat.replyId,
+                  content: chat.replyContent,
+                  createdAt: chat.replyCreatedAt,
+                  image: chat.replyImage,
+                }
+              : null,
         },
         opponent: {
           id: chat.opponentId,

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CursorResponse } from 'src/shared/response';
 import { UserBaseResponse } from 'src/module/user/dto';
-import { ReplyToResponse } from './chat-message.response';
+import { ChatMessageResponse } from './chat-message.response';
 
 export class ChatResponse {
   @ApiProperty()
@@ -22,11 +22,11 @@ export class ChatResponse {
   opponent: UserBaseResponse;
 
   @ApiProperty({
-    type: ReplyToResponse,
+    type: ChatMessageResponse,
     nullable: true,
     description: '채팅방의 마지막 메시지',
   })
-  lastMessage?: ReplyToResponse | null;
+  lastMessage?: ChatMessageResponse | null;
 }
 
 export class SearchedChatsResponse extends CursorResponse {
