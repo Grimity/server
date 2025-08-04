@@ -6,11 +6,20 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
+import { RedisService } from 'src/database/redis/redis.service';
+import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
+import { GlobalGateway } from 'src/module/websocket/global.gateway';
+import { Server } from 'socket.io';
+import { Socket as ClientSocket, io } from 'socket.io-client';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 describe('POST /chat-messages - 채팅메시지 생성', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
+  let redisService: RedisService;
+  let globalGateway: GlobalGateway;
+  let socketServer: Server;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,6 +29,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+    redisService = app.get<RedisService>(RedisService);
 
     jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -27,11 +37,20 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     });
 
     await app.init();
+    await app.listen(3000);
+
+    const redisIoAdapter = new RedisIoAdapter(redisService, app);
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+
+    globalGateway = app.get<GlobalGateway>(GlobalGateway);
+    socketServer = globalGateway.server;
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
     await prisma.chat.deleteMany();
+    await redisService.flushall();
   });
 
   afterAll(async () => {
@@ -247,7 +266,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
       userId: targetUser.id,
       enteredAt: expect.any(Date),
       exitedAt: null,
-      unreadCount: 0,
+      unreadCount: 1,
     });
 
     const message = await prisma.chatMessage.findFirst();
@@ -381,5 +400,164 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
       replyToId: message.id,
       userId: me.id,
     });
+  });
+
+  it('나와 상대방에게 webSocket 이벤트를 보낸다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const me = await prisma.user.findFirstOrThrow();
+
+    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'test2',
+      email: 'test@test.com',
+    });
+
+    const { body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'KAKAO',
+        providerAccessToken: 'test2',
+        name: 'test2',
+        url: 'test2',
+      });
+
+    const targetAccessToken = body.accessToken as string;
+    const targetUser = await prisma.user.findUniqueOrThrow({
+      where: { name: 'test2' },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+                enteredAt: new Date(),
+              },
+              {
+                userId: targetUser.id,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const mySocket = await new Promise<ClientSocket>((resolve) => {
+      const clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken,
+        },
+      });
+
+      clientSocket.on('connect', () => {
+        resolve(clientSocket);
+      });
+    });
+
+    const targetSocket = await new Promise<ClientSocket>((resolve) => {
+      const clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken: targetAccessToken,
+        },
+      });
+
+      clientSocket.on('connect', () => {
+        resolve(clientSocket);
+      });
+    });
+
+    // when
+    const [myEvent, targetEvent, { status }] = await Promise.all([
+      new Promise((resolve) => mySocket.on('newChatMessage', resolve)),
+      new Promise((resolve) => targetSocket.on('newChatMessage', resolve)),
+      request(app.getHttpServer())
+        .post('/chat-messages')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          chatId: chat.id,
+          content: 'test',
+          images: Array.from({ length: 5 }).map(
+            (_, i) => `chat/test${i + 1}.png`,
+          ),
+        }),
+    ]);
+
+    // then
+    expect(status).toBe(201);
+    expect(targetEvent).toEqual({
+      chatId: chat.id,
+      senderId: me.id,
+      chatUsers: expect.arrayContaining([
+        expect.objectContaining({
+          id: me.id,
+          name: me.name,
+          image: null,
+          url: me.url,
+          unreadCount: 0,
+        }),
+        expect.objectContaining({
+          id: targetUser.id,
+          name: targetUser.name,
+          image: null,
+          url: targetUser.url,
+          unreadCount: 6,
+        }),
+      ]),
+      messages: [
+        {
+          id: expect.any(String),
+          content: 'test',
+          image: null,
+          createdAt: expect.any(String),
+          replyTo: null,
+        },
+        {
+          id: expect.any(String),
+          content: null,
+          image: getImageUrl('chat/test1.png'),
+          createdAt: expect.any(String),
+          replyTo: null,
+        },
+        {
+          id: expect.any(String),
+          content: null,
+          image: getImageUrl('chat/test2.png'),
+          createdAt: expect.any(String),
+          replyTo: null,
+        },
+        {
+          id: expect.any(String),
+          content: null,
+          image: getImageUrl('chat/test3.png'),
+          createdAt: expect.any(String),
+          replyTo: null,
+        },
+        {
+          id: expect.any(String),
+          content: null,
+          image: getImageUrl('chat/test4.png'),
+          createdAt: expect.any(String),
+          replyTo: null,
+        },
+        {
+          id: expect.any(String),
+          content: null,
+          image: getImageUrl('chat/test5.png'),
+          createdAt: expect.any(String),
+          replyTo: null,
+        },
+      ],
+    });
+
+    // cleanup
+    mySocket.disconnect();
+    targetSocket.disconnect();
   });
 });
