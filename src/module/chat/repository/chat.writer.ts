@@ -44,6 +44,30 @@ export class ChatWriter {
     });
   }
 
+  async createMessages(
+    messages: {
+      userId: string;
+      content: string | null;
+      chatId: string;
+      replyToId: string | null;
+      image?: string | null;
+    }[],
+  ) {
+    const createdAt = new Date();
+    return await this.txHost.tx.chatMessage.createManyAndReturn({
+      data: messages.map((message, i) => ({
+        ...message,
+        createdAt: new Date(createdAt.getTime() + i),
+      })),
+      select: {
+        id: true,
+        content: true,
+        image: true,
+        createdAt: true,
+      },
+    });
+  }
+
   async createMessageByContent(input: {
     userId: string;
     chatId: string;
@@ -116,5 +140,50 @@ export class ChatWriter {
       },
       data,
     });
+  }
+
+  async increaseUnreadCount({
+    userId,
+    chatId,
+    count,
+  }: {
+    userId: string;
+    chatId: string;
+    count: number;
+  }) {
+    const result = await this.txHost.tx.chatUser.update({
+      where: {
+        chatId_userId: {
+          chatId,
+          userId,
+        },
+      },
+      data: {
+        unreadCount: {
+          increment: count,
+        },
+      },
+      select: {
+        unreadCount: true,
+      },
+    });
+    return result.unreadCount;
+  }
+
+  async exitManyChats(userId: string, chatIds: string[]) {
+    await this.txHost.tx.chatUser.updateMany({
+      where: {
+        userId,
+        chatId: {
+          in: chatIds,
+        },
+      },
+      data: {
+        enteredAt: null,
+        exitedAt: new Date(),
+        unreadCount: 0,
+      },
+    });
+    return;
   }
 }

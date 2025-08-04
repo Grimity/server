@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, Length } from 'class-validator';
+import { ArrayMinSize, IsString, IsUUID, Length } from 'class-validator';
 
 export class CreateChatRequest {
   @ApiProperty()
@@ -17,4 +17,11 @@ export class LeaveChatRequest {
   @ApiProperty()
   @Length(1)
   socketId: string;
+}
+
+export class BatchDeleteChatsRequest {
+  @ApiProperty({ type: 'string', isArray: true, minLength: 1 })
+  @ArrayMinSize(1)
+  @IsUUID('4', { each: true })
+  ids: string[];
 }
