@@ -72,6 +72,7 @@ import { ChatModule } from './module/chat/chat.module';
     }),
     WsModule,
     ChatModule,
+    WsModule,
   ],
   providers: [
     globalPipe,
