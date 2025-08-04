@@ -80,7 +80,7 @@ export class ChatService {
   }
 
   async deleteChat(userId: string, chatId: string) {
-    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+    const chatUsers = await this.chatReader.findUsersStatusByChatId(chatId);
 
     const me = chatUsers.find((status) => status.userId === userId);
     const opponent = chatUsers.find((status) => status.userId !== userId);

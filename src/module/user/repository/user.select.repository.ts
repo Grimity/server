@@ -15,6 +15,12 @@ export class UserSelectRepository {
     });
   }
 
+  async findOneByIdOrThrow(id: string) {
+    return await this.txHost.tx.user.findUniqueOrThrow({
+      where: { id },
+    });
+  }
+
   async findOneByUrl(url: string) {
     return await this.txHost.tx.user.findUnique({
       where: { url },
