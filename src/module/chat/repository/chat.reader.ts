@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { sql } from 'kysely';
 
 @Injectable()
 export class ChatReader {
@@ -68,50 +69,79 @@ export class ChatReader {
       .where('ChatUser.userId', '=', kyselyUuid(userId))
       .where('ChatUser.enteredAt', 'is not', null)
       .innerJoin('Chat', 'ChatUser.chatId', 'Chat.id')
-      .innerJoin('ChatMessage', 'Chat.id', 'ChatMessage.chatId')
-      .$if(!!cursor, (eb) => {
-        const [lastCreatedAt, lastId] = cursor!.split('_');
-        return eb.where((eb) =>
-          eb.and([
-            eb('ChatMessage.createdAt', '<=', new Date(lastCreatedAt)),
-            eb('ChatMessage.id', '!=', kyselyUuid(lastId)),
-          ]),
-        );
-      })
-      .innerJoin('User as Opponent', 'ChatMessage.userId', 'Opponent.id')
-      .innerJoin('User as MessageUser', 'ChatMessage.userId', 'MessageUser.id')
-      .leftJoin(
-        'ChatMessage as ReplyMessage',
-        'ChatMessage.replyToId',
-        'ReplyMessage.id',
+      .innerJoinLateral(
+        (eb) =>
+          eb
+            .selectFrom('ChatMessage')
+            .whereRef('ChatMessage.chatId', '=', 'ChatUser.chatId')
+            .select([
+              'ChatMessage.id',
+              'ChatMessage.userId',
+              'ChatMessage.content',
+              'ChatMessage.image',
+              'ChatMessage.createdAt',
+              'ChatMessage.isLike',
+            ])
+            .orderBy('ChatMessage.createdAt', 'desc')
+            .orderBy('ChatMessage.id', 'desc')
+            .limit(1)
+            .as('LastMessage'),
+        (join) => join.on((eb) => eb.lit(true)),
       )
       .select([
+        sql`"LastMessage"."id"`.as('lastMessageId'),
+        sql`"LastMessage"."userId"`.as('lastMessageUserId'),
+        sql`"LastMessage"."content"`.as('lastMessageContent'),
+        sql`"LastMessage"."image"`.as('lastMessageImage'),
+        sql`"LastMessage"."createdAt"`.as('lastMessageCreatedAt'),
+        sql`"LastMessage"."isLike"`.as('lastMessageIsLike'),
         'Chat.id as id',
         'Chat.createdAt as createdAt',
-        'ChatMessage.id as messageId',
-        'ChatMessage.content as messageContent',
-        'ChatMessage.image as messageImage',
-        'ChatMessage.createdAt as messageCreatedAt',
-        'ChatMessage.isLike as messageIsLike',
-        'MessageUser.id as messageUserId',
-        'MessageUser.name as messageUserName',
-        'MessageUser.image as messageUserImage',
-        'MessageUser.url as messageUserUrl',
-        'ChatMessage.replyToId as messageReplyToId',
-        'ReplyMessage.id as replyId',
-        'ReplyMessage.content as replyContent',
-        'ReplyMessage.createdAt as replyCreatedAt',
-        'ReplyMessage.image as replyImage',
         'ChatUser.unreadCount as unreadCount',
-        'Opponent.id as opponentId',
-        'Opponent.name as opponentName',
-        'Opponent.image as opponentImage',
-        'Opponent.url as opponentUrl',
+        'ChatUser.userId',
       ])
-      .$if(username !== null, (eb) =>
-        eb.where('Opponent.name', 'like', `%${username}%`),
+      .innerJoinLateral(
+        (eb) =>
+          eb
+            .selectFrom('ChatUser as OpponentChatUser')
+            .whereRef('OpponentChatUser.chatId', '=', 'Chat.id')
+            .where('OpponentChatUser.userId', '!=', kyselyUuid(userId))
+            .innerJoin(
+              'User as Opponent',
+              'OpponentChatUser.userId',
+              'Opponent.id',
+            )
+            .$if(!!username, (eb) =>
+              eb.where('Opponent.name', 'like', `%${username}%`),
+            )
+            .select([
+              'Opponent.id as opponentId',
+              'Opponent.name as opponentName',
+              'Opponent.image as opponentImage',
+              'Opponent.url as opponentUrl',
+            ])
+            .as('Opponent'),
+        (join) => join.on((eb) => eb.lit(true)),
       )
-      .orderBy('ChatMessage.createdAt', 'desc')
+      .select([
+        'Opponent.opponentId as opponentId',
+        'Opponent.opponentName as opponentName',
+        'Opponent.opponentImage as opponentImage',
+        'Opponent.opponentUrl as opponentUrl',
+      ])
+      .orderBy('LastMessage.createdAt', 'desc')
+      .orderBy('LastMessage.id', 'desc')
+      .$if(!!cursor, (eb) =>
+        eb.where((eb) =>
+          eb.or([
+            eb('LastMessage.createdAt', '<', new Date(cursor!.split('_')[0])),
+            eb.and([
+              eb('LastMessage.createdAt', '=', new Date(cursor!.split('_')[0])),
+              eb('LastMessage.id', '<', kyselyUuid(cursor!.split('_')[1])),
+            ]),
+          ]),
+        ),
+      )
       .limit(size)
       .execute();
 
@@ -125,26 +155,11 @@ export class ChatReader {
         unreadCount: chat.unreadCount,
         createdAt: chat.createdAt,
         lastMessage: {
-          id: chat.messageId,
-          user: {
-            id: chat.messageUserId,
-            name: chat.messageUserName,
-            image: chat.messageUserImage,
-            url: chat.messageUserUrl,
-          },
-          content: chat.messageContent,
-          image: chat.messageImage,
-          createdAt: chat.messageCreatedAt,
-          isLike: chat.messageIsLike,
-          replyTo:
-            chat.replyId && chat.replyCreatedAt
-              ? {
-                  id: chat.replyId,
-                  content: chat.replyContent,
-                  createdAt: chat.replyCreatedAt,
-                  image: chat.replyImage,
-                }
-              : null,
+          id: chat.lastMessageId as string,
+          content: chat.lastMessageContent as string,
+          image: chat.lastMessageImage as string,
+          createdAt: chat.lastMessageCreatedAt as Date,
+          isLike: chat.lastMessageIsLike as boolean,
         },
         opponent: {
           id: chat.opponentId,

@@ -65,23 +65,13 @@ export class ChatService {
         ...chat,
         lastMessage: {
           ...chat.lastMessage,
-          image: getImageUrl(chat.lastMessage?.image ?? null),
-          user: {
-            ...chat.lastMessage?.user,
-            image: getImageUrl(chat.lastMessage?.user?.image ?? null),
-          },
-          replyTo: chat.lastMessage?.replyTo
-            ? {
-                ...chat.lastMessage?.replyTo,
-                image: getImageUrl(chat.lastMessage?.replyTo?.image ?? null),
-              }
-            : null,
+          image: getImageUrl(chat.lastMessage.image as string | null),
         },
         opponent: {
-          id: chat.opponent.id ?? '',
-          name: chat.opponent.name ?? '',
+          id: chat.opponent.id,
+          name: chat.opponent.name,
           image: getImageUrl(chat.opponent.image),
-          url: chat.opponent.url ?? '',
+          url: chat.opponent.url,
         },
       })),
     };
