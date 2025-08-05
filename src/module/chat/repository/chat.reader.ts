@@ -44,12 +44,41 @@ export class ChatReader {
     });
   }
 
-  async findUsersByChatId(chatId: string) {
+  async findUsersStatusByChatId(chatId: string) {
     return await this.txHost.tx.chatUser.findMany({
       where: {
         chatId,
       },
     });
+  }
+
+  async findUsersByChatId(chatId: string) {
+    const result = await this.txHost.tx.$kysely
+      .selectFrom('ChatUser')
+      .where('ChatUser.chatId', '=', kyselyUuid(chatId))
+      .select([
+        'ChatUser.enteredAt',
+        'ChatUser.exitedAt',
+        'ChatUser.unreadCount',
+      ])
+      .innerJoin('User', 'ChatUser.userId', 'User.id')
+      .select([
+        'User.id as userId',
+        'User.name as userName',
+        'User.image as userImage',
+        'User.url as userUrl',
+      ])
+      .execute();
+
+    return result.map((user) => ({
+      id: user.userId,
+      name: user.userName,
+      image: user.userImage,
+      url: user.userUrl,
+      enteredAt: user.enteredAt,
+      exitedAt: user.exitedAt,
+      unreadCount: user.unreadCount,
+    }));
   }
 
   async findMessageById(id: string) {

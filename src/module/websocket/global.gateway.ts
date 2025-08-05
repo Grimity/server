@@ -17,6 +17,7 @@ import { WsException } from '@nestjs/websockets';
 import Redis from 'ioredis';
 import { HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { NewChatMessageEventResponse } from '../chat/dto';
 
 @WebSocketGateway({})
 export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -98,5 +99,23 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   leaveChat(socketId: string, chatId: string) {
     this.server.in(socketId).socketsLeave(`chat:${chatId}`);
+  }
+
+  async getSocketIdsByUserId(userId: string) {
+    const sockets = await this.server.in(`user:${userId}`).fetchSockets();
+
+    return sockets.map((socket) => socket.id);
+  }
+
+  async getSocketIdsByChatId(chatId: string) {
+    const sockets = await this.server.in(`chat:${chatId}`).fetchSockets();
+
+    return sockets.map((socket) => socket.id);
+  }
+
+  async emitMessageEventToRoom() {}
+
+  emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {
+    this.server.to(`user:${userId}`).emit('newChatMessage', dto);
   }
 }

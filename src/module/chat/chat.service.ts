@@ -31,14 +31,13 @@ export class ChatService {
       if (chatStatus === null) throw new HttpException('CHAT', 404);
 
       if (chatStatus.enteredAt) return { id: chatId };
+      else {
+        const { chatId: id } = await this.chatWriter.enterChat(userId, chatId);
+        return { id };
+      }
     }
 
-    if (chatId) {
-      const { chatId: id } = await this.chatWriter.enterChat(userId, chatId);
-      return { id };
-    } else {
-      return await this.chatWriter.createChat(userId, targetUserId);
-    }
+    return await this.chatWriter.createChat(userId, targetUserId);
   }
 
   async search({
@@ -118,7 +117,7 @@ export class ChatService {
   }
 
   async deleteChat(userId: string, chatId: string) {
-    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+    const chatUsers = await this.chatReader.findUsersStatusByChatId(chatId);
 
     const me = chatUsers.find((status) => status.userId === userId);
     const opponent = chatUsers.find((status) => status.userId !== userId);
@@ -137,5 +136,10 @@ export class ChatService {
         exitedAt: new Date(),
       });
     }
+  }
+
+  async deleteChats(userId: string, chatIds: string[]) {
+    await this.chatWriter.exitManyChats(userId, chatIds);
+    return;
   }
 }
