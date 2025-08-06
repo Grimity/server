@@ -7,7 +7,7 @@ import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 import { v4 as uuidv4 } from 'uuid';
 
-describe('GET /chats - 채팅 검색(이름만)', () => {
+describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
@@ -88,27 +88,25 @@ describe('GET /chats - 채팅 검색(이름만)', () => {
         ],
       });
 
-      await prisma.chatMessage.createMany({
-        data: [
-          {
-            chatId: chat.id,
-            userId: testUser.id,
-            content: `This is test message ${i} from testUser`,
-            createdAt: new Date(),
-          },
-          {
-            chatId: chat.id,
-            userId: me.id,
-            content: `This is test message ${i} from me`,
-            createdAt: new Date(),
-          },
-        ],
-      });
+      const chatMessages = [];
+      for (let j = 0; j < 50; j++) {
+        chatMessages.push({
+          chatId: chat.id,
+          userId: testUser.id,
+          content: `This is test message ${i}-${j} from testUser${i}`,
+        });
+        chatMessages.push({
+          chatId: chat.id,
+          userId: me.id,
+          content: `This is test message ${i}-${j} from me`,
+        });
+      }
+      await prisma.chatMessage.createMany({ data: chatMessages });
     }
 
+    // when
     let cursor: string | null = null;
     while (true) {
-      // when
       const size = 5;
       const { body, status } = await request(app.getHttpServer())
         .get('/chats')
