@@ -20,6 +20,6 @@ export type * from '../src/module/post-comment/dto';
 
 export type * from '../src/module/report/dto';
 
-export type * from '../src/module/tag/dto';
-
 export type * from '../src/module/user/dto';
+
+export type * from '../src/module/chat/dto';
