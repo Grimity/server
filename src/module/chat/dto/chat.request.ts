@@ -1,10 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArrayMinSize, IsString, IsUUID, Length } from 'class-validator';
+import { IsOptional, ArrayMinSize, IsUUID, Length } from 'class-validator';
+import { CursorRequest } from '../../../shared/request';
+import { TrimNullableString, TrimString } from 'src/shared/request/validator';
 
 export class CreateChatRequest {
   @ApiProperty()
   @IsUUID()
   targetUserId: string;
+}
+
+export class GetChatsRequest extends CursorRequest {
+  @ApiProperty({
+    required: false,
+    description: '검색할 사용자 이름',
+    example: 'user123',
+  })
+  @TrimNullableString()
+  @IsOptional()
+  @Length(1, 20)
+  keyword?: string;
 }
 
 export class JoinChatRequest {

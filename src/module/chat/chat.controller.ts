@@ -9,6 +9,8 @@ import {
   Body,
   UseGuards,
   Post,
+  Get,
+  Query,
   Put,
   Param,
   ParseUUIDPipe,
@@ -17,6 +19,7 @@ import {
 } from '@nestjs/common';
 import {
   CreateChatRequest,
+  GetChatsRequest,
   JoinChatRequest,
   LeaveChatRequest,
   BatchDeleteChatsRequest,
@@ -25,6 +28,7 @@ import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
+import { ChatsResponse } from './dto/chat.response';
 
 @ApiTags('/chats')
 @ApiBearerAuth()
@@ -43,6 +47,21 @@ export class ChatController {
     @Body() { targetUserId }: CreateChatRequest,
   ): Promise<IdResponse> {
     return await this.chatService.createChat(userId, targetUserId);
+  }
+
+  @ApiOperation({ summary: '채팅방 목록 조회' })
+  @ApiResponse({ status: 200, type: ChatsResponse })
+  @Get()
+  async search(
+    @CurrentUser() userId: string,
+    @Query() { keyword, cursor, size }: GetChatsRequest,
+  ): Promise<ChatsResponse> {
+    return await this.chatService.getChats({
+      userId,
+      size: size ?? 10,
+      cursor: cursor || null,
+      keyword: keyword ?? null,
+    });
   }
 
   @ApiOperation({ summary: '채팅방 여러개 삭제' })

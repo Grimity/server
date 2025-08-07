@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { sql } from 'kysely';
 
 @Injectable()
 export class ChatReader {
@@ -84,6 +85,99 @@ export class ChatReader {
     return await this.txHost.tx.chatMessage.findUnique({
       where: { id },
     });
+  }
+
+  async findManyByUsernameWithCursor({
+    userId,
+    size,
+    cursor,
+    name,
+  }: {
+    userId: string;
+    size: number;
+    cursor: string | null;
+    name: string | null;
+  }) {
+    const chats = await this.txHost.tx.$kysely
+      .selectFrom('ChatUser')
+      .where('ChatUser.userId', '=', kyselyUuid(userId))
+      .where('ChatUser.enteredAt', 'is not', null)
+      .innerJoin('ChatUser as opponentUser', (join) =>
+        join
+          .onRef('ChatUser.chatId', '=', 'opponentUser.chatId')
+          .on('opponentUser.userId', '!=', kyselyUuid(userId)),
+      )
+      .innerJoinLateral(
+        (eb) =>
+          eb
+            .selectFrom('ChatMessage')
+            .whereRef('ChatMessage.chatId', '=', 'ChatUser.chatId')
+            .select([
+              'ChatMessage.id',
+              'ChatMessage.userId',
+              'ChatMessage.content',
+              'ChatMessage.image',
+              'ChatMessage.createdAt',
+            ])
+            .orderBy('ChatMessage.createdAt', 'desc')
+            .limit(1)
+            .as('LastMessage'),
+        (join) => join.on((eb) => eb.lit(true)),
+      )
+      .innerJoin('User', 'opponentUser.userId', 'User.id')
+      .$if(!!name, (eb) => eb.where('User.name', 'like', `%${name}%`))
+      .select([
+        'ChatUser.chatId as id',
+        'ChatUser.unreadCount',
+        'LastMessage.id as lastMessageId',
+        'LastMessage.content as lastMessageContent',
+        'LastMessage.image as lastMessageImage',
+        'LastMessage.createdAt as lastMessageCreatedAt',
+        'LastMessage.userId as lastMessageUserId',
+        'User.id as opponentId',
+        'User.name as opponentName',
+        'User.image as opponentImage',
+        'User.url as opponentUrl',
+      ])
+      .orderBy('LastMessage.createdAt', 'desc')
+      .orderBy('ChatUser.chatId', 'desc')
+      .$if(!!cursor, (eb) =>
+        eb.where((eb) =>
+          eb.or([
+            eb('LastMessage.createdAt', '<', new Date(cursor!.split('_')[0])),
+            eb.and([
+              eb('LastMessage.createdAt', '=', new Date(cursor!.split('_')[0])),
+              eb('ChatUser.chatId', '<', kyselyUuid(cursor!.split('_')[1])),
+            ]),
+          ]),
+        ),
+      )
+      .limit(size)
+      .execute();
+
+    return {
+      nextCursor:
+        chats.length === size
+          ? `${chats[size - 1].lastMessageCreatedAt.toISOString()}_${chats[size - 1].id}`
+          : null,
+      chats: chats.map((chat) => ({
+        id: chat.id,
+        unreadCount: chat.unreadCount,
+        lastMessage: {
+          id: chat.lastMessageId,
+          content: chat.lastMessageContent,
+          image: chat.lastMessageImage,
+          createdAt: chat.lastMessageCreatedAt,
+          senderId: chat.lastMessageUserId,
+        },
+        opponentUser: {
+          id: chat.opponentId,
+          name: chat.opponentName,
+          image: chat.opponentImage,
+          url: chat.opponentUrl,
+        },
+      })),
+    };
   }
 
   async findManyMessagesByCursor({

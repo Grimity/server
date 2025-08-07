@@ -3,6 +3,7 @@ import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserSelectRepository } from '../user/repository/user.select.repository';
 import { GlobalGateway } from '../websocket/global.gateway';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
 export class ChatService {
@@ -37,6 +38,40 @@ export class ChatService {
     }
 
     return await this.chatWriter.createChat(userId, targetUserId);
+  }
+
+  async getChats({
+    userId,
+    size,
+    cursor,
+    keyword,
+  }: {
+    userId: string;
+    size: number;
+    cursor: string | null;
+    keyword: string | null;
+  }) {
+    const result = await this.chatReader.findManyByUsernameWithCursor({
+      userId,
+      size,
+      cursor,
+      name: keyword,
+    });
+
+    return {
+      nextCursor: result.nextCursor,
+      chats: result.chats.map((chat) => ({
+        ...chat,
+        lastMessage: {
+          ...chat.lastMessage,
+          image: getImageUrl(chat.lastMessage.image),
+        },
+        opponentUser: {
+          ...chat.opponentUser,
+          image: getImageUrl(chat.opponentUser.image),
+        },
+      })),
+    };
   }
 
   async joinChat({
