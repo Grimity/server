@@ -53,98 +53,107 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
     const accessToken = await register(app, 'test');
     const me = await prisma.user.findFirstOrThrow();
 
-    const testUserCount = 50;
+    const testUserCount = 20;
 
-    for (let i = 0; i < testUserCount; i++) {
-      const testUser = await prisma.user.create({
-        data: {
-          provider: 'KAKAO',
-          providerId: `test${i}`,
-          name: `test${i}`,
-          email: `test${i}@example.com`,
-          url: `test${i}`,
-          image: `https://test${i}.com/image.png`,
-        },
-      });
+    const users = await prisma.user.createManyAndReturn({
+      data: Array.from({ length: testUserCount }, (_, i) => ({
+        provider: 'KAKAO',
+        providerId: `test${i}`,
+        name: `test${i}`,
+        email: `test${i}@example.com`,
+        url: `test${i}`,
+      })),
+    });
 
-      const chat = await prisma.chat.create({
-        data: { id: uuidv4(), createdAt: new Date() },
-      });
+    const chats = await prisma.chat.createManyAndReturn({
+      data: Array.from({ length: testUserCount }, (_, i) => ({})),
+    });
 
-      await prisma.chatUser.createMany({
-        data: [
-          {
-            userId: me.id,
-            chatId: chat.id,
-            enteredAt: new Date(),
-            unreadCount: 1,
-          },
-          {
-            userId: testUser.id,
-            chatId: chat.id,
-            enteredAt: new Date(),
-            unreadCount: 1,
-          },
-        ],
-      });
-
-      const chatMessages = [];
-      for (let j = 0; j < 50; j++) {
-        chatMessages.push({
-          chatId: chat.id,
-          userId: testUser.id,
-          content: `This is test message ${i}-${j} from testUser${i}`,
-        });
-        chatMessages.push({
-          chatId: chat.id,
+    await prisma.chatUser.createMany({
+      data: users.flatMap((user, i) => [
+        {
           userId: me.id,
-          content: `This is test message ${i}-${j} from me`,
-        });
-      }
-      await prisma.chatMessage.createMany({ data: chatMessages });
-    }
+          chatId: chats[i].id,
+          enteredAt: new Date(),
+          unreadCount: 1,
+        },
+        {
+          userId: user.id,
+          chatId: chats[i].id,
+          enteredAt: new Date(),
+          unreadCount: 1,
+        },
+      ]),
+    });
+
+    await prisma.chatMessage.createMany({
+      data: Array.from({ length: testUserCount }, (_, i) => ({
+        chatId: chats[i].id,
+        userId: users[i].id,
+        content: `message${i}`,
+        createdAt: new Date(Date.now() - i * 1000),
+      })),
+    });
 
     // when
-    let cursor: string | null = null;
-    while (true) {
-      const size = 5;
-      const { body, status } = await request(app.getHttpServer())
-        .get('/chats')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .query({
-          username: 'test1',
-          size,
-          cursor,
-        });
+    const response1 = await request(app.getHttpServer())
+      .get('/chats')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .query({
+        keyword: 'test1',
+        size: 10,
+      });
 
-      cursor = body.nextCursor;
+    const response2 = await request(app.getHttpServer())
+      .get('/chats')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .query({
+        keyword: 'test1',
+        cursor: response1.body.nextCursor,
+      });
 
-      // then
-      expect(status).toBe(200);
-      // test1, test10 ~ test19 총 11개
-      expect(body.chats.length).toBeLessThanOrEqual(size);
-      expect(body.nextCursor).toBeDefined();
+    // then
+    expect(response1.status).toBe(200);
+    expect(response1.body.chats.length).toBe(10);
+    expect(response1.body.nextCursor).toBeDefined();
+    expect(response1.body.chats[0]).toEqual({
+      id: expect.any(String),
+      unreadCount: 1,
+      opponentUser: {
+        id: expect.any(String),
+        name: 'test1',
+        image: null,
+        url: 'test1',
+      },
+      lastMessage: {
+        id: expect.any(String),
+        content: 'message1',
+        createdAt: expect.any(String),
+        image: null,
+        senderId: users[1].id,
+      },
+    });
 
-      for (const [i, chat] of body.chats.entries()) {
-        expect(chat.id).toBeDefined();
-        expect(chat.opponent.id).toBeDefined();
-        expect(chat.opponent.name).toBeDefined();
-        expect(chat.opponent.image).toBeDefined();
-        expect(chat.opponent.url).toBeDefined();
-        expect(chat.lastMessage).toBeDefined();
+    expect(response2.status).toBe(200);
+    expect(response2.body.chats.length).toBe(1);
+    expect(response2.body.nextCursor).toBeNull();
 
-        // 마지막으로 온 채팅 메시지 순서대로 정렬되어 있는지 확인
-        if (i < body.chats.length - 1) {
-          expect(
-            new Date(chat.lastMessage.createdAt).getTime(),
-          ).toBeGreaterThan(
-            new Date(body.chats[i + 1].lastMessage.createdAt).getTime(),
-          );
-        }
-      }
-      if (!cursor) {
-        break;
-      }
-    }
+    expect(response2.body.chats[0]).toEqual({
+      id: expect.any(String),
+      unreadCount: 1,
+      opponentUser: {
+        id: expect.any(String),
+        name: 'test19',
+        image: null,
+        url: 'test19',
+      },
+      lastMessage: {
+        id: expect.any(String),
+        content: 'message19',
+        createdAt: expect.any(String),
+        image: null,
+        senderId: users[19].id,
+      },
+    });
   });
 });

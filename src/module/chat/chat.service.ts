@@ -40,23 +40,23 @@ export class ChatService {
     return await this.chatWriter.createChat(userId, targetUserId);
   }
 
-  async search({
+  async getChats({
     userId,
     size,
     cursor,
-    username,
+    keyword,
   }: {
     userId: string;
     size: number;
-    cursor?: string | null;
-    username?: string | null;
+    cursor: string | null;
+    keyword: string | null;
   }) {
-    const result = await this.chatReader.findManyByUsernameWithCursor(
+    const result = await this.chatReader.findManyByUsernameWithCursor({
       userId,
       size,
       cursor,
-      username,
-    );
+      name: keyword,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -64,13 +64,11 @@ export class ChatService {
         ...chat,
         lastMessage: {
           ...chat.lastMessage,
-          image: getImageUrl(chat.lastMessage.image as string | null),
+          image: getImageUrl(chat.lastMessage.image),
         },
-        opponent: {
-          id: chat.opponent.id,
-          name: chat.opponent.name,
-          image: getImageUrl(chat.opponent.image),
-          url: chat.opponent.url,
+        opponentUser: {
+          ...chat.opponentUser,
+          image: getImageUrl(chat.opponentUser.image),
         },
       })),
     };
