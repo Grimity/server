@@ -87,17 +87,26 @@ export class ChatReader {
     });
   }
 
-  async findManyByUsernameWithCursor(
-    userId: string,
-    size: number,
-    cursor?: string | null,
-    username?: string | null,
-  ) {
+  async findManyByUsernameWithCursor({
+    userId,
+    size,
+    cursor,
+    name,
+  }: {
+    userId: string;
+    size: number;
+    cursor: string | null;
+    name: string | null;
+  }) {
     const chats = await this.txHost.tx.$kysely
       .selectFrom('ChatUser')
       .where('ChatUser.userId', '=', kyselyUuid(userId))
       .where('ChatUser.enteredAt', 'is not', null)
-      .innerJoin('Chat', 'ChatUser.chatId', 'Chat.id')
+      .innerJoin('ChatUser as opponentUser', (join) =>
+        join
+          .onRef('ChatUser.chatId', '=', 'opponentUser.chatId')
+          .on('opponentUser.userId', '!=', kyselyUuid(userId)),
+      )
       .innerJoinLateral(
         (eb) =>
           eb
@@ -109,54 +118,26 @@ export class ChatReader {
               'ChatMessage.content',
               'ChatMessage.image',
               'ChatMessage.createdAt',
-              'ChatMessage.isLike',
             ])
             .orderBy('ChatMessage.createdAt', 'desc')
-            .orderBy('ChatMessage.id', 'desc')
             .limit(1)
             .as('LastMessage'),
         (join) => join.on((eb) => eb.lit(true)),
       )
+      .innerJoin('User', 'opponentUser.userId', 'User.id')
+      .$if(!!name, (eb) => eb.where('User.name', 'like', `%${name}%`))
       .select([
-        sql`"LastMessage"."id"`.as('lastMessageId'),
-        sql`"LastMessage"."userId"`.as('lastMessageUserId'),
-        sql`"LastMessage"."content"`.as('lastMessageContent'),
-        sql`"LastMessage"."image"`.as('lastMessageImage'),
-        sql`"LastMessage"."createdAt"`.as('lastMessageCreatedAt'),
-        sql`"LastMessage"."isLike"`.as('lastMessageIsLike'),
-        'Chat.id as id',
-        'Chat.createdAt as createdAt',
-        'ChatUser.unreadCount as unreadCount',
-        'ChatUser.userId',
-      ])
-      .innerJoinLateral(
-        (eb) =>
-          eb
-            .selectFrom('ChatUser as OpponentChatUser')
-            .whereRef('OpponentChatUser.chatId', '=', 'Chat.id')
-            .where('OpponentChatUser.userId', '!=', kyselyUuid(userId))
-            .innerJoin(
-              'User as Opponent',
-              'OpponentChatUser.userId',
-              'Opponent.id',
-            )
-            .$if(!!username, (eb) =>
-              eb.where('Opponent.name', 'like', `%${username}%`),
-            )
-            .select([
-              'Opponent.id as opponentId',
-              'Opponent.name as opponentName',
-              'Opponent.image as opponentImage',
-              'Opponent.url as opponentUrl',
-            ])
-            .as('Opponent'),
-        (join) => join.on((eb) => eb.lit(true)),
-      )
-      .select([
-        'Opponent.opponentId as opponentId',
-        'Opponent.opponentName as opponentName',
-        'Opponent.opponentImage as opponentImage',
-        'Opponent.opponentUrl as opponentUrl',
+        'ChatUser.chatId as id',
+        'ChatUser.unreadCount',
+        'LastMessage.id as lastMessageId',
+        'LastMessage.content as lastMessageContent',
+        'LastMessage.image as lastMessageImage',
+        'LastMessage.createdAt as lastMessageCreatedAt',
+        'LastMessage.userId as lastMessageUserId',
+        'User.id as opponentId',
+        'User.name as opponentName',
+        'User.image as opponentImage',
+        'User.url as opponentUrl',
       ])
       .orderBy('LastMessage.createdAt', 'desc')
       .orderBy('LastMessage.id', 'desc')
@@ -177,20 +158,19 @@ export class ChatReader {
     return {
       nextCursor:
         chats.length === size
-          ? `${chats[size - 1].createdAt.toISOString()}_${chats[size - 1].id}`
+          ? `${chats[size - 1].lastMessageCreatedAt.toISOString()}_${chats[size - 1].id}`
           : null,
       chats: chats.map((chat) => ({
         id: chat.id,
         unreadCount: chat.unreadCount,
-        createdAt: chat.createdAt,
         lastMessage: {
-          id: chat.lastMessageId as string,
-          content: chat.lastMessageContent as string,
-          image: chat.lastMessageImage as string,
-          createdAt: chat.lastMessageCreatedAt as Date,
-          isLike: chat.lastMessageIsLike as boolean,
+          id: chat.lastMessageId,
+          content: chat.lastMessageContent,
+          image: chat.lastMessageImage,
+          createdAt: chat.lastMessageCreatedAt,
+          senderId: chat.lastMessageUserId,
         },
-        opponent: {
+        opponentUser: {
           id: chat.opponentId,
           name: chat.opponentName,
           image: chat.opponentImage,

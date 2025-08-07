@@ -28,7 +28,7 @@ import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
-import { SearchedChatsResponse } from './dto/chat.response';
+import { ChatsResponse } from './dto/chat.response';
 
 @ApiTags('/chats')
 @ApiBearerAuth()
@@ -50,17 +50,17 @@ export class ChatController {
   }
 
   @ApiOperation({ summary: '채팅방 목록 조회' })
-  @ApiResponse({ status: 200, type: SearchedChatsResponse })
+  @ApiResponse({ status: 200, type: ChatsResponse })
   @Get()
   async search(
     @CurrentUser() userId: string,
-    @Query() { username, cursor, size }: GetChatsRequest,
-  ): Promise<SearchedChatsResponse> {
-    return await this.chatService.search({
+    @Query() { keyword, cursor, size }: GetChatsRequest,
+  ): Promise<ChatsResponse> {
+    return await this.chatService.getChats({
       userId,
       size: size ?? 10,
-      cursor,
-      username,
+      cursor: cursor || null,
+      keyword: keyword ?? null,
     });
   }
 
