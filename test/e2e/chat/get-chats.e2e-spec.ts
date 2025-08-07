@@ -53,10 +53,10 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
     const accessToken = await register(app, 'test');
     const me = await prisma.user.findFirstOrThrow();
 
-    const testUserCount = 50;
+    const testUserCount = 20;
 
     const users = await prisma.user.createManyAndReturn({
-      data: Array.from({ length: 20 }, (_, i) => ({
+      data: Array.from({ length: testUserCount }, (_, i) => ({
         provider: 'KAKAO',
         providerId: `test${i}`,
         name: `test${i}`,
@@ -66,7 +66,7 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
     });
 
     const chats = await prisma.chat.createManyAndReturn({
-      data: Array.from({ length: 20 }, (_, i) => ({})),
+      data: Array.from({ length: testUserCount }, (_, i) => ({})),
     });
 
     await prisma.chatUser.createMany({
@@ -87,7 +87,7 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
     });
 
     await prisma.chatMessage.createMany({
-      data: Array.from({ length: 20 }, (_, i) => ({
+      data: Array.from({ length: testUserCount }, (_, i) => ({
         chatId: chats[i].id,
         userId: users[i].id,
         content: `message${i}`,
@@ -131,6 +131,28 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
         createdAt: expect.any(String),
         image: null,
         senderId: users[1].id,
+      },
+    });
+
+    expect(response2.status).toBe(200);
+    expect(response2.body.chats.length).toBe(1);
+    expect(response2.body.nextCursor).toBeNull();
+
+    expect(response2.body.chats[0]).toEqual({
+      id: expect.any(String),
+      unreadCount: 1,
+      opponentUser: {
+        id: expect.any(String),
+        name: 'test19',
+        image: null,
+        url: 'test19',
+      },
+      lastMessage: {
+        id: expect.any(String),
+        content: 'message19',
+        createdAt: expect.any(String),
+        image: null,
+        senderId: users[19].id,
       },
     });
   });

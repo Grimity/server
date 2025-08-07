@@ -140,14 +140,14 @@ export class ChatReader {
         'User.url as opponentUrl',
       ])
       .orderBy('LastMessage.createdAt', 'desc')
-      .orderBy('LastMessage.id', 'desc')
+      .orderBy('ChatUser.chatId', 'desc')
       .$if(!!cursor, (eb) =>
         eb.where((eb) =>
           eb.or([
             eb('LastMessage.createdAt', '<', new Date(cursor!.split('_')[0])),
             eb.and([
               eb('LastMessage.createdAt', '=', new Date(cursor!.split('_')[0])),
-              eb('LastMessage.id', '<', kyselyUuid(cursor!.split('_')[1])),
+              eb('ChatUser.chatId', '<', kyselyUuid(cursor!.split('_')[1])),
             ]),
           ]),
         ),
