@@ -5,7 +5,6 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
-import { v4 as uuidv4 } from 'uuid';
 
 describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
   let app: INestApplication;

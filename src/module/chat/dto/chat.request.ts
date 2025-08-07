@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, ArrayMinSize, IsUUID, Length } from 'class-validator';
 import { CursorRequest } from '../../../shared/request';
-import { TrimNullableString, TrimString } from 'src/shared/request/validator';
+import { TrimNullableString } from '../../../shared/request/validator';
 
 export class CreateChatRequest {
   @ApiProperty()
