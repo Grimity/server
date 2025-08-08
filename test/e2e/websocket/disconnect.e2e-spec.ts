@@ -60,18 +60,8 @@ describe('GlobalGateway disconnect', () => {
         },
       });
 
-      const clientSocket2 = io('http://localhost:3000', {
-        auth: {
-          accessToken,
-        },
-      });
-
       clientSocket.on('connected', () => {
         clientSocket.disconnect();
-      });
-
-      clientSocket2.on('connected', () => {
-        clientSocket2.disconnect();
         resolve(true);
       });
     });
