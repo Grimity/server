@@ -6,11 +6,19 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
+import { RedisService } from 'src/database/redis/redis.service';
+import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
+import { GlobalGateway } from 'src/module/websocket/global.gateway';
+import { Server } from 'socket.io';
+import { Socket as ClientSocket, io } from 'socket.io-client';
 
 describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
+  let redisService: RedisService;
+  let globalGateway: GlobalGateway;
+  let socketServer: Server;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,6 +28,7 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+    redisService = app.get<RedisService>(RedisService);
 
     jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -27,11 +36,20 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
     });
 
     await app.init();
+    await app.listen(3000);
+
+    const redisIoAdapter = new RedisIoAdapter(redisService, app);
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+
+    globalGateway = app.get<GlobalGateway>(GlobalGateway);
+    socketServer = globalGateway.server;
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
     await prisma.chat.deleteMany();
+    await redisService.flushall();
   });
 
   afterAll(async () => {
@@ -150,5 +168,75 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
         unreadCount: 0,
       })),
     );
+  });
+
+  it('나한테 deleteChat 이벤트가 발생한다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const me = await prisma.user.findFirstOrThrow();
+    const users = await prisma.user.createManyAndReturn({
+      data: Array.from({ length: 4 }).map((_, i) => ({
+        url: `test${i + 2}`,
+        name: `test${i + 2}`,
+        provider: 'KAKAO',
+        providerId: `test${i + 2}`,
+        email: 'test@test.com',
+      })),
+    });
+
+    const chats = await prisma.chat.createManyAndReturn({
+      data: [{}, {}, {}, {}],
+    });
+
+    for (let i = 0; i < chats.length; i++) {
+      await prisma.chatUser.createMany({
+        data: [
+          {
+            userId: me.id,
+            chatId: chats[i].id,
+            enteredAt: new Date(),
+            exitedAt: null,
+            unreadCount: i,
+          },
+          {
+            userId: users[i].id,
+            chatId: chats[i].id,
+            enteredAt: i % 2 === 0 ? new Date() : null,
+            exitedAt: i % 2 === 0 ? null : new Date(),
+          },
+        ],
+      });
+    }
+
+    const mySocket = await new Promise<ClientSocket>((resolve) => {
+      const clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken,
+        },
+      });
+
+      clientSocket.on('connect', () => {
+        resolve(clientSocket);
+      });
+    });
+
+    // when
+    const eventData: any = await new Promise(async (resolve) => {
+      mySocket.on('deleteChat', resolve);
+
+      await request(app.getHttpServer())
+        .post('/chats/batch-delete')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          ids: chats.map(({ id }) => id),
+        });
+    });
+
+    // then
+    expect(eventData.length).toBe(4);
+
+    // cleanup
+    mySocket.disconnect();
   });
 });

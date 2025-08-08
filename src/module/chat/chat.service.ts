@@ -134,10 +134,13 @@ export class ChatService {
         exitedAt: new Date(),
       });
     }
+
+    this.globalGateway.emitDeleteChatEventToUser(userId, [chatId]);
   }
 
   async deleteChats(userId: string, chatIds: string[]) {
     await this.chatWriter.exitManyChats(userId, chatIds);
+    this.globalGateway.emitDeleteChatEventToUser(userId, chatIds);
     return;
   }
 }

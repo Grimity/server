@@ -6,11 +6,19 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
+import { RedisService } from 'src/database/redis/redis.service';
+import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
+import { GlobalGateway } from 'src/module/websocket/global.gateway';
+import { Server } from 'socket.io';
+import { Socket as ClientSocket, io } from 'socket.io-client';
 
 describe('DELETE /chats/:id - 채팅방 삭제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authService: AuthService;
+  let redisService: RedisService;
+  let globalGateway: GlobalGateway;
+  let socketServer: Server;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -20,6 +28,7 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
     authService = module.get<AuthService>(AuthService);
+    redisService = app.get<RedisService>(RedisService);
 
     jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test',
@@ -27,11 +36,20 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
     });
 
     await app.init();
+    await app.listen(3000);
+
+    const redisIoAdapter = new RedisIoAdapter(redisService, app);
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+
+    globalGateway = app.get<GlobalGateway>(GlobalGateway);
+    socketServer = globalGateway.server;
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
     await prisma.chat.deleteMany();
+    await redisService.flushall();
   });
 
   afterAll(async () => {
@@ -210,5 +228,69 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
     const afterChat = await prisma.chat.findFirst();
 
     expect(afterChat).toBeNull();
+  });
+
+  it('나한테 deleteChat 이벤트를 발생시킨다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+
+    const me = await prisma.user.findFirstOrThrow();
+    const opponent = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+        email: 'test@test.com',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+                enteredAt: new Date(),
+                unreadCount: 10,
+              },
+              {
+                userId: opponent.id,
+                enteredAt: new Date(),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const mySocket = await new Promise<ClientSocket>((resolve) => {
+      const clientSocket = io('http://localhost:3000', {
+        auth: {
+          accessToken,
+        },
+      });
+
+      clientSocket.on('connect', () => {
+        resolve(clientSocket);
+      });
+    });
+
+    // when
+    const eventData = await new Promise(async (resolve) => {
+      mySocket.on('deleteChat', resolve);
+
+      await request(app.getHttpServer())
+        .delete(`/chats/${chat.id}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send();
+    });
+
+    // then
+    expect(eventData).toEqual([chat.id]);
+
+    // cleanup
+    mySocket.disconnect();
   });
 });
