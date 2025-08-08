@@ -113,9 +113,11 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return sockets.map((socket) => socket.id);
   }
 
-  async emitMessageEventToRoom() {}
-
   emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {
     this.server.to(`user:${userId}`).emit('newChatMessage', dto);
+  }
+
+  emitDeleteChatEventToUser(userId: string, chatIds: string[]) {
+    this.server.to(`user:${userId}`).emit('deleteChat', chatIds);
   }
 }
