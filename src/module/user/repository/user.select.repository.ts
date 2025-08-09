@@ -15,6 +15,12 @@ export class UserSelectRepository {
     });
   }
 
+  async findOneByIdOrThrow(id: string) {
+    return await this.txHost.tx.user.findUniqueOrThrow({
+      where: { id },
+    });
+  }
+
   async findOneByUrl(url: string) {
     return await this.txHost.tx.user.findUnique({
       where: { url },
@@ -69,6 +75,17 @@ export class UserSelectRepository {
       )
       .select((eb) =>
         eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('ChatUser')
+              .where('ChatUser.userId', '=', kyselyUuid(userId))
+              .where('ChatUser.unreadCount', '>', 0)
+              .where('ChatUser.enteredAt', 'is not', null),
+          ])
+          .as('hasUnreadChatMessage'),
+      )
+      .select((eb) =>
+        eb
           .selectFrom('Follow')
           .whereRef('Follow.followerId', '=', 'User.id')
           .select((eb) =>
@@ -93,6 +110,7 @@ export class UserSelectRepository {
       backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
       hasNotification: user.hasNotification,
+      hasUnreadChatMessage: user.hasUnreadChatMessage,
       followerCount: user.followerCount,
       followingCount:
         user.followingCount !== null ? Number(user.followingCount) : 0,
@@ -262,7 +280,8 @@ export class UserSelectRepository {
               .selectFrom('Feed')
               .select('thumbnail')
               .whereRef('Feed.authorId', '=', 'User.id')
-              .limit(2)
+              .orderBy('Feed.likeCount', 'desc')
+              .limit(3)
               .as('Feed'),
           )
           .select((eb) =>

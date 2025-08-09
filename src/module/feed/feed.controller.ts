@@ -146,7 +146,7 @@ export class FeedController {
     @Query() { size, cursor }: CursorRequest,
   ): Promise<FollowingFeedsResponse> {
     return await this.feedService.getFollowingFeeds(userId, {
-      size: size ?? 4,
+      size: size ?? 10,
       cursor: cursor ?? null,
     });
   }

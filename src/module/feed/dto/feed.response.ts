@@ -5,6 +5,7 @@ import {
   CursorResponse,
 } from '../../../shared/response/cursor.response';
 import { AlbumBaseResponse } from '../../album/dto/album.response';
+import { FeedCommentBaseResponse } from 'src/module/feed-comment/dto';
 
 // 최소단위
 export class FeedBaseResponse {
@@ -76,17 +77,6 @@ export class LatestFeedsResponse extends CursorResponse {
   feeds: LatestFeedResponse[];
 }
 
-class PopularFeedResponse extends FeedBaseResponse {
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  isLike: boolean;
-
-  @ApiProperty({ type: UserBaseResponse })
-  author: UserBaseResponse;
-}
-
 class FollowingFeedResponse extends FeedResponse {
   @ApiProperty()
   commentCount: number;
@@ -96,6 +86,9 @@ class FollowingFeedResponse extends FeedResponse {
 
   @ApiProperty()
   isSave: boolean;
+
+  @ApiProperty({ type: FeedCommentBaseResponse, nullable: true })
+  comment: FeedCommentBaseResponse | null;
 }
 
 export class FollowingFeedsResponse extends CursorResponse {
