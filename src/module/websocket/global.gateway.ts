@@ -120,4 +120,12 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
   emitDeleteChatEventToUser(userId: string, chatIds: string[]) {
     this.server.to(`user:${userId}`).emit('deleteChat', chatIds);
   }
+
+  emitLikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
+    this.server.to(`chat:${chatId}`).emit('likeChatMessage', chatMessageId);
+  }
+
+  emitUnlikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
+    this.server.to(`chat:${chatId}`).emit('unlikeChatMessage', chatMessageId);
+  }
 }

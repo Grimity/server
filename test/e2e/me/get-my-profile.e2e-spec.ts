@@ -31,6 +31,7 @@ describe('GET /me - 내 정보 조회', () => {
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await prisma.chat.deleteMany();
   });
 
   afterAll(async () => {
