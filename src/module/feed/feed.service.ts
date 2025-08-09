@@ -228,6 +228,15 @@ export class FeedService {
           ...feed.author,
           image: getImageUrl(feed.author.image),
         },
+        comment: feed.comment
+          ? {
+              ...feed.comment,
+              writer: {
+                ...feed.comment.writer,
+                image: getImageUrl(feed.comment.writer.image),
+              },
+            }
+          : null,
       })),
     };
   }

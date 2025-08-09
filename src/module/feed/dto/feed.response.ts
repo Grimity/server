@@ -5,6 +5,7 @@ import {
   CursorResponse,
 } from '../../../shared/response/cursor.response';
 import { AlbumBaseResponse } from '../../album/dto/album.response';
+import { FeedCommentBaseResponse } from 'src/module/feed-comment/dto';
 
 // 최소단위
 export class FeedBaseResponse {
@@ -85,6 +86,9 @@ class FollowingFeedResponse extends FeedResponse {
 
   @ApiProperty()
   isSave: boolean;
+
+  @ApiProperty({ type: FeedCommentBaseResponse, nullable: true })
+  comment: FeedCommentBaseResponse | null;
 }
 
 export class FollowingFeedsResponse extends CursorResponse {

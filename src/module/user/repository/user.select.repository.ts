@@ -280,7 +280,8 @@ export class UserSelectRepository {
               .selectFrom('Feed')
               .select('thumbnail')
               .whereRef('Feed.authorId', '=', 'User.id')
-              .limit(2)
+              .orderBy('Feed.likeCount', 'desc')
+              .limit(3)
               .as('Feed'),
           )
           .select((eb) =>
