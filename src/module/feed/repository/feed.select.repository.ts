@@ -374,13 +374,13 @@ export class FeedSelectRepository {
       .innerJoin('Feed', 'authorId', 'followingId')
       .select([
         'Feed.id',
-        'title',
-        'thumbnail',
-        'cards',
-        'content',
-        'viewCount',
-        'likeCount',
-        'Feed.createdAt as createdAt',
+        'Feed.title',
+        'Feed.thumbnail',
+        'Feed.cards',
+        'Feed.content',
+        'Feed.viewCount',
+        'Feed.likeCount',
+        'Feed.createdAt',
       ])
       .select((eb) =>
         eb
@@ -420,6 +420,37 @@ export class FeedSelectRepository {
       )
       .innerJoin('User', 'followingId', 'User.id')
       .select(['User.id as authorId', 'name', 'User.image as image', 'url'])
+      .leftJoinLateral(
+        (eb) =>
+          eb
+            .selectFrom('FeedComment')
+            .whereRef('FeedComment.feedId', '=', 'Feed.id')
+            .innerJoin('User', 'FeedComment.writerId', 'User.id')
+            .select([
+              'FeedComment.content',
+              'FeedComment.id',
+              'FeedComment.createdAt',
+              'FeedComment.likeCount',
+              'User.id as writerId',
+              'User.name as writerName',
+              'User.image as writerImage',
+              'User.url as writerUrl',
+            ])
+            .orderBy('FeedComment.likeCount', 'desc')
+            .limit(1)
+            .as('FeedComment'),
+        (join) => join.on((eb) => eb.lit(true)),
+      )
+      .select([
+        'FeedComment.content as feedCommentContent',
+        'FeedComment.createdAt as feedCommentCreatedAt',
+        'FeedComment.id as feedCommentId',
+        'FeedComment.likeCount as feedCommentLikeCount',
+        'FeedComment.writerId as feedCommentWriterId',
+        'FeedComment.writerImage as feedCommentWriterImage',
+        'FeedComment.writerName as feedCommentWriterName',
+        'FeedComment.writerUrl as feedCommentWriterUrl',
+      ])
       .orderBy('Feed.createdAt', 'desc')
       .orderBy('Feed.id', 'desc')
       .limit(size);
@@ -473,6 +504,20 @@ export class FeedSelectRepository {
         },
         isLike: feed.isLike,
         isSave: feed.isSave,
+        comment: feed.feedCommentId
+          ? {
+              id: feed.feedCommentId,
+              content: feed.feedCommentContent!,
+              createdAt: feed.feedCommentCreatedAt!,
+              likeCount: feed.feedCommentLikeCount!,
+              writer: {
+                id: feed.feedCommentWriterId!,
+                name: feed.feedCommentWriterName!,
+                image: feed.feedCommentWriterName,
+                url: feed.feedCommentWriterUrl!,
+              },
+            }
+          : null,
       })),
     };
   }
