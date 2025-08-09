@@ -120,6 +120,6 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     expect(status).toBe(200);
     expect(body).toHaveLength(4);
     const user = body.find((user: any) => user.id === users[0].id);
-    expect(user.thumbnails).toHaveLength(2);
+    expect(user.thumbnails).toHaveLength(3);
   });
 });
