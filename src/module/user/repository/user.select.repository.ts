@@ -75,6 +75,17 @@ export class UserSelectRepository {
       )
       .select((eb) =>
         eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('ChatUser')
+              .where('ChatUser.userId', '=', kyselyUuid(userId))
+              .where('ChatUser.unreadCount', '>', 0)
+              .where('ChatUser.enteredAt', 'is not', null),
+          ])
+          .as('hasUnreadChatMessage'),
+      )
+      .select((eb) =>
+        eb
           .selectFrom('Follow')
           .whereRef('Follow.followerId', '=', 'User.id')
           .select((eb) =>
@@ -99,6 +110,7 @@ export class UserSelectRepository {
       backgroundImage: user.backgroundImage,
       createdAt: user.createdAt,
       hasNotification: user.hasNotification,
+      hasUnreadChatMessage: user.hasUnreadChatMessage,
       followerCount: user.followerCount,
       followingCount:
         user.followingCount !== null ? Number(user.followingCount) : 0,

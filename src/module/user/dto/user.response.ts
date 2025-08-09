@@ -76,6 +76,9 @@ export class MyProfileResponse extends UserBaseResponse {
   hasNotification: boolean;
 
   @ApiProperty()
+  hasUnreadChatMessage: boolean;
+
+  @ApiProperty()
   followerCount: number;
 
   @ApiProperty()
