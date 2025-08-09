@@ -31,6 +31,7 @@ describe('GET /me - 내 정보 조회', () => {
 
   afterEach(async () => {
     await prisma.user.deleteMany();
+    await prisma.chat.deleteMany();
   });
 
   afterAll(async () => {
@@ -59,6 +60,18 @@ describe('GET /me - 내 정보 조회', () => {
       },
     });
 
+    await prisma.chat.create({
+      data: {
+        users: {
+          create: {
+            userId: user.id,
+            unreadCount: 2,
+            enteredAt: new Date(),
+          },
+        },
+      },
+    });
+
     // when
     const { status, body } = await request(app.getHttpServer())
       .get('/me')
@@ -79,6 +92,7 @@ describe('GET /me - 내 정보 조회', () => {
       links: [{ linkName: 'test1', link: 'https://test1.com' }],
       createdAt: expect.any(String),
       hasNotification: false,
+      hasUnreadChatMessage: true,
       followerCount: 0,
       followingCount: 0,
     });

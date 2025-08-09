@@ -157,6 +157,7 @@ export class ChatMessageService {
     if (message.isLike) return;
 
     await this.chatWriter.updateMessageLike(messageId, true);
+    this.gateway.emitLikeChatMessageEventToChat(message.chatId, messageId);
     return;
   }
 
@@ -166,6 +167,7 @@ export class ChatMessageService {
     if (message.isLike === false) return;
 
     await this.chatWriter.updateMessageLike(messageId, false);
+    this.gateway.emitUnlikeChatMessageEventToChat(message.chatId, messageId);
     return;
   }
 

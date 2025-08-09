@@ -76,17 +76,6 @@ export class LatestFeedsResponse extends CursorResponse {
   feeds: LatestFeedResponse[];
 }
 
-class PopularFeedResponse extends FeedBaseResponse {
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  isLike: boolean;
-
-  @ApiProperty({ type: UserBaseResponse })
-  author: UserBaseResponse;
-}
-
 class FollowingFeedResponse extends FeedResponse {
   @ApiProperty()
   commentCount: number;

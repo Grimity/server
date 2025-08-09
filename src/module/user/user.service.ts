@@ -92,6 +92,7 @@ export class UserService {
       backgroundImage: getImageUrl(user.backgroundImage),
       createdAt: user.createdAt,
       hasNotification: user.hasNotification,
+      hasUnreadChatMessage: user.hasUnreadChatMessage,
       followerCount: user.followerCount,
       followingCount: user.followingCount,
     };
