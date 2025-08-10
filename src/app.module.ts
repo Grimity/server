@@ -23,6 +23,7 @@ import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { WsModule } from './module/websocket/ws.module';
 import { ChatModule } from './module/chat/chat.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { ChatModule } from './module/chat/chat.module';
     ChatModule,
     WsModule,
   ],
+  controllers: [AppController],
   providers: [
     globalPipe,
     {
