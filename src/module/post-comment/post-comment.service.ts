@@ -165,9 +165,9 @@ export class PostCommentService {
     if (!parentComment) throw new HttpException('COMMENT', 404);
     if (parentComment.isDeleted && count === 1) {
       await Promise.all([
-        this.postCommentWriter.deleteOne(parentComment.id),
-        this.postCommentWriter.decreaseCommentCount(postId),
         this.postCommentWriter.deleteOne(commentId),
+        this.postCommentWriter.decreaseCommentCount(postId),
+        this.postCommentWriter.deleteOne(parentComment.id),
       ]);
     } else {
       await Promise.all([
