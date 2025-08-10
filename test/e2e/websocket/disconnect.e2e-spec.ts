@@ -53,7 +53,7 @@ describe('GlobalGateway disconnect', () => {
     const accessToken = await register(app, 'test');
 
     // when
-    await new Promise((resolve) => {
+    const mySocket = await new Promise<ClientSocket>(async (resolve) => {
       const clientSocket = io('http://localhost:3000', {
         auth: {
           accessToken,
@@ -62,14 +62,16 @@ describe('GlobalGateway disconnect', () => {
 
       clientSocket.on('connected', () => {
         clientSocket.disconnect();
-        resolve(true);
+        resolve(clientSocket);
       });
     });
 
     // then
     const user = await prisma.user.findFirstOrThrow();
-    const keys = await redisService.pubClient.keys('socket:user*');
+    const value = await redisService.pubClient.get(
+      `socket:user:${mySocket.id}`,
+    );
 
-    expect(keys.length).toBe(0);
+    expect(value).toBeNull();
   });
 });

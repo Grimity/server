@@ -3,7 +3,7 @@ import { ChatWriter } from './repository/chat.writer';
 import { ChatReader } from './repository/chat.reader';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { GlobalGateway } from '../websocket/global.gateway';
-import { UserSelectRepository } from '../user/repository/user.select.repository';
+import { UserReader } from '../user/repository/user.reader';
 
 @Injectable()
 export class ChatMessageService {
@@ -11,7 +11,7 @@ export class ChatMessageService {
     private readonly chatWriter: ChatWriter,
     private readonly chatReader: ChatReader,
     private readonly gateway: GlobalGateway,
-    private readonly userReader: UserSelectRepository,
+    private readonly userReader: UserReader,
   ) {}
 
   async create({

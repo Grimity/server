@@ -9,4 +9,4 @@ import { WebsocketController } from './websocket.controller';
   providers: [GlobalGateway],
   exports: [GlobalGateway],
 })
-export class WsModule {}
+export class WebsocketModule {}

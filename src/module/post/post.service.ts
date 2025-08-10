@@ -1,8 +1,8 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
-import { PostRepository } from './repository/post.repository';
+import { PostWriter } from './repository/post.writer';
 import { postTypes, PostTypeEnum } from 'src/common/constants/post.constant';
 import { convertPostType } from 'src/shared/util/convert-post-type';
-import { PostSelectRepository } from './repository/post.select.repository';
+import { PostReader } from './repository/post.reader';
 import { SearchService } from 'src/database/search/search.service';
 import { removeHtml } from 'src/shared/util/remove-html';
 
@@ -17,8 +17,8 @@ function extractImage(htmlString: string): string | null {
 @Injectable()
 export class PostService {
   constructor(
-    private postRepository: PostRepository,
-    private postSelectRepository: PostSelectRepository,
+    private postWriter: PostWriter,
+    private postReader: PostReader,
     @Inject(SearchService) private searchService: SearchService,
   ) {}
 
@@ -33,7 +33,7 @@ export class PostService {
 
     const typeNumber = PostTypeEnum[type];
 
-    const { id } = await this.postRepository.create({
+    const { id } = await this.postWriter.create({
       userId,
       title,
       content,
@@ -63,7 +63,7 @@ export class PostService {
 
     const typeNumber = PostTypeEnum[type];
 
-    const post = await this.postRepository.update({
+    const post = await this.postWriter.update({
       userId,
       postId,
       title,
@@ -85,7 +85,7 @@ export class PostService {
   }
 
   async getNotices() {
-    const posts = await this.postSelectRepository.findAllNotices();
+    const posts = await this.postReader.findAllNotices();
 
     return posts.map((post) => {
       return {
@@ -100,8 +100,8 @@ export class PostService {
     const typeNumber = type === 'ALL' ? null : PostTypeEnum[type];
 
     const [totalCount, posts] = await Promise.all([
-      this.postSelectRepository.getPostCount(typeNumber),
-      this.postSelectRepository.findMany({ type: typeNumber, page, size }),
+      this.postReader.getPostCount(typeNumber),
+      this.postReader.findMany({ type: typeNumber, page, size }),
     ]);
 
     return {
@@ -117,35 +117,35 @@ export class PostService {
   }
 
   async like(userId: string, postId: string) {
-    const exists = await this.postSelectRepository.exists(postId);
+    const exists = await this.postReader.exists(postId);
     if (!exists) throw new HttpException('POST', 404);
 
-    await this.postRepository.createLike(userId, postId);
+    await this.postWriter.createLike(userId, postId);
     return;
   }
 
   async unlike(userId: string, postId: string) {
-    await this.postRepository.deleteLike(userId, postId);
+    await this.postWriter.deleteLike(userId, postId);
     return;
   }
 
   async save(userId: string, postId: string) {
-    const exists = await this.postSelectRepository.exists(postId);
+    const exists = await this.postReader.exists(postId);
     if (!exists) throw new HttpException('POST', 404);
 
-    await this.postRepository.createSave(userId, postId);
+    await this.postWriter.createSave(userId, postId);
     return;
   }
 
   async unsave(userId: string, postId: string) {
-    await this.postRepository.deleteSave(userId, postId);
+    await this.postWriter.deleteSave(userId, postId);
     return;
   }
 
   async getPost(userId: string | null, postId: string) {
     const [post] = await Promise.all([
-      this.postSelectRepository.findOneById(userId, postId),
-      this.postRepository.increaseViewCount(postId),
+      this.postReader.findOneById(userId, postId),
+      this.postWriter.increaseViewCount(postId),
     ]);
 
     if (!post) throw new HttpException('POST', 404);
@@ -157,7 +157,7 @@ export class PostService {
   }
 
   async deleteOne(userId: string, postId: string) {
-    const post = await this.postRepository.deleteOne(userId, postId);
+    const post = await this.postWriter.deleteOne(userId, postId);
     if (!post) throw new HttpException('POST', 404);
 
     await this.searchService.deletePost(postId);
@@ -165,7 +165,7 @@ export class PostService {
   }
 
   async searchByAuthorName({ keyword, page, size }: SearchPostInput) {
-    const user = await this.postSelectRepository.countByAuthorName(keyword);
+    const user = await this.postReader.countByAuthorName(keyword);
 
     if (!user) {
       return {
@@ -174,7 +174,7 @@ export class PostService {
       };
     }
 
-    const posts = await this.postSelectRepository.findManyByAuthor({
+    const posts = await this.postReader.findManyByAuthor({
       authorId: user.id,
       page,
       size,
@@ -199,7 +199,7 @@ export class PostService {
       size,
     });
 
-    const posts = await this.postSelectRepository.findManyByIds(ids);
+    const posts = await this.postReader.findManyByIds(ids);
     return {
       totalCount,
       posts: posts.map((post) => {
@@ -213,7 +213,7 @@ export class PostService {
   }
 
   async getMeta(id: string) {
-    const post = await this.postSelectRepository.findMeta(id);
+    const post = await this.postReader.findMeta(id);
     if (!post) throw new HttpException('POST', 404);
 
     const parsedContent = removeHtml(post.content).slice(0, 100);

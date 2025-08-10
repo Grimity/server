@@ -1,14 +1,14 @@
 import { HttpException, Injectable, Inject } from '@nestjs/common';
-import { UserRepository, UpdateInput } from './repository/user.repository';
-import { FeedSelectRepository } from '../feed/repository/feed.select.repository';
-import { UserSelectRepository } from './repository/user.select.repository';
+import { UserWriter, UpdateInput } from './repository/user.writer';
+import { FeedReader } from '../feed/repository/feed.reader';
+import { UserReader } from './repository/user.reader';
 import { SearchService } from 'src/database/search/search.service';
-import { PostSelectRepository } from '../post/repository/post.select.repository';
+import { PostReader } from '../post/repository/post.reader';
 import { convertPostType } from 'src/shared/util/convert-post-type';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
-import { AlbumRepository } from '../album/repository/album.repository';
+import { AlbumReader } from '../album/repository/album.reader';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
@@ -17,23 +17,23 @@ const linkSeparator = '|~|';
 @Injectable()
 export class UserService {
   constructor(
-    private userRepository: UserRepository,
-    private feedSelectRepository: FeedSelectRepository,
-    private userSelectRepository: UserSelectRepository,
+    private userWriter: UserWriter,
+    private feedReader: FeedReader,
+    private userReader: UserReader,
     @Inject(SearchService) private searchService: SearchService,
-    private postSelectRepository: PostSelectRepository,
+    private postReader: PostReader,
     private redisService: RedisService,
-    private albumRepository: AlbumRepository,
+    private albumReader: AlbumReader,
     private eventEmitter: EventEmitter2,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
-    await this.userRepository.update(userId, { image: imageName });
+    await this.userWriter.update(userId, { image: imageName });
     return;
   }
 
   async updateBackgroundImage(userId: string, imageName: string | null) {
-    await this.userRepository.update(userId, { backgroundImage: imageName });
+    await this.userWriter.update(userId, { backgroundImage: imageName });
     return;
   }
 
@@ -53,8 +53,8 @@ export class UserService {
     };
 
     const [nameConflictUser, urlConflictUser] = await Promise.all([
-      this.userSelectRepository.findOneByName(input.name),
-      this.userSelectRepository.findOneByUrl(input.url),
+      this.userReader.findOneByName(input.name),
+      this.userReader.findOneByUrl(input.url),
     ]);
 
     if (nameConflictUser && nameConflictUser.id !== userId)
@@ -65,12 +65,12 @@ export class UserService {
       throw new HttpException('URL', 409);
     else toUpdateInput.url = input.url;
 
-    await this.userRepository.update(userId, toUpdateInput);
+    await this.userWriter.update(userId, toUpdateInput);
     return;
   }
 
   async getMyProfile(userId: string) {
-    const user = await this.userSelectRepository.getMyProfile(userId);
+    const user = await this.userReader.getMyProfile(userId);
 
     if (user === null) throw new HttpException('USER', 404);
 
@@ -99,7 +99,7 @@ export class UserService {
   }
 
   async follow(userId: string, targetUserId: string) {
-    const user = await this.userSelectRepository.findOneById(targetUserId);
+    const user = await this.userReader.findOneById(targetUserId);
 
     if (!user) throw new HttpException('USER', 404);
 
@@ -119,8 +119,8 @@ export class UserService {
   @Transactional()
   async followTransaction(userId: string, targetUserId: string) {
     const [_, user] = await Promise.all([
-      this.userRepository.createFollow(userId, targetUserId),
-      this.userRepository.increaseFollowerCount(targetUserId),
+      this.userWriter.createFollow(userId, targetUserId),
+      this.userWriter.increaseFollowerCount(targetUserId),
     ]);
 
     return user;
@@ -129,15 +129,15 @@ export class UserService {
   @Transactional()
   async unfollowTransaction(userId: string, targetUserId: string) {
     await Promise.all([
-      this.userRepository.deleteFollow(userId, targetUserId),
-      this.userRepository.decreaseFollowerCount(targetUserId),
+      this.userWriter.deleteFollow(userId, targetUserId),
+      this.userWriter.decreaseFollowerCount(targetUserId),
     ]);
 
     return;
   }
 
   async getUserProfileByUrl(userId: string | null, url: string) {
-    const targetUser = await this.userSelectRepository.findOneByUrl(url);
+    const targetUser = await this.userReader.findOneByUrl(url);
 
     if (targetUser === null) throw new HttpException('USER', 404);
 
@@ -146,8 +146,8 @@ export class UserService {
 
   async getUserProfileById(userId: string | null, targetUserId: string) {
     const [targetUser, albums] = await Promise.all([
-      this.userSelectRepository.getUserProfile(userId, targetUserId),
-      this.albumRepository.findManyWithCountByUserId(targetUserId),
+      this.userReader.getUserProfile(userId, targetUserId),
+      this.albumReader.findManyWithCountByUserId(targetUserId),
     ]);
 
     if (targetUser === null) throw new HttpException('USER', 404);
@@ -185,13 +185,10 @@ export class UserService {
       size: number;
     },
   ) {
-    const result = await this.userSelectRepository.findMyFollowersWithCursor(
-      userId,
-      {
-        cursor,
-        size,
-      },
-    );
+    const result = await this.userReader.findMyFollowersWithCursor(userId, {
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -212,13 +209,10 @@ export class UserService {
       size: number;
     },
   ) {
-    const result = await this.userSelectRepository.findMyFollowingsWithCursor(
-      userId,
-      {
-        cursor,
-        size,
-      },
-    );
+    const result = await this.userReader.findMyFollowingsWithCursor(userId, {
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -230,8 +224,7 @@ export class UserService {
   }
 
   async getFeedsByUser(input: GetFeedsInput) {
-    const result =
-      await this.feedSelectRepository.findManyByUserIdWithCursor(input);
+    const result = await this.feedReader.findManyByUserIdWithCursor(input);
 
     return {
       nextCursor: result.nextCursor,
@@ -252,13 +245,10 @@ export class UserService {
       size: number;
     },
   ) {
-    const result = await this.feedSelectRepository.findMyLikeFeedsWithCursor(
-      userId,
-      {
-        cursor,
-        size,
-      },
-    );
+    const result = await this.feedReader.findMyLikeFeedsWithCursor(userId, {
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -283,13 +273,10 @@ export class UserService {
       size: number;
     },
   ) {
-    const result = await this.feedSelectRepository.findMySaveFeedsWithCursor(
-      userId,
-      {
-        cursor,
-        size,
-      },
-    );
+    const result = await this.feedReader.findMySaveFeedsWithCursor(userId, {
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -310,14 +297,11 @@ export class UserService {
       | null;
 
     if (userIds === null) {
-      userIds = await this.userSelectRepository.findPopularUserIds();
+      userIds = await this.userReader.findPopularUserIds();
       await this.redisService.cacheArray('popularUserIds', userIds, 60 * 30);
     }
 
-    const users = await this.userSelectRepository.findPopularUsersByIds(
-      userId,
-      userIds,
-    );
+    const users = await this.userReader.findPopularUsersByIds(userId, userIds);
 
     return users.map((user) => ({
       ...user,
@@ -328,13 +312,13 @@ export class UserService {
 
   async searchUsers(input: SearchUserInput) {
     const [result, totalCount] = await Promise.all([
-      this.userSelectRepository.findManyByNameWithCursor({
+      this.userReader.findManyByNameWithCursor({
         userId: input.userId,
         name: input.keyword,
         cursor: input.cursor,
         size: input.size,
       }),
-      this.userSelectRepository.countByName(input.keyword),
+      this.userReader.countByName(input.keyword),
     ]);
 
     return {
@@ -354,12 +338,12 @@ export class UserService {
   }
 
   async updateSubscription(userId: string, subscription: string[]) {
-    await this.userRepository.update(userId, { subscription });
+    await this.userWriter.update(userId, { subscription });
     return;
   }
 
   async getSubscription(userId: string) {
-    const user = await this.userSelectRepository.findOneById(userId);
+    const user = await this.userReader.findOneById(userId);
     if (user === null) throw new HttpException('USER', 404);
     return {
       subscription: user.subscription,
@@ -375,7 +359,7 @@ export class UserService {
     page: number;
     size: number;
   }) {
-    const posts = await this.postSelectRepository.findManyByUserId({
+    const posts = await this.postReader.findManyByUserId({
       userId,
       page,
       size,
@@ -405,8 +389,8 @@ export class UserService {
     page: number;
   }) {
     const [totalCount, posts] = await Promise.all([
-      this.postSelectRepository.countSavedPosts(userId),
-      this.postSelectRepository.findManySavedPosts({ userId, size, page }),
+      this.postReader.countSavedPosts(userId),
+      this.postReader.findManySavedPosts({ userId, size, page }),
     ]);
 
     return {
@@ -429,18 +413,18 @@ export class UserService {
 
   async deleteMe(userId: string) {
     const [feedIds, postIds] = await Promise.all([
-      this.feedSelectRepository.findAllIdsByUserId(userId),
-      this.postSelectRepository.findAllIdsByUserId(userId),
+      this.feedReader.findAllIdsByUserId(userId),
+      this.postReader.findAllIdsByUserId(userId),
     ]);
     await Promise.all([
       this.searchService.deleteAll({ feedIds, postIds }),
-      this.userRepository.deleteOne(userId),
+      this.userWriter.deleteOne(userId),
     ]);
     return;
   }
 
   async getMetaByUrl(url: string) {
-    const user = await this.userSelectRepository.findOneByUrl(url);
+    const user = await this.userReader.findOneByUrl(url);
 
     if (!user) throw new HttpException('USER', 404);
 
@@ -448,7 +432,7 @@ export class UserService {
   }
 
   async getMetaById(id: string) {
-    const user = await this.userSelectRepository.findOneById(id);
+    const user = await this.userReader.findOneById(id);
 
     if (!user) throw new HttpException('USER', 404);
 
@@ -462,7 +446,7 @@ export class UserService {
   }
 
   async getAlbumsByUserId(userId: string) {
-    const albums = await this.albumRepository.findManyByUserId(userId);
+    const albums = await this.albumReader.findManyByUserId(userId);
 
     return albums.map((album) => ({
       id: album.id,
@@ -471,7 +455,7 @@ export class UserService {
   }
 
   async checkNameOrThrow(name: string) {
-    const user = await this.userSelectRepository.findOneByName(name);
+    const user = await this.userReader.findOneByName(name);
     if (user !== null) {
       throw new HttpException('NAME', 409);
     }

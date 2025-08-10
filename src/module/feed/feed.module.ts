@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FeedController } from './feed.controller';
 import { FeedService } from './feed.service';
-import { FeedRepository } from './repository/feed.repository';
-import { FeedSelectRepository } from './repository/feed.select.repository';
+import { FeedWriter } from './repository/feed.writer';
+import { FeedReader } from './repository/feed.reader';
 import { AwsModule } from '../aws/aws.module';
 import { SearchModule } from 'src/database/search/search.module';
 import { DdbModule } from 'src/database/ddb/ddb.module';
@@ -12,7 +12,7 @@ import { TagController } from './tag.controller';
 @Module({
   imports: [AwsModule, SearchModule, DdbModule, RedisModule],
   controllers: [FeedController, TagController],
-  providers: [FeedService, FeedRepository, FeedSelectRepository],
-  exports: [FeedSelectRepository, FeedRepository],
+  providers: [FeedService, FeedReader, FeedWriter],
+  exports: [FeedReader, FeedWriter],
 })
 export class FeedModule {}

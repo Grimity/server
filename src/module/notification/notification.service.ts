@@ -1,31 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { NotificationRepository } from './repository/notification.repository';
+import { NotificationReader } from './repository/notification.reader';
+import { NotificationWriter } from './repository/notification.writer';
 
 @Injectable()
 export class NotificationService {
-  constructor(private notificationRepository: NotificationRepository) {}
+  constructor(
+    private readonly notificationReader: NotificationReader,
+    private readonly notificationWriter: NotificationWriter,
+  ) {}
 
   async getAll(userId: string) {
-    return this.notificationRepository.findAll(userId);
+    return this.notificationReader.findAll(userId);
   }
 
   async readAll(userId: string) {
-    await this.notificationRepository.readAll(userId);
+    await this.notificationWriter.readAll(userId);
     return;
   }
 
   async deleteAll(userId: string) {
-    await this.notificationRepository.deleteAll(userId);
+    await this.notificationWriter.deleteAll(userId);
     return;
   }
 
   async readOne(userId: string, notificationId: string) {
-    await this.notificationRepository.readOne(userId, notificationId);
+    await this.notificationWriter.readOne(userId, notificationId);
     return;
   }
 
   async deleteOne(userId: string, notificationId: string) {
-    await this.notificationRepository.deleteOne(userId, notificationId);
+    await this.notificationWriter.deleteOne(userId, notificationId);
     return;
   }
 }
