@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { UserRepository } from './repository/user.repository';
-import { UserSelectRepository } from './repository/user.select.repository';
+import { UserWriter } from './repository/user.writer';
+import { UserReader } from './repository/user.reader';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { FeedModule } from '../feed/feed.module';
@@ -21,7 +21,7 @@ import { AlbumModule } from '../album/album.module';
     AlbumModule,
   ],
   controllers: [UserController, MeController],
-  providers: [UserRepository, UserService, UserSelectRepository],
-  exports: [UserRepository, UserSelectRepository],
+  providers: [UserWriter, UserService, UserReader],
+  exports: [UserWriter, UserReader],
 })
 export class UserModule {}
