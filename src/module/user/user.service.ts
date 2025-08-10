@@ -3,7 +3,7 @@ import { UserRepository, UpdateInput } from './repository/user.repository';
 import { FeedReader } from '../feed/repository/feed.reader';
 import { UserSelectRepository } from './repository/user.select.repository';
 import { SearchService } from 'src/database/search/search.service';
-import { PostSelectRepository } from '../post/repository/post.select.repository';
+import { PostReader } from '../post/repository/post.reader';
 import { convertPostType } from 'src/shared/util/convert-post-type';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
@@ -21,7 +21,7 @@ export class UserService {
     private feedReader: FeedReader,
     private userSelectRepository: UserSelectRepository,
     @Inject(SearchService) private searchService: SearchService,
-    private postSelectRepository: PostSelectRepository,
+    private postReader: PostReader,
     private redisService: RedisService,
     private albumReader: AlbumReader,
     private eventEmitter: EventEmitter2,
@@ -368,7 +368,7 @@ export class UserService {
     page: number;
     size: number;
   }) {
-    const posts = await this.postSelectRepository.findManyByUserId({
+    const posts = await this.postReader.findManyByUserId({
       userId,
       page,
       size,
@@ -398,8 +398,8 @@ export class UserService {
     page: number;
   }) {
     const [totalCount, posts] = await Promise.all([
-      this.postSelectRepository.countSavedPosts(userId),
-      this.postSelectRepository.findManySavedPosts({ userId, size, page }),
+      this.postReader.countSavedPosts(userId),
+      this.postReader.findManySavedPosts({ userId, size, page }),
     ]);
 
     return {
@@ -423,7 +423,7 @@ export class UserService {
   async deleteMe(userId: string) {
     const [feedIds, postIds] = await Promise.all([
       this.feedReader.findAllIdsByUserId(userId),
-      this.postSelectRepository.findAllIdsByUserId(userId),
+      this.postReader.findAllIdsByUserId(userId),
     ]);
     await Promise.all([
       this.searchService.deleteAll({ feedIds, postIds }),
