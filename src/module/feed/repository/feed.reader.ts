@@ -4,7 +4,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
-export class FeedSelectRepository {
+export class FeedReader {
   constructor(
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}

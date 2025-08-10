@@ -3,29 +3,10 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 
 @Injectable()
-export class NotificationRepository {
+export class NotificationWriter {
   constructor(
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
-
-  async findAll(userId: string) {
-    return this.txHost.tx.notification.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        id: true,
-        isRead: true,
-        createdAt: true,
-        link: true,
-        image: true,
-        message: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-  }
 
   async readAll(userId: string) {
     await this.txHost.tx.notification.updateMany({

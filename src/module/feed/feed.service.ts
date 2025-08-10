@@ -1,6 +1,6 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
-import { FeedRepository } from './repository/feed.repository';
-import { FeedSelectRepository } from './repository/feed.select.repository';
+import { FeedWriter } from './repository/feed.writer';
+import { FeedReader } from './repository/feed.reader';
 import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
@@ -11,8 +11,8 @@ import { Transactional } from '@nestjs-cls/transactional';
 @Injectable()
 export class FeedService {
   constructor(
-    private feedRepository: FeedRepository,
-    private feedSelectRepository: FeedSelectRepository,
+    private feedWriter: FeedWriter,
+    private feedReader: FeedReader,
     private ddb: DdbService,
     private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
@@ -26,7 +26,7 @@ export class FeedService {
       ),
     );
 
-    const { id } = await this.feedRepository.create(userId, {
+    const { id } = await this.feedWriter.create(userId, {
       ...createFeedInput,
       tags: [...trimmedSet],
     });
@@ -41,7 +41,7 @@ export class FeedService {
   }
 
   async getFeed(userId: string | null, feedId: string) {
-    const feed = await this.feedSelectRepository.getFeed(userId, feedId);
+    const feed = await this.feedReader.getFeed(userId, feedId);
     if (!feed) throw new HttpException('FEED', 404);
 
     return {
@@ -57,8 +57,8 @@ export class FeedService {
 
   async like(userId: string, feedId: string) {
     const [feedExists, likeExists] = await Promise.all([
-      this.feedSelectRepository.exists(feedId),
-      this.feedSelectRepository.existsLike(userId, feedId),
+      this.feedReader.exists(feedId),
+      this.feedReader.existsLike(userId, feedId),
     ]);
 
     if (!feedExists) throw new HttpException('FEED', 404);
@@ -86,16 +86,16 @@ export class FeedService {
   @Transactional()
   async likeTransaction(userId: string, feedId: string) {
     const [_, feed] = await Promise.all([
-      this.feedRepository.createLike(userId, feedId),
-      this.feedRepository.increaseLikeCount(feedId),
+      this.feedWriter.createLike(userId, feedId),
+      this.feedWriter.increaseLikeCount(feedId),
     ]);
     return feed;
   }
 
   async unlike(userId: string, feedId: string) {
     const [feedExists, likeExists] = await Promise.all([
-      this.feedSelectRepository.exists(feedId),
-      this.feedSelectRepository.existsLike(userId, feedId),
+      this.feedReader.exists(feedId),
+      this.feedReader.existsLike(userId, feedId),
     ]);
 
     if (!feedExists) throw new HttpException('FEED', 404);
@@ -115,23 +115,23 @@ export class FeedService {
   @Transactional()
   async unlikeTransaction(userId: string, feedId: string) {
     const [_, feed] = await Promise.all([
-      this.feedRepository.deleteLike(userId, feedId),
-      this.feedRepository.decreaseLikeCount(feedId),
+      this.feedWriter.deleteLike(userId, feedId),
+      this.feedWriter.decreaseLikeCount(feedId),
     ]);
     return feed;
   }
 
   async view(feedId: string) {
-    await this.feedRepository.increaseViewCount(feedId);
+    await this.feedWriter.increaseViewCount(feedId);
 
     return;
   }
 
   async deleteOne(userId: string, feedId: string) {
-    const exists = await this.feedSelectRepository.exists(feedId);
+    const exists = await this.feedReader.exists(feedId);
     if (!exists) throw new HttpException('FEED', 404);
 
-    const feed = await this.feedRepository.deleteOne(userId, feedId);
+    const feed = await this.feedWriter.deleteOne(userId, feedId);
 
     await this.searchService.deleteFeed(feedId);
     return;
@@ -141,9 +141,7 @@ export class FeedService {
     userId: string,
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
-    const exists = await this.feedSelectRepository.exists(
-      updateFeedInput.feedId,
-    );
+    const exists = await this.feedReader.exists(updateFeedInput.feedId);
     if (!exists) throw new HttpException('FEED', 404);
 
     const trimmedSet = new Set(
@@ -170,18 +168,15 @@ export class FeedService {
     userId: string,
     updateFeedInput: CreateFeedInput & { feedId: string },
   ) {
-    await this.feedRepository.deleteTags(updateFeedInput.feedId);
+    await this.feedWriter.deleteTags(updateFeedInput.feedId);
     await Promise.all([
-      this.feedRepository.createTags(
-        updateFeedInput.feedId,
-        updateFeedInput.tags,
-      ),
-      this.feedRepository.updateOne(userId, updateFeedInput),
+      this.feedWriter.createTags(updateFeedInput.feedId, updateFeedInput.tags),
+      this.feedWriter.updateOne(userId, updateFeedInput),
     ]);
   }
 
   async getLatestFeeds(userId: string | null, { cursor, size }: GetFeedsInput) {
-    const result = await this.feedSelectRepository.findManyLatestWithCursor({
+    const result = await this.feedReader.findManyLatestWithCursor({
       userId,
       cursor,
       size,
@@ -210,13 +205,11 @@ export class FeedService {
       cursor: string | null;
     },
   ) {
-    const result = await this.feedSelectRepository.findFollowingFeedsWithCursor(
-      {
-        userId,
-        cursor,
-        size,
-      },
-    );
+    const result = await this.feedReader.findFollowingFeedsWithCursor({
+      userId,
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -242,15 +235,15 @@ export class FeedService {
   }
 
   async save(userId: string, feedId: string) {
-    const exists = await this.feedSelectRepository.exists(feedId);
+    const exists = await this.feedReader.exists(feedId);
     if (!exists) throw new HttpException('FEED', 404);
 
-    await this.feedRepository.createSave(userId, feedId);
+    await this.feedWriter.createSave(userId, feedId);
     return;
   }
 
   async unsave(userId: string, feedId: string) {
-    await this.feedRepository.deleteSave(userId, feedId);
+    await this.feedWriter.deleteSave(userId, feedId);
     return;
   }
 
@@ -273,10 +266,7 @@ export class FeedService {
       };
     }
 
-    const feeds = await this.feedSelectRepository.findManyByIds(
-      input.userId,
-      ids,
-    );
+    const feeds = await this.feedReader.findManyByIds(input.userId, ids);
 
     if (feeds.length === input.size) {
       nextCursor = `${currentCursor + 1}`;
@@ -309,7 +299,7 @@ export class FeedService {
   }
 
   async getLikes(feedId: string) {
-    const users = await this.feedSelectRepository.findLikesById(feedId);
+    const users = await this.feedReader.findLikesById(feedId);
     return users.map((user) => ({
       ...user,
       image: getImageUrl(user.image),
@@ -317,7 +307,7 @@ export class FeedService {
   }
 
   async getMeta(id: string) {
-    const feed = await this.feedSelectRepository.findMeta(id);
+    const feed = await this.feedReader.findMeta(id);
     if (!feed) throw new HttpException('FEED', 404);
 
     return {
@@ -327,7 +317,7 @@ export class FeedService {
   }
 
   async deleteMany(userId: string, ids: string[]) {
-    const count = await this.feedRepository.deleteMany(userId, ids);
+    const count = await this.feedWriter.deleteMany(userId, ids);
 
     if (count === ids.length) {
       await this.searchService.deleteFeeds(ids);
@@ -350,7 +340,7 @@ export class FeedService {
     )) as string[] | null;
 
     if (ids === null) {
-      ids = await this.feedSelectRepository.findIdsByDateRange({
+      ids = await this.feedReader.findIdsByDateRange({
         startDate,
         endDate,
       });
@@ -361,7 +351,7 @@ export class FeedService {
       );
     }
 
-    const feeds = await this.feedSelectRepository.findManyByIdsOrderByLikeCount(
+    const feeds = await this.feedReader.findManyByIdsOrderByLikeCount(
       userId,
       ids,
     );
@@ -386,14 +376,14 @@ export class FeedService {
       | null;
 
     if (ids === null) {
-      ids = await this.feedSelectRepository.findRankingIdsByMonth({
+      ids = await this.feedReader.findRankingIdsByMonth({
         year: Number(year),
         month: Number(month),
       });
       await this.redisService.cacheArray(`${date}-feed-rankings`, ids, 60 * 30);
     }
 
-    const feeds = await this.feedSelectRepository.findManyByIdsOrderByLikeCount(
+    const feeds = await this.feedReader.findManyByIdsOrderByLikeCount(
       userId,
       ids,
     );
@@ -416,7 +406,7 @@ export class FeedService {
       | null;
 
     if (tags === null) {
-      tags = await this.feedSelectRepository.findPopularTags();
+      tags = await this.feedReader.findPopularTags();
       await this.redisService.cacheArray('popularTags', tags, 60 * 30);
     }
 

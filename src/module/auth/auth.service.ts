@@ -1,6 +1,6 @@
 import { Injectable, HttpException, Inject } from '@nestjs/common';
-import { UserRepository } from '../user/repository/user.repository';
-import { UserSelectRepository } from '../user/repository/user.select.repository';
+import { UserWriter } from '../user/repository/user.writer';
+import { UserReader } from '../user/repository/user.reader';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { ClientInfo } from 'src/shared/types/client-info';
@@ -8,9 +8,9 @@ import type { ClientInfo } from 'src/shared/types/client-info';
 @Injectable()
 export class AuthService {
   constructor(
-    private userRepository: UserRepository,
+    private userWriter: UserWriter,
     private jwtService: JwtService,
-    private userSelectRepository: UserSelectRepository,
+    private userReader: UserReader,
     private configService: ConfigService,
   ) {}
 
@@ -29,7 +29,7 @@ export class AuthService {
       providerId = kakaoProfile.kakaoId;
     }
 
-    const user = await this.userSelectRepository.findOneByProvider(
+    const user = await this.userReader.findOneByProvider(
       input.provider,
       providerId,
     );
@@ -53,7 +53,7 @@ export class AuthService {
       },
     );
 
-    await this.userRepository.createRefreshToken({
+    await this.userWriter.createRefreshToken({
       ...clientInfo,
       userId: user.id,
       refreshToken,
@@ -80,14 +80,14 @@ export class AuthService {
     }
 
     const [urlConflictUser, nameConflictUser] = await Promise.all([
-      this.userSelectRepository.findOneByUrl(input.url),
-      this.userSelectRepository.findOneByName(input.name),
+      this.userReader.findOneByUrl(input.url),
+      this.userReader.findOneByName(input.name),
     ]);
 
     if (nameConflictUser !== null) throw new HttpException('NAME', 409);
     if (urlConflictUser !== null) throw new HttpException('URL', 409);
 
-    const user = await this.userRepository.create({
+    const user = await this.userWriter.create({
       provider: input.provider,
       providerId,
       email,
@@ -110,7 +110,7 @@ export class AuthService {
       },
     );
 
-    await this.userRepository.createRefreshToken({
+    await this.userWriter.createRefreshToken({
       ...clientInfo,
       userId: user.id,
       refreshToken,
@@ -120,10 +120,7 @@ export class AuthService {
   }
 
   async refresh(userId: string, token: string, clientInfo: ClientInfo) {
-    const savedToken = await this.userSelectRepository.findRefreshToken(
-      userId,
-      token,
-    );
+    const savedToken = await this.userReader.findRefreshToken(userId, token);
     if (!savedToken) {
       throw new HttpException('만료된 refT', 401);
     }
@@ -142,7 +139,7 @@ export class AuthService {
       },
     );
 
-    const result = await this.userRepository.updateRefreshToken(
+    const result = await this.userWriter.updateRefreshToken(
       userId,
       token,
       refreshToken,
@@ -153,7 +150,7 @@ export class AuthService {
   }
 
   async logout(userId: string, token: string, clientInfo: ClientInfo) {
-    const result = await this.userRepository.deleteRefreshToken(userId, token);
+    const result = await this.userWriter.deleteRefreshToken(userId, token);
     if (result === null) throw new HttpException('만료된 refT', 401);
 
     return;

@@ -1,23 +1,23 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { PostCommentRepository } from './repository/post-comment.repository';
+import { PostCommentReader } from './repository/post-comment.reader';
+import { PostCommentWriter } from './repository/post-comment.writer';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
 export class PostCommentService {
   constructor(
-    private postCommentRepository: PostCommentRepository,
+    private readonly postCommentReader: PostCommentReader,
+    private readonly postCommentWriter: PostCommentWriter,
     private eventEmitter: EventEmitter2,
   ) {}
 
   async create(input: CreateInput) {
-    const promiseMethods = [
-      this.postCommentRepository.existsPost(input.postId),
-    ];
+    const promiseMethods = [this.postCommentReader.existsPost(input.postId)];
 
     if (input.parentCommentId) {
       promiseMethods.push(
-        this.postCommentRepository.existsComment(input.parentCommentId),
+        this.postCommentReader.existsComment(input.parentCommentId),
       );
     }
     const [postExists, commentExists] = await Promise.all(promiseMethods);
@@ -52,14 +52,14 @@ export class PostCommentService {
   @Transactional()
   async createTransaction(input: CreateInput) {
     const [post] = await Promise.all([
-      this.postCommentRepository.create(input),
-      this.postCommentRepository.increaseCommentCount(input.postId),
+      this.postCommentWriter.create(input),
+      this.postCommentWriter.increaseCommentCount(input.postId),
     ]);
     return post;
   }
 
   async getComments(userId: string | null, postId: string) {
-    const comments = await this.postCommentRepository.findManyByPostId(
+    const comments = await this.postCommentReader.findManyByPostId(
       userId,
       postId,
     );
@@ -68,7 +68,7 @@ export class PostCommentService {
   }
 
   async like(userId: string, commentId: string) {
-    const exists = await this.postCommentRepository.existsComment(commentId);
+    const exists = await this.postCommentReader.existsComment(commentId);
     if (!exists) throw new HttpException('COMMENT', 404);
 
     await this.likeTransaction(userId, commentId);
@@ -78,14 +78,14 @@ export class PostCommentService {
   @Transactional()
   async likeTransaction(userId: string, commentId: string) {
     await Promise.all([
-      this.postCommentRepository.createLike(userId, commentId),
-      this.postCommentRepository.increaseLikeCount(commentId),
+      this.postCommentWriter.createLike(userId, commentId),
+      this.postCommentWriter.increaseLikeCount(commentId),
     ]);
     return;
   }
 
   async unlike(userId: string, commentId: string) {
-    const exists = await this.postCommentRepository.existsComment(commentId);
+    const exists = await this.postCommentReader.existsComment(commentId);
     if (!exists) throw new HttpException('COMMENT', 404);
 
     await this.unlikeTransaction(userId, commentId);
@@ -95,14 +95,14 @@ export class PostCommentService {
   @Transactional()
   async unlikeTransaction(userId: string, commentId: string) {
     await Promise.all([
-      this.postCommentRepository.deleteLike(userId, commentId),
-      this.postCommentRepository.decreaseLikeCount(commentId),
+      this.postCommentWriter.deleteLike(userId, commentId),
+      this.postCommentWriter.decreaseLikeCount(commentId),
     ]);
     return;
   }
 
   async deleteOne(userId: string, commentId: string) {
-    const comment = await this.postCommentRepository.findOneById(commentId);
+    const comment = await this.postCommentReader.findOneById(commentId);
 
     if (!comment) throw new HttpException('COMMENT', 404);
     if (comment.writerId !== userId)
@@ -128,23 +128,23 @@ export class PostCommentService {
   @Transactional()
   async deleteParentTransaction(input: { commentId: string; postId: string }) {
     const { commentId, postId } = input;
-    const count = await this.postCommentRepository.countChildComments(
+    const count = await this.postCommentReader.countChildComments(
       postId,
       commentId,
     );
     if (count === 0) {
       await Promise.all([
-        this.postCommentRepository.deleteOne(commentId),
-        this.postCommentRepository.decreaseCommentCount(postId),
+        this.postCommentWriter.deleteOne(commentId),
+        this.postCommentWriter.decreaseCommentCount(postId),
       ]);
     } else {
       await Promise.all([
-        this.postCommentRepository.updateOne(commentId, {
+        this.postCommentWriter.updateOne(commentId, {
           isDeleted: true,
           content: '',
           writerId: null,
         }),
-        this.postCommentRepository.decreaseCommentCount(postId),
+        this.postCommentWriter.decreaseCommentCount(postId),
       ]);
     }
   }
@@ -156,9 +156,8 @@ export class PostCommentService {
     postId: string;
   }) {
     const { parentId, commentId, postId } = input;
-    const parentComment =
-      await this.postCommentRepository.findOneById(parentId);
-    const count = await this.postCommentRepository.countChildComments(
+    const parentComment = await this.postCommentReader.findOneById(parentId);
+    const count = await this.postCommentReader.countChildComments(
       postId,
       parentId,
     );
@@ -166,14 +165,14 @@ export class PostCommentService {
     if (!parentComment) throw new HttpException('COMMENT', 404);
     if (parentComment.isDeleted && count === 1) {
       await Promise.all([
-        this.postCommentRepository.deleteOne(commentId),
-        this.postCommentRepository.deleteOne(parentComment.id),
-        this.postCommentRepository.decreaseCommentCount(postId),
+        this.postCommentWriter.deleteOne(commentId),
+        this.postCommentWriter.decreaseCommentCount(postId),
+        this.postCommentWriter.deleteOne(parentComment.id),
       ]);
     } else {
       await Promise.all([
-        this.postCommentRepository.deleteOne(commentId),
-        this.postCommentRepository.decreaseCommentCount(postId),
+        this.postCommentWriter.deleteOne(commentId),
+        this.postCommentWriter.decreaseCommentCount(postId),
       ]);
     }
   }

@@ -1,5 +1,6 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { FeedCommentRepository } from './repository/feed-comment.repository';
+import { FeedCommentReader } from './repository/feed-comment.reader';
+import { FeedCommentWriter } from './repository/feed-comment.writer';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
@@ -7,18 +8,17 @@ import { Transactional } from '@nestjs-cls/transactional';
 @Injectable()
 export class FeedCommentService {
   constructor(
-    private feedCommentRepository: FeedCommentRepository,
-    private eventEmitter: EventEmitter2,
+    private readonly feedCommentReader: FeedCommentReader,
+    private readonly feedCommentWriter: FeedCommentWriter,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(userId: string, input: CreateFeedCommentInput) {
-    const promiseMethods = [
-      this.feedCommentRepository.existsFeed(input.feedId),
-    ];
+    const promiseMethods = [this.feedCommentReader.existsFeed(input.feedId)];
 
     if (input.parentCommentId) {
       promiseMethods.push(
-        this.feedCommentRepository.existsComment(input.parentCommentId),
+        this.feedCommentReader.existsComment(input.parentCommentId),
       );
     }
 
@@ -29,7 +29,7 @@ export class FeedCommentService {
       throw new HttpException('COMMENT', 404);
     }
 
-    await this.feedCommentRepository.create(userId, input);
+    await this.feedCommentWriter.create(userId, input);
 
     if (input.mentionedUserId && input.parentCommentId) {
       this.eventEmitter.emit('notification.FEED_MENTION', {
@@ -53,7 +53,7 @@ export class FeedCommentService {
   }
 
   async getComments(userId: string | null, feedId: string) {
-    const comments = await this.feedCommentRepository.findManyByFeedId(
+    const comments = await this.feedCommentReader.findManyByFeedId(
       userId,
       feedId,
     );
@@ -81,13 +81,12 @@ export class FeedCommentService {
   }
 
   async deleteOne(userId: string, commentId: string) {
-    await this.feedCommentRepository.deleteOne(userId, commentId);
+    await this.feedCommentWriter.deleteOne(userId, commentId);
     return;
   }
 
   async like(userId: string, commentId: string) {
-    const commentExists =
-      await this.feedCommentRepository.existsComment(commentId);
+    const commentExists = await this.feedCommentReader.existsComment(commentId);
 
     if (!commentExists) throw new HttpException('COMMENT', 404);
 
@@ -98,15 +97,14 @@ export class FeedCommentService {
   @Transactional()
   async likeTransaction(userId: string, commentId: string) {
     await Promise.all([
-      this.feedCommentRepository.createLike(userId, commentId),
-      this.feedCommentRepository.increaseLikeCount(commentId),
+      this.feedCommentWriter.createLike(userId, commentId),
+      this.feedCommentWriter.increaseLikeCount(commentId),
     ]);
     return;
   }
 
   async unlike(userId: string, commentId: string) {
-    const commentExists =
-      await this.feedCommentRepository.existsComment(commentId);
+    const commentExists = await this.feedCommentReader.existsComment(commentId);
 
     if (!commentExists) throw new HttpException('COMMENT', 404);
 
@@ -117,8 +115,8 @@ export class FeedCommentService {
   @Transactional()
   async unlikeTransaction(userId: string, commentId: string) {
     await Promise.all([
-      this.feedCommentRepository.deleteLike(userId, commentId),
-      this.feedCommentRepository.decreaseLikeCount(commentId),
+      this.feedCommentWriter.deleteLike(userId, commentId),
+      this.feedCommentWriter.decreaseLikeCount(commentId),
     ]);
     return;
   }

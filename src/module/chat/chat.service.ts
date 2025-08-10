@@ -1,7 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
-import { UserSelectRepository } from '../user/repository/user.select.repository';
+import { UserReader } from '../user/repository/user.reader';
 import { GlobalGateway } from '../websocket/global.gateway';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 
@@ -10,7 +10,7 @@ export class ChatService {
   constructor(
     private readonly chatReader: ChatReader,
     private readonly chatWriter: ChatWriter,
-    private readonly userReader: UserSelectRepository,
+    private readonly userReader: UserReader,
     private readonly globalGateway: GlobalGateway,
   ) {}
 
