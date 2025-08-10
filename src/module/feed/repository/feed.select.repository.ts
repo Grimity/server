@@ -513,7 +513,7 @@ export class FeedSelectRepository {
               writer: {
                 id: feed.feedCommentWriterId!,
                 name: feed.feedCommentWriterName!,
-                image: feed.feedCommentWriterName,
+                image: feed.feedCommentWriterImage,
                 url: feed.feedCommentWriterUrl!,
               },
             }
