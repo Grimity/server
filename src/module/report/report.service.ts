@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { ReportRepository } from 'src/module/report/repository/report.repository';
+import { ReportWriter } from 'src/module/report/repository/report.writer';
 
 @Injectable()
 export class ReportService {
-  constructor(private reportRepository: ReportRepository) {}
+  constructor(private reportWriter: ReportWriter) {}
 
   async create(input: CreateInput) {
     console.log('!!!!!!!!!!!!!!!!!!신고 생성!!!!!!!!!!!!!!!!!');
-    await this.reportRepository.create(input);
+    await this.reportWriter.create(input);
     return;
   }
 }
