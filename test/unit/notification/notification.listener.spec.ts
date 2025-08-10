@@ -1,31 +1,55 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { NotificationListener } from 'src/module/notification/notification.listener';
-import { PrismaModule } from 'src/database/prisma/prisma.module';
+import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { AuthService } from 'src/module/auth/auth.service';
+import { RedisService } from 'src/database/redis/redis.service';
+import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
+import { GlobalGateway } from 'src/module/websocket/global.gateway';
+import { Server } from 'socket.io';
+import { Socket as ClientSocket, io } from 'socket.io-client';
 
 describe('NotificationListener', () => {
-  let prisma: PrismaService;
-  let notificationListener: NotificationListener;
   let app: INestApplication;
+  let prisma: PrismaService;
+  let authService: AuthService;
+  let redisService: RedisService;
+  let globalGateway: GlobalGateway;
+  let socketServer: Server;
+  let notificationListener: NotificationListener;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [PrismaModule],
-      providers: [NotificationListener],
+      imports: [AppModule],
     }).compile();
 
+    app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
+    authService = module.get<AuthService>(AuthService);
+    redisService = app.get<RedisService>(RedisService);
     notificationListener =
       module.get<NotificationListener>(NotificationListener);
 
-    app = module.createNestApplication();
     await app.init();
+    await app.listen(3000);
+
+    const redisIoAdapter = new RedisIoAdapter(redisService, app);
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+
+    globalGateway = app.get<GlobalGateway>(GlobalGateway);
+    socketServer = globalGateway.server;
   });
 
   afterEach(async () => {
     await prisma.user.deleteMany();
     await prisma.notification.deleteMany();
+    await redisService.flushall();
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe('FOLLOW 이벤트', () => {

@@ -4,6 +4,7 @@ import type * as Event from './types/event';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { GlobalGateway } from '../websocket/global.gateway';
 
 function getProfileLink(url: string) {
   return `${process.env.SERVICE_URL}/${url}`;
@@ -19,7 +20,10 @@ function getPostLink(id: string) {
 
 @Injectable()
 export class NotificationListener {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly globalGateway: GlobalGateway,
+  ) {}
 
   @OnEvent('notification.FOLLOW')
   async handleFollowEvent({ actorId, userId }: Event.FollowEvent) {
@@ -35,14 +39,28 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId,
         image: getImageUrl(actor.image),
         link: getProfileLink(actor.url),
         message: `${actor.name}님이 나를 팔로우했어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(userId);
+
+    if (onlineUsers.length > 0) {
+      this.globalGateway.emitNewNotificationToUser(userId, notification);
+    }
   }
 
   @OnEvent('notification.FEED_LIKE')
@@ -56,14 +74,32 @@ export class NotificationListener {
 
     if (!result || !result.subscription.includes('FEED_LIKE')) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: result.authorId,
         image: getImageUrl(result.thumbnail),
         link: getFeedLink(feedId),
         message: `${result.title}에 좋아요가 ${likeCount}개 달렸어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
+      result.authorId,
+    );
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        result.authorId,
+        notification,
+      );
   }
 
   @OnEvent('notification.FEED_COMMENT')
@@ -87,14 +123,32 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: result.authorId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
         message: `${actor.name}님이 내 그림에 댓글을 남겼어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
+      result.authorId,
+    );
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        result.authorId,
+        notification,
+      );
   }
 
   @OnEvent('notification.FEED_REPLY')
@@ -119,14 +173,32 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: result.writerId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
         message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
+      result.writerId,
+    );
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        result.writerId,
+        notification,
+      );
   }
 
   @OnEvent('notification.FEED_MENTION')
@@ -149,14 +221,31 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: mentionedUserId,
         image: getImageUrl(actor.image),
         link: getFeedLink(feedId),
         message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers =
+      await this.globalGateway.getSocketIdsByUserId(mentionedUserId);
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        mentionedUserId,
+        notification,
+      );
   }
 
   @OnEvent('notification.POST_COMMENT')
@@ -181,14 +270,32 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: author.authorId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
         message: `${actor.name}님이 내 게시글에 댓글을 남겼어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
+      author.authorId,
+    );
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        author.authorId,
+        notification,
+      );
   }
 
   @OnEvent('notification.POST_REPLY')
@@ -218,14 +325,32 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: result.writerId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
         message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
+      result.writerId,
+    );
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        result.writerId,
+        notification,
+      );
   }
 
   @OnEvent('notification.POST_MENTION')
@@ -250,13 +375,30 @@ export class NotificationListener {
     });
     if (!actor) return;
 
-    await this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: {
         userId: mentionedUserId,
         image: getImageUrl(actor.image),
         link: getPostLink(postId),
         message: `${actor.name}님이 내 댓글에 답글을 남겼어요`,
       },
+      select: {
+        id: true,
+        isRead: true,
+        createdAt: true,
+        link: true,
+        image: true,
+        message: true,
+      },
     });
+
+    const onlineUsers =
+      await this.globalGateway.getSocketIdsByUserId(mentionedUserId);
+
+    if (onlineUsers.length > 0)
+      this.globalGateway.emitNewNotificationToUser(
+        mentionedUserId,
+        notification,
+      );
   }
 }

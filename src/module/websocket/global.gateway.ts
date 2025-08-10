@@ -18,6 +18,7 @@ import Redis from 'ioredis';
 import { HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { NewChatMessageEventResponse } from '../chat/dto';
+import { NotificationResponse } from '../notification/dto';
 
 @WebSocketGateway({})
 export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -127,5 +128,9 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   emitUnlikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
     this.server.to(`chat:${chatId}`).emit('unlikeChatMessage', chatMessageId);
+  }
+
+  emitNewNotificationToUser(userId: string, dto: NotificationResponse) {
+    this.server.to(`user:${userId}`).emit('newNotification', dto);
   }
 }
