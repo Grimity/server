@@ -1,16 +1,18 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { AlbumRepository } from './repository/album.repository';
+import { AlbumWriter } from './repository/album.writer';
+import { AlbumReader } from './repository/album.reader';
 import { FeedRepository } from '../feed/repository/feed.repository';
 
 @Injectable()
 export class AlbumService {
   constructor(
-    private readonly albumRepository: AlbumRepository,
+    private readonly albumReader: AlbumReader,
+    private readonly albumWriter: AlbumWriter,
     private readonly feedRepository: FeedRepository,
   ) {}
 
   async create(userId: string, name: string) {
-    const albums = await this.albumRepository.findManyByUserId(userId);
+    const albums = await this.albumReader.findManyByUserId(userId);
 
     if (albums.length === 8) {
       throw new HttpException('앨범 개수 최대 8개', 400);
@@ -20,7 +22,7 @@ export class AlbumService {
       throw new HttpException('NAME', 409);
     }
 
-    return await this.albumRepository.create(userId, {
+    return await this.albumWriter.create(userId, {
       name,
       order: albums.length === 0 ? 1 : albums[albums.length - 1].order + 1,
     });
@@ -35,7 +37,7 @@ export class AlbumService {
     id: string;
     name: string;
   }) {
-    const albums = await this.albumRepository.findManyByUserId(userId);
+    const albums = await this.albumReader.findManyByUserId(userId);
 
     for (const album of albums) {
       if (album.name === name) {
@@ -44,12 +46,12 @@ export class AlbumService {
       }
     }
 
-    await this.albumRepository.updateOne({ userId, id, name });
+    await this.albumWriter.updateOne({ userId, id, name });
     return;
   }
 
   async deleteOne(userId: string, id: string) {
-    await this.albumRepository.deleteOne(userId, id);
+    await this.albumWriter.deleteOne(userId, id);
   }
 
   async updateOrder(userId: string, ids: string[]) {
@@ -58,7 +60,7 @@ export class AlbumService {
       order: index + 1,
     }));
 
-    await this.albumRepository.updateOrder(userId, toUpdate);
+    await this.albumWriter.updateOrder(userId, toUpdate);
     return;
   }
 
@@ -79,7 +81,7 @@ export class AlbumService {
       feedIds: string[];
     },
   ) {
-    const album = await this.albumRepository.findOneById(albumId);
+    const album = await this.albumReader.findOneById(albumId);
 
     if (!album) throw new HttpException('ALBUM', 404);
 

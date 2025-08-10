@@ -8,7 +8,7 @@ import { convertPostType } from 'src/shared/util/convert-post-type';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
-import { AlbumRepository } from '../album/repository/album.repository';
+import { AlbumReader } from '../album/repository/album.reader';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
@@ -23,7 +23,7 @@ export class UserService {
     @Inject(SearchService) private searchService: SearchService,
     private postSelectRepository: PostSelectRepository,
     private redisService: RedisService,
-    private albumRepository: AlbumRepository,
+    private albumReader: AlbumReader,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -147,7 +147,7 @@ export class UserService {
   async getUserProfileById(userId: string | null, targetUserId: string) {
     const [targetUser, albums] = await Promise.all([
       this.userSelectRepository.getUserProfile(userId, targetUserId),
-      this.albumRepository.findManyWithCountByUserId(targetUserId),
+      this.albumReader.findManyWithCountByUserId(targetUserId),
     ]);
 
     if (targetUser === null) throw new HttpException('USER', 404);
@@ -462,7 +462,7 @@ export class UserService {
   }
 
   async getAlbumsByUserId(userId: string) {
-    const albums = await this.albumRepository.findManyByUserId(userId);
+    const albums = await this.albumReader.findManyByUserId(userId);
 
     return albums.map((album) => ({
       id: album.id,
