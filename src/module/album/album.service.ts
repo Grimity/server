@@ -1,14 +1,14 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { AlbumWriter } from './repository/album.writer';
 import { AlbumReader } from './repository/album.reader';
-import { FeedRepository } from '../feed/repository/feed.repository';
+import { FeedWriter } from '../feed/repository/feed.writer';
 
 @Injectable()
 export class AlbumService {
   constructor(
     private readonly albumReader: AlbumReader,
     private readonly albumWriter: AlbumWriter,
-    private readonly feedRepository: FeedRepository,
+    private readonly feedWriter: FeedWriter,
   ) {}
 
   async create(userId: string, name: string) {
@@ -65,7 +65,7 @@ export class AlbumService {
   }
 
   async removeFeedsAlbum(userId: string, ids: string[]) {
-    await this.feedRepository.updateAlbum(userId, {
+    await this.feedWriter.updateAlbum(userId, {
       feedIds: ids,
       albumId: null,
     });
@@ -88,7 +88,7 @@ export class AlbumService {
     if (album.userId !== userId)
       throw new HttpException('앨범 소유자가 아닙니다', 403);
 
-    await this.feedRepository.updateAlbum(userId, { albumId, feedIds });
+    await this.feedWriter.updateAlbum(userId, { albumId, feedIds });
     return;
   }
 }

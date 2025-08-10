@@ -1,6 +1,6 @@
 import { HttpException, Injectable, Inject } from '@nestjs/common';
 import { UserRepository, UpdateInput } from './repository/user.repository';
-import { FeedSelectRepository } from '../feed/repository/feed.select.repository';
+import { FeedReader } from '../feed/repository/feed.reader';
 import { UserSelectRepository } from './repository/user.select.repository';
 import { SearchService } from 'src/database/search/search.service';
 import { PostSelectRepository } from '../post/repository/post.select.repository';
@@ -18,7 +18,7 @@ const linkSeparator = '|~|';
 export class UserService {
   constructor(
     private userRepository: UserRepository,
-    private feedSelectRepository: FeedSelectRepository,
+    private feedReader: FeedReader,
     private userSelectRepository: UserSelectRepository,
     @Inject(SearchService) private searchService: SearchService,
     private postSelectRepository: PostSelectRepository,
@@ -230,8 +230,7 @@ export class UserService {
   }
 
   async getFeedsByUser(input: GetFeedsInput) {
-    const result =
-      await this.feedSelectRepository.findManyByUserIdWithCursor(input);
+    const result = await this.feedReader.findManyByUserIdWithCursor(input);
 
     return {
       nextCursor: result.nextCursor,
@@ -252,13 +251,10 @@ export class UserService {
       size: number;
     },
   ) {
-    const result = await this.feedSelectRepository.findMyLikeFeedsWithCursor(
-      userId,
-      {
-        cursor,
-        size,
-      },
-    );
+    const result = await this.feedReader.findMyLikeFeedsWithCursor(userId, {
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -283,13 +279,10 @@ export class UserService {
       size: number;
     },
   ) {
-    const result = await this.feedSelectRepository.findMySaveFeedsWithCursor(
-      userId,
-      {
-        cursor,
-        size,
-      },
-    );
+    const result = await this.feedReader.findMySaveFeedsWithCursor(userId, {
+      cursor,
+      size,
+    });
 
     return {
       nextCursor: result.nextCursor,
@@ -429,7 +422,7 @@ export class UserService {
 
   async deleteMe(userId: string) {
     const [feedIds, postIds] = await Promise.all([
-      this.feedSelectRepository.findAllIdsByUserId(userId),
+      this.feedReader.findAllIdsByUserId(userId),
       this.postSelectRepository.findAllIdsByUserId(userId),
     ]);
     await Promise.all([
