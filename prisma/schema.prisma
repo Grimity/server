@@ -307,3 +307,8 @@ model ChatUser {
   @@id([chatId, userId])
   @@index([userId])
 }
+
+model AppVersion {
+  version   String   @id
+  createdAt DateTime @default(now())
+}
