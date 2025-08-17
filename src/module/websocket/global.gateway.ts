@@ -13,15 +13,16 @@ import { Server } from 'socket.io';
 import { RedisService } from 'src/database/redis/redis.service';
 import { Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { WsException } from '@nestjs/websockets';
 import Redis from 'ioredis';
-import { HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { NewChatMessageEventResponse } from '../chat/dto';
 import { NotificationResponse } from '../notification/dto';
+import { OnModuleDestroy } from '@nestjs/common';
 
 @WebSocketGateway({})
-export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class GlobalGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy
+{
   @WebSocketServer()
   server: Server;
 
@@ -86,6 +87,10 @@ export class GlobalGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (this.configService.get('NODE_ENV') !== 'production') return;
       throw e;
     }
+  }
+
+  async onModuleDestroy() {
+    this.server.disconnectSockets();
   }
 
   async getUserIdByClientId(clientId: string) {
