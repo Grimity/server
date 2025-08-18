@@ -26,6 +26,7 @@ import {
   UpdateProfileImageRequest,
   UpdateBackgroundImageRequest,
   UpdateSubscriptionRequest,
+  GetFollowingRequest,
 } from './dto/user.request';
 import { AlbumBaseResponse } from '../album/dto/album.response';
 import {
@@ -160,9 +161,10 @@ export class MeController {
   @Get('followings')
   async getMyFollowings(
     @CurrentUser() userId: string,
-    @Query() query: CursorRequest,
+    @Query() query: GetFollowingRequest,
   ): Promise<MyFollowingsResponse> {
     return this.userService.getMyFollowings(userId, {
+      keyword: query.keyword ?? null,
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
     });

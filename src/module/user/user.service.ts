@@ -202,14 +202,17 @@ export class UserService {
   async getMyFollowings(
     userId: string,
     {
+      keyword,
       cursor,
       size,
     }: {
+      keyword: string | null;
       cursor: string | null;
       size: number;
     },
   ) {
     const result = await this.userReader.findMyFollowingsWithCursor(userId, {
+      keyword,
       cursor,
       size,
     });
