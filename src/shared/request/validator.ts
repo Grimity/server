@@ -6,6 +6,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
+import { forbiddenUrls } from '../../common/constants/forbidden-url.constant';
 
 export function TrimString() {
   return Transform(({ value }: TransformFnParams) => {
@@ -97,18 +98,6 @@ export class TagValidator implements ValidatorConstraintInterface {
 @ValidatorConstraint()
 export class UrlValidator implements ValidatorConstraintInterface {
   validate(id: string) {
-    const forbiddenUrls = [
-      'popular',
-      'board',
-      'following',
-      'search',
-      'write',
-      'posts',
-      'feeds',
-      'mypage',
-      'ranking',
-    ];
-
     if (forbiddenUrls.includes(id)) return false;
 
     const regex = /^[a-z0-9_]+$/;

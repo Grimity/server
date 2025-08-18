@@ -113,3 +113,11 @@ export class CheckNameRequest {
   @Length(2, 12)
   name: string;
 }
+
+export class GetFollowingRequest extends CursorRequest {
+  @ApiProperty({ required: false })
+  @TrimString()
+  @IsOptional()
+  @Length(1)
+  keyword?: string;
+}

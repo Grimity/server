@@ -223,9 +223,11 @@ export class UserReader {
   async findMyFollowingsWithCursor(
     userId: string,
     {
+      keyword,
       cursor,
       size,
     }: {
+      keyword: string | null;
       cursor: string | null;
       size: number;
     },
@@ -237,6 +239,7 @@ export class UserReader {
       .select(['id', 'name', 'User.image', 'description', 'url'])
       .orderBy('followingId', 'asc')
       .limit(size)
+      .$if(!!keyword, (eb) => eb.where('User.name', 'like', `${keyword}%`))
       .$if(cursor !== null, (eb) =>
         eb.where('followingId', '>', kyselyUuid(cursor!)),
       )
