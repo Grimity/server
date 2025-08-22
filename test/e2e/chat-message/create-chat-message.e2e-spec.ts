@@ -466,6 +466,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
         auth: {
           accessToken: targetAccessToken,
         },
+        transports: ['websocket'],
       });
 
       clientSocket.on('connect', () => {
