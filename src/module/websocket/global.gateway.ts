@@ -39,7 +39,6 @@ export class GlobalGateway
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
-    console.log('커넥션요청 왓음');
     // jwt
     const token = client.handshake.auth?.accessToken;
 
