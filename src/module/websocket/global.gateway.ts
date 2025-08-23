@@ -19,7 +19,7 @@ import type { NewChatMessageEventResponse } from '../chat/dto';
 import { NotificationResponse } from '../notification/dto';
 import { OnModuleDestroy } from '@nestjs/common';
 
-@WebSocketGateway({})
+@WebSocketGateway({ cors: { origin: '*' } })
 export class GlobalGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleDestroy
 {
