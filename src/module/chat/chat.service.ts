@@ -143,4 +143,14 @@ export class ChatService {
     this.globalGateway.emitDeleteChatEventToUser(userId, chatIds);
     return;
   }
+
+  async getOpponentUser(userId: string, chatId: string) {
+    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+
+    const opponentUser = chatUsers.filter((user) => user.id !== userId)[0];
+    return {
+      ...opponentUser,
+      image: getImageUrl(opponentUser.image),
+    };
+  }
 }

@@ -29,6 +29,7 @@ import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
 import { ChatsResponse } from './dto/chat.response';
+import { UserBaseResponse } from '../user/dto';
 
 @ApiTags('/chats')
 @ApiBearerAuth()
@@ -89,6 +90,16 @@ export class ChatController {
   ) {
     await this.chatService.deleteChat(userId, chatId);
     return;
+  }
+
+  @ApiOperation({ summary: '상대 유저 조회' })
+  @ApiResponse({ status: 200, type: UserBaseResponse })
+  @Get(':id/user')
+  async getOpponentUser(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) chatId: string,
+  ) {
+    return await this.chatService.getOpponentUser(userId, chatId);
   }
 
   @ApiOperation({ summary: '채팅방 입장' })
