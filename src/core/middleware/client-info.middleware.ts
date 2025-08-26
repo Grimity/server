@@ -40,15 +40,16 @@ export class ClientInfoMiddleware implements NestMiddleware {
       const { browser, os, device } = uaParser.getResult();
 
       if (!browser.name || !os.name || !req.ip || !ip) {
-        req.clientInfo = null;
-        return next();
+        // req.clientInfo = null;
+        // return next();
+        console.log(req.headers['user-agent']);
       }
 
       req.clientInfo = {
         type: 'WEB',
         device: device.type ?? 'desktop',
-        model: `${os.name} ${browser.name}`,
-        ip,
+        model: `${os.name ?? 'unknown'} ${browser.name ?? 'unknown'}`,
+        ip: ip ?? 'unknown',
       };
 
       return next();

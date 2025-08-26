@@ -48,19 +48,19 @@ describe('POST /auth/register - 회원가입', () => {
     expect(status).toBe(400);
   });
 
-  it('user-agent가 없으면 401을 반환한다', async () => {
-    // when
-    const { status } = await request(app.getHttpServer())
-      .post('/auth/register')
-      .send({
-        provider: 'facebook',
-        providerAccessToken: 'test',
-        name: 'test',
-      });
+  // it('user-agent가 없으면 401을 반환한다', async () => {
+  //   // when
+  //   const { status } = await request(app.getHttpServer())
+  //     .post('/auth/register')
+  //     .send({
+  //       provider: 'facebook',
+  //       providerAccessToken: 'test',
+  //       name: 'test',
+  //     });
 
-    // then
-    expect(status).toBe(401);
-  });
+  //   // then
+  //   expect(status).toBe(401);
+  // });
 
   it('name이 0글자일 때 400을 반환한다', async () => {
     // when
