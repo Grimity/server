@@ -7,8 +7,6 @@ export const refTypes = [
   'CHAT',
 ] as const;
 
-// export type RefType = (typeof refTypes)[number];
-
 export const reportTypes = [
   '사칭계정',
   '스팸/도배',
