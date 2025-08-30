@@ -235,7 +235,7 @@ model PostCommentLike {
 
 model Report {
   id        String   @id @default(uuid()) @db.Uuid
-  type      Int      @db.SmallInt
+  type      String
   userId    String   @db.Uuid
   refType   String
   refId     String   @db.Uuid
