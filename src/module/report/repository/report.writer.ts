@@ -19,7 +19,7 @@ export class ReportWriter {
 
 interface CreateInput {
   userId: string;
-  type: number;
+  type: string;
   refType: string;
   refId: string;
   content: string | null;

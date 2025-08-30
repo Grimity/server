@@ -74,7 +74,7 @@ describe('POST /reports - 신고하기', () => {
       .post('/reports')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 1,
+        type: '사칭계정',
         refType: 'INVALID',
         refId: '00000000-0000-0000-0000-000000000000',
         content: 'test',
@@ -93,7 +93,7 @@ describe('POST /reports - 신고하기', () => {
       .post('/reports')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 1,
+        type: '사칭계정',
         refType: 'FEED',
         refId: 'invalid',
         content: 'test',
@@ -112,7 +112,7 @@ describe('POST /reports - 신고하기', () => {
       .post('/reports')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 1,
+        type: '사칭계정',
         refType: 'FEED',
         refId: '00000000-0000-0000-0000-000000000000',
         content: 'test',
@@ -124,7 +124,7 @@ describe('POST /reports - 신고하기', () => {
     expect(report).toEqual({
       id: expect.any(String),
       userId: expect.any(String),
-      type: 1,
+      type: '사칭계정',
       refType: 'FEED',
       refId: '00000000-0000-0000-0000-000000000000',
       content: 'test',
@@ -141,7 +141,7 @@ describe('POST /reports - 신고하기', () => {
       .post('/reports')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 1,
+        type: '사칭계정',
         refType: 'FEED',
         refId: '00000000-0000-0000-0000-000000000000',
       });
@@ -152,7 +152,7 @@ describe('POST /reports - 신고하기', () => {
     expect(report).toEqual({
       id: expect.any(String),
       userId: expect.any(String),
-      type: 1,
+      type: '사칭계정',
       refType: 'FEED',
       refId: '00000000-0000-0000-0000-000000000000',
       content: null,
@@ -169,7 +169,7 @@ describe('POST /reports - 신고하기', () => {
       .post('/reports')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 1,
+        type: '사칭계정',
         refType: 'FEED',
         refId: '00000000-0000-0000-0000-000000000000',
         content: null,
@@ -181,7 +181,7 @@ describe('POST /reports - 신고하기', () => {
     expect(report).toEqual({
       id: expect.any(String),
       userId: expect.any(String),
-      type: 1,
+      type: '사칭계정',
       refType: 'FEED',
       refId: '00000000-0000-0000-0000-000000000000',
       content: null,
@@ -198,7 +198,7 @@ describe('POST /reports - 신고하기', () => {
       .post('/reports')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        type: 1,
+        type: '사칭계정',
         refType: 'FEED',
         refId: '00000000-0000-0000-0000-000000000000',
         content: '',
@@ -210,7 +210,7 @@ describe('POST /reports - 신고하기', () => {
     expect(report).toEqual({
       id: expect.any(String),
       userId: expect.any(String),
-      type: 1,
+      type: '사칭계정',
       refType: 'FEED',
       refId: '00000000-0000-0000-0000-000000000000',
       content: null,

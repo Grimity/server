@@ -1,18 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsInt, IsUUID, IsOptional, MaxLength } from 'class-validator';
-import { refTypes } from '../../../common/constants/report.constant';
+import { IsIn, IsUUID, IsOptional, MaxLength } from 'class-validator';
+import {
+  refTypes,
+  reportTypes,
+} from '../../../common/constants/report.constant';
 import {
   TrimAndUpperNullableString,
   TrimNullableString,
 } from '../../../shared/request/validator';
 
 export class CreateReportRequest {
-  @ApiProperty({
-    description: '신고 타입, 다른건 상관없는데 기타는 0으로 보내주세요',
-  })
-  @IsInt()
-  type: number;
-
+  @ApiProperty({ description: '신고 타입', enum: reportTypes })
+  @IsIn(reportTypes)
+  type: (typeof reportTypes)[number];
   @ApiProperty({
     description: '신고 대상 타입',
     enum: refTypes,

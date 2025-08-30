@@ -14,7 +14,7 @@ export class ReportService {
 
 type CreateInput = {
   userId: string;
-  type: number;
+  type: string;
   refType: string;
   refId: string;
   content: string | null;
