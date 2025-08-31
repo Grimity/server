@@ -27,7 +27,7 @@ import { PresignedUrlResponse } from './dto/aws.response';
 export class AwsController {
   constructor(private awsService: AwsService) {}
 
-  @ApiOperation({ summary: '이미지 업로드 URL 생성' })
+  @ApiOperation({ summary: '이미지 업로드 URL 생성', deprecated: true })
   @ApiResponse({ status: 201, description: '성공', type: PresignedUrlResponse })
   @Post('image-upload-url')
   async getImageUploadUrl(
@@ -36,7 +36,10 @@ export class AwsController {
     return await this.awsService.getUploadUrl(type, ext);
   }
 
-  @ApiOperation({ summary: '이미지 업로드 URL 생성 - 여러장' })
+  @ApiOperation({
+    summary: '이미지 업로드 URL 생성 - 여러장',
+    deprecated: true,
+  })
   @ApiBody({ type: GetPresignedUrlRequest, isArray: true })
   @ApiResponse({
     status: 201,
