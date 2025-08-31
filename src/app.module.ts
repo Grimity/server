@@ -24,6 +24,7 @@ import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-pr
 import { WebsocketModule } from './module/websocket/websocket.module';
 import { ChatModule } from './module/chat/chat.module';
 import { AppController } from './app.controller';
+import { ImageModule } from './module/image/image.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { AppController } from './app.controller';
     }),
     WebsocketModule,
     ChatModule,
+    ImageModule,
   ],
   controllers: [AppController],
   providers: [
