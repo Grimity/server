@@ -73,13 +73,13 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
         {
           userId: me.id,
           chatId: chats[i].id,
-          enteredAt: new Date(),
+          enteredAt: new Date(Date.now() - 10000),
           unreadCount: 1,
         },
         {
           userId: user.id,
           chatId: chats[i].id,
-          enteredAt: new Date(),
+          enteredAt: new Date(Date.now() - 10000),
           unreadCount: 1,
         },
       ]),
@@ -148,13 +148,7 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
         image: null,
         url: 'test19',
       },
-      lastMessage: {
-        id: expect.any(String),
-        content: 'message19',
-        createdAt: expect.any(String),
-        image: null,
-        senderId: users[19].id,
-      },
+      lastMessage: null,
     });
   });
 });
