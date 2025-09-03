@@ -17,6 +17,9 @@ export class ChatResponse {
   @ApiProperty()
   unreadCount: number;
 
+  @ApiProperty()
+  enteredAt: Date;
+
   @ApiProperty({
     type: UserBaseResponse,
     description: '채팅 상대의 사용자 정보',

@@ -73,13 +73,13 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
         {
           userId: me.id,
           chatId: chats[i].id,
-          enteredAt: new Date(),
+          enteredAt: new Date(Date.now() - 10000),
           unreadCount: 1,
         },
         {
           userId: user.id,
           chatId: chats[i].id,
-          enteredAt: new Date(),
+          enteredAt: new Date(Date.now() - 10000),
           unreadCount: 1,
         },
       ]),
@@ -118,6 +118,7 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
     expect(response1.body.chats[0]).toEqual({
       id: expect.any(String),
       unreadCount: 1,
+      enteredAt: expect.any(String),
       opponentUser: {
         id: expect.any(String),
         name: 'test1',
@@ -140,19 +141,14 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
     expect(response2.body.chats[0]).toEqual({
       id: expect.any(String),
       unreadCount: 1,
+      enteredAt: expect.any(String),
       opponentUser: {
         id: expect.any(String),
         name: 'test19',
         image: null,
         url: 'test19',
       },
-      lastMessage: {
-        id: expect.any(String),
-        content: 'message19',
-        createdAt: expect.any(String),
-        image: null,
-        senderId: users[19].id,
-      },
+      lastMessage: null,
     });
   });
 });

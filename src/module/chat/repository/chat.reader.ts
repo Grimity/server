@@ -129,6 +129,7 @@ export class ChatReader {
       .select([
         'ChatUser.chatId as id',
         'ChatUser.unreadCount',
+        'ChatUser.enteredAt',
         'LastMessage.id as lastMessageId',
         'LastMessage.content as lastMessageContent',
         'LastMessage.image as lastMessageImage',
@@ -163,6 +164,7 @@ export class ChatReader {
       chats: chats.map((chat) => ({
         id: chat.id,
         unreadCount: chat.unreadCount,
+        enteredAt: chat.enteredAt!,
         lastMessage: {
           id: chat.lastMessageId,
           content: chat.lastMessageContent,

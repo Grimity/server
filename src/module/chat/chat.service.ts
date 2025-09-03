@@ -62,10 +62,13 @@ export class ChatService {
       nextCursor: result.nextCursor,
       chats: result.chats.map((chat) => ({
         ...chat,
-        lastMessage: {
-          ...chat.lastMessage,
-          image: getImageUrl(chat.lastMessage.image),
-        },
+        lastMessage:
+          chat.lastMessage.createdAt > chat.enteredAt
+            ? {
+                ...chat.lastMessage,
+                image: getImageUrl(chat.lastMessage.image),
+              }
+            : null,
         opponentUser: {
           ...chat.opponentUser,
           image: getImageUrl(chat.opponentUser.image),
