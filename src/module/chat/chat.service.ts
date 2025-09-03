@@ -63,7 +63,7 @@ export class ChatService {
       chats: result.chats.map((chat) => ({
         ...chat,
         lastMessage:
-          chat.lastMessage.createdAt < chat.enteredAt
+          chat.lastMessage.createdAt > chat.enteredAt
             ? {
                 ...chat.lastMessage,
                 image: getImageUrl(chat.lastMessage.image),
