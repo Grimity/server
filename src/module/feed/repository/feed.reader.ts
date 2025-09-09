@@ -830,36 +830,43 @@ export class FeedReader {
     return feeds.map((feed) => feed.id);
   }
 
-  async findPopularTags() {
-    return (await this.txHost.tx.$queryRaw`
-      with top_tags as (
-        SELECT 
+  async findPopularTagsByDateRange(startDate: Date, endDate: Date) {
+    // ...existing code...
+    return await this.txHost.tx.$queryRaw<
+      { tagName: string; thumbnail: string }[]
+    >`
+      WITH filtered_tags AS (
+        SELECT
+          t."tagName",
+          t."feedId"
+        FROM "Tag" t
+        JOIN "Feed" f ON t."feedId" = f.id
+        WHERE f."createdAt" >= ${startDate} AND f."createdAt" < ${endDate}
+      ),
+      top_tags AS (
+        SELECT
           "tagName",
           COUNT(*) AS tag_count
-        FROM "Tag"
+        FROM filtered_tags
         GROUP BY "tagName"
         ORDER BY tag_count DESC
         LIMIT 30
       ),
-      random_feed_per_tag as (
-        SELECT 
-          DISTINCT ON (t."tagName") 
-          t."tagName", 
-          f.id AS "feedId" ,
-          f.thumbnail
-        FROM 
-          "Tag" t
-        JOIN 
-          "Feed" f ON t."feedId" = f.id
-        WHERE 
-          t."tagName" IN (SELECT "tagName" FROM top_tags)
+      tag_feed_thumbnails AS (
+        SELECT
+          ft."tagName",
+          f.thumbnail,
+          ROW_NUMBER() OVER (PARTITION BY ft."tagName" ORDER BY f."likeCount" DESC, f."createdAt" DESC) as rn
+        FROM filtered_tags ft
+        JOIN "Feed" f ON ft."feedId" = f.id
+        WHERE ft."tagName" IN (SELECT "tagName" FROM top_tags)
       )
-      select
+      SELECT
         "tagName",
         thumbnail
-      from
-        random_feed_per_tag
-    `) as { tagName: string; thumbnail: string }[];
+      FROM tag_feed_thumbnails
+      WHERE rn = 1
+    `;
   }
 }
 

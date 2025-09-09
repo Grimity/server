@@ -406,7 +406,10 @@ export class FeedService {
       | null;
 
     if (tags === null) {
-      tags = await this.feedReader.findPopularTags();
+      tags = await this.feedReader.findPopularTagsByDateRange(
+        new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+        new Date(),
+      );
       await this.redisService.cacheArray('popularTags', tags, 60 * 30);
     }
 
