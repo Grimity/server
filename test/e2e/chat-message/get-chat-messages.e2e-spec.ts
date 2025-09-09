@@ -244,4 +244,74 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
     expect(body.messages.length).toBe(4);
     expect(body.nextCursor).toBeNull();
   });
+
+  it('답장메시지면 replyTo 필드가 포함되어 반환된다', async () => {
+    // given
+    const accessToken = await register(app, 'test');
+    const me = await prisma.user.findFirstOrThrow();
+
+    const user = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+        email: 'test@test.com',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+                enteredAt: new Date(),
+              },
+              {
+                userId: user.id,
+                enteredAt: new Date(),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const targetMessage = await prisma.chatMessage.create({
+      data: {
+        chatId: chat.id,
+        userId: me.id,
+        content: `test`,
+      },
+    });
+
+    const replyMessage = await prisma.chatMessage.create({
+      data: {
+        chatId: chat.id,
+        userId: me.id,
+        content: `reply test`,
+        replyToId: targetMessage.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/chat-messages?chatId=${chat.id}&size=1`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.nextCursor).toBeDefined();
+    expect(body.messages.length).toBe(1);
+    expect(body.messages[0].content).toBe('reply test');
+    expect(body.messages[0].replyTo).toEqual({
+      id: targetMessage.id,
+      content: 'test',
+      image: null,
+      createdAt: targetMessage.createdAt.toISOString(),
+    });
+  });
 });

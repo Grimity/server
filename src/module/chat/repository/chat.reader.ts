@@ -221,8 +221,8 @@ export class ChatReader {
       ])
       .leftJoin(
         'ChatMessage as replyMessage',
-        'ChatMessage.chatId',
-        'replyMessage.replyToId',
+        'ChatMessage.replyToId',
+        'replyMessage.id',
       )
       .select([
         'replyMessage.id as replyId',
