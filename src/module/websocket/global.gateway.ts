@@ -77,12 +77,28 @@ export class GlobalGateway
     client.emit('connected', {
       socketId: client.id,
     });
+
+    const meta = await fetch(
+      'http://169.254.169.254/latest/meta-data/instance-id',
+    );
+    const instanceId = await meta.text();
+    console.log(
+      `Client connected: ${client.id}, User ID: ${userId}, Instance ID: ${instanceId}`,
+    );
   }
 
   async handleDisconnect(client: Socket) {
     // room 정보는 알아서 없어짐
     try {
       await this.pubRedis.del(`socket:user:${client.id}`);
+
+      const meta = await fetch(
+        'http://169.254.169.254/latest/meta-data/instance-id',
+      );
+      const instanceId = await meta.text();
+      console.log(
+        `Client disconnected: ${client.id}, Instance ID: ${instanceId}`,
+      );
     } catch (e) {
       if (this.configService.get('NODE_ENV') !== 'production') return;
       throw e;
