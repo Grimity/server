@@ -28,6 +28,7 @@ export class GlobalGateway
 
   private pubRedis: Redis;
   private subRedis: Redis;
+  private instanceId: string;
 
   constructor(
     private readonly redisService: RedisService,
@@ -36,6 +37,7 @@ export class GlobalGateway
   ) {
     this.pubRedis = redisService.pubClient;
     this.subRedis = redisService.subClient;
+    this.instanceId = crypto.randomUUID();
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
@@ -78,12 +80,8 @@ export class GlobalGateway
       socketId: client.id,
     });
 
-    const meta = await fetch(
-      'http://169.254.169.254/latest/meta-data/instance-id',
-    );
-    const instanceId = await meta.text();
     console.log(
-      `Client connected: ${client.id}, User ID: ${userId}, Instance ID: ${instanceId}`,
+      `Client connected: ${client.id}, User ID: ${userId}, Instance ID: ${this.instanceId}`,
     );
   }
 
@@ -92,12 +90,8 @@ export class GlobalGateway
     try {
       await this.pubRedis.del(`socket:user:${client.id}`);
 
-      const meta = await fetch(
-        'http://169.254.169.254/latest/meta-data/instance-id',
-      );
-      const instanceId = await meta.text();
       console.log(
-        `Client disconnected: ${client.id}, Instance ID: ${instanceId}`,
+        `Client disconnected: ${client.id}, Instance ID: ${this.instanceId}`,
       );
     } catch (e) {
       if (this.configService.get('NODE_ENV') !== 'production') return;
