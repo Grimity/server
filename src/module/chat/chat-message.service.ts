@@ -91,9 +91,6 @@ export class ChatMessageService {
       this.gateway.getSocketIdsByChatId(chatId),
     ]);
 
-    console.log('targetUserSocketIds', targetUserSocketIds);
-    console.log('chatSocketIds', chatSocketIds);
-
     const isTargetUserJoinedChat = targetUserSocketIds.some((id) =>
       chatSocketIds.includes(id),
     );

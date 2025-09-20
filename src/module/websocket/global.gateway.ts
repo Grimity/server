@@ -120,17 +120,18 @@ export class GlobalGateway
   async getSocketIdsByUserId(userId: string) {
     const sockets = await this.server.in(`user:${userId}`).fetchSockets();
 
-    const result = sockets.map((socket) => socket.id);
-    console.log('targetUserSocketIds', result);
-    console.log('instanceId', this.instanceId);
-    return result;
+    return sockets.map((socket) => socket.id);
   }
 
   async getSocketIdsByChatId(chatId: string) {
     const sockets = await this.server.in(`chat:${chatId}`).fetchSockets();
 
     const result = sockets.map((socket) => socket.id);
-    console.log('chatSocketIds', result);
+
+    console.log({
+      instanceId: this.instanceId,
+      targetSocketIds: result,
+    });
     return result;
   }
 
