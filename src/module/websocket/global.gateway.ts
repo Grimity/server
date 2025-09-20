@@ -135,13 +135,17 @@ export class GlobalGateway
   }
 
   async getSocketIdsByUserId(userId: string) {
-    const sockets = await this.server.in(`user:${userId}`).fetchSockets();
+    const sockets = await this.server.sockets
+      .in(`user:${userId}`)
+      .fetchSockets();
 
     return sockets.map((socket) => socket.id);
   }
 
   async getSocketIdsByChatId(chatId: string) {
-    const sockets = await this.server.in(`chat:${chatId}`).fetchSockets();
+    const sockets = await this.server.sockets
+      .in(`chat:${chatId}`)
+      .fetchSockets();
 
     const result = sockets.map((socket) => socket.id);
 
