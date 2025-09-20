@@ -118,7 +118,7 @@ export class GlobalGateway
   }
 
   async joinChat(socketId: string, chatId: string) {
-    this.server.in(socketId).socketsJoin(`chat:${chatId}`);
+    this.server.sockets.in(socketId).socketsJoin(`chat:${chatId}`);
     const sockets = await this.server.sockets
       .in(`chat:${chatId}`)
       .fetchSockets();
@@ -131,7 +131,7 @@ export class GlobalGateway
   }
 
   leaveChat(socketId: string, chatId: string) {
-    this.server.in(socketId).socketsLeave(`chat:${chatId}`);
+    this.server.sockets.in(socketId).socketsLeave(`chat:${chatId}`);
   }
 
   async getSocketIdsByUserId(userId: string) {
