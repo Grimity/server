@@ -96,7 +96,7 @@ export class ChatService {
 
     await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
 
-    this.globalGateway.joinChat(socketId, chatId);
+    await this.globalGateway.joinChat(socketId, chatId);
     return;
   }
 

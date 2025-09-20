@@ -75,6 +75,14 @@ export class GlobalGateway
     ); // TTL 6시간
 
     await client.join(`user:${userId}`);
+    const sockets = await this.server.in(`user:${userId}`).fetchSockets();
+    const result = sockets.map((socket) => socket.id);
+    console.log({
+      event: 'handleConnection',
+      instanceId: this.instanceId,
+      userId,
+      userSocketIds: result,
+    });
 
     client.emit('connected', {
       socketId: client.id,
@@ -109,8 +117,15 @@ export class GlobalGateway
       | null;
   }
 
-  joinChat(socketId: string, chatId: string) {
+  async joinChat(socketId: string, chatId: string) {
     this.server.in(socketId).socketsJoin(`chat:${chatId}`);
+    const sockets = await this.server.in(`chat:${chatId}`).fetchSockets();
+    const result = sockets.map((socket) => socket.id);
+    console.log({
+      event: 'joinChat',
+      chatId,
+      chatSocketIds: result,
+    });
   }
 
   leaveChat(socketId: string, chatId: string) {
