@@ -139,7 +139,14 @@ export class GlobalGateway
       .in(`user:${userId}`)
       .fetchSockets();
 
-    return sockets.map((socket) => socket.id);
+    const result = sockets.map((socket) => socket.id);
+    console.log({
+      instanceId: this.instanceId,
+      userId,
+      targetSocketIds: result,
+    });
+
+    return result;
   }
 
   async getSocketIdsByChatId(chatId: string) {
@@ -151,7 +158,7 @@ export class GlobalGateway
 
     console.log({
       instanceId: this.instanceId,
-      targetSocketIds: result,
+      chatSocketIds: result,
     });
     return result;
   }
