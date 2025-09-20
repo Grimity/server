@@ -137,15 +137,19 @@ export class ChatMessageService {
 
     this.gateway.emitMessageEventToUser(userId, newMessageEvent);
 
-    if (targetUserSocketIds.length === 0) {
-      // 푸시알림
-    } else {
-      // 상대방 온라인 상태임
-      this.gateway.emitMessageEventToUser(
-        targetUserStatus.userId,
-        newMessageEvent,
-      );
-    }
+    // if (targetUserSocketIds.length === 0) {
+    //   // 푸시알림
+    // } else {
+    //   // 상대방 온라인 상태임
+    //   this.gateway.emitMessageEventToUser(
+    //     targetUserStatus.userId,
+    //     newMessageEvent,
+    //   );
+    // }
+    this.gateway.emitMessageEventToUser(
+      targetUserStatus.userId,
+      newMessageEvent,
+    );
 
     return;
   }
