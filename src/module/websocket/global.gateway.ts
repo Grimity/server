@@ -119,7 +119,9 @@ export class GlobalGateway
 
   async joinChat(socketId: string, chatId: string) {
     this.server.in(socketId).socketsJoin(`chat:${chatId}`);
-    const sockets = await this.server.in(`chat:${chatId}`).fetchSockets();
+    const sockets = await this.server.sockets
+      .in(`chat:${chatId}`)
+      .fetchSockets();
     const result = sockets.map((socket) => socket.id);
     console.log({
       event: 'joinChat',
