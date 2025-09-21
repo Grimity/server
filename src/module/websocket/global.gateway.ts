@@ -75,32 +75,16 @@ export class GlobalGateway
     ); // TTL 6시간
 
     await client.join(`user:${userId}`);
-    const sockets = await this.server.in(`user:${userId}`).fetchSockets();
-    const result = sockets.map((socket) => socket.id);
-    console.log({
-      event: 'handleConnection',
-      instanceId: this.instanceId,
-      userId,
-      userSocketIds: result,
-    });
 
     client.emit('connected', {
       socketId: client.id,
     });
-
-    console.log(
-      `Client connected: ${client.id}, User ID: ${userId}, Instance ID: ${this.instanceId}`,
-    );
   }
 
   async handleDisconnect(client: Socket) {
     // room 정보는 알아서 없어짐
     try {
       await this.pubRedis.del(`socket:user:${client.id}`);
-
-      console.log(
-        `Client disconnected: ${client.id}, Instance ID: ${this.instanceId}`,
-      );
     } catch (e) {
       if (this.configService.get('NODE_ENV') !== 'production') return;
       throw e;
@@ -123,11 +107,6 @@ export class GlobalGateway
       .in(`chat:${chatId}`)
       .fetchSockets();
     const result = sockets.map((socket) => socket.id);
-    console.log({
-      event: 'joinChat',
-      chatId,
-      chatSocketIds: result,
-    });
   }
 
   leaveChat(socketId: string, chatId: string) {
@@ -139,14 +118,7 @@ export class GlobalGateway
       .in(`user:${userId}`)
       .fetchSockets();
 
-    const result = sockets.map((socket) => socket.id);
-    console.log({
-      instanceId: this.instanceId,
-      userId,
-      targetSocketIds: result,
-    });
-
-    return result;
+    return sockets.map((socket) => socket.id);
   }
 
   async getSocketIdsByChatId(chatId: string) {
@@ -154,23 +126,11 @@ export class GlobalGateway
       .in(`chat:${chatId}`)
       .fetchSockets();
 
-    const result = sockets.map((socket) => socket.id);
-
-    console.log({
-      instanceId: this.instanceId,
-      chatSocketIds: result,
-    });
-    return result;
+    return sockets.map((socket) => socket.id);
   }
 
   emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {
     this.server.to(`user:${userId}`).emit('newChatMessage', dto);
-    this.server.serverSideEmit('test', 'hello from server');
-  }
-
-  @SubscribeMessage('test')
-  handleTestEvent(@MessageBody() data: string): void {
-    console.log({ event: 'test', instanceId: this.instanceId });
   }
 
   emitDeleteChatEventToUser(userId: string, chatIds: string[]) {
