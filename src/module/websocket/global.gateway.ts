@@ -165,6 +165,12 @@ export class GlobalGateway
 
   emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {
     this.server.to(`user:${userId}`).emit('newChatMessage', dto);
+    this.server.serverSideEmit('test', 'hello from server');
+  }
+
+  @SubscribeMessage('test')
+  handleTestEvent(@MessageBody() data: string): void {
+    console.log({ event: 'test', instanceId: this.instanceId });
   }
 
   emitDeleteChatEventToUser(userId: string, chatIds: string[]) {
