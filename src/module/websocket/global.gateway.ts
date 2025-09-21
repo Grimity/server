@@ -27,8 +27,7 @@ export class GlobalGateway
   server: Server;
 
   private pubRedis: Redis;
-  private subRedis: Redis;
-  private instanceId: string;
+  private socketUserMap = new Map<string, string>(); // socketId -> userId
 
   constructor(
     private readonly redisService: RedisService,
@@ -36,8 +35,6 @@ export class GlobalGateway
     private readonly configService: ConfigService,
   ) {
     this.pubRedis = redisService.pubClient;
-    this.subRedis = redisService.subClient;
-    this.instanceId = crypto.randomUUID();
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
@@ -66,14 +63,14 @@ export class GlobalGateway
     }
 
     const userId = client.data.user.id as string;
+    this.socketUserMap.set(client.id, userId);
+    // 유저별 클라이언트 개수
+    await this.pubRedis.incr(`user:${userId}:clientCount`);
 
-    await this.pubRedis.set(
-      `socket:user:${client.id}`,
-      userId,
-      'EX',
-      60 * 60 * 6,
-    ); // TTL 6시간
+    // 클라이언트 개수 expire
+    await this.pubRedis.expire(`user:${userId}:clientCount`, 60 * 60 * 2); // TTL 2시간
 
+    await this.redisService.subscribe(`user:${userId}`);
     await client.join(`user:${userId}`);
 
     client.emit('connected', {
@@ -84,7 +81,12 @@ export class GlobalGateway
   async handleDisconnect(client: Socket) {
     // room 정보는 알아서 없어짐
     try {
-      await this.pubRedis.del(`socket:user:${client.id}`);
+      const userId = this.socketUserMap.get(client.id);
+      await this.redisService.unSubscribe(`user:${userId}`);
+      await this.pubRedis.decr(`user:${userId}:clientCount`);
+
+      this.socketUserMap.delete(client.id);
+      // await this.pubRedis.del(`socket:user:${client.id}`);
     } catch (e) {
       if (this.configService.get('NODE_ENV') !== 'production') return;
       throw e;
@@ -95,38 +97,28 @@ export class GlobalGateway
     this.server.disconnectSockets();
   }
 
-  async getUserIdByClientId(clientId: string) {
-    return (await this.pubRedis.get(`socket:user:${clientId}`)) as
-      | string
-      | null;
+  async isOnline(userId: string) {
+    const count = await this.pubRedis.get(`user:${userId}:clientCount`);
+    return count !== null && Number(count) > 0;
   }
 
-  async joinChat(socketId: string, chatId: string) {
-    this.server.sockets.in(socketId).socketsJoin(`chat:${chatId}`);
-    const sockets = await this.server.sockets
-      .in(`chat:${chatId}`)
-      .fetchSockets();
-    const result = sockets.map((socket) => socket.id);
+  async joinChat(userId: string, chatId: string) {
+    await this.pubRedis.incr(`chat:${chatId}:user:${userId}:count`);
+    await this.pubRedis.expire(
+      `chat:${chatId}:user:${userId}:count`,
+      60 * 60 * 2,
+    ); // TTL 2시간
   }
 
-  leaveChat(socketId: string, chatId: string) {
-    this.server.sockets.in(socketId).socketsLeave(`chat:${chatId}`);
+  async leaveChat(userId: string, chatId: string) {
+    await this.pubRedis.decr(`chat:${chatId}:user:${userId}:count`);
   }
 
-  async getSocketIdsByUserId(userId: string) {
-    const sockets = await this.server.sockets
-      .in(`user:${userId}`)
-      .fetchSockets();
-
-    return sockets.map((socket) => socket.id);
-  }
-
-  async getSocketIdsByChatId(chatId: string) {
-    const sockets = await this.server.sockets
-      .in(`chat:${chatId}`)
-      .fetchSockets();
-
-    return sockets.map((socket) => socket.id);
+  async isUserInChat(userId: string, chatId: string) {
+    const count = await this.pubRedis.get(
+      `chat:${chatId}:user:${userId}:count`,
+    );
+    return count !== null && Number(count) > 0;
   }
 
   emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {

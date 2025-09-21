@@ -1,16 +1,25 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
   private redis: Redis;
   private subRedis: Redis;
-  constructor(private configService: ConfigService) {
+
+  constructor(
+    private configService: ConfigService,
+    private eventEmitter: EventEmitter2,
+  ) {
     this.redis = new Redis({
       host: this.configService.get('REDIS_HOST'),
     });
     this.subRedis = this.redis.duplicate();
+
+    this.subRedis.on('message', (channel: string, message: string) => {
+      console.log(`Received message from channel ${channel}: ${message}`);
+    });
   }
 
   get pubClient() {
@@ -19,6 +28,18 @@ export class RedisService implements OnModuleDestroy {
 
   get subClient() {
     return this.subRedis;
+  }
+
+  async subscribe(channel: string) {
+    await this.subRedis.subscribe(channel);
+  }
+
+  async unSubscribe(channel: string) {
+    await this.subRedis.unsubscribe(channel);
+  }
+
+  async publish(channel: string, message: string) {
+    await this.redis.publish(channel, message);
   }
 
   async onModuleDestroy() {

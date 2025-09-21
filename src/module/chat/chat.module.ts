@@ -7,9 +7,10 @@ import { UserModule } from '../user/user.module';
 import { ChatMessageController } from './chat-message.controller';
 import { ChatMessageService } from './chat-message.service';
 import { WebsocketModule } from '../websocket/websocket.module';
+import { RedisModule } from 'src/database/redis/redis.module';
 
 @Module({
-  imports: [UserModule, WebsocketModule],
+  imports: [UserModule, WebsocketModule, RedisModule],
   controllers: [ChatController, ChatMessageController],
   providers: [ChatService, ChatReader, ChatWriter, ChatMessageService],
 })

@@ -77,43 +77,19 @@ export class ChatService {
     };
   }
 
-  async joinChat({
-    userId,
-    chatId,
-    socketId,
-  }: {
-    userId: string;
-    chatId: string;
-    socketId: string;
-  }) {
+  async joinChat({ userId, chatId }: { userId: string; chatId: string }) {
     const chat = await this.chatReader.findOneStatusById(userId, chatId);
 
     if (!chat) throw new HttpException('CHAT', 404);
 
-    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
-    if (socketUserId === null || socketUserId !== userId)
-      throw new HttpException('SOCKET', 404);
-
     await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
 
-    await this.globalGateway.joinChat(socketId, chatId);
+    await this.globalGateway.joinChat(userId, chatId);
     return;
   }
 
-  async leaveChat({
-    userId,
-    chatId,
-    socketId,
-  }: {
-    userId: string;
-    chatId: string;
-    socketId: string;
-  }) {
-    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
-    if (socketUserId === null || socketUserId !== userId)
-      throw new HttpException('SOCKET', 404);
-
-    this.globalGateway.leaveChat(socketId, chatId);
+  async leaveChat({ userId, chatId }: { userId: string; chatId: string }) {
+    this.globalGateway.leaveChat(userId, chatId);
     return;
   }
 

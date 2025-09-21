@@ -4,6 +4,7 @@ import { ChatReader } from './repository/chat.reader';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { GlobalGateway } from '../websocket/global.gateway';
 import { UserReader } from '../user/repository/user.reader';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class ChatMessageService {
@@ -12,6 +13,7 @@ export class ChatMessageService {
     private readonly chatReader: ChatReader,
     private readonly gateway: GlobalGateway,
     private readonly userReader: UserReader,
+    private readonly redisService: RedisService,
   ) {}
 
   async create({
@@ -86,18 +88,16 @@ export class ChatMessageService {
       replyTo = await this.chatReader.findMessageById(replyToId);
     }
 
-    const [targetUserSocketIds, chatSocketIds] = await Promise.all([
-      this.gateway.getSocketIdsByUserId(targetUserStatus.userId),
-      this.gateway.getSocketIdsByChatId(chatId),
-    ]);
-
-    const isTargetUserJoinedChat = targetUserSocketIds.some((id) =>
-      chatSocketIds.includes(id),
+    const isUserInChat = await this.gateway.isUserInChat(
+      targetUserStatus.userId,
+      chatId,
     );
+
+    const isOnline = await this.gateway.isOnline(targetUserStatus.userId);
 
     let totalUnreadCount: number | null = null;
 
-    if (targetUserSocketIds.length === 0 || !isTargetUserJoinedChat)
+    if (!isUserInChat)
       //상대방이 오프라인이거나 온라인이어도 채팅방엔 없는상태
       totalUnreadCount = await this.chatWriter.increaseUnreadCount({
         userId: targetUserStatus.userId,
@@ -135,21 +135,22 @@ export class ChatMessageService {
       })),
     };
 
+    await this.redisService.publish(
+      `user:${userId}`,
+      JSON.stringify(newMessageEvent),
+    );
+
     this.gateway.emitMessageEventToUser(userId, newMessageEvent);
 
-    // if (targetUserSocketIds.length === 0) {
-    //   // 푸시알림
-    // } else {
-    //   // 상대방 온라인 상태임
-    //   this.gateway.emitMessageEventToUser(
-    //     targetUserStatus.userId,
-    //     newMessageEvent,
-    //   );
-    // }
-    this.gateway.emitMessageEventToUser(
-      targetUserStatus.userId,
-      newMessageEvent,
-    );
+    if (isOnline === false) {
+      // 푸시알림
+    } else {
+      // 상대방 온라인 상태임
+      this.gateway.emitMessageEventToUser(
+        targetUserStatus.userId,
+        newMessageEvent,
+      );
+    }
 
     return;
   }

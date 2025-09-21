@@ -56,9 +56,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(userId);
+    const isOnline = await this.globalGateway.isOnline(userId);
 
-    if (onlineUsers.length > 0) {
+    if (isOnline) {
       this.globalGateway.emitNewNotificationToUser(userId, notification);
     }
   }
@@ -91,11 +91,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
-      result.authorId,
-    );
+    const isOnline = await this.globalGateway.isOnline(result.authorId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         result.authorId,
         notification,
@@ -140,11 +138,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
-      result.authorId,
-    );
+    const isOnline = await this.globalGateway.isOnline(result.authorId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         result.authorId,
         notification,
@@ -190,11 +186,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
-      result.writerId,
-    );
+    const isOnline = await this.globalGateway.isOnline(result.writerId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         result.writerId,
         notification,
@@ -238,10 +232,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers =
-      await this.globalGateway.getSocketIdsByUserId(mentionedUserId);
+    const isOnline = await this.globalGateway.isOnline(mentionedUserId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         mentionedUserId,
         notification,
@@ -287,11 +280,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
-      author.authorId,
-    );
+    const isOnline = await this.globalGateway.isOnline(author.authorId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         author.authorId,
         notification,
@@ -342,11 +333,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers = await this.globalGateway.getSocketIdsByUserId(
-      result.writerId,
-    );
+    const isOnline = await this.globalGateway.isOnline(result.writerId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         result.writerId,
         notification,
@@ -392,10 +381,9 @@ export class NotificationListener {
       },
     });
 
-    const onlineUsers =
-      await this.globalGateway.getSocketIdsByUserId(mentionedUserId);
+    const isOnline = await this.globalGateway.isOnline(mentionedUserId);
 
-    if (onlineUsers.length > 0)
+    if (isOnline)
       this.globalGateway.emitNewNotificationToUser(
         mentionedUserId,
         notification,
