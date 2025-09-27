@@ -29,19 +29,19 @@ export class PostCommentService {
     const comment = await this.createTransaction(input);
 
     if (input.mentionedUserId && input.parentCommentId) {
-      this.eventEmitter.emit('notification.POST_MENTION', {
+      this.eventEmitter.emit('notification:POST_MENTION', {
         actorId: input.userId,
         postId: input.postId,
         mentionedUserId: input.mentionedUserId,
       });
     } else if (input.parentCommentId) {
-      this.eventEmitter.emit('notification.POST_REPLY', {
+      this.eventEmitter.emit('notification:POST_REPLY', {
         actorId: input.userId,
         postId: input.postId,
         parentId: input.parentCommentId,
       });
     } else {
-      this.eventEmitter.emit('notification.POST_COMMENT', {
+      this.eventEmitter.emit('notification:POST_COMMENT', {
         actorId: input.userId,
         postId: input.postId,
       });

@@ -2,17 +2,21 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserReader } from '../user/repository/user.reader';
-import { GlobalGateway } from '../websocket/global.gateway';
+import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
 export class ChatService {
+  private redisClient;
+
   constructor(
     private readonly chatReader: ChatReader,
     private readonly chatWriter: ChatWriter,
     private readonly userReader: UserReader,
-    private readonly globalGateway: GlobalGateway,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redisClient = this.redisService.pubClient;
+  }
 
   async createChat(userId: string, targetUserId: string) {
     const userExists = await this.userReader.findOneById(targetUserId);
@@ -84,12 +88,16 @@ export class ChatService {
 
     await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
 
-    await this.globalGateway.joinChat(userId, chatId);
+    await this.redisClient.incr(`chat:${chatId}:user:${userId}:count`);
+    await this.redisClient.expire(
+      `chat:${chatId}:user:${userId}:count`,
+      60 * 60 * 2,
+    ); // TTL 2시간
     return;
   }
 
   async leaveChat({ userId, chatId }: { userId: string; chatId: string }) {
-    this.globalGateway.leaveChat(userId, chatId);
+    await this.redisClient.decr(`chat:${chatId}:user:${userId}:count`);
     return;
   }
 
@@ -114,12 +122,12 @@ export class ChatService {
       });
     }
 
-    this.globalGateway.emitDeleteChatEventToUser(userId, [chatId]);
+    this.redisService.publish(`deleteChat:${userId}`, [chatId]);
   }
 
   async deleteChats(userId: string, chatIds: string[]) {
     await this.chatWriter.exitManyChats(userId, chatIds);
-    this.globalGateway.emitDeleteChatEventToUser(userId, chatIds);
+    this.redisService.publish(`deleteChat:${userId}`, chatIds);
     return;
   }
 

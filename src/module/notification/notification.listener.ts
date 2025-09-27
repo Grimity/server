@@ -5,6 +5,7 @@ import { getImageUrl } from 'src/shared/util/get-image-url';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
 import { GlobalGateway } from '../websocket/global.gateway';
+import { RedisService } from 'src/database/redis/redis.service';
 
 function getProfileLink(url: string) {
   return `${process.env.SERVICE_URL}/${url}`;
@@ -23,9 +24,10 @@ export class NotificationListener {
   constructor(
     private readonly prisma: PrismaService,
     private readonly globalGateway: GlobalGateway,
+    private readonly redisService: RedisService,
   ) {}
 
-  @OnEvent('notification.FOLLOW')
+  @OnEvent('notification:FOLLOW')
   async handleFollowEvent({ actorId, userId }: Event.FollowEvent) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -56,14 +58,14 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(userId);
+    const isSubscribed = await this.redisService.isSubscribed(`user:${userId}`);
 
-    if (isOnline) {
+    if (isSubscribed) {
       this.globalGateway.emitNewNotificationToUser(userId, notification);
     }
   }
 
-  @OnEvent('notification.FEED_LIKE')
+  @OnEvent('notification:FEED_LIKE')
   async handleFeedLikeEvent({ feedId, likeCount }: Event.FeedLikeEvent) {
     const [result] = await this.prisma.$kysely
       .selectFrom('Feed')
@@ -91,16 +93,18 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(result.authorId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${result.authorId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         result.authorId,
         notification,
       );
   }
 
-  @OnEvent('notification.FEED_COMMENT')
+  @OnEvent('notification:FEED_COMMENT')
   async handleFeedComment({ feedId, actorId }: Event.FeedCommentEvent) {
     const [result] = await this.prisma.$kysely
       .selectFrom('Feed')
@@ -138,16 +142,18 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(result.authorId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${result.authorId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         result.authorId,
         notification,
       );
   }
 
-  @OnEvent('notification.FEED_REPLY')
+  @OnEvent('notification:FEED_REPLY')
   async handleFeedReply({ feedId, actorId, parentId }: Event.FeedReplyEvent) {
     const [result] = await this.prisma.$kysely
       .selectFrom('FeedComment')
@@ -186,16 +192,18 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(result.writerId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${result.writerId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         result.writerId,
         notification,
       );
   }
 
-  @OnEvent('notification.FEED_MENTION')
+  @OnEvent('notification:FEED_MENTION')
   async handleFeedMention({
     feedId,
     actorId,
@@ -232,16 +240,18 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(mentionedUserId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${mentionedUserId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         mentionedUserId,
         notification,
       );
   }
 
-  @OnEvent('notification.POST_COMMENT')
+  @OnEvent('notification:POST_COMMENT')
   async handlePostComment({ postId, actorId }: Event.PostCommentEvent) {
     const [author] = await this.prisma.$kysely
       .selectFrom('Post')
@@ -280,16 +290,18 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(author.authorId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${author.authorId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         author.authorId,
         notification,
       );
   }
 
-  @OnEvent('notification.POST_REPLY')
+  @OnEvent('notification:POST_REPLY')
   async handlePostReply({ postId, actorId, parentId }: Event.PostReplyEvent) {
     const [result] = await this.prisma.$kysely
       .selectFrom('PostComment')
@@ -333,16 +345,18 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(result.writerId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${result.writerId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         result.writerId,
         notification,
       );
   }
 
-  @OnEvent('notification.POST_MENTION')
+  @OnEvent('notification:POST_MENTION')
   async handlePostMention({
     postId,
     actorId,
@@ -381,9 +395,11 @@ export class NotificationListener {
       },
     });
 
-    const isOnline = await this.globalGateway.isOnline(mentionedUserId);
+    const isSubscribed = await this.redisService.isSubscribed(
+      `user:${mentionedUserId}`,
+    );
 
-    if (isOnline)
+    if (isSubscribed)
       this.globalGateway.emitNewNotificationToUser(
         mentionedUserId,
         notification,

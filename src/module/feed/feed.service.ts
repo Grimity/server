@@ -68,7 +68,7 @@ export class FeedService {
     if (feed === null) return;
 
     if ([1, 5, 10, 20, 50, 100].includes(feed.likeCount)) {
-      this.eventEmitter.emit('notification.FEED_LIKE', {
+      this.eventEmitter.emit('notification:FEED_LIKE', {
         feedId,
         likeCount: feed.likeCount,
       });

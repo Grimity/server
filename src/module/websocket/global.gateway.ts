@@ -27,7 +27,7 @@ export class GlobalGateway
   server: Server;
 
   private pubRedis: Redis;
-  private socketUserMap = new Map<string, string>(); // socketId -> userId
+  private userSocketMap: Map<string, Set<string>> = new Map(); // userId -> socketId set
 
   constructor(
     private readonly redisService: RedisService,
@@ -52,7 +52,9 @@ export class GlobalGateway
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
-      client.data.user = payload;
+      client.data.user = payload as {
+        id: string;
+      };
     } catch (e) {
       client.emit('error', {
         statusCode: 401,
@@ -63,15 +65,13 @@ export class GlobalGateway
     }
 
     const userId = client.data.user.id as string;
-    this.socketUserMap.set(client.id, userId);
-    // 유저별 클라이언트 개수
-    await this.pubRedis.incr(`user:${userId}:clientCount`);
 
-    // 클라이언트 개수 expire
-    await this.pubRedis.expire(`user:${userId}:clientCount`, 60 * 60 * 2); // TTL 2시간
-
-    await this.redisService.subscribe(`user:${userId}`);
     await client.join(`user:${userId}`);
+    this.userSocketMap.set(
+      userId,
+      (this.userSocketMap.get(userId) ?? new Set()).add(client.id),
+    );
+    await this.redisService.subscribe(`user:${userId}`);
 
     client.emit('connected', {
       socketId: client.id,
@@ -81,12 +81,18 @@ export class GlobalGateway
   async handleDisconnect(client: Socket) {
     // room 정보는 알아서 없어짐
     try {
-      const userId = this.socketUserMap.get(client.id);
-      await this.redisService.unSubscribe(`user:${userId}`);
-      await this.pubRedis.decr(`user:${userId}:clientCount`);
+      const userId = client.data.user.id as string;
 
-      this.socketUserMap.delete(client.id);
-      // await this.pubRedis.del(`socket:user:${client.id}`);
+      const userSockets = this.userSocketMap.get(userId);
+      if (!userSockets) throw new Error('No sockets for user');
+
+      userSockets.delete(client.id);
+      if (userSockets.size === 0) {
+        this.userSocketMap.delete(userId);
+        await this.redisService.unSubscribe(`user:${userId}`);
+      } else {
+        this.userSocketMap.set(userId, userSockets);
+      }
     } catch (e) {
       if (this.configService.get('NODE_ENV') !== 'production') return;
       throw e;
@@ -95,23 +101,6 @@ export class GlobalGateway
 
   async onModuleDestroy() {
     this.server.disconnectSockets();
-  }
-
-  async isOnline(userId: string) {
-    const count = await this.pubRedis.get(`user:${userId}:clientCount`);
-    return count !== null && Number(count) > 0;
-  }
-
-  async joinChat(userId: string, chatId: string) {
-    await this.pubRedis.incr(`chat:${chatId}:user:${userId}:count`);
-    await this.pubRedis.expire(
-      `chat:${chatId}:user:${userId}:count`,
-      60 * 60 * 2,
-    ); // TTL 2시간
-  }
-
-  async leaveChat(userId: string, chatId: string) {
-    await this.pubRedis.decr(`chat:${chatId}:user:${userId}:count`);
   }
 
   async isUserInChat(userId: string, chatId: string) {

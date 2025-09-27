@@ -18,7 +18,12 @@ export class RedisService implements OnModuleDestroy {
     this.subRedis = this.redis.duplicate();
 
     this.subRedis.on('message', (channel: string, message: string) => {
-      console.log(`Received message from channel ${channel}: ${message}`);
+      const { event, ...payload } = JSON.parse(message);
+
+      this.eventEmitter.emit(event, {
+        ...payload,
+        targetUserId: channel.split(':')[1],
+      });
     });
   }
 
@@ -38,8 +43,13 @@ export class RedisService implements OnModuleDestroy {
     await this.subRedis.unsubscribe(channel);
   }
 
-  async publish(channel: string, message: string) {
-    await this.redis.publish(channel, message);
+  async isSubscribed(channel: string) {
+    const channels = await this.pubClient.pubsub('CHANNELS', channel);
+    return channels.length > 0;
+  }
+
+  async publish(channel: string, message: any) {
+    await this.redis.publish(channel, JSON.stringify(message));
   }
 
   async onModuleDestroy() {

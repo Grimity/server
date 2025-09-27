@@ -106,7 +106,7 @@ export class UserService {
     const targetUser = await this.followTransaction(userId, targetUserId);
 
     if (targetUser.subscription.includes('FOLLOW')) {
-      this.eventEmitter.emit('notification.FOLLOW', {
+      this.eventEmitter.emit('notification:FOLLOW', {
         type: 'FOLLOW',
         actorId: userId,
         userId: targetUserId,

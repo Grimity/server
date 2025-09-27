@@ -472,7 +472,11 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     // when
     const [myEvent, targetEvent, { status }] = await Promise.all([
       new Promise((resolve) => mySocket.on('newChatMessage', resolve)),
-      new Promise((resolve) => targetSocket.on('newChatMessage', resolve)),
+      new Promise((resolve) =>
+        targetSocket.on('newChatMessage', (data) => {
+          resolve(data);
+        }),
+      ),
       request(app.getHttpServer())
         .post('/chat-messages')
         .set('Authorization', `Bearer ${accessToken}`)
