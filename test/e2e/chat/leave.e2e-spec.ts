@@ -5,9 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
-import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
-import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
@@ -37,10 +35,6 @@ describe('PUT /chats/:id/leave - 채팅방 나가기', () => {
 
     await app.init();
     await app.listen(3000);
-
-    const redisIoAdapter = new RedisIoAdapter(redisService, app);
-    await redisIoAdapter.connectToRedis();
-    app.useWebSocketAdapter(redisIoAdapter);
 
     globalGateway = app.get<GlobalGateway>(GlobalGateway);
     socketServer = globalGateway.server;

@@ -122,12 +122,18 @@ export class ChatService {
       });
     }
 
-    this.redisService.publish(`deleteChat:${userId}`, [chatId]);
+    this.redisService.publish(`user:${userId}`, {
+      event: 'deleteChat',
+      chatIds: [chatId],
+    });
   }
 
   async deleteChats(userId: string, chatIds: string[]) {
     await this.chatWriter.exitManyChats(userId, chatIds);
-    this.redisService.publish(`deleteChat:${userId}`, chatIds);
+    this.redisService.publish(`user:${userId}`, {
+      event: 'deleteChat',
+      chatIds,
+    });
     return;
   }
 

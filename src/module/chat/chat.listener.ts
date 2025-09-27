@@ -26,4 +26,10 @@ export class ChatListener {
     const { userId, messageId } = payload;
     this.gateway.emitUnlikeChatMessageEventToChat(messageId, userId);
   }
+
+  @OnEvent('deleteChat')
+  handleDeleteChatEvent(payload: { targetUserId: string; chatIds: string[] }) {
+    const { targetUserId, chatIds } = payload;
+    this.gateway.emitDeleteChatEventToUser(targetUserId, chatIds);
+  }
 }
