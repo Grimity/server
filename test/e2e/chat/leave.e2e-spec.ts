@@ -5,9 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
-import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
-import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
@@ -37,10 +35,6 @@ describe('PUT /chats/:id/leave - 채팅방 나가기', () => {
 
     await app.init();
     await app.listen(3000);
-
-    const redisIoAdapter = new RedisIoAdapter(redisService, app);
-    await redisIoAdapter.connectToRedis();
-    app.useWebSocketAdapter(redisIoAdapter);
 
     globalGateway = app.get<GlobalGateway>(GlobalGateway);
     socketServer = globalGateway.server;
@@ -78,49 +72,6 @@ describe('PUT /chats/:id/leave - 채팅방 나가기', () => {
 
     // then
     expect(status).toBe(400);
-  });
-
-  it('없는 socketId일때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
-    const user = await prisma.user.create({
-      data: {
-        provider: 'kakao',
-        providerId: 'test2',
-        name: 'test2',
-        url: 'test2',
-        email: 'test@test.com',
-      },
-    });
-
-    const chat = await prisma.chat.create({
-      data: {
-        users: {
-          createMany: {
-            data: [
-              {
-                userId: me.id,
-              },
-              {
-                userId: user.id,
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/chats/${chat.id}/leave`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        socketId: 'test',
-      });
-
-    // then
-    expect(status).toBe(404);
   });
 
   it('204와 함께 방에서 나간다', async () => {

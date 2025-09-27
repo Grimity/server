@@ -54,7 +54,8 @@ import { ImageModule } from './module/image/image.module';
     RedisModule,
     AlbumModule,
     EventEmitterModule.forRoot({
-      delimiter: '.',
+      delimiter: ':',
+      wildcard: true,
     }),
     ClsModule.forRoot({
       global: true,

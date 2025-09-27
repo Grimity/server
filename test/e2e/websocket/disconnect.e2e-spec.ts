@@ -4,7 +4,6 @@ import { AppModule } from 'src/app.module';
 import { Socket as ClientSocket, io } from 'socket.io-client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
 import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 
@@ -32,10 +31,6 @@ describe('GlobalGateway disconnect', () => {
       kakaoId: 'test',
       email: 'test@test.com',
     });
-
-    const redisIoAdapter = new RedisIoAdapter(redisService, app);
-    await redisIoAdapter.connectToRedis();
-    app.useWebSocketAdapter(redisIoAdapter);
   });
 
   afterAll(async () => {

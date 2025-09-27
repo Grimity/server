@@ -2,17 +2,21 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserReader } from '../user/repository/user.reader';
-import { GlobalGateway } from '../websocket/global.gateway';
+import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
 export class ChatService {
+  private redisClient;
+
   constructor(
     private readonly chatReader: ChatReader,
     private readonly chatWriter: ChatWriter,
     private readonly userReader: UserReader,
-    private readonly globalGateway: GlobalGateway,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redisClient = this.redisService.pubClient;
+  }
 
   async createChat(userId: string, targetUserId: string) {
     const userExists = await this.userReader.findOneById(targetUserId);
@@ -77,43 +81,23 @@ export class ChatService {
     };
   }
 
-  async joinChat({
-    userId,
-    chatId,
-    socketId,
-  }: {
-    userId: string;
-    chatId: string;
-    socketId: string;
-  }) {
+  async joinChat({ userId, chatId }: { userId: string; chatId: string }) {
     const chat = await this.chatReader.findOneStatusById(userId, chatId);
 
     if (!chat) throw new HttpException('CHAT', 404);
 
-    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
-    if (socketUserId === null || socketUserId !== userId)
-      throw new HttpException('SOCKET', 404);
-
     await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
 
-    await this.globalGateway.joinChat(socketId, chatId);
+    await this.redisClient.incr(`chat:${chatId}:user:${userId}:count`);
+    await this.redisClient.expire(
+      `chat:${chatId}:user:${userId}:count`,
+      60 * 60 * 2,
+    ); // TTL 2시간
     return;
   }
 
-  async leaveChat({
-    userId,
-    chatId,
-    socketId,
-  }: {
-    userId: string;
-    chatId: string;
-    socketId: string;
-  }) {
-    const socketUserId = await this.globalGateway.getUserIdByClientId(socketId);
-    if (socketUserId === null || socketUserId !== userId)
-      throw new HttpException('SOCKET', 404);
-
-    this.globalGateway.leaveChat(socketId, chatId);
+  async leaveChat({ userId, chatId }: { userId: string; chatId: string }) {
+    await this.redisClient.decr(`chat:${chatId}:user:${userId}:count`);
     return;
   }
 
@@ -138,12 +122,18 @@ export class ChatService {
       });
     }
 
-    this.globalGateway.emitDeleteChatEventToUser(userId, [chatId]);
+    this.redisService.publish(`user:${userId}`, {
+      event: 'deleteChat',
+      chatIds: [chatId],
+    });
   }
 
   async deleteChats(userId: string, chatIds: string[]) {
     await this.chatWriter.exitManyChats(userId, chatIds);
-    this.globalGateway.emitDeleteChatEventToUser(userId, chatIds);
+    this.redisService.publish(`user:${userId}`, {
+      event: 'deleteChat',
+      chatIds,
+    });
     return;
   }
 

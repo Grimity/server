@@ -2,17 +2,20 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { ChatWriter } from './repository/chat.writer';
 import { ChatReader } from './repository/chat.reader';
 import { getImageUrl } from 'src/shared/util/get-image-url';
-import { GlobalGateway } from '../websocket/global.gateway';
 import { UserReader } from '../user/repository/user.reader';
+import { RedisService } from 'src/database/redis/redis.service';
 
 @Injectable()
 export class ChatMessageService {
+  private redisClient;
   constructor(
     private readonly chatWriter: ChatWriter,
     private readonly chatReader: ChatReader,
-    private readonly gateway: GlobalGateway,
     private readonly userReader: UserReader,
-  ) {}
+    private readonly redisService: RedisService,
+  ) {
+    this.redisClient = this.redisService.pubClient;
+  }
 
   async create({
     userId,
@@ -86,18 +89,17 @@ export class ChatMessageService {
       replyTo = await this.chatReader.findMessageById(replyToId);
     }
 
-    const [targetUserSocketIds, chatSocketIds] = await Promise.all([
-      this.gateway.getSocketIdsByUserId(targetUserStatus.userId),
-      this.gateway.getSocketIdsByChatId(chatId),
-    ]);
+    const userInChatCount = await this.redisClient.get(
+      `chat:${chatId}:user:${userId}:count`,
+    );
 
-    const isTargetUserJoinedChat = targetUserSocketIds.some((id) =>
-      chatSocketIds.includes(id),
+    const targetUserIsOnline = await this.redisService.isSubscribed(
+      `user:${targetUserStatus.userId}`,
     );
 
     let totalUnreadCount: number | null = null;
 
-    if (targetUserSocketIds.length === 0 || !isTargetUserJoinedChat)
+    if (userInChatCount === null || Number(userInChatCount) <= 0)
       //상대방이 오프라인이거나 온라인이어도 채팅방엔 없는상태
       totalUnreadCount = await this.chatWriter.increaseUnreadCount({
         userId: targetUserStatus.userId,
@@ -135,21 +137,20 @@ export class ChatMessageService {
       })),
     };
 
-    this.gateway.emitMessageEventToUser(userId, newMessageEvent);
+    await this.redisService.publish(`user:${userId}`, {
+      ...newMessageEvent,
+      event: 'newChatMessage',
+    });
 
-    // if (targetUserSocketIds.length === 0) {
-    //   // 푸시알림
-    // } else {
-    //   // 상대방 온라인 상태임
-    //   this.gateway.emitMessageEventToUser(
-    //     targetUserStatus.userId,
-    //     newMessageEvent,
-    //   );
-    // }
-    this.gateway.emitMessageEventToUser(
-      targetUserStatus.userId,
-      newMessageEvent,
-    );
+    if (targetUserIsOnline === false) {
+      // 푸시알림
+    } else {
+      // 상대방 온라인 상태임
+      await this.redisService.publish(`user:${targetUserStatus.userId}`, {
+        ...newMessageEvent,
+        event: 'newChatMessage',
+      });
+    }
 
     return;
   }
@@ -160,8 +161,20 @@ export class ChatMessageService {
     if (!message) throw new HttpException('MESSAGE', 404);
     if (message.isLike) return;
 
+    const chatUsers = await this.chatReader.findUsersByChatId(message.chatId);
+    const targetUser = chatUsers.find((user) => user.id !== userId);
+    if (!targetUser) throw new HttpException('CHAT', 404);
+
     await this.chatWriter.updateMessageLike(messageId, true);
-    this.gateway.emitLikeChatMessageEventToChat(message.chatId, messageId);
+
+    await this.redisService.publish(`user:${message.userId}`, {
+      messageId,
+      event: 'likeChatMessage',
+    });
+    await this.redisService.publish(`user:${targetUser.id}`, {
+      messageId,
+      event: 'likeChatMessage',
+    });
     return;
   }
 
@@ -170,8 +183,20 @@ export class ChatMessageService {
     if (!message) throw new HttpException('MESSAGE', 404);
     if (message.isLike === false) return;
 
+    const chatUsers = await this.chatReader.findUsersByChatId(message.chatId);
+    const targetUser = chatUsers.find((user) => user.id !== userId);
+    if (!targetUser) throw new HttpException('CHAT', 404);
+
     await this.chatWriter.updateMessageLike(messageId, false);
-    this.gateway.emitUnlikeChatMessageEventToChat(message.chatId, messageId);
+
+    await this.redisService.publish(`user:${message.userId}`, {
+      messageId,
+      event: 'unlikeChatMessage',
+    });
+    await this.redisService.publish(`user:${targetUser.id}`, {
+      messageId,
+      event: 'unlikeChatMessage',
+    });
     return;
   }
 

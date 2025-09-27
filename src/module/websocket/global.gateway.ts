@@ -27,8 +27,7 @@ export class GlobalGateway
   server: Server;
 
   private pubRedis: Redis;
-  private subRedis: Redis;
-  private instanceId: string;
+  private userSocketMap: Map<string, Set<string>> = new Map(); // userId -> socketId set
 
   constructor(
     private readonly redisService: RedisService,
@@ -36,8 +35,6 @@ export class GlobalGateway
     private readonly configService: ConfigService,
   ) {
     this.pubRedis = redisService.pubClient;
-    this.subRedis = redisService.subClient;
-    this.instanceId = crypto.randomUUID();
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
@@ -55,7 +52,9 @@ export class GlobalGateway
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
-      client.data.user = payload;
+      client.data.user = payload as {
+        id: string;
+      };
     } catch (e) {
       client.emit('error', {
         statusCode: 401,
@@ -67,40 +66,33 @@ export class GlobalGateway
 
     const userId = client.data.user.id as string;
 
-    await this.pubRedis.set(
-      `socket:user:${client.id}`,
-      userId,
-      'EX',
-      60 * 60 * 6,
-    ); // TTL 6시간
-
     await client.join(`user:${userId}`);
-    const sockets = await this.server.in(`user:${userId}`).fetchSockets();
-    const result = sockets.map((socket) => socket.id);
-    console.log({
-      event: 'handleConnection',
-      instanceId: this.instanceId,
+    this.userSocketMap.set(
       userId,
-      userSocketIds: result,
-    });
+      (this.userSocketMap.get(userId) ?? new Set()).add(client.id),
+    );
+    await this.redisService.subscribe(`user:${userId}`);
 
     client.emit('connected', {
       socketId: client.id,
     });
-
-    console.log(
-      `Client connected: ${client.id}, User ID: ${userId}, Instance ID: ${this.instanceId}`,
-    );
   }
 
   async handleDisconnect(client: Socket) {
     // room 정보는 알아서 없어짐
     try {
-      await this.pubRedis.del(`socket:user:${client.id}`);
+      const userId = client.data.user.id as string;
 
-      console.log(
-        `Client disconnected: ${client.id}, Instance ID: ${this.instanceId}`,
-      );
+      const userSockets = this.userSocketMap.get(userId);
+      if (!userSockets) throw new Error('No sockets for user');
+
+      userSockets.delete(client.id);
+      if (userSockets.size === 0) {
+        this.userSocketMap.delete(userId);
+        await this.redisService.unSubscribe(`user:${userId}`);
+      } else {
+        this.userSocketMap.set(userId, userSockets);
+      }
     } catch (e) {
       if (this.configService.get('NODE_ENV') !== 'production') return;
       throw e;
@@ -111,78 +103,27 @@ export class GlobalGateway
     this.server.disconnectSockets();
   }
 
-  async getUserIdByClientId(clientId: string) {
-    return (await this.pubRedis.get(`socket:user:${clientId}`)) as
-      | string
-      | null;
-  }
-
-  async joinChat(socketId: string, chatId: string) {
-    this.server.sockets.in(socketId).socketsJoin(`chat:${chatId}`);
-    const sockets = await this.server.sockets
-      .in(`chat:${chatId}`)
-      .fetchSockets();
-    const result = sockets.map((socket) => socket.id);
-    console.log({
-      event: 'joinChat',
-      chatId,
-      chatSocketIds: result,
-    });
-  }
-
-  leaveChat(socketId: string, chatId: string) {
-    this.server.sockets.in(socketId).socketsLeave(`chat:${chatId}`);
-  }
-
-  async getSocketIdsByUserId(userId: string) {
-    const sockets = await this.server.sockets
-      .in(`user:${userId}`)
-      .fetchSockets();
-
-    const result = sockets.map((socket) => socket.id);
-    console.log({
-      instanceId: this.instanceId,
-      userId,
-      targetSocketIds: result,
-    });
-
-    return result;
-  }
-
-  async getSocketIdsByChatId(chatId: string) {
-    const sockets = await this.server.sockets
-      .in(`chat:${chatId}`)
-      .fetchSockets();
-
-    const result = sockets.map((socket) => socket.id);
-
-    console.log({
-      instanceId: this.instanceId,
-      chatSocketIds: result,
-    });
-    return result;
+  async isUserInChat(userId: string, chatId: string) {
+    const count = await this.pubRedis.get(
+      `chat:${chatId}:user:${userId}:count`,
+    );
+    return count !== null && Number(count) > 0;
   }
 
   emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {
     this.server.to(`user:${userId}`).emit('newChatMessage', dto);
-    this.server.serverSideEmit('test', 'hello from server');
-  }
-
-  @SubscribeMessage('test')
-  handleTestEvent(@MessageBody() data: string): void {
-    console.log({ event: 'test', instanceId: this.instanceId });
   }
 
   emitDeleteChatEventToUser(userId: string, chatIds: string[]) {
     this.server.to(`user:${userId}`).emit('deleteChat', chatIds);
   }
 
-  emitLikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
-    this.server.to(`chat:${chatId}`).emit('likeChatMessage', chatMessageId);
+  emitLikeChatMessageEventToUser(userId: string, chatMessageId: string) {
+    this.server.to(`user:${userId}`).emit('likeChatMessage', chatMessageId);
   }
 
-  emitUnlikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
-    this.server.to(`chat:${chatId}`).emit('unlikeChatMessage', chatMessageId);
+  emitUnlikeChatMessageEventToUser(userId: string, chatMessageId: string) {
+    this.server.to(`user:${userId}`).emit('unlikeChatMessage', chatMessageId);
   }
 
   emitNewNotificationToUser(userId: string, dto: NotificationResponse) {

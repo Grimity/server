@@ -115,7 +115,6 @@ export class ChatController {
     await this.chatService.joinChat({
       userId,
       chatId,
-      socketId,
     });
     return;
   }
@@ -131,7 +130,6 @@ export class ChatController {
   ) {
     await this.chatService.leaveChat({
       userId,
-      socketId,
       chatId,
     });
     return;
