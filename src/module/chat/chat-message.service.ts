@@ -161,13 +161,20 @@ export class ChatMessageService {
     if (!message) throw new HttpException('MESSAGE', 404);
     if (message.isLike) return;
 
+    const chatUsers = await this.chatReader.findUsersByChatId(message.chatId);
+    const targetUser = chatUsers.find((user) => user.id !== userId);
+    if (!targetUser) throw new HttpException('CHAT', 404);
+
     await this.chatWriter.updateMessageLike(messageId, true);
 
-    // await this.redisService.publish(`user:${message.userId}`, {
-    //   messageId,
-    //   event: 'likeChatMessage',
-    // });
-    // this.gateway.emitLikeChatMessageEventToChat(message.chatId, messageId);
+    await this.redisService.publish(`user:${message.userId}`, {
+      messageId,
+      event: 'likeChatMessage',
+    });
+    await this.redisService.publish(`user:${targetUser.id}`, {
+      messageId,
+      event: 'likeChatMessage',
+    });
     return;
   }
 
@@ -176,8 +183,20 @@ export class ChatMessageService {
     if (!message) throw new HttpException('MESSAGE', 404);
     if (message.isLike === false) return;
 
+    const chatUsers = await this.chatReader.findUsersByChatId(message.chatId);
+    const targetUser = chatUsers.find((user) => user.id !== userId);
+    if (!targetUser) throw new HttpException('CHAT', 404);
+
     await this.chatWriter.updateMessageLike(messageId, false);
-    // this.gateway.emitUnlikeChatMessageEventToChat(message.chatId, messageId);
+
+    await this.redisService.publish(`user:${message.userId}`, {
+      messageId,
+      event: 'unlikeChatMessage',
+    });
+    await this.redisService.publish(`user:${targetUser.id}`, {
+      messageId,
+      event: 'unlikeChatMessage',
+    });
     return;
   }
 

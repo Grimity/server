@@ -16,15 +16,21 @@ export class ChatListener {
   }
 
   @OnEvent('likeChatMessage')
-  handleLikeChatMessageEvent(payload: { userId: string; messageId: string }) {
-    const { userId, messageId } = payload;
-    this.gateway.emitLikeChatMessageEventToChat(messageId, userId);
+  handleLikeChatMessageEvent(payload: {
+    targetUserId: string;
+    messageId: string;
+  }) {
+    const { targetUserId, messageId } = payload;
+    this.gateway.emitLikeChatMessageEventToUser(targetUserId, messageId);
   }
 
   @OnEvent('unlikeChatMessage')
-  handleUnlikeChatMessageEvent(payload: { userId: string; messageId: string }) {
-    const { userId, messageId } = payload;
-    this.gateway.emitUnlikeChatMessageEventToChat(messageId, userId);
+  handleUnlikeChatMessageEvent(payload: {
+    targetUserId: string;
+    messageId: string;
+  }) {
+    const { targetUserId, messageId } = payload;
+    this.gateway.emitUnlikeChatMessageEventToUser(targetUserId, messageId);
   }
 
   @OnEvent('deleteChat')

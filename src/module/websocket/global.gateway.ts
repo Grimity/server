@@ -118,12 +118,12 @@ export class GlobalGateway
     this.server.to(`user:${userId}`).emit('deleteChat', chatIds);
   }
 
-  emitLikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
-    this.server.to(`chat:${chatId}`).emit('likeChatMessage', chatMessageId);
+  emitLikeChatMessageEventToUser(userId: string, chatMessageId: string) {
+    this.server.to(`user:${userId}`).emit('likeChatMessage', chatMessageId);
   }
 
-  emitUnlikeChatMessageEventToChat(chatId: string, chatMessageId: string) {
-    this.server.to(`chat:${chatId}`).emit('unlikeChatMessage', chatMessageId);
+  emitUnlikeChatMessageEventToUser(userId: string, chatMessageId: string) {
+    this.server.to(`user:${userId}`).emit('unlikeChatMessage', chatMessageId);
   }
 
   emitNewNotificationToUser(userId: string, dto: NotificationResponse) {
