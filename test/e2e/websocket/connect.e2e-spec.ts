@@ -4,7 +4,6 @@ import { AppModule } from 'src/app.module';
 import { Socket as ClientSocket, io } from 'socket.io-client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
 import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
 
@@ -32,10 +31,6 @@ describe('GlobalGateway connect', () => {
       kakaoId: 'test',
       email: 'test@test.com',
     });
-
-    const redisIoAdapter = new RedisIoAdapter(redisService, app);
-    await redisIoAdapter.connectToRedis();
-    app.useWebSocketAdapter(redisIoAdapter);
   });
 
   afterAll(async () => {
@@ -76,7 +71,7 @@ describe('GlobalGateway connect', () => {
     });
   });
 
-  it('connection 성공 시 redis에 socket:userId 정보를 저장한다', async () => {
+  it('connection 성공 시 redis에 subscribe를 한다', async () => {
     // given
     const accessToken = await register(app, 'test');
 
@@ -92,36 +87,13 @@ describe('GlobalGateway connect', () => {
         resolve(clientSocket);
       });
     });
-
-    const clientSocket2 = await new Promise<ClientSocket>((resolve) => {
-      const clientSocket = io('http://localhost:3000', {
-        auth: {
-          accessToken,
-        },
-      });
-
-      clientSocket.on('connect', async () => {
-        resolve(clientSocket);
-      });
-    });
+    const user = await prisma.user.findFirstOrThrow();
 
     // then
-    const user = await prisma.user.findFirstOrThrow();
-    const result1 = await redisService.pubClient.get(
-      `socket:user:${clientSocket.id}`,
-    );
-    const result2 = await redisService.pubClient.get(
-      `socket:user:${clientSocket2.id}`,
-    );
-
-    expect(result1).toBe(user.id);
-    expect(result2).toBe(user.id);
-
-    expect(clientSocket.connected).toBe(true);
-    expect(clientSocket2.connected).toBe(true);
+    const isOnline = await redisService.isSubscribed(`user:${user.id}`);
+    expect(isOnline).toBe(true);
 
     // cleanup
     clientSocket.close();
-    clientSocket2.close();
   });
 });

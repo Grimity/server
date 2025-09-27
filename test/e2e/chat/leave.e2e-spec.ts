@@ -74,49 +74,6 @@ describe('PUT /chats/:id/leave - 채팅방 나가기', () => {
     expect(status).toBe(400);
   });
 
-  it('없는 socketId일때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
-    const user = await prisma.user.create({
-      data: {
-        provider: 'kakao',
-        providerId: 'test2',
-        name: 'test2',
-        url: 'test2',
-        email: 'test@test.com',
-      },
-    });
-
-    const chat = await prisma.chat.create({
-      data: {
-        users: {
-          createMany: {
-            data: [
-              {
-                userId: me.id,
-              },
-              {
-                userId: user.id,
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/chats/${chat.id}/leave`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        socketId: 'test',
-      });
-
-    // then
-    expect(status).toBe(404);
-  });
-
   it('204와 함께 방에서 나간다', async () => {
     // given
     const accessToken = await register(app, 'test');

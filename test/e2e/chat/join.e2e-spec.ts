@@ -7,7 +7,6 @@ import { AuthService } from 'src/module/auth/auth.service';
 import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
-import { RedisIoAdapter } from 'src/database/redis/redis.adapter';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
@@ -37,10 +36,6 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
 
     await app.init();
     await app.listen(3000);
-
-    const redisIoAdapter = new RedisIoAdapter(redisService, app);
-    await redisIoAdapter.connectToRedis();
-    app.useWebSocketAdapter(redisIoAdapter);
 
     globalGateway = app.get<GlobalGateway>(GlobalGateway);
     socketServer = globalGateway.server;
@@ -87,49 +82,6 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
     // when
     const { status } = await request(app.getHttpServer())
       .put(`/chats/${sampleUuid}/join`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        socketId: 'test',
-      });
-
-    // then
-    expect(status).toBe(404);
-  });
-
-  it('없는 socketId일때 404를 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
-    const user = await prisma.user.create({
-      data: {
-        provider: 'kakao',
-        providerId: 'test2',
-        name: 'test2',
-        url: 'test2',
-        email: 'test@test.com',
-      },
-    });
-
-    const chat = await prisma.chat.create({
-      data: {
-        users: {
-          createMany: {
-            data: [
-              {
-                userId: me.id,
-              },
-              {
-                userId: user.id,
-              },
-            ],
-          },
-        },
-      },
-    });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put(`/chats/${chat.id}/join`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
         socketId: 'test',
@@ -192,9 +144,10 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
 
     // then
     expect(status).toBe(204);
-    const sockets = await socketServer.in(`chat:${chat.id}`).fetchSockets();
-    expect(sockets.length).toBe(1);
-    expect(sockets[0].id).toBe(clientSocket.id);
+    const joinedCount = await redisService.pubClient.get(
+      `chat:${chat.id}:user:${me.id}:count`,
+    );
+    expect(joinedCount).toBe('1');
 
     // cleanup
     clientSocket.disconnect();
