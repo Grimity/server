@@ -97,7 +97,10 @@ export class ChatService {
   }
 
   async leaveChat({ userId, chatId }: { userId: string; chatId: string }) {
-    await this.redisClient.decr(`chat:${chatId}:user:${userId}:count`);
+    const result = await this.redisClient.decr(
+      `chat:${chatId}:user:${userId}:count`,
+    );
+    console.log(`chat:${chatId}:user:${userId}:count`, result);
     return;
   }
 

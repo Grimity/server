@@ -88,6 +88,7 @@ export class GlobalGateway
 
       userSockets.delete(client.id);
       if (userSockets.size === 0) {
+        console.log(`User ${userId} disconnected completely`);
         this.userSocketMap.delete(userId);
         await this.redisService.unSubscribe(`user:${userId}`);
       } else {
