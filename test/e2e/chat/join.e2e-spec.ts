@@ -144,10 +144,11 @@ describe('PUT chats/:id/join - 채팅방 입장', () => {
 
     // then
     expect(status).toBe(204);
-    const joinedCount = await redisService.pubClient.get(
-      `chat:${chat.id}:user:${me.id}:count`,
+    const result = await redisService.pubClient.sismember(
+      `user:${me.id}:online:chats`,
+      chat.id,
     );
-    expect(joinedCount).toBe('1');
+    expect(result).toBe(1);
 
     // cleanup
     clientSocket.disconnect();

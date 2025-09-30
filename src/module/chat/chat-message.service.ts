@@ -89,9 +89,12 @@ export class ChatMessageService {
       replyTo = await this.chatReader.findMessageById(replyToId);
     }
 
-    const userInChatCount = await this.redisClient.get(
-      `chat:${chatId}:user:${userId}:count`,
+    const result = await this.redisClient.sismember(
+      `user:${targetUserStatus.userId}:online:chats`,
+      chatId,
     );
+
+    const targetUserJoinedChat = Number(result) === 1;
 
     const targetUserIsOnline = await this.redisService.isSubscribed(
       `user:${targetUserStatus.userId}`,
@@ -99,7 +102,7 @@ export class ChatMessageService {
 
     let totalUnreadCount: number | null = null;
 
-    if (userInChatCount === null || Number(userInChatCount) <= 0)
+    if (targetUserIsOnline === false || targetUserJoinedChat === false)
       //상대방이 오프라인이거나 온라인이어도 채팅방엔 없는상태
       totalUnreadCount = await this.chatWriter.increaseUnreadCount({
         userId: targetUserStatus.userId,
