@@ -88,19 +88,13 @@ export class ChatService {
 
     await this.chatWriter.updateChatUser({ userId, chatId, unreadCount: 0 });
 
-    await this.redisClient.incr(`chat:${chatId}:user:${userId}:count`);
-    await this.redisClient.expire(
-      `chat:${chatId}:user:${userId}:count`,
-      60 * 60 * 2,
-    ); // TTL 2시간
+    await this.redisClient.sadd(`user:${userId}:online:chats`, chatId);
+    await this.redisClient.expire(`user:${userId}:online:chats`, 60 * 60); // TTL 1시간
     return;
   }
 
   async leaveChat({ userId, chatId }: { userId: string; chatId: string }) {
-    const result = await this.redisClient.decr(
-      `chat:${chatId}:user:${userId}:count`,
-    );
-    console.log(`chat:${chatId}:user:${userId}:count`, result);
+    await this.redisClient.srem(`user:${userId}:online:chats`, chatId);
     return;
   }
 

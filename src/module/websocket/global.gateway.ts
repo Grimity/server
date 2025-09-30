@@ -86,9 +86,10 @@ export class GlobalGateway
       const userSockets = this.userSocketMap.get(userId);
       if (!userSockets) throw new Error('No sockets for user');
 
+      await this.pubRedis.del(`user:${userId}:online:chats`);
+
       userSockets.delete(client.id);
       if (userSockets.size === 0) {
-        console.log(`User ${userId} disconnected completely`);
         this.userSocketMap.delete(userId);
         await this.redisService.unSubscribe(`user:${userId}`);
       } else {
@@ -102,13 +103,6 @@ export class GlobalGateway
 
   async onModuleDestroy() {
     this.server.disconnectSockets();
-  }
-
-  async isUserInChat(userId: string, chatId: string) {
-    const count = await this.pubRedis.get(
-      `chat:${chatId}:user:${userId}:count`,
-    );
-    return count !== null && Number(count) > 0;
   }
 
   emitMessageEventToUser(userId: string, dto: NewChatMessageEventResponse) {
