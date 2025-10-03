@@ -51,7 +51,9 @@ export class GlobalGateway
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync(token, {
+        ignoreExpiration: true,
+      });
       client.data.user = payload as {
         id: string;
       };
