@@ -46,7 +46,7 @@
     "kysely": "^0.28.2",
     "nestjs-cls": "^6.0.1",
     "prisma-extension-kysely": "^3.0.0",
-    "prisma-kysely": "^1.8.0",
+    "prisma-kysely": "^2.2.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "striptags": "^3.2.0",
