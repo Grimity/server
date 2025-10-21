@@ -83,6 +83,11 @@ export class ChatMessageService {
 
     const createdMessages =
       await this.chatWriter.createMessages(toCreateMessages);
+
+    // 최신순
+    createdMessages.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
     let replyTo = null;
 
     if (replyToId) {
@@ -100,11 +105,9 @@ export class ChatMessageService {
       `user:${targetUserStatus.userId}`,
     );
 
-    let totalUnreadCount: number | null = null;
-
     if (targetUserIsOnline === false || targetUserJoinedChat === false)
       //상대방이 오프라인이거나 온라인이어도 채팅방엔 없는상태
-      totalUnreadCount = await this.chatWriter.increaseUnreadCount({
+      await this.chatWriter.increaseUnreadCount({
         userId: targetUserStatus.userId,
         chatId,
         count: toCreateMessages.length,
