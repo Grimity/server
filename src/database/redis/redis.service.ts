@@ -44,8 +44,12 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async isSubscribed(channel: string) {
-    const channels = await this.pubClient.pubsub('CHANNELS', channel);
-    return channels.length > 0;
+    try {
+      const channels = await this.pubClient.pubsub('CHANNELS', channel);
+      return channels.length > 0;
+    } catch (e) {
+      return false;
+    }
   }
 
   async publish(channel: string, message: any) {
