@@ -173,7 +173,7 @@ export class ChatMessageService {
 
     await this.chatWriter.updateMessageLike(messageId, true);
 
-    await this.redisService.publish(`user:${message.userId}`, {
+    await this.redisService.publish(`user:${userId}`, {
       messageId,
       event: 'likeChatMessage',
     });
@@ -195,7 +195,7 @@ export class ChatMessageService {
 
     await this.chatWriter.updateMessageLike(messageId, false);
 
-    await this.redisService.publish(`user:${message.userId}`, {
+    await this.redisService.publish(`user:${userId}`, {
       messageId,
       event: 'unlikeChatMessage',
     });
