@@ -166,6 +166,31 @@ export class UserWriter {
       throw e;
     }
   }
+
+  async upsertPushToken(input: {
+    userId: string;
+    deviceId: string;
+    token: string;
+  }) {
+    await this.txHost.tx.pushToken.upsert({
+      where: {
+        userId_deviceId: {
+          userId: input.userId,
+          deviceId: input.deviceId,
+        },
+      },
+      create: {
+        userId: input.userId,
+        deviceId: input.deviceId,
+        token: input.token,
+      },
+      update: {
+        token: input.token,
+        updatedAt: new Date(),
+      },
+    });
+    return;
+  }
 }
 
 interface CreateInput {

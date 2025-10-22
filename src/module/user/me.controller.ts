@@ -27,6 +27,7 @@ import {
   UpdateBackgroundImageRequest,
   UpdateSubscriptionRequest,
   GetFollowingRequest,
+  RegisterPushTokenRequest,
 } from './dto/user.request';
 import { AlbumBaseResponse } from '../album/dto/album.response';
 import {
@@ -87,6 +88,21 @@ export class MeController {
     @Body() { imageName }: UpdateProfileImageRequest,
   ) {
     await this.userService.updateProfileImage(userId, imageName);
+    return;
+  }
+
+  @ApiOperation({ summary: '푸시토큰 등록' })
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  @Put('push-token')
+  async registerPushToken(
+    @CurrentUser() userId: string,
+    @Body() dto: RegisterPushTokenRequest,
+  ) {
+    await this.userService.registerPushToken({
+      userId,
+      ...dto,
+    });
     return;
   }
 

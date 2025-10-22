@@ -121,3 +121,13 @@ export class GetFollowingRequest extends CursorRequest {
   @Length(1)
   keyword?: string;
 }
+
+export class RegisterPushTokenRequest {
+  @ApiProperty()
+  @Length(1)
+  deviceId: string;
+
+  @ApiProperty()
+  @Length(1)
+  token: string;
+}

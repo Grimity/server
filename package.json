@@ -41,6 +41,7 @@
     "@socket.io/redis-adapter": "^8.3.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "firebase-admin": "^13.5.0",
     "he": "^1.2.0",
     "ioredis": "^5.6.1",
     "kysely": "^0.28.2",
