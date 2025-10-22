@@ -45,6 +45,7 @@ model User {
   refreshToken        RefreshToken[]
   albums              Album[]
   chatUsers           ChatUser[]
+  pushTokens          PushToken[]
 
   @@unique([provider, providerId])
 }
@@ -306,6 +307,17 @@ model ChatUser {
 
   @@id([chatId, userId])
   @@index([userId])
+}
+
+model PushToken {
+  userId    String   @db.Uuid
+  deviceId  String
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, deviceId])
 }
 
 model AppVersion {
