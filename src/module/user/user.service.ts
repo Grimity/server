@@ -464,6 +464,15 @@ export class UserService {
     }
     return true;
   }
+
+  async registerPushToken(input: {
+    userId: string;
+    deviceId: string;
+    token: string;
+  }) {
+    await this.userWriter.upsertPushToken(input);
+    return;
+  }
 }
 
 export type SearchUserInput = {
