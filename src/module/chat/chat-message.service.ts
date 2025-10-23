@@ -4,6 +4,7 @@ import { ChatReader } from './repository/chat.reader';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { UserReader } from '../user/repository/user.reader';
 import { RedisService } from 'src/database/redis/redis.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ChatMessageService {
@@ -13,6 +14,7 @@ export class ChatMessageService {
     private readonly chatReader: ChatReader,
     private readonly userReader: UserReader,
     private readonly redisService: RedisService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.redisClient = this.redisService.pubClient;
   }
@@ -150,6 +152,11 @@ export class ChatMessageService {
 
     if (targetUserIsOnline === false) {
       // 푸시알림
+      this.eventEmitter.emit(`push`, {
+        userId: targetUserStatus.userId,
+        title: '새로운 채팅 메시지',
+        body: createdMessages[0].content,
+      });
     } else {
       // 상대방 온라인 상태임
       await this.redisService.publish(`user:${targetUserStatus.userId}`, {
