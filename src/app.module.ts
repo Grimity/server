@@ -25,6 +25,7 @@ import { WebsocketModule } from './module/websocket/websocket.module';
 import { ChatModule } from './module/chat/chat.module';
 import { AppController } from './app.controller';
 import { ImageModule } from './module/image/image.module';
+import { PushModule } from './module/push/push.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { ImageModule } from './module/image/image.module';
     WebsocketModule,
     ChatModule,
     ImageModule,
+    PushModule,
   ],
   controllers: [AppController],
   providers: [
