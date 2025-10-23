@@ -26,7 +26,7 @@ import {
   CursorKeywordRequest,
 } from '../../../shared/request/cursor.request';
 
-class UpdateLinkRequest {
+export class UpdateLinkRequest {
   @ApiProperty({ example: '인스타그램', minLength: 1, maxLength: 30 })
   @TrimString()
   @Length(1, 30)
@@ -92,7 +92,7 @@ export class UpdateSubscriptionRequest {
 
 export class SearchUserRequest extends CursorKeywordRequest {}
 
-const GetFeedsByUserSort = ['latest', 'like', 'oldest'] as const;
+export const GetFeedsByUserSort = ['latest', 'like', 'oldest'] as const;
 
 export class GetFeedsByUserRequest extends CursorRequest {
   @ApiProperty({ required: false, enum: GetFeedsByUserSort })

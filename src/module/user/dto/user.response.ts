@@ -85,7 +85,7 @@ export class MyProfileResponse extends UserBaseResponse {
   followingCount: number;
 }
 
-class FollowUserResponse extends UserBaseResponse {
+export class FollowUserResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
 }
@@ -100,7 +100,7 @@ export class MyFollowingsResponse extends CursorResponse {
   followings: FollowUserResponse[];
 }
 
-class SearchedUserResponse extends UserBaseResponse {
+export class SearchedUserResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
 

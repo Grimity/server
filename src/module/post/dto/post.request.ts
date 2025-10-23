@@ -24,7 +24,7 @@ export class CreatePostRequest {
   type: (typeof postTypes)[number];
 }
 
-const GetPostsRequestTypes = [...postTypes, 'ALL'] as const;
+export const GetPostsRequestTypes = [...postTypes, 'ALL'] as const;
 export class GetPostsRequest extends PageRequest {
   @ApiProperty({ enum: GetPostsRequestTypes })
   @TrimAndUpperNullableString()
@@ -32,7 +32,7 @@ export class GetPostsRequest extends PageRequest {
   type: (typeof GetPostsRequestTypes)[number];
 }
 
-const searchByTypes = ['combined', 'name'] as const;
+export const searchByTypes = ['combined', 'name'] as const;
 export class SearchPostRequest extends PageRequest {
   @ApiProperty({ minLength: 2, maxLength: 20 })
   @TrimString()

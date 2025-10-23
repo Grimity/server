@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserBaseResponse } from '../../user/dto/user.response';
 
-class PostCommentBaseResponse {
+export class PostCommentBaseResponse {
   @ApiProperty()
   id: string;
 
@@ -25,7 +25,7 @@ class PostCommentBaseResponse {
   isLike: boolean;
 }
 
-class ChildPostCommentResponse extends PostCommentBaseResponse {
+export class ChildPostCommentResponse extends PostCommentBaseResponse {
   @ApiProperty({ type: UserBaseResponse, nullable: true })
   mentionedUser: UserBaseResponse | null;
 }

@@ -7,7 +7,7 @@ import {
   UrlValidator,
 } from '../../../shared/request/validator';
 
-const providers = ['GOOGLE', 'KAKAO'] as const;
+export const providers = ['GOOGLE', 'KAKAO'] as const;
 
 export class LoginRequest {
   @ApiProperty({ enum: providers, description: '대소문자 구분 X' })
