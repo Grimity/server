@@ -7,7 +7,7 @@ import {
   UrlValidator,
 } from '../../../shared/request/validator';
 
-const providers = ['GOOGLE', 'KAKAO'] as const;
+export const providers = ['GOOGLE', 'KAKAO', 'APPLE'] as const;
 
 export class LoginRequest {
   @ApiProperty({ enum: providers, description: '대소문자 구분 X' })
@@ -30,22 +30,9 @@ export class RegisterRequest extends LoginRequest {
     minLength: 2,
     maxLength: 20,
     required: false,
-    description: '삭제될 필드입니다',
-  })
-  @TrimNullableString()
-  @IsOptional()
-  @Length(2, 20)
-  @Validate(UrlValidator)
-  id: string;
-
-  @ApiProperty({
-    minLength: 2,
-    maxLength: 20,
-    required: false,
     description: 'id필드말고 url 필드를 써주세요',
   })
   @TrimNullableString()
-  @IsOptional()
   @Length(2, 20)
   @Validate(UrlValidator)
   url: string;

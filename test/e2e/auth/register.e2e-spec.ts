@@ -98,7 +98,7 @@ describe('POST /auth/register - 회원가입', () => {
     expect(status).toBe(400);
   });
 
-  it('id에 허용되지 않은 문자가 있으면 400을 반환한다', async () => {
+  it('url에 허용되지 않은 문자가 있으면 400을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
       .post('/auth/register')
@@ -110,7 +110,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'google',
         providerAccessToken: 'test',
         name: 'test',
-        id: 'abc*D',
+        url: 'abc*D',
       });
 
     // then
@@ -129,7 +129,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'google',
         providerAccessToken: 'test',
         name: 'test',
-        id: 'popular',
+        url: 'popular',
       });
 
     // then
@@ -154,7 +154,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test',
-        id: 'test',
+        url: 'test',
       });
 
     // then
@@ -191,7 +191,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test',
-        id: 'test',
+        url: 'test',
       });
 
     // then
@@ -229,7 +229,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test',
-        id: 'test',
+        url: 'test',
       });
 
     // when
@@ -243,7 +243,7 @@ describe('POST /auth/register - 회원가입', () => {
         provider: 'kakao',
         providerAccessToken: 'test',
         name: 'test2',
-        id: 'test',
+        url: 'test',
       });
 
     // then

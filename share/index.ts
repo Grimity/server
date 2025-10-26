@@ -6,8 +6,6 @@ export type * from '../src/module/album/dto';
 
 export type * from '../src/module/auth/dto';
 
-export type * from '../src/module/aws/dto';
-
 export type * from '../src/module/feed/dto';
 
 export type * from '../src/module/feed-comment/dto';

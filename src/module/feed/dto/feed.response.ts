@@ -25,7 +25,7 @@ export class FeedBaseResponse {
   viewCount: number;
 }
 
-class FeedResponse extends FeedBaseResponse {
+export class FeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
   cards: string[];
 
@@ -42,7 +42,7 @@ class FeedResponse extends FeedBaseResponse {
   author: UserBaseResponse;
 }
 
-class SearchedFeedResponse extends FeedBaseResponse {
+export class SearchedFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 
@@ -61,7 +61,7 @@ export class SearchedFeedsResponse extends CursorAndCountResponse {
   feeds: SearchedFeedResponse[];
 }
 
-class LatestFeedResponse extends FeedBaseResponse {
+export class LatestFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 
@@ -77,7 +77,7 @@ export class LatestFeedsResponse extends CursorResponse {
   feeds: LatestFeedResponse[];
 }
 
-class FollowingFeedResponse extends FeedResponse {
+export class FollowingFeedResponse extends FeedResponse {
   @ApiProperty()
   commentCount: number;
 

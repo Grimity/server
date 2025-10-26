@@ -18,7 +18,7 @@ export class FeedCommentBaseResponse {
   writer: UserBaseResponse;
 }
 
-class ChildFeedCommentResponse extends FeedCommentBaseResponse {
+export class ChildFeedCommentResponse extends FeedCommentBaseResponse {
   @ApiProperty({ type: UserBaseResponse, nullable: true })
   mentionedUser: UserBaseResponse | null;
 

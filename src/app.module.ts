@@ -4,7 +4,6 @@ import { PrismaModule } from './database/prisma/prisma.module';
 import { globalPipe } from './core/pipe/global.pipe';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './module/auth/auth.module';
-import { AwsModule } from './module/aws/aws.module';
 import { FeedModule } from './module/feed/feed.module';
 import { FeedCommentModule } from './module/feed-comment/feed-comment.module';
 import { NotificationModule } from './module/notification/notification.module';
@@ -45,7 +44,6 @@ import { PushModule } from './module/push/push.module';
       global: true,
     }),
     AuthModule,
-    AwsModule,
     FeedModule,
     FeedCommentModule,
     NotificationModule,
