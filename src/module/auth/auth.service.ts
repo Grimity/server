@@ -22,6 +22,11 @@ export class AuthService {
         input.providerAccessToken,
       );
       providerId = googleProfile.id;
+    } else if (input.provider === 'APPLE') {
+      const appleProfile = await this.getAppleProfile(
+        input.providerAccessToken,
+      );
+      providerId = appleProfile.sub;
     } else {
       const kakaoProfile = await this.getKakaoProfile(
         input.providerAccessToken,
@@ -71,6 +76,12 @@ export class AuthService {
       );
       providerId = googleProfile.id;
       email = googleProfile.email;
+    } else if (input.provider === 'APPLE') {
+      const appleProfile = await this.getAppleProfile(
+        input.providerAccessToken,
+      );
+      providerId = appleProfile.sub;
+      email = appleProfile.email || '';
     } else {
       const kakaoProfile = await this.getKakaoProfile(
         input.providerAccessToken,
@@ -184,7 +195,26 @@ export class AuthService {
     }
     return data;
   }
+
+  async getAppleProfile(appleJwt: string) {
+    const data = this.jwtService.decode(appleJwt) as AppleProfile;
+    console.log(data);
+    return data;
+  }
 }
+
+export type AppleProfile = {
+  iss: string;
+  aud: string;
+  exp: number;
+  iat: number;
+  sub: string;
+  c_hash: string;
+  email?: string;
+  email_verified: string;
+  is_private_email: string;
+  auth_time: number;
+};
 
 export type KakaoProfile = {
   id: number;

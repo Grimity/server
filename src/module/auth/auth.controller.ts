@@ -74,20 +74,7 @@ export class AuthController {
     @GetClientInfo() clientInfo: ClientInfo,
     @Body() dto: RegisterRequest,
   ): Promise<LoginResponse> {
-    let temp: string;
-    if (dto.id) {
-      temp = dto.id;
-    } else {
-      if (!dto.url) throw new HttpException('URL', 400);
-      temp = dto.url;
-    }
-    return await this.authService.register(
-      {
-        ...dto,
-        url: temp,
-      },
-      clientInfo,
-    );
+    return await this.authService.register(dto, clientInfo);
   }
 
   @ApiBearerAuth()

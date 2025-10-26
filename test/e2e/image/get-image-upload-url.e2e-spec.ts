@@ -39,7 +39,7 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
   it('accessToken이 없을 때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/aws/image-upload-url')
+      .post('/images/get-upload-url')
       .send();
 
     // then
