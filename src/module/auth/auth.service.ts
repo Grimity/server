@@ -74,6 +74,9 @@ export class AuthService {
       const googleProfile = await this.getGoogleProfile(
         input.providerAccessToken,
       );
+      if (googleProfile.id === '111415759746016734843') {
+        throw Error('모모임');
+      }
       providerId = googleProfile.id;
       email = googleProfile.email;
     } else if (input.provider === 'APPLE') {
