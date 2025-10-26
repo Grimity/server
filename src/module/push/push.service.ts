@@ -67,4 +67,28 @@ export class PushService {
   }) {
     await this.pushNotification(payload);
   }
+
+  // test
+  async sendTestPushNotification({
+    token,
+    title,
+    message,
+  }: {
+    token: string;
+    title: string;
+    message: string;
+  }) {
+    try {
+      const response = await admin.messaging(this.app!).sendEachForMulticast({
+        tokens: [token],
+        notification: {
+          title: title,
+          body: message,
+        },
+      });
+      console.log('Test push notification sent successfully:', response);
+    } catch (error) {
+      console.error('Error sending test push notification:', error);
+    }
+  }
 }
