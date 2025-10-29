@@ -1,16 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PushRepository } from './push.repository';
 import * as admin from 'firebase-admin';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class PushService {
+export class PushService implements OnModuleInit {
   private app: admin.app.App | null = null;
   constructor(
     private readonly pushRepository: PushRepository,
     private readonly configService: ConfigService,
   ) {}
+
+  async onModuleInit() {
+    await this.initializeFirebaseAdminSdk();
+  }
 
   async initializeFirebaseAdminSdk() {
     const firebaseProjectId = this.configService.get<string>(
@@ -41,6 +45,11 @@ export class PushService {
     body: string;
     imageUrl?: string;
   }) {
+    if (!this.app) {
+      console.error('Firebase Admin SDK is not initialized');
+      return;
+    }
+
     const tokens = await this.pushRepository.findManyByUserId(userId);
 
     if (tokens.length === 0) {
@@ -48,7 +57,7 @@ export class PushService {
     }
 
     try {
-      const response = await admin.messaging(this.app!).sendEachForMulticast({
+      const response = await admin.messaging(this.app).sendEachForMulticast({
         tokens: tokens.map((token) => token.token),
         notification: data,
       });
@@ -78,8 +87,13 @@ export class PushService {
     title: string;
     message: string;
   }) {
+    if (!this.app) {
+      console.error('Firebase Admin SDK is not initialized');
+      return;
+    }
+
     try {
-      const response = await admin.messaging(this.app!).sendEachForMulticast({
+      const response = await admin.messaging(this.app).sendEachForMulticast({
         tokens: [token],
         notification: {
           title: title,
