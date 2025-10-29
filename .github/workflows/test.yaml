@@ -20,6 +20,9 @@ jobs:
       AWS_REGION: ap-northeast-2
       REDIS_HOST: localhost
       IMAGE_URL: http://image.localhost
+      FIREBASE_ADMIN_SDK_PROJECT_ID: ${{ secrets.DEV_FIREBASE_ADMIN_SDK_PROJECT_ID }}
+      FIREBASE_ADMIN_SDK_CLIENT_EMAIL: ${{ secrets.DEV_FIREBASE_ADMIN_SDK_CLIENT_EMAIL }}
+      FIREBASE_ADMIN_SDK_PRIVATE_KEY: ${{ secrets.DEV_FIREBASE_ADMIN_SDK_PRIVATE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
