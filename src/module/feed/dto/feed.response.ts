@@ -173,6 +173,6 @@ export class PopularTagResponse {
   @ApiProperty()
   tagName: string;
 
-  @ApiProperty({ example: 'feed/UUID.jpg' })
+  @ApiProperty({ example: 'v2/feed/UUID.jpg' })
   thumbnail: string;
 }

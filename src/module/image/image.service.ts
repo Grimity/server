@@ -10,11 +10,23 @@ export class ImageService {
     private configService: ConfigService,
   ) {}
 
-  async createImageUploadUrl(
-    type: (typeof imageTypes)[number],
-    ext: (typeof exts)[number],
-  ) {
-    const key = `${type}/${crypto.randomUUID()}.${ext}`;
+  async createImageUploadUrl({
+    type,
+    ext,
+    width,
+    height,
+  }: {
+    type: (typeof imageTypes)[number];
+    ext: (typeof exts)[number];
+    width?: number;
+    height?: number;
+  }) {
+    let key: string;
+    if (width && height) {
+      key = `v2/${type}/${crypto.randomUUID()}_${width}x${height}.${ext}`;
+    } else {
+      key = `${type}/${crypto.randomUUID()}.${ext}`;
+    }
     const presignedUrl = await this.s3Service.createImageUploadUrl(key);
 
     return {

@@ -32,9 +32,9 @@ export class ImageController {
   @Post('/get-upload-url')
   @HttpCode(200)
   async getImageUploadUrl(
-    @Body() { type, ext }: GetImageUploadUrlRequest,
+    @Body() dto: GetImageUploadUrlRequest,
   ): Promise<ImageUploadUrlResponse> {
-    return await this.imageService.createImageUploadUrl(type, ext);
+    return await this.imageService.createImageUploadUrl(dto);
   }
 
   @ApiOperation({ summary: '이미지 업로드용 presignedURL 여러개 발급' })
@@ -47,9 +47,7 @@ export class ImageController {
     dtos: GetImageUploadUrlRequest[],
   ): Promise<ImageUploadUrlResponse[]> {
     return await Promise.all(
-      dtos.map(({ type, ext }) =>
-        this.imageService.createImageUploadUrl(type, ext),
-      ),
+      dtos.map((dto) => this.imageService.createImageUploadUrl(dto)),
     );
   }
 }
