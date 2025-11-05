@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArrayMaxSize, IsOptional, IsUUID } from 'class-validator';
-import { IsImageWithPrefix } from '../../../shared/request/validator';
+import { ArrayMaxSize, IsOptional, IsString, IsUUID } from 'class-validator';
 import { TrimNullableString } from '../../../shared/request/validator';
 import { CursorRequest } from '../../../shared/request';
 
@@ -22,12 +21,12 @@ export class CreateChatMessageRequest {
   @ApiProperty({
     type: 'string',
     isArray: true,
-    example: ['chat/{UUID}.jpg'],
+    example: ['v2/chat/{UUID}.jpg'],
     minLength: 0,
     maxLength: 5,
   })
   @ArrayMaxSize(5)
-  @IsImageWithPrefix('chat/', { each: true })
+  @IsString({ each: true })
   images: string[];
 
   @ApiProperty({

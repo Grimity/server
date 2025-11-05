@@ -80,23 +80,6 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     expect(status).toBe(400);
   });
 
-  it('images가 있다면 chat/ prefix를 가져야 한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .post('/chat-messages')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        chatId: sampleUuid,
-        images: ['invalid'],
-      });
-
-    // then
-    expect(status).toBe(400);
-  });
-
   it('replyToId가 있다면 UUID 여야 한다', async () => {
     // given
     const accessToken = await register(app, 'test');

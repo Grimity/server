@@ -12,7 +12,6 @@ import {
 import { Type, Transform } from 'class-transformer';
 import {
   TrimString,
-  IsImageWithPrefix,
   TrimAndLowerNullableString,
   TrimNullableString,
   UrlValidator,
@@ -73,14 +72,14 @@ export class UpdateUserRequest {
 }
 
 export class UpdateProfileImageRequest {
-  @ApiProperty({ example: 'profile/{UUID}.jpg' })
-  @IsImageWithPrefix('profile/')
+  @ApiProperty({ example: 'v2/profile/{UUID}.jpg' })
+  @Length(1)
   imageName: string;
 }
 
 export class UpdateBackgroundImageRequest {
-  @ApiProperty({ example: 'background/{UUID}.jpg' })
-  @IsImageWithPrefix('background/')
+  @ApiProperty({ example: 'v2/background/{UUID}.jpg' })
+  @Length(1)
   imageName: string;
 }
 

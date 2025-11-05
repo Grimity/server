@@ -60,38 +60,6 @@ describe('PUT /me/background', () => {
     expect(status).toBe(400);
   });
 
-  it('imageName에 확장자가 없을 때 400을 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put('/me/background')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        imageName: 'background/test',
-      });
-
-    // then
-    expect(status).toBe(400);
-  });
-
-  it('imageName에 분류가 없을 때 400을 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put('/me/background')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        imageName: 'test.jpg',
-      });
-
-    // then
-    expect(status).toBe(400);
-  });
-
   it('204와 함께 배경사진을 변경한다', async () => {
     // given
     const accessToken = await register(app, 'test');

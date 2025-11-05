@@ -12,10 +12,10 @@ import {
   registerDecorator,
   ValidationOptions,
   IsDateString,
+  IsString,
 } from 'class-validator';
 import {
   TrimString,
-  IsImageWithPrefix,
   TagValidator,
   TrimAndLowerNullableString,
 } from '../../../shared/request/validator';
@@ -31,13 +31,13 @@ export class CreateFeedRequest {
   @ApiProperty({
     isArray: true,
     type: 'string',
-    example: ['feed/{UUID}.jpg'],
+    example: ['v2/feed/{UUID}.jpg'],
     minLength: 1,
     maxLength: 10,
   })
   @ArrayNotEmpty()
   @ArrayMaxSize(10)
-  @IsImageWithPrefix('feed/', { each: true })
+  @IsString({ each: true })
   cards: string[];
 
   @ApiProperty({
@@ -59,10 +59,10 @@ export class CreateFeedRequest {
   tags: string[];
 
   @ApiProperty({
-    example: 'feed/{UUID}.jpg',
+    example: 'v2/feed/{UUID}.jpg',
     description: '썸네일로 사용할 이미지명',
   })
-  @IsImageWithPrefix('feed/')
+  @Length(1)
   thumbnail: string;
 
   @ApiProperty({ type: 'string', nullable: true, required: false })
