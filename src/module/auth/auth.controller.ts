@@ -54,12 +54,13 @@ export class AuthController {
   @Post('login')
   async login(
     @GetClientInfo() clientInfo: ClientInfo,
-    @Body() { provider, providerAccessToken }: LoginRequest,
+    @Body() { provider, providerAccessToken, deviceId }: LoginRequest,
   ): Promise<LoginResponse> {
     return this.authService.login(
       {
         provider,
         providerAccessToken,
+        deviceId,
       },
       clientInfo,
     );

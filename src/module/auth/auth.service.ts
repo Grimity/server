@@ -62,6 +62,7 @@ export class AuthService {
       ...clientInfo,
       userId: user.id,
       refreshToken,
+      deviceId: input.deviceId ?? null,
     });
 
     return { id: user.id, accessToken, refreshToken };
@@ -128,6 +129,7 @@ export class AuthService {
       ...clientInfo,
       userId: user.id,
       refreshToken,
+      deviceId: input.deviceId ?? null,
     });
 
     return { accessToken, id: user.id, refreshToken };
@@ -245,6 +247,7 @@ export type GoogleProfile = {
 export type LoginInput = {
   provider: string;
   providerAccessToken: string;
+  deviceId?: string;
 };
 
 export type RegisterInput = {
@@ -252,4 +255,5 @@ export type RegisterInput = {
   providerAccessToken: string;
   name: string;
   url: string;
+  deviceId?: string;
 };
