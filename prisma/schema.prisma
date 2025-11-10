@@ -252,6 +252,7 @@ model RefreshToken {
   device    String
   model     String
   ip        String
+  deviceId  String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
