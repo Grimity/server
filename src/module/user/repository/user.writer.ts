@@ -109,6 +109,7 @@ export class UserWriter {
         device: input.device,
         model: input.model,
         ip: input.ip,
+        deviceId: input.deviceId ?? null,
       },
       select: { userId: true },
     });
@@ -218,4 +219,5 @@ interface CreateRefTInput {
   device: string;
   model: string;
   ip: string;
+  deviceId?: string | null;
 }

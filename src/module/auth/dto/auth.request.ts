@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsIn, IsOptional, Validate } from 'class-validator';
+import { Length, IsIn, IsOptional, Validate, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import {
   TrimString,
@@ -18,6 +18,11 @@ export class LoginRequest {
   @ApiProperty()
   @Length(1)
   providerAccessToken: string;
+
+  @ApiProperty({ required: false, description: '디바이스 ID, 앱에서만 씁니다' })
+  @IsOptional()
+  @IsString()
+  deviceId?: string;
 }
 
 export class RegisterRequest extends LoginRequest {
@@ -36,4 +41,9 @@ export class RegisterRequest extends LoginRequest {
   @Length(2, 20)
   @Validate(UrlValidator)
   url: string;
+
+  @ApiProperty({ required: false, description: '디바이스 ID, 앱에서만 씁니다' })
+  @IsOptional()
+  @IsString()
+  deviceId?: string;
 }

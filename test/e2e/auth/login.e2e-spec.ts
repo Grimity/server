@@ -91,6 +91,7 @@ describe('POST /auth/login', () => {
       .send({
         provider: 'kakao',
         providerAccessToken: 'test',
+        deviceId: 'device-1234',
       });
 
     // then
@@ -106,5 +107,10 @@ describe('POST /auth/login', () => {
       .set('Authorization', `Bearer ${body.accessToken}`);
 
     expect(status2).toBe(200);
+
+    const refreshToken = await prisma.refreshToken.findFirst({
+      where: { userId: body.id },
+    });
+    expect(refreshToken?.deviceId).toBe('device-1234');
   });
 });

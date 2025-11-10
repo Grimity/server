@@ -192,6 +192,7 @@ describe('POST /auth/register - 회원가입', () => {
         providerAccessToken: 'test',
         name: 'test',
         url: 'test',
+        deviceId: 'device-1234',
       });
 
     // then
@@ -207,6 +208,11 @@ describe('POST /auth/register - 회원가입', () => {
       .set('Authorization', `Bearer ${body.accessToken}`);
 
     expect(status2).toBe(200);
+
+    const refreshToken = await prisma.refreshToken.findFirst({
+      where: { userId: body.id },
+    });
+    expect(refreshToken?.deviceId).toBe('device-1234');
 
     // cleanup
     spy.mockRestore();
