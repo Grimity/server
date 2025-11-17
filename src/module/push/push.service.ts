@@ -36,15 +36,8 @@ export class PushService implements OnModuleInit {
     });
   }
 
-  async pushNotification({
-    userId,
-    ...data
-  }: {
-    userId: string;
-    title: string;
-    body: string;
-    imageUrl?: string;
-  }) {
+  @OnEvent('push')
+  async pushNotification({ userId, ...data }: PushPayload) {
     if (!this.app) {
       console.error('Firebase Admin SDK is not initialized');
       return;
@@ -56,25 +49,53 @@ export class PushService implements OnModuleInit {
       return;
     }
 
+    const androidConfig: admin.messaging.AndroidConfig = {
+      data: data.data,
+      ...(!data.silent && {
+        notification: {
+          title: data.title,
+          body: data.text,
+          ...(data.imageUrl && { imageUrl: data.imageUrl }),
+          tag: data.key ?? undefined, // 같은 tag면 기존 알림 덮어씀
+          ...(data.badge && { notificationCount: data.badge }),
+        },
+      }),
+    };
+    const apnsConfig: admin.messaging.ApnsConfig = {
+      payload: {
+        aps: {
+          ...(!data.silent && {
+            alert: {
+              title: data.title,
+              body: data.text,
+            },
+            ...(data.badge && { badge: data.badge }),
+          }),
+          ...(data.silent && { contentAvailable: true }),
+          ...(data.key && { threadId: data.key }),
+        },
+        ...data.data, // 커스텀 데이터를 여기에 추가
+      },
+      fcmOptions: {
+        ...(data.imageUrl && { imageUrl: data.imageUrl }), // 여기에 이미지 URL
+      },
+      ...(data.silent && {
+        headers: {
+          'apns-priority': '5', // silent 푸시를 위한 우선순위 설정
+          'apns-push-type': 'background',
+        },
+      }),
+    };
+
     try {
-      const response = await admin.messaging(this.app).sendEachForMulticast({
+      await admin.messaging(this.app).sendEachForMulticast({
         tokens: tokens.map((token) => token.token),
-        notification: data,
+        android: androidConfig,
+        apns: apnsConfig,
       });
-      console.log('Push notification sent successfully:', response);
     } catch (error) {
       console.error('Error sending push notification:', error);
     }
-  }
-
-  @OnEvent('push')
-  async handlePushEvent(payload: {
-    userId: string;
-    title: string;
-    body: string;
-    imageUrl?: string;
-  }) {
-    await this.pushNotification(payload);
   }
 
   // test
