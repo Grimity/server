@@ -6,6 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
 import { GlobalGateway } from '../websocket/global.gateway';
 import { RedisService } from 'src/database/redis/redis.service';
+import { PushService } from '../push/push.service';
 
 function getProfileLink(url: string) {
   return `${process.env.SERVICE_URL}/${url}`;
@@ -25,6 +26,7 @@ export class NotificationListener {
     private readonly prisma: PrismaService,
     private readonly globalGateway: GlobalGateway,
     private readonly redisService: RedisService,
+    private readonly pushService: PushService,
   ) {}
 
   @OnEvent('notification:FOLLOW')
@@ -63,6 +65,19 @@ export class NotificationListener {
     if (isSubscribed) {
       this.globalGateway.emitNewNotificationToUser(userId, notification);
     }
+
+    await this.pushService.pushNotification({
+      userId,
+      title: `${actor.name}`,
+      text: `${actor.name}님이 나를 팔로우했어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `follow-${actorId}`,
+    });
   }
 
   @OnEvent('notification:FEED_LIKE')
@@ -102,6 +117,19 @@ export class NotificationListener {
         result.authorId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: result.authorId,
+      title: `${result.title}`,
+      text: `내 그림에 좋아요가 ${likeCount}개 달렸어요!`,
+      imageUrl: getImageUrl(result.thumbnail),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `feed-like-${feedId}`,
+    });
   }
 
   @OnEvent('notification:FEED_COMMENT')
@@ -151,6 +179,19 @@ export class NotificationListener {
         result.authorId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: result.authorId,
+      title: `${result.title}`,
+      text: `${actor.name}님이 내 그림에 댓글을 남겼어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `feed-comment-${feedId}`,
+    });
   }
 
   @OnEvent('notification:FEED_REPLY')
@@ -201,6 +242,19 @@ export class NotificationListener {
         result.writerId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: result.writerId,
+      title: `${actor.name}`,
+      text: `${actor.name}님이 내 댓글에 답글을 남겼어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `feed-reply-${parentId}`,
+    });
   }
 
   @OnEvent('notification:FEED_MENTION')
@@ -249,6 +303,19 @@ export class NotificationListener {
         mentionedUserId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: mentionedUserId,
+      title: `${actor.name}`,
+      text: `${actor.name}님이 내 댓글에 답글을 남겼어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `feed-mention-${feedId}`,
+    });
   }
 
   @OnEvent('notification:POST_COMMENT')
@@ -299,6 +366,19 @@ export class NotificationListener {
         author.authorId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: author.authorId,
+      title: `${actor.name}`,
+      text: `${actor.name}님이 내 게시글에 댓글을 남겼어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `post-comment-${postId}`,
+    });
   }
 
   @OnEvent('notification:POST_REPLY')
@@ -354,6 +434,19 @@ export class NotificationListener {
         result.writerId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: result.writerId,
+      title: `${actor.name}`,
+      text: `${actor.name}님이 내 댓글에 답글을 남겼어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `post-reply-${parentId}`,
+    });
   }
 
   @OnEvent('notification:POST_MENTION')
@@ -404,5 +497,18 @@ export class NotificationListener {
         mentionedUserId,
         notification,
       );
+
+    await this.pushService.pushNotification({
+      userId: mentionedUserId,
+      title: `${actor.name}`,
+      text: `${actor.name}님이 내 댓글에 답글을 남겼어요!`,
+      imageUrl: getImageUrl(actor.image),
+      data: {
+        event: 'newNotification',
+        data: JSON.stringify(notification),
+      },
+      silent: false,
+      key: `post-mention-${postId}`,
+    });
   }
 }

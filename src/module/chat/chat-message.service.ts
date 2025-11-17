@@ -107,8 +107,7 @@ export class ChatMessageService {
       `user:${targetUserStatus.userId}`,
     );
 
-    if (targetUserIsOnline === false || targetUserJoinedChat === false)
-      //상대방이 오프라인이거나 온라인이어도 채팅방엔 없는상태
+    if (targetUserJoinedChat === false)
       await this.chatWriter.increaseUnreadCount({
         userId: targetUserStatus.userId,
         chatId,
@@ -150,19 +149,32 @@ export class ChatMessageService {
       event: 'newChatMessage',
     });
 
-    if (targetUserIsOnline === false) {
-      // 푸시알림
-      this.eventEmitter.emit(`push`, {
-        userId: targetUserStatus.userId,
-        title: '새로운 채팅 메시지',
-        body: createdMessages[0].content,
-      });
-    } else {
-      // 상대방 온라인 상태임
+    const myInfo = chatUsers.find((user) => user.id === userId);
+    if (!myInfo) throw new HttpException('USER', 404);
+
+    if (targetUserIsOnline) {
       await this.redisService.publish(`user:${targetUserStatus.userId}`, {
         ...newMessageEvent,
         event: 'newChatMessage',
       });
+    }
+    if (!targetUserJoinedChat) {
+      const pushPayload: PushPayload = {
+        userId: targetUserStatus.userId,
+        title: `${myInfo.name}`,
+        text:
+          createdMessages[0].content || `${myInfo.name}님이 사진을 보냈어요!`,
+        imageUrl: getImageUrl(
+          createdMessages[createdMessages.length - 1].image,
+        ),
+        data: {
+          event: 'newChatMessage',
+          data: JSON.stringify(newMessageEvent),
+        },
+        key: `chat-message-${chatId}`,
+        badge: targetUserStatus.unreadCount + toCreateMessages.length,
+      };
+      this.eventEmitter.emit(`push`, pushPayload);
     }
 
     return;
