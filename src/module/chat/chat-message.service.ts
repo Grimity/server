@@ -169,6 +169,7 @@ export class ChatMessageService {
         ),
         data: {
           event: 'newChatMessage',
+          deepLink: `/chats/${chatId}`,
           data: JSON.stringify(newMessageEvent),
         },
         key: `chat-message-${chatId}`,
