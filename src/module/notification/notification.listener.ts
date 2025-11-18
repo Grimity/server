@@ -73,6 +73,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/profile/${actor.url}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -125,6 +126,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(result.thumbnail),
       data: {
         event: 'newNotification',
+        deepLink: `/feeds/${feedId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -187,6 +189,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/feeds/${feedId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -250,6 +253,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/feeds/${feedId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -311,6 +315,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/feeds/${feedId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -374,6 +379,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/posts/${postId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -442,6 +448,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/posts/${postId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
@@ -505,6 +512,7 @@ export class NotificationListener {
       imageUrl: getImageUrl(actor.image),
       data: {
         event: 'newNotification',
+        deepLink: `/posts/${postId}`,
         data: JSON.stringify(notification),
       },
       silent: false,
