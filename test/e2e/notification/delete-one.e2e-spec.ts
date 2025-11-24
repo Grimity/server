@@ -4,8 +4,8 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { v4 as uuid } from 'uuid';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /notifications/:id - 개별 알림 삭제', () => {
   let app: INestApplication;
@@ -50,7 +50,7 @@ describe('DELETE /notifications/:id - 개별 알림 삭제', () => {
 
   it('uuid가 아닐때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -63,9 +63,7 @@ describe('DELETE /notifications/:id - 개별 알림 삭제', () => {
   });
 
   it('204와 함께 알림을 삭제한다', async () => {
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const notification = await prisma.notification.create({
       data: {

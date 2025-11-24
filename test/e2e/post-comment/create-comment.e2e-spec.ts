@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /post-comments - 게시글 댓글 생성', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
   it('postId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -65,7 +65,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
   it('content가 1자 미만일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -82,7 +82,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
   it('parentCommentId가 있다면 UUID여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -100,7 +100,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
   it('mentionedUserId가 있다면 UUID여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -118,7 +118,7 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
   it('게시글이 없는 경우 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -135,9 +135,8 @@ describe('POST /post-comments - 게시글 댓글 생성', () => {
 
   it('201과 함께 댓글을 생성한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,

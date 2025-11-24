@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /posts/:id - 게시글 상세 조회', () => {
   let app: INestApplication;
@@ -58,7 +58,7 @@ describe('GET /posts/:id - 게시글 상세 조회', () => {
 
   it('200과 함께 게시글 상세 조회', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {

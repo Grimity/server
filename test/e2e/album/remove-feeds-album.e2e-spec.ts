@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /albums/null - 앨범에서 피드 빼기', () => {
   let app: INestApplication;
@@ -46,7 +46,7 @@ describe('PUT /albums/null - 앨범에서 피드 빼기', () => {
 
   it('피드는 최소 1개 이상 있어야한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -62,7 +62,7 @@ describe('PUT /albums/null - 앨범에서 피드 빼기', () => {
 
   it('UUID 형식이 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -78,8 +78,7 @@ describe('PUT /albums/null - 앨범에서 피드 빼기', () => {
 
   it('204와 함께 피드의 앨범ID를 null로 변경한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const album = await prisma.album.create({
       data: {

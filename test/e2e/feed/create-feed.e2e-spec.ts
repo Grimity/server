@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /feeds - 피드 생성', () => {
   let app: INestApplication;
@@ -46,7 +46,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('title이 없을 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -67,7 +67,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('title이 33글자 이상일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -88,7 +88,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('cards는 하나이상, 10개 이하여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const [{ status }, { status: status2 }] = await Promise.all([
@@ -122,7 +122,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('card는 feed/로 시작하고 확장자를 포함해야한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -143,7 +143,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('tags는 1글자이상 20글자 이하여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const [{ status }, { status: status2 }] = await Promise.all([
@@ -178,7 +178,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('content가 301글자 이상일때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -199,7 +199,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('albumId가 UUID 형식이 아니면 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -221,7 +221,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('201와 함께 feed를 생성한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -263,9 +263,7 @@ describe('POST /feeds - 피드 생성', () => {
 
   it('201과 함께 피드를 생성한다 - albumId가 있을 때', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const album = await prisma.album.create({
       data: {

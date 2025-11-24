@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /me/like-feeds - 내가 좋아요한 그림 조회', () => {
   let app: INestApplication;
@@ -48,9 +48,7 @@ describe('GET /me/like-feeds - 내가 좋아요한 그림 조회', () => {
 
   it('200과 함께 내가 좋아요 한 피드를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const feeds = await prisma.feed.createManyAndReturn({
       data: Array.from({ length: 30 }).map((_, index) => {

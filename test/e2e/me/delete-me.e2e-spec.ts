@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /me - 회원탈퇴', () => {
   let app: INestApplication;
@@ -46,20 +46,17 @@ describe('DELETE /me - 회원탈퇴', () => {
 
   it('204와 함께 모든 데이터를 삭제하지만 postComment는 남긴다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const [user, user2] = await Promise.all([
-      prisma.user.findFirstOrThrow(),
-      prisma.user.create({
-        data: {
-          provider: 'KAKAO',
-          providerId: 'test2',
-          email: 'test@test.com',
-          name: 'test2',
-          url: 'test2',
-        },
-      }),
-    ]);
+    const user2 = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        email: 'test@test.com',
+        name: 'test2',
+        url: 'test2',
+      },
+    });
 
     const [feed, _, post] = await Promise.all([
       prisma.feed.create({

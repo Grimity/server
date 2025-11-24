@@ -3,8 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
   let app: INestApplication;
@@ -49,8 +49,7 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
 
   it('200과 함께 이름 검색 결과를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const testUserCount = 20;
 

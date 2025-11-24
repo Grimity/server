@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
   it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -62,7 +62,7 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
   it('204와 함께 unlike를 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     const user = await prisma.user.findFirstOrThrow();
     const feed = await prisma.feed.create({
@@ -105,7 +105,7 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
   it('없는 피드에 unlike를 하면 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -119,9 +119,8 @@ describe('DELETE /feeds/:feedId/like - 피드 좋아요 취소', () => {
 
   it('좋아요 하지 않은 피드에 unlike를 해도 204를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const feed = await prisma.feed.create({
       data: {
         authorId: user.id,

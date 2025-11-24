@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /me/background - 배경사진 삭제', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('DELETE /me/background - 배경사진 삭제', () => {
 
   it('204와 함께 배경 이미지를 삭제한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     await prisma.user.updateMany({
       data: {

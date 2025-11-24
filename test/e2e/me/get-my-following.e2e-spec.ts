@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /me/followings - 내 팔로잉 조회', () => {
   let app: INestApplication;
@@ -48,9 +48,7 @@ describe('GET /me/followings - 내 팔로잉 조회', () => {
 
   it('200과 함께 팔로잉 목록을 조회한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     await Promise.all([
       prisma.user.create({

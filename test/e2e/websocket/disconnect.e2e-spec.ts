@@ -4,8 +4,8 @@ import { AppModule } from 'src/app.module';
 import { Socket as ClientSocket, io } from 'socket.io-client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GlobalGateway disconnect', () => {
   let app: INestApplication;
@@ -45,7 +45,7 @@ describe('GlobalGateway disconnect', () => {
 
   it('disconnect 후엔 socket:userId를 제거한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, { name: 'test' });
 
     // when
     const mySocket = await new Promise<ClientSocket>(async (resolve) => {
@@ -62,7 +62,6 @@ describe('GlobalGateway disconnect', () => {
     });
 
     // then
-    const user = await prisma.user.findFirstOrThrow();
     const value = await redisService.pubClient.get(
       `socket:user:${mySocket.id}`,
     );

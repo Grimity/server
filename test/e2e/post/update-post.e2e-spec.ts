@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /posts/:id - 게시글 수정', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('postId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -66,7 +66,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('title이 1글자 미만이거나 32글자 초과일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const [{ status: status1 }, { status: status2 }] = await Promise.all([
@@ -95,7 +95,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('content가 1글자 미만일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -113,7 +113,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('type이 NORMAL, QUESTION, FEEDBACK이 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -131,7 +131,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('없는 게시글일 때 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -149,9 +149,8 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('204와 함께 게시글을 수정한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,
@@ -189,7 +188,7 @@ describe('PUT /posts/:id - 게시글 수정', () => {
 
   it('자신이 작성한 게시글이 아닐 때 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {

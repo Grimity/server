@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
   let app: INestApplication;
@@ -79,20 +79,17 @@ describe('GET /post-comments?postId={postId} - 게시판 댓글 조회', () => {
 
   it('200과 함께 댓글을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'me');
+    const { accessToken, user: me } = await createTestUser(app, { name: 'me' });
 
-    const [me, user] = await Promise.all([
-      prisma.user.findFirstOrThrow({ where: { name: 'me' } }),
-      prisma.user.create({
-        data: {
-          provider: 'KAKAO',
-          providerId: 'test2',
-          name: 'test',
-          email: 'test@test.com',
-          url: 'test2',
-        },
-      }),
-    ]);
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        name: 'test',
+        email: 'test@test.com',
+        url: 'test2',
+      },
+    });
 
     const post = await prisma.post.create({
       data: {

@@ -4,8 +4,8 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { getImageUrl } from 'src/shared/util/get-image-url';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /feeds/latest - 최신 피드 조회', () => {
   let app: INestApplication;
@@ -39,9 +39,7 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
 
   it('로그인유저, 좋아요유무, 커서', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const feed = await prisma.feed.create({
       data: {

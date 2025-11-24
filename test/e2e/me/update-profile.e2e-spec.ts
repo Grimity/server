@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /me', () => {
   let app: INestApplication;
@@ -38,7 +38,7 @@ describe('PUT /me', () => {
 
   it('name이 없을 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -57,7 +57,7 @@ describe('PUT /me', () => {
 
   it('name이 13글자 이상일때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -76,7 +76,7 @@ describe('PUT /me', () => {
 
   it('description이 201글자 이상일때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -95,7 +95,7 @@ describe('PUT /me', () => {
 
   it('link가 url이 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -119,7 +119,7 @@ describe('PUT /me', () => {
 
   it('links가 31개 이상일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -141,7 +141,7 @@ describe('PUT /me', () => {
 
   it('linkName이 공백일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -165,7 +165,7 @@ describe('PUT /me', () => {
 
   it('204와 함께 프로필을 수정한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -194,7 +194,7 @@ describe('PUT /me', () => {
 
   it('name과 url은 변경사항이 없어도 된다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -223,7 +223,7 @@ describe('PUT /me', () => {
 
   it('중복된 name일 때 409와 함께 NAME을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
     await prisma.user.create({
       data: {
         provider: 'KAKAO',
@@ -260,7 +260,7 @@ describe('PUT /me', () => {
 
   it('중복된 url일때 409와 함께 URL을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
     await prisma.user.create({
       data: {
         provider: 'KAKAO',
@@ -297,11 +297,8 @@ describe('PUT /me', () => {
 
   it('links를 삭제한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    await prisma.user.updateMany({
-      data: {
-        links: ['test https://test.com', 'test2 https://test2.com'],
-      },
+    const { accessToken } = await createTestUser(app, {
+      links: ['test https://test.com', 'test2 https://test2.com'],
     });
 
     // when
@@ -323,11 +320,8 @@ describe('PUT /me', () => {
 
   it('links가 null일 때 빈 배열로 저장한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    await prisma.user.updateMany({
-      data: {
-        links: ['test https://test.com', 'test2 https://test2.com'],
-      },
+    const { accessToken } = await createTestUser(app, {
+      links: ['test https://test.com', 'test2 https://test2.com'],
     });
 
     // when
