@@ -80,26 +80,6 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
     expect(status).toBe(400);
   });
 
-  it('성공하면 200과 함께 url을 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status, body } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'feed',
-        ext: 'webp',
-      });
-
-    // then
-    expect(status).toBe(200);
-    expect(body.uploadUrl).toBeDefined();
-    expect(body.imageName).toBeDefined();
-    expect(body.imageUrl).toBeDefined();
-  });
-
   it('width와 height가 주어지면 v2 경로 + 가로x세로 형식의 파일명이 생성된다', async () => {
     // given
     const accessToken = await register(app, 'test');

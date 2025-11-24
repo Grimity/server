@@ -18,15 +18,11 @@ export class ImageService {
   }: {
     type: (typeof imageTypes)[number];
     ext: (typeof exts)[number];
-    width?: number;
-    height?: number;
+    width: number;
+    height: number;
   }) {
-    let key: string;
-    if (width && height) {
-      key = `v2/${type}/${crypto.randomUUID()}_${width}x${height}.${ext}`;
-    } else {
-      key = `${type}/${crypto.randomUUID()}.${ext}`;
-    }
+    const key = `v2/${type}/${crypto.randomUUID()}_${width}x${height}.${ext}`;
+
     const presignedUrl = await this.s3Service.createImageUploadUrl(key);
 
     return {

@@ -96,14 +96,20 @@ describe('POST /images/get-upload-urls - presignedURL 여러개', () => {
         {
           type: 'feed',
           ext: 'webp',
+          width: 100,
+          height: 200,
         },
         {
           type: 'feed',
           ext: 'webp',
+          width: 100,
+          height: 200,
         },
         {
           type: 'profile',
           ext: 'webp',
+          width: 100,
+          height: 200,
         },
       ]);
 
