@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /me/push-token', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('PUT /me/push-token', () => {
 
   it('deviceId나 token이 없을때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
     // when
     const { status: status1 } = await request(app.getHttpServer())
@@ -68,7 +68,7 @@ describe('PUT /me/push-token', () => {
 
   it('204와 함께 푸시토큰을 등록한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -95,7 +95,7 @@ describe('PUT /me/push-token', () => {
 
   it('기존에 등록된 deviceId로 푸시토큰을 다시 등록하면 토큰이 갱신된다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
     await request(app.getHttpServer())
       .put('/me/push-token')

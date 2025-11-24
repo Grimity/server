@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /albums - 앨범 생성', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('POST /albums - 앨범 생성', () => {
 
   it('앨범 이름은 1자 이상 15자 이하어야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -62,7 +62,7 @@ describe('POST /albums - 앨범 생성', () => {
 
   it('201과 함께 앨범을 생성한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -79,7 +79,7 @@ describe('POST /albums - 앨범 생성', () => {
 
   it('앨범 이름이 중복일 때 409를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     await request(app.getHttpServer())
       .post('/albums')
@@ -98,7 +98,7 @@ describe('POST /albums - 앨범 생성', () => {
 
   it('앨범 개수가 8개 이상일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     const user = await prisma.user.findFirstOrThrow();
     const albums = Array.from({ length: 8 }, (_, i) => ({

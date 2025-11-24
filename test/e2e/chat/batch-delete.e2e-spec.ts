@@ -4,11 +4,11 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
   let app: INestApplication;
@@ -62,7 +62,7 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
 
   it('ids의 길이는 최소 1개 이상이어야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -78,7 +78,7 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
 
   it('ids는 uuid여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -94,9 +94,8 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
 
   it('204와 함께 채팅방을 완전 삭제는 아니고 exitedAt이랑 enteredAt만 수정한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user: me } = await createTestUser(app, {});
 
-    const me = await prisma.user.findFirstOrThrow();
     const users = await prisma.user.createManyAndReturn({
       data: Array.from({ length: 4 }).map((_, i) => ({
         url: `test${i + 2}`,
@@ -166,9 +165,8 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
 
   it('나한테 deleteChat 이벤트가 발생한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user: me } = await createTestUser(app, {});
 
-    const me = await prisma.user.findFirstOrThrow();
     const users = await prisma.user.createManyAndReturn({
       data: Array.from({ length: 4 }).map((_, i) => ({
         url: `test${i + 2}`,

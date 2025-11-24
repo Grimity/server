@@ -4,12 +4,12 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /chats/:id - 채팅방 삭제', () => {
   let app: INestApplication;
@@ -63,7 +63,7 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
 
   it('chatId가 UUID가 아닐때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -77,7 +77,7 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
 
   it('없는 chatId일때 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -91,9 +91,8 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
 
   it('채팅방은 있는데 본인이 들어가있는 방이 아닐때도 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user: me } = await createTestUser(app, {});
 
-    const me = await prisma.user.findFirstOrThrow();
     const opponent = await prisma.user.create({
       data: {
         provider: 'kakao',
@@ -120,9 +119,8 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
 
   it('상대방이 나가지 않은 상태면 204와 함께 enteredAt과 exitedAt만 수정한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user: me } = await createTestUser(app, {});
 
-    const me = await prisma.user.findFirstOrThrow();
     const opponent = await prisma.user.create({
       data: {
         provider: 'kakao',
@@ -179,8 +177,7 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
 
   it('상대방도 나가있는 상태면 채팅방을 삭제한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const opponent = await prisma.user.create({
       data: {
@@ -227,9 +224,8 @@ describe('DELETE /chats/:id - 채팅방 삭제', () => {
 
   it('나한테 deleteChat 이벤트를 발생시킨다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user: me } = await createTestUser(app, {});
 
-    const me = await prisma.user.findFirstOrThrow();
     const opponent = await prisma.user.create({
       data: {
         provider: 'kakao',

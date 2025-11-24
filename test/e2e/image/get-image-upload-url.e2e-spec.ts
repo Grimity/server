@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /images/get-upload-url - presignedURL 발급', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
 
   it('type은 profile, feed 중 하나여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -65,7 +65,7 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
 
   it('ext는 webp여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -80,29 +80,9 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
     expect(status).toBe(400);
   });
 
-  it('성공하면 200과 함께 url을 반환한다', async () => {
-    // given
-    const accessToken = await register(app, 'test');
-
-    // when
-    const { status, body } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'feed',
-        ext: 'webp',
-      });
-
-    // then
-    expect(status).toBe(200);
-    expect(body.uploadUrl).toBeDefined();
-    expect(body.imageName).toBeDefined();
-    expect(body.imageUrl).toBeDefined();
-  });
-
   it('width와 height가 주어지면 v2 경로 + 가로x세로 형식의 파일명이 생성된다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status, body } = await request(app.getHttpServer())

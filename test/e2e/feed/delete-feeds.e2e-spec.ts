@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /feeds/batch-delete - 피드 여러개 삭제', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('POST /feeds/batch-delete - 피드 여러개 삭제', () => {
 
   it('피드는 최소 1개 있어야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test1');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -64,7 +64,7 @@ describe('POST /feeds/batch-delete - 피드 여러개 삭제', () => {
 
   it('UUID 형식이 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test1');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -80,9 +80,7 @@ describe('POST /feeds/batch-delete - 피드 여러개 삭제', () => {
 
   it('204와 함께 피드를 삭제한다', async () => {
     // given
-    const accessToken = await register(app, 'test1');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const feeds = await prisma.feed.createManyAndReturn({
       data: [

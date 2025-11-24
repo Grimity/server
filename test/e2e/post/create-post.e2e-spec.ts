@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /posts - 게시글 생성', () => {
   let app: INestApplication;
@@ -46,7 +46,7 @@ describe('POST /posts - 게시글 생성', () => {
 
   it('title이 1글자 미만일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -64,7 +64,7 @@ describe('POST /posts - 게시글 생성', () => {
 
   it('title이 32글자 초과일 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -82,7 +82,7 @@ describe('POST /posts - 게시글 생성', () => {
 
   it('content가 없을 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -100,7 +100,7 @@ describe('POST /posts - 게시글 생성', () => {
 
   it('type은 normal, notice, question, feedback 중 하나여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -118,7 +118,7 @@ describe('POST /posts - 게시글 생성', () => {
 
   it('201과 함께 id를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const htmlText =

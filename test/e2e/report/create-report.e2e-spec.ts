@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /reports - 신고하기', () => {
   let app: INestApplication;
@@ -49,7 +49,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('type이 없을 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -67,7 +67,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('refType이 유효하지 않을 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -86,7 +86,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('refId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -105,7 +105,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('201과 함께 신고를 생성한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -134,7 +134,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('content가 없어도 동작한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -162,7 +162,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('content가 null이어도 동작한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -191,7 +191,7 @@ describe('POST /reports - 신고하기', () => {
 
   it('content가 공백이면 null로 저장한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status, body } = await request(app.getHttpServer())

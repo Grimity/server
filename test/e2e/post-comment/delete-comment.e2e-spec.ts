@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('postId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -61,7 +61,7 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('없는 댓글일 때 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -74,9 +74,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('204와 함께 상위댓글을 삭제한다 - 하위 댓글이 남아있을 때', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,
@@ -151,9 +150,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('204와 함께 상위댓글을 삭제한다 - 하위 댓글이 없을 때', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,
@@ -193,9 +191,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('204와 함께 대댓글을 삭제한다 - 상위 댓글이 삭제된 상태일 때', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,
@@ -243,9 +240,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('204와 함께 대댓글을 삭제한다 - 상위 댓글이 삭제된 상태에서 다른 대댓글이 있을 때', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,
@@ -331,9 +327,8 @@ describe('DELETE /post-comments/:id - 게시판 댓글 삭제', () => {
 
   it('204와 함께 대댓글을 삭제한다 - 상위 댓글이 삭제되지 않은 상태', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const post = await prisma.post.create({
       data: {
         authorId: user.id,

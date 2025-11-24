@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /images/get-upload-urls - presignedURL 여러개', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('POST /images/get-upload-urls - presignedURL 여러개', () => {
 
   it('type은 profile, feed 중 하나여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -67,7 +67,7 @@ describe('POST /images/get-upload-urls - presignedURL 여러개', () => {
 
   it('ext는 webp여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -86,7 +86,7 @@ describe('POST /images/get-upload-urls - presignedURL 여러개', () => {
 
   it('200과 함께 url을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -96,14 +96,20 @@ describe('POST /images/get-upload-urls - presignedURL 여러개', () => {
         {
           type: 'feed',
           ext: 'webp',
+          width: 100,
+          height: 200,
         },
         {
           type: 'feed',
           ext: 'webp',
+          width: 100,
+          height: 200,
         },
         {
           type: 'profile',
           ext: 'webp',
+          width: 100,
+          height: 200,
         },
       ]);
 

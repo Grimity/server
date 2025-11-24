@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
   let app: INestApplication;
@@ -50,7 +50,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
   it('댓글 id가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -64,7 +64,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
   it('없는 댓글일 때 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -78,7 +78,7 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
   it('204와 함께 좋아요를 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {

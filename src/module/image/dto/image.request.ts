@@ -17,13 +17,11 @@ export class GetImageUploadUrlRequest {
   @IsIn(exts)
   ext: (typeof exts)[number];
 
-  @ApiProperty({ description: '지금은 optional이지만 나중에 필수로 바뀝니다' })
-  @IsOptional()
+  @ApiProperty()
   @IsInt()
-  width?: number;
+  width: number;
 
-  @ApiProperty({ description: '지금은 optional이지만 나중에 필수로 바뀝니다' })
-  @IsOptional()
+  @ApiProperty()
   @IsInt()
-  height?: number;
+  height: number;
 }

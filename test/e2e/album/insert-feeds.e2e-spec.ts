@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
   it('피드는 최소 1개 이상 있어야한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -64,7 +64,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
   it('UUID 형식이 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -80,7 +80,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
   it('요청자와 앨범소유자가 다르면 403를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test1');
+    const { accessToken } = await createTestUser(app, {});
 
     const user2 = await prisma.user.create({
       data: {
@@ -114,7 +114,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
   it('앨범이 없으면 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test1');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -130,9 +130,7 @@ describe('PUT /albums/:id - 앨범에 피드 넣기', () => {
 
   it('204와 함께 피드를 앨범으로 이동시킨다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     const album = await prisma.album.create({
       data: {

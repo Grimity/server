@@ -4,8 +4,8 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
   let app: INestApplication;
@@ -50,7 +50,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
   it('chatId가 uuid가 아닐 경우 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -64,7 +64,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
   it('없는 chatId인 경우 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -78,8 +78,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
   it('채팅방에 나간 상태면 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {
@@ -121,8 +120,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
   it('200과 함께 메세지를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {
@@ -189,8 +187,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
   it('exitedAt이 있으면 그 시점 이후에 생긴 메시지만 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {
@@ -247,8 +244,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
 
   it('답장메시지면 replyTo 필드가 포함되어 반환된다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const user = await prisma.user.create({
       data: {

@@ -4,8 +4,8 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { getImageUrl } from 'src/shared/util/get-image-url';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /me - 내 정보 조회', () => {
   let app: INestApplication;
@@ -48,9 +48,7 @@ describe('GET /me - 내 정보 조회', () => {
 
   it('200과 함께 내 정보를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     await prisma.user.updateMany({
       data: {
@@ -84,7 +82,7 @@ describe('GET /me - 내 정보 조회', () => {
       id: user.id,
       url: 'test',
       provider: 'KAKAO',
-      email: 'test@test.com',
+      email: 'test@example.com',
       name: 'test',
       image: getImageUrl('profile/test.png'),
       backgroundImage: null,

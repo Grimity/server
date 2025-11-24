@@ -4,13 +4,13 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
 import { getImageUrl } from 'src/shared/util/get-image-url';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /chat-messages - 채팅메시지 생성', () => {
   let app: INestApplication;
@@ -64,7 +64,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('chatId가 UUID가 아니면 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -82,7 +82,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('replyToId가 있다면 UUID 여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -101,7 +101,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('content나 images 둘 중 하나는 반드시 있어야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -118,7 +118,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('없는 chatId면 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -136,7 +136,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('내가 참여한 방이 아니면 403을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
     const users = await prisma.user.createManyAndReturn({
       data: [
         {
@@ -189,8 +189,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('201과 함께 content 채팅만 생성하며 상대방이 입장하지 않은 상태면 enteredAt을 생성한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const targetUser = await prisma.user.create({
       data: {
@@ -262,8 +261,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('content와 image를 한 번에 만든다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const targetUser = await prisma.user.create({
       data: {
@@ -311,8 +309,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('reply와 여러 이미지를 한번에 만들면 첫 번째 이미지로 답장을 만든다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const targetUser = await prisma.user.create({
       data: {
@@ -382,9 +379,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
   it('나와 상대방에게 webSocket 이벤트를 보낸다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
       kakaoId: 'test2',

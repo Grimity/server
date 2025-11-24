@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PATCH /albums/:id - 앨범 수정', () => {
   let app: INestApplication;
@@ -48,7 +48,7 @@ describe('PATCH /albums/:id - 앨범 수정', () => {
 
   it('앨범ID가 UUID 형식이 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -62,7 +62,7 @@ describe('PATCH /albums/:id - 앨범 수정', () => {
 
   it('앨범 이름은 1자 이상 15자 이하여야 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -76,9 +76,7 @@ describe('PATCH /albums/:id - 앨범 수정', () => {
 
   it('앨범 이름이 중복될 때 409를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, {});
 
     await prisma.album.create({
       data: {
@@ -100,9 +98,8 @@ describe('PATCH /albums/:id - 앨범 수정', () => {
 
   it('앨범을 수정하고 204를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user } = await createTestUser(app, {});
 
-    const user = await prisma.user.findFirstOrThrow();
     const album = await prisma.album.create({
       data: {
         userId: user.id,

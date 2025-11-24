@@ -4,8 +4,8 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { getImageUrl } from 'src/shared/util/get-image-url';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /feeds/:feedId - 피드 상세', () => {
   let app: INestApplication;
@@ -115,20 +115,17 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
 
   it('200과 함께 피드를 반환한다 (로그인 상태)', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken, user: user1 } = await createTestUser(app, {});
 
-    const [user1, user2] = await Promise.all([
-      prisma.user.findFirstOrThrow(),
-      prisma.user.create({
-        data: {
-          provider: 'KAKAO',
-          providerId: 'test2',
-          name: 'test2',
-          email: 'test@test.com',
-          url: 'test2',
-        },
-      }),
-    ]);
+    const user2 = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        name: 'test2',
+        email: 'test@test.com',
+        url: 'test2',
+      },
+    });
 
     const album = await prisma.album.create({
       data: {

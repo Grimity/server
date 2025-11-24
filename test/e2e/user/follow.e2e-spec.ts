@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /users/:targetId/follow - 팔로우', () => {
   let app: INestApplication;
@@ -49,7 +49,7 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
 
   it('204와 함께 팔로우한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     const targetUser = await prisma.user.create({
       data: {
@@ -77,7 +77,7 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
 
   it('없는 유저를 팔로우하면 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())

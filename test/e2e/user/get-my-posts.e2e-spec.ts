@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
   let app: INestApplication;
@@ -47,7 +47,7 @@ describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
 
   it('userId가 UUID가 아닐 때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -61,7 +61,7 @@ describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
 
   it('로그인 유저와 조회할 유저가 다를 경우 403을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, { name: 'test' });
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -75,12 +75,11 @@ describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
 
   it('200과 함께 게시글을 조회한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const { id } = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, { name: 'test' });
     await prisma.post.createMany({
       data: Array.from({ length: 15 }).map((_, index) => {
         return {
-          authorId: id,
+          authorId: user.id,
           title: `title${index}`,
           content: `content${index}`,
           type: 1,
@@ -93,11 +92,11 @@ describe('GET /users/:id/posts - 사용자의 게시글 조회', () => {
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get(`/users/${id}/posts?page=1&size=10`)
+      .get(`/users/${user.id}/posts?page=1&size=10`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
     const { status: status2, body: body2 } = await request(app.getHttpServer())
-      .get(`/users/${id}/posts?page=2&size=10`)
+      .get(`/users/${user.id}/posts?page=2&size=10`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 

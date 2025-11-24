@@ -3,8 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { register } from '../helper/register';
 import { AuthService } from 'src/module/auth/auth.service';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
   let app: INestApplication;
@@ -78,20 +78,17 @@ describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
 
   it('200과 함께 댓글 목록을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'me');
+    const { accessToken, user: me } = await createTestUser(app, {});
 
-    const [me, user] = await Promise.all([
-      prisma.user.findFirstOrThrow({ where: { name: 'me' } }),
-      prisma.user.create({
-        data: {
-          provider: 'KAKAO',
-          providerId: 'test2',
-          name: 'test',
-          email: 'test@test.com',
-          url: 'test2',
-        },
-      }),
-    ]);
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        name: 'test2',
+        email: 'test@test.com',
+        url: 'test2',
+      },
+    });
 
     const feed = await prisma.feed.create({
       data: {
@@ -168,7 +165,7 @@ describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
         likeCount: 0,
         writer: {
           id: user.id,
-          name: 'test',
+          name: 'test2',
           image: null,
           url: 'test2',
         },
@@ -181,7 +178,7 @@ describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
             likeCount: 1,
             writer: {
               id: user.id,
-              name: 'test',
+              name: 'test2',
               image: null,
               url: 'test2',
             },
@@ -195,7 +192,7 @@ describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
             likeCount: 0,
             writer: {
               id: user.id,
-              name: 'test',
+              name: 'test2',
               image: null,
               url: 'test2',
             },
@@ -211,7 +208,7 @@ describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
         likeCount: 0,
         writer: {
           id: user.id,
-          name: 'test',
+          name: 'test2',
           image: null,
           url: 'test2',
         },
@@ -224,7 +221,7 @@ describe('GET /feed-comments?feedId={feedId} - 피드 댓글 조회', () => {
             likeCount: 0,
             writer: {
               id: user.id,
-              name: 'test',
+              name: 'test2',
               image: null,
               url: 'test2',
             },

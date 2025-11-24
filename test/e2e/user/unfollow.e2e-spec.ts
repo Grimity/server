@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /users/:targetId/follow - 언팔로우', () => {
   let app: INestApplication;
@@ -48,9 +48,7 @@ describe('DELETE /users/:targetId/follow - 언팔로우', () => {
 
   it('204와 함께 언팔로우 한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-
-    const user = await prisma.user.findFirstOrThrow();
+    const { accessToken, user } = await createTestUser(app, { name: 'test' });
 
     const targetUser = await prisma.user.create({
       data: {

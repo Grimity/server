@@ -4,12 +4,12 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
-import { register } from '../helper/register';
 import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io } from 'socket.io-client';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('DELETE /chat-messages/:id/like - 채팅 좋아요 취소', () => {
   let app: INestApplication;
@@ -63,7 +63,7 @@ describe('DELETE /chat-messages/:id/like - 채팅 좋아요 취소', () => {
 
   it('uuid형식이 아닐때 400을 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -77,7 +77,7 @@ describe('DELETE /chat-messages/:id/like - 채팅 좋아요 취소', () => {
 
   it('없는 id일때 404를 반환한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
+    const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
@@ -91,8 +91,7 @@ describe('DELETE /chat-messages/:id/like - 채팅 좋아요 취소', () => {
 
   it('204와 함께 좋아요를 취소한다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const targetUser = await prisma.user.create({
       data: {
@@ -143,8 +142,7 @@ describe('DELETE /chat-messages/:id/like - 채팅 좋아요 취소', () => {
 
   it('unlikeChatMessage 이벤트를 발생시킨다', async () => {
     // given
-    const accessToken = await register(app, 'test');
-    const me = await prisma.user.findFirstOrThrow();
+    const { accessToken, user: me } = await createTestUser(app, {});
 
     const targetUser = await prisma.user.create({
       data: {
