@@ -48,7 +48,6 @@ model User {
   pushTokens          PushToken[]
   blockers            Block[]           @relation("blocker")
   blockings           Block[]           @relation("blocking")
-  blocks              Block[]
 
   @@unique([provider, providerId])
 }
@@ -71,10 +70,8 @@ model Block {
   blockingId String   @db.Uuid
   createdAt  DateTime @default(now())
 
-  blocker User    @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked User    @relation("blocking", fields: [blockingId], references: [id], onDelete: Cascade)
-  user    User?   @relation(fields: [userId], references: [id])
-  userId  String? @db.Uuid
+  blocker  User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocking User @relation("blocking", fields: [blockingId], references: [id], onDelete: Cascade)
 
   @@id([blockerId, blockingId])
   @@index([blockingId])
