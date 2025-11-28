@@ -5,7 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { createTestUser } from '../helper/create-test-user';
 
-describe('DELETE /users/:targetId/follow - 언팔로우', () => {
+describe('DELETE /users/:targetId/block - 유저 차단 해제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -28,46 +28,57 @@ describe('DELETE /users/:targetId/follow - 언팔로우', () => {
     await app.close();
   });
 
-  it('accessToken이 없을 때 401을 반환한다', async () => {
+  it('accessToken이 없을때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .delete('/users/test/follow')
+      .delete('/users/test/block')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('204와 함께 언팔로우 한다', async () => {
+  it('uuid형식이 아닐때 400을 반환한다', async () => {
     // given
-    const { accessToken, user } = await createTestUser(app, { name: 'test' });
+    const { accessToken } = await createTestUser(app, {});
 
-    const targetUser = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-        url: 'test2',
-      },
+    // when
+    const { status } = await request(app.getHttpServer())
+      .delete('/users/123/block')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('204와 함께 유저 차단을 해제한다', async () => {
+    // given
+    const { accessToken, user: me } = await createTestUser(app, {});
+    const { user: targetUser } = await createTestUser(app, {
+      name: 'targetUser',
+      providerId: 'test2',
+      url: 'test2',
     });
 
-    await prisma.follow.create({
+    await prisma.block.create({
       data: {
-        followerId: user.id,
-        followingId: targetUser.id,
+        blockerId: me.id,
+        blockingId: targetUser.id,
       },
     });
 
     // when
     const { status } = await request(app.getHttpServer())
-      .delete(`/users/${targetUser.id}/follow`)
+      .delete(`/users/${targetUser.id}/block`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(204);
-    const follow = await prisma.follow.findFirst();
-    expect(follow).toBeNull();
+
+    const blocked = await prisma.block.findFirst();
+
+    expect(blocked).toBeNull();
   });
 });
