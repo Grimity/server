@@ -136,6 +136,16 @@ export class UserService {
     return;
   }
 
+  async block(userId: string, targetUserId: string) {
+    await this.userWriter.createBlock(userId, targetUserId);
+    return;
+  }
+
+  async unblock(userId: string, targetUserId: string) {
+    await this.userWriter.deleteBlock(userId, targetUserId);
+    return;
+  }
+
   async getUserProfileByUrl(userId: string | null, url: string) {
     const targetUser = await this.userReader.findOneByUrl(url);
 
