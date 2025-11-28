@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import { NotificationListener } from 'src/module/notification/notification.listener';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
@@ -11,7 +10,6 @@ import { Server } from 'socket.io';
 describe('NotificationListener', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
   let redisService: RedisService;
   let globalGateway: GlobalGateway;
   let socketServer: Server;
@@ -24,7 +22,6 @@ describe('NotificationListener', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
     redisService = app.get<RedisService>(RedisService);
     notificationListener =
       module.get<NotificationListener>(NotificationListener);
