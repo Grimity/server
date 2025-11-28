@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { UserService } from 'src/module/user/user.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { createTestUser } from '../helper/create-test-user';
@@ -11,7 +10,7 @@ import { createTestUser } from '../helper/create-test-user';
 describe('GET /users/popular - 인기 유저 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
+
   let userService: UserService;
   let redis: RedisService;
 
@@ -22,14 +21,9 @@ describe('GET /users/popular - 인기 유저 조회', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
+
     userService = module.get<UserService>(UserService);
     redis = module.get<RedisService>(RedisService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
   });

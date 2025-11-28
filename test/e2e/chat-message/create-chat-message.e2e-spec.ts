@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { sampleUuid } from '../helper/sample-uuid';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
@@ -15,7 +14,6 @@ import { createTestUser } from '../helper/create-test-user';
 describe('POST /chat-messages - 채팅메시지 생성', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
   let redisService: RedisService;
   let globalGateway: GlobalGateway;
   let socketServer: Server;
@@ -27,13 +25,7 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
     redisService = app.get<RedisService>(RedisService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
     await app.listen(3000);
@@ -381,25 +373,13 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     // given
     const { accessToken, user: me } = await createTestUser(app, {});
 
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test2',
-      email: 'test@test.com',
+    const user2 = await createTestUser(app, {
+      providerId: 'test2',
+      name: 'test2',
+      url: 'test2',
     });
 
-    const { body } = await request(app.getHttpServer())
-      .post('/auth/register')
-      .set(
-        'User-Agent',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
-      )
-      .send({
-        provider: 'KAKAO',
-        providerAccessToken: 'test2',
-        name: 'test2',
-        url: 'test2',
-      });
-
-    const targetAccessToken = body.accessToken as string;
+    const targetAccessToken = user2.accessToken as string;
     const targetUser = await prisma.user.findUniqueOrThrow({
       where: { name: 'test2' },
     });

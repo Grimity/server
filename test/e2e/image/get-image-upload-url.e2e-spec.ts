@@ -3,13 +3,11 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { createTestUser } from '../helper/create-test-user';
 
 describe('POST /images/get-upload-url - presignedURL 발급', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,12 +16,6 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: '1234',
-      email: 'test@test.com',
-    });
 
     await app.init();
   });
