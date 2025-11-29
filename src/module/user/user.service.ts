@@ -360,6 +360,8 @@ export class UserService {
         backgroundImage: getImageUrl(user.backgroundImage),
         followerCount: user.followerCount,
         isFollowing: user.isFollowing,
+        isBlocking: user.isBlocking,
+        isBlocked: user.isBlocked,
       })),
     };
   }

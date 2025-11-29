@@ -106,6 +106,12 @@ export class SearchedUserResponse extends UserBaseResponse {
 
   @ApiProperty()
   followerCount: number;
+
+  @ApiProperty()
+  isBlocking: boolean;
+
+  @ApiProperty()
+  isBlocked: boolean;
 }
 
 export class SearchedUsersResponse extends CursorAndCountResponse {
@@ -125,6 +131,12 @@ export class PopularUserResponse extends UserBaseResponse {
 
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/{UUID}.jpg'] })
   thumbnails: string[];
+
+  @ApiProperty()
+  isBlocking: boolean;
+
+  @ApiProperty()
+  isBlocked: boolean;
 }
 
 export class AlbumWithCountResponse extends AlbumBaseResponse {

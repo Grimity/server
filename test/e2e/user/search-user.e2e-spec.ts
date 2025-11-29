@@ -63,6 +63,8 @@ describe('GET /users/search - 유저 검색', () => {
     expect(body.totalCount).toBe(19);
     expect(body.users.length).toBe(10);
     expect(body.nextCursor).toBeDefined();
+    expect(body.users[0].isBlocked).toBe(false);
+    expect(body.users[0].isBlocking).toBe(false);
 
     expect(status2).toBe(200);
     expect(body2.totalCount).toBe(19);

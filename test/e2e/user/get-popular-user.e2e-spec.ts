@@ -76,6 +76,13 @@ describe('GET /users/popular - 인기 유저 조회', () => {
       userService.follow(me.id, users[0].id),
     ]);
 
+    await prisma.block.createMany({
+      data: [
+        { blockerId: users[1].id, blockingId: me.id },
+        { blockingId: users[1].id, blockerId: me.id },
+      ],
+    });
+
     await prisma.feed.createMany({
       data: [
         {
@@ -115,5 +122,8 @@ describe('GET /users/popular - 인기 유저 조회', () => {
     expect(body).toHaveLength(4);
     const user = body.find((user: any) => user.id === users[0].id);
     expect(user.thumbnails).toHaveLength(3);
+    const blockedUser = body.find((user: any) => user.id === users[1].id);
+    expect(blockedUser.isBlocking).toBe(true);
+    expect(blockedUser.isBlocked).toBe(true);
   });
 });
