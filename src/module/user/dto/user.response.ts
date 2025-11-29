@@ -6,7 +6,10 @@ import {
 } from '../../../shared/response/cursor.response';
 import { ConflictResponse } from '../../../shared/response/conflict.response';
 import { AlbumBaseResponse } from '../../album/dto/album.response';
-import { UserBaseResponse } from './user.dto.response';
+import {
+  UserBaseResponse,
+  UserBaseWithBlockedResponse,
+} from './user.dto.response';
 
 export class LinkResponse {
   @ApiProperty({ example: '인스타그램' })
@@ -129,7 +132,7 @@ export class AlbumWithCountResponse extends AlbumBaseResponse {
   feedCount: number;
 }
 
-export class UserProfileResponse extends UserBaseResponse {
+export class UserProfileResponse extends UserBaseWithBlockedResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
 
@@ -158,6 +161,10 @@ export class UserProfileResponse extends UserBaseResponse {
   @ApiProperty()
   isFollowing: boolean;
 
+  @ApiProperty()
+  isBlocking: boolean;
+
+  @ApiProperty()
   @ApiProperty({ type: AlbumWithCountResponse, isArray: true })
   albums: AlbumWithCountResponse[];
 }

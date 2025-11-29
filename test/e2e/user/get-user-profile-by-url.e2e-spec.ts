@@ -59,6 +59,8 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
       feedCount: 0,
       postCount: 0,
       isFollowing: false,
+      isBlocking: false,
+      isBlocked: false,
       url: 'test',
       albums: [],
     });
@@ -129,6 +131,8 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
       feedCount: 2,
       postCount: 0,
       isFollowing: false,
+      isBlocking: false,
+      isBlocked: false,
       url: 'test',
       albums: [
         {
@@ -145,9 +149,11 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
     });
   });
 
-  it('로그인한 유저는 isFollowing을 포함해서 반환한다', async () => {
+  it('로그인한 유저는 isFollowing, isBlocking, isBlocked을 포함해서 반환한다', async () => {
     // given
-    const { accessToken } = await createTestUser(app, { name: 'test' });
+    const { accessToken, user: me } = await createTestUser(app, {
+      name: 'test',
+    });
 
     const targetUser = await prisma.user.create({
       data: {
@@ -157,13 +163,23 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
         name: 'test2',
         links: ['test1|~|https://test1.com'],
         url: 'test2',
+        followerCount: 1,
       },
     });
 
-    await request(app.getHttpServer())
-      .put(`/users/${targetUser.id}/follow`)
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
+    await prisma.follow.create({
+      data: {
+        followerId: me.id,
+        followingId: targetUser.id,
+      },
+    });
+
+    await prisma.block.createMany({
+      data: [
+        { blockerId: me.id, blockingId: targetUser.id },
+        { blockerId: targetUser.id, blockingId: me.id },
+      ],
+    });
 
     // when
     const { status, body } = await request(app.getHttpServer())
@@ -184,6 +200,8 @@ describe('GET /users/profile/:url - url로 프로필 조회', () => {
       feedCount: 0,
       postCount: 0,
       isFollowing: true,
+      isBlocking: true,
+      isBlocked: true,
       url: 'test2',
       albums: [],
     });

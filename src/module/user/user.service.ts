@@ -183,6 +183,8 @@ export class UserService {
       feedCount: targetUser.feedCount,
       postCount: targetUser.postCount,
       isFollowing: targetUser.isFollowing,
+      isBlocking: targetUser.isBlocking,
+      isBlocked: targetUser.isBlocked,
       albums,
     };
   }

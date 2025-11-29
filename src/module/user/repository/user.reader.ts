@@ -166,6 +166,22 @@ export class UserReader {
                 .where('Follow.followerId', '=', kyselyUuid(userId!)),
             ])
             .as('isFollowing'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockerId', '=', 'User.id')
+                .where('Block.blockingId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocked'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockingId', '=', 'User.id')
+                .where('Block.blockerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocking'),
         ]),
       )
       .execute();
@@ -189,6 +205,8 @@ export class UserReader {
       feedCount: user.feedCount !== null ? Number(user.feedCount) : 0,
       postCount: user.postCount !== null ? Number(user.postCount) : 0,
       isFollowing: user.isFollowing ?? false,
+      isBlocking: user.isBlocking ?? false,
+      isBlocked: user.isBlocked ?? false,
     };
   }
 
