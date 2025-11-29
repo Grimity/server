@@ -136,6 +136,18 @@ export class UserService {
     return;
   }
 
+  @Transactional()
+  async block(userId: string, targetUserId: string) {
+    await this.userWriter.createBlock(userId, targetUserId);
+    await this.userWriter.deleteFollowerAndFollowing(userId, targetUserId);
+    return;
+  }
+
+  async unblock(userId: string, targetUserId: string) {
+    await this.userWriter.deleteBlock(userId, targetUserId);
+    return;
+  }
+
   async getUserProfileByUrl(userId: string | null, url: string) {
     const targetUser = await this.userReader.findOneByUrl(url);
 
@@ -171,6 +183,8 @@ export class UserService {
       feedCount: targetUser.feedCount,
       postCount: targetUser.postCount,
       isFollowing: targetUser.isFollowing,
+      isBlocking: targetUser.isBlocking,
+      isBlocked: targetUser.isBlocked,
       albums,
     };
   }
@@ -220,6 +234,16 @@ export class UserService {
     return {
       nextCursor: result.nextCursor,
       followings: result.users.map((user) => ({
+        ...user,
+        image: getImageUrl(user.image),
+      })),
+    };
+  }
+
+  async getMyBlockings(userId: string) {
+    const users = await this.userReader.findMyBlockings(userId);
+    return {
+      users: users.map((user) => ({
         ...user,
         image: getImageUrl(user.image),
       })),
@@ -336,6 +360,8 @@ export class UserService {
         backgroundImage: getImageUrl(user.backgroundImage),
         followerCount: user.followerCount,
         isFollowing: user.isFollowing,
+        isBlocking: user.isBlocking,
+        isBlocked: user.isBlocked,
       })),
     };
   }

@@ -166,6 +166,22 @@ export class UserReader {
                 .where('Follow.followerId', '=', kyselyUuid(userId!)),
             ])
             .as('isFollowing'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockerId', '=', 'User.id')
+                .where('Block.blockingId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocked'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockingId', '=', 'User.id')
+                .where('Block.blockerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocking'),
         ]),
       )
       .execute();
@@ -189,6 +205,8 @@ export class UserReader {
       feedCount: user.feedCount !== null ? Number(user.feedCount) : 0,
       postCount: user.postCount !== null ? Number(user.postCount) : 0,
       isFollowing: user.isFollowing ?? false,
+      isBlocking: user.isBlocking ?? false,
+      isBlocked: user.isBlocked ?? false,
     };
   }
 
@@ -251,6 +269,25 @@ export class UserReader {
     };
   }
 
+  async findMyBlockings(userId: string) {
+    const users = await this.txHost.tx.$kysely
+      .selectFrom('Block')
+      .where('blockerId', '=', kyselyUuid(userId))
+      .innerJoin('User', 'blockingId', 'id')
+      .select(['id', 'name', 'User.image', 'url'])
+      .orderBy('Block.createdAt', 'desc')
+      .execute();
+    return users;
+  }
+
+  async findMyBlockingIds(userId: string) {
+    const blocks = await this.txHost.tx.block.findMany({
+      where: { blockerId: userId },
+      select: { blockingId: true },
+    });
+    return blocks.map((block) => block.blockingId);
+  }
+
   async findPopularUserIds() {
     const users = await this.txHost.tx.user.findMany({
       select: {
@@ -302,6 +339,22 @@ export class UserReader {
                 .where('Follow.followerId', '=', kyselyUuid(userId!)),
             ])
             .as('isFollowing'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockerId', '=', 'User.id')
+                .where('Block.blockingId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocked'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockingId', '=', 'User.id')
+                .where('Block.blockerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocking'),
         ]),
       )
       .execute();
@@ -315,6 +368,8 @@ export class UserReader {
       description: user.description,
       thumbnails: user.thumbnails ?? [],
       isFollowing: user.isFollowing ?? false,
+      isBlocking: user.isBlocking ?? false,
+      isBlocked: user.isBlocked ?? false,
     }));
   }
 
@@ -351,6 +406,22 @@ export class UserReader {
                 .where('followerId', '=', kyselyUuid(userId!)),
             ])
             .as('isFollowing'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockerId', '=', 'User.id')
+                .where('Block.blockingId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocked'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockingId', '=', 'User.id')
+                .where('Block.blockerId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocking'),
         ]),
       )
       .orderBy('User.followerCount', 'desc')
@@ -384,6 +455,8 @@ export class UserReader {
         backgroundImage: user.backgroundImage,
         followerCount: user.followerCount,
         isFollowing: user.isFollowing ?? false,
+        isBlocking: user.isBlocking ?? false,
+        isBlocked: user.isBlocked ?? false,
       })),
     };
   }

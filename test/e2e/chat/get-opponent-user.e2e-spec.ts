@@ -3,13 +3,11 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /chats/:id/user - 상대유저 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,12 +16,6 @@ describe('GET /chats/:id/user - 상대유저 조회', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
   });
@@ -103,5 +95,55 @@ describe('GET /chats/:id/user - 상대유저 조회', () => {
     expect(body.url).toBe(targetUser.url);
     expect(body.image).toBeNull();
     expect(body.name).toBe(targetUser.name);
+    expect(body.isBlocked).toBe(false);
+  });
+
+  it('내가 차단한 유저면 isBlocked가 true로 온다', async () => {
+    // given
+    const { accessToken, user: me } = await createTestUser(app, {});
+    const targetUser = await prisma.user.create({
+      data: {
+        provider: 'kakao',
+        email: 'test@test.com',
+        providerId: 'test2',
+        name: 'test2',
+        url: 'test2',
+      },
+    });
+
+    const chat = await prisma.chat.create({
+      data: {
+        users: {
+          createMany: {
+            data: [
+              {
+                userId: me.id,
+              },
+              {
+                userId: targetUser.id,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await prisma.block.create({
+      data: {
+        blockerId: me.id,
+        blockingId: targetUser.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/chats/${chat.id}/user`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.id).toBe(targetUser.id);
+    expect(body.isBlocked).toBe(true);
   });
 });

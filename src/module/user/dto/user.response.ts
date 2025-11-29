@@ -6,25 +6,10 @@ import {
 } from '../../../shared/response/cursor.response';
 import { ConflictResponse } from '../../../shared/response/conflict.response';
 import { AlbumBaseResponse } from '../../album/dto/album.response';
-
-// 최소단위 User
-export class UserBaseResponse {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty()
-  name: string;
-
-  @ApiProperty({
-    example: 'profile/{UUID}.jpg',
-    nullable: true,
-    type: 'string',
-  })
-  image: string | null;
-
-  @ApiProperty({ description: '라우팅용 url' })
-  url: string;
-}
+import {
+  UserBaseResponse,
+  UserBaseWithBlockedResponse,
+} from './user.dto.response';
 
 export class LinkResponse {
   @ApiProperty({ example: '인스타그램' })
@@ -100,6 +85,11 @@ export class MyFollowingsResponse extends CursorResponse {
   followings: FollowUserResponse[];
 }
 
+export class MyBlockingsResponse {
+  @ApiProperty({ type: UserBaseResponse, isArray: true })
+  users: UserBaseResponse[];
+}
+
 export class SearchedUserResponse extends UserBaseResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
@@ -116,6 +106,12 @@ export class SearchedUserResponse extends UserBaseResponse {
 
   @ApiProperty()
   followerCount: number;
+
+  @ApiProperty()
+  isBlocking: boolean;
+
+  @ApiProperty()
+  isBlocked: boolean;
 }
 
 export class SearchedUsersResponse extends CursorAndCountResponse {
@@ -135,6 +131,12 @@ export class PopularUserResponse extends UserBaseResponse {
 
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/{UUID}.jpg'] })
   thumbnails: string[];
+
+  @ApiProperty()
+  isBlocking: boolean;
+
+  @ApiProperty()
+  isBlocked: boolean;
 }
 
 export class AlbumWithCountResponse extends AlbumBaseResponse {
@@ -142,7 +144,7 @@ export class AlbumWithCountResponse extends AlbumBaseResponse {
   feedCount: number;
 }
 
-export class UserProfileResponse extends UserBaseResponse {
+export class UserProfileResponse extends UserBaseWithBlockedResponse {
   @ApiProperty({ description: 'not null인데 공백은 허용' })
   description: string;
 
@@ -171,6 +173,10 @@ export class UserProfileResponse extends UserBaseResponse {
   @ApiProperty()
   isFollowing: boolean;
 
+  @ApiProperty()
+  isBlocking: boolean;
+
+  @ApiProperty()
   @ApiProperty({ type: AlbumWithCountResponse, isArray: true })
   albums: AlbumWithCountResponse[];
 }

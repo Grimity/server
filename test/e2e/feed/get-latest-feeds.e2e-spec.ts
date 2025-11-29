@@ -3,14 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /feeds/latest - 최신 피드 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,12 +17,6 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
   });
@@ -111,6 +103,46 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
       },
     });
     expect(body2.nextCursor).toBeNull();
+  });
+
+  it('내가 차단한 유저가 있으면 해당 피드는 제외한다', async () => {
+    // given
+    const { accessToken, user } = await createTestUser(app, {});
+    const { user: blockedUser } = await createTestUser(app, {
+      providerId: 'blockedUser',
+      name: 'blockedUser',
+      url: 'blockedUser',
+    });
+
+    await prisma.feed.createMany({
+      data: new Array(15).fill(0).map(() => {
+        return {
+          authorId: blockedUser.id,
+          title: 'test',
+          content: 'test',
+          thumbnail: 'test',
+          likeCount: 0,
+          cards: [],
+        };
+      }),
+    });
+
+    await prisma.block.create({
+      data: {
+        blockerId: user.id,
+        blockingId: blockedUser.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/feeds/latest?size=13`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(200);
+    expect(body.cursor).not.toBeNull();
+    expect(body.feeds).toHaveLength(0);
   });
 
   it('비로그인유저', async () => {

@@ -68,6 +68,51 @@ export class UserWriter {
     }
   }
 
+  async createBlock(userId: string, targetUserId: string) {
+    try {
+      await this.txHost.tx.block.create({
+        data: {
+          blockerId: userId,
+          blockingId: targetUserId,
+        },
+        select: { blockingId: true },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') return null;
+      }
+      throw e;
+    }
+  }
+
+  async deleteFollowerAndFollowing(userId: string, targetUserId: string) {
+    await this.txHost.tx.follow.deleteMany({
+      where: {
+        OR: [
+          {
+            followerId: userId,
+            followingId: targetUserId,
+          },
+          {
+            followerId: targetUserId,
+            followingId: userId,
+          },
+        ],
+      },
+    });
+    return;
+  }
+
+  async deleteBlock(userId: string, targetUserId: string) {
+    await this.txHost.tx.block.deleteMany({
+      where: {
+        blockerId: userId,
+        blockingId: targetUserId,
+      },
+    });
+    return;
+  }
+
   async increaseFollowerCount(userId: string) {
     return await this.txHost.tx.user.update({
       where: { id: userId },

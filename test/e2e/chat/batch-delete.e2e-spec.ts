@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { GlobalGateway } from 'src/module/websocket/global.gateway';
 import { Server } from 'socket.io';
@@ -13,7 +12,6 @@ import { createTestUser } from '../helper/create-test-user';
 describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
   let redisService: RedisService;
   let globalGateway: GlobalGateway;
   let socketServer: Server;
@@ -25,13 +23,7 @@ describe('POST /chats/batch-delete - 채팅방 여러개 삭제', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
     redisService = app.get<RedisService>(RedisService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
     await app.listen(3000);

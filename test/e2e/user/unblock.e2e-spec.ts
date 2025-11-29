@@ -5,7 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { createTestUser } from '../helper/create-test-user';
 
-describe('POST /images/get-upload-url - presignedURL 발급', () => {
+describe('DELETE /users/:targetId/block - 유저 차단 해제', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -28,71 +28,57 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
     await app.close();
   });
 
-  it('accessToken이 없을 때 401을 반환한다', async () => {
+  it('accessToken이 없을때 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
+      .delete('/users/test/block')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('type은 profile, feed 중 하나여야 한다', async () => {
+  it('uuid형식이 아닐때 400을 반환한다', async () => {
     // given
     const { accessToken } = await createTestUser(app, {});
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
+      .delete('/users/123/block')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'invalid',
-        ext: 'jpg',
-      });
+      .send();
 
     // then
     expect(status).toBe(400);
   });
 
-  it('ext는 webp여야 한다', async () => {
+  it('204와 함께 유저 차단을 해제한다', async () => {
     // given
-    const { accessToken } = await createTestUser(app, {});
+    const { accessToken, user: me } = await createTestUser(app, {});
+    const { user: targetUser } = await createTestUser(app, {
+      name: 'targetUser',
+      providerId: 'test2',
+      url: 'test2',
+    });
+
+    await prisma.block.create({
+      data: {
+        blockerId: me.id,
+        blockingId: targetUser.id,
+      },
+    });
 
     // when
     const { status } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
+      .delete(`/users/${targetUser.id}/block`)
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'feed',
-        ext: 'invalid',
-      });
+      .send();
 
     // then
-    expect(status).toBe(400);
-  });
+    expect(status).toBe(204);
 
-  it('width와 height가 주어지면 v2 경로 + 가로x세로 형식의 파일명이 생성된다', async () => {
-    // given
-    const { accessToken } = await createTestUser(app, {});
+    const blocked = await prisma.block.findFirst();
 
-    // when
-    const { status, body } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        type: 'profile',
-        ext: 'webp',
-        width: 100,
-        height: 200,
-      });
-
-    // then
-    expect(status).toBe(200);
-    expect(body.uploadUrl).toBeDefined();
-    expect(body.imageName).toMatch(
-      /^v2\/profile\/[a-f0-9\-]{36}_100x200\.webp$/,
-    );
-    expect(body.imageUrl).toBeDefined();
+    expect(blocked).toBeNull();
   });
 });

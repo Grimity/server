@@ -29,7 +29,7 @@ import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
 import { ChatsResponse } from './dto/chat.response';
-import { UserBaseResponse } from '../user/dto';
+import { UserBaseResponse, UserBaseWithBlockedResponse } from '../user/dto';
 
 @ApiTags('/chats')
 @ApiBearerAuth()
@@ -93,12 +93,12 @@ export class ChatController {
   }
 
   @ApiOperation({ summary: '상대 유저 조회' })
-  @ApiResponse({ status: 200, type: UserBaseResponse })
+  @ApiResponse({ status: 200, type: UserBaseWithBlockedResponse })
   @Get(':id/user')
   async getOpponentUser(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) chatId: string,
-  ) {
+  ): Promise<UserBaseWithBlockedResponse> {
     return await this.chatService.getOpponentUser(userId, chatId);
   }
 

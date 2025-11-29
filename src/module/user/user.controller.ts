@@ -189,4 +189,32 @@ export class UserController {
     await this.userService.unfollowTransaction(userId, targetId);
     return;
   }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '차단' })
+  @ApiResponse({ status: 204 })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Put(':id/block')
+  async block(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.block(userId, targetId);
+    return;
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '차단 풀기' })
+  @ApiResponse({ status: 204 })
+  @UseGuards(JwtGuard)
+  @HttpCode(204)
+  @Delete(':id/block')
+  async unblock(
+    @CurrentUser() userId: string,
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ) {
+    await this.userService.unblock(userId, targetId);
+    return;
+  }
 }

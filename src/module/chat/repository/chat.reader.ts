@@ -81,6 +81,40 @@ export class ChatReader {
     }));
   }
 
+  async findOpponentUserByChatId(userId: string, chatId: string) {
+    const result = await this.txHost.tx.$kysely
+      .selectFrom('ChatUser')
+      .where('ChatUser.chatId', '=', kyselyUuid(chatId))
+      .where('ChatUser.userId', '!=', kyselyUuid(userId))
+      .innerJoin('User', 'ChatUser.userId', 'User.id')
+      .select([
+        'User.id as id',
+        'User.name as name',
+        'User.image as image',
+        'User.url as url',
+      ])
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Block')
+              .where('Block.blockerId', '=', kyselyUuid(userId))
+              .whereRef('Block.blockingId', '=', 'User.id'),
+          ])
+          .as('isBlocked'),
+      )
+      .executeTakeFirst();
+
+    if (!result) return null;
+    return {
+      id: result.id,
+      name: result.name,
+      image: result.image,
+      url: result.url,
+      isBlocked: result.isBlocked,
+    };
+  }
+
   async findMessageById(id: string) {
     return await this.txHost.tx.chatMessage.findUnique({
       where: { id },

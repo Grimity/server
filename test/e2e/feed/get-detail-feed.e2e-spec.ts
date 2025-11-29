@@ -3,14 +3,12 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /feeds/:feedId - 피드 상세', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,12 +17,6 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
   });
@@ -106,6 +98,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         name: 'test',
         image: null,
         url: 'test',
+        isBlocked: false,
       },
       isLike: false,
       isSave: false,
@@ -183,6 +176,7 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         name: 'test2',
         image: null,
         url: 'test2',
+        isBlocked: false,
       },
       isLike: true,
       isSave: false,
@@ -191,5 +185,51 @@ describe('GET /feeds/:feedId - 피드 상세', () => {
         name: album.name,
       },
     });
+  });
+
+  it('내가 차단 당한 유저의 피드는 isBlocked가 true로 반환된다', async () => {
+    // given
+    const { accessToken, user: user1 } = await createTestUser(app, {});
+
+    const user2 = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test2',
+        name: 'test2',
+        email: 'test@test.com',
+        url: 'test2',
+      },
+    });
+
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: user2.id,
+        title: 'title',
+        content: 'content',
+        cards: ['feed/test.jpg'],
+        thumbnail: 'feed/test.jpg',
+        tags: {
+          createMany: {
+            data: [{ tagName: 'tag1' }, { tagName: 'tag2' }],
+          },
+        },
+      },
+    });
+
+    await prisma.block.create({
+      data: {
+        blockerId: user2.id,
+        blockingId: user1.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/feeds/${feed.id}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(200);
+    expect(body.author.isBlocked).toBe(true);
   });
 });

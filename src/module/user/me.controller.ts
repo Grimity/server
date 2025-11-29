@@ -36,6 +36,7 @@ import {
   SubscriptionResponse,
   MyFollowersResponse,
   MyFollowingsResponse,
+  MyBlockingsResponse,
 } from './dto/user.response';
 import { MyLikeFeedsResponse } from '../feed/dto/feed.response';
 import { MySavePostsResponse } from '../post/dto/post.response';
@@ -184,6 +185,15 @@ export class MeController {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
     });
+  }
+
+  @ApiOperation({ summary: '내가 블락한 유저 조회' })
+  @ApiResponse({ status: 200, type: MyBlockingsResponse })
+  @Get('blockings')
+  async getMyBlockings(
+    @CurrentUser() userId: string,
+  ): Promise<MyBlockingsResponse> {
+    return await this.userService.getMyBlockings(userId);
   }
 
   @ApiOperation({ summary: '내 팔로워 삭제' })

@@ -5,7 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { createTestUser } from '../helper/create-test-user';
 
-describe('GET /feeds/:id/like - 피드 좋아요 사용자 조회', () => {
+describe('GET /me/blockings - 내가 블락한 유저 조회', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -28,83 +28,61 @@ describe('GET /feeds/:id/like - 피드 좋아요 사용자 조회', () => {
     await app.close();
   });
 
-  it('accessToken이 없을 때 401을 반환한다', async () => {
+  it('accessToken이 없으면 401을 반환한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .get('/feeds/00000000-0000-0000-0000-000000000000/like')
+      .get('/me/blockings')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('feedId가 UUID가 아닐 때 400을 반환한다', async () => {
-    // given
-    const { accessToken } = await createTestUser(app, {});
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .get('/feeds/1/like')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(400);
-  });
-
-  it('200과 함께 좋아요 한 유저를 반환한다', async () => {
+  it('200과 함께 내가 블락한 유저 목록을 반환한다', async () => {
     // given
     const { accessToken, user } = await createTestUser(app, {});
 
-    const feed = await prisma.feed.create({
-      data: {
-        authorId: user.id,
-        content: 'test',
-        title: 'test',
-        thumbnail: 'test',
-      },
-    });
-
-    const users = await prisma.user.createManyAndReturn({
+    const blockedUsers = await prisma.user.createManyAndReturn({
       data: [
         {
           provider: 'KAKAO',
-          providerId: 'test2',
+          providerId: 'blocked1',
           email: 'test@test.com',
-          name: 'test2',
-          url: 'test2',
+          name: 'blocked1',
+          url: 'blocked1',
         },
         {
           provider: 'KAKAO',
-          providerId: 'test3',
+          providerId: 'blocked2',
           email: 'test@test.com',
-          name: 'test3',
-          url: 'test3',
+          name: 'blocked2',
+          url: 'blocked2',
         },
       ],
     });
 
-    await prisma.like.createMany({
-      data: [
-        {
-          userId: users[0].id,
-          feedId: feed.id,
-        },
-        {
-          userId: users[1].id,
-          feedId: feed.id,
-        },
-      ],
+    await prisma.block.createMany({
+      data: blockedUsers.map((blockedUser, i) => ({
+        blockerId: user.id,
+        blockingId: blockedUser.id,
+        createdAt: new Date(Date.now() + i),
+      })),
     });
 
     // when
     const { status, body } = await request(app.getHttpServer())
-      .get(`/feeds/${feed.id}/like`)
+      .get('/me/blockings')
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(200);
-    expect(body).toHaveLength(2);
+    expect(body.users).toHaveLength(2);
+    expect(body.users).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: blockedUsers[1].id }),
+        expect.objectContaining({ id: blockedUsers[0].id }),
+      ]),
+    );
   });
 });

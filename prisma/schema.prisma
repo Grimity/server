@@ -46,6 +46,8 @@ model User {
   albums              Album[]
   chatUsers           ChatUser[]
   pushTokens          PushToken[]
+  blockers            Block[]           @relation("blocker")
+  blockings           Block[]           @relation("blocking")
 
   @@unique([provider, providerId])
 }
@@ -60,6 +62,19 @@ model Follow {
 
   @@id([followerId, followingId])
   @@index([followingId])
+}
+
+// 차단
+model Block {
+  blockerId  String   @db.Uuid
+  blockingId String   @db.Uuid
+  createdAt  DateTime @default(now())
+
+  blocker  User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocking User @relation("blocking", fields: [blockingId], references: [id], onDelete: Cascade)
+
+  @@id([blockingId, blockerId])
+  @@index([blockerId, createdAt(sort: Desc)])
 }
 
 model Feed {

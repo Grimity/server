@@ -4,13 +4,11 @@ import { AppModule } from 'src/app.module';
 import { Socket as ClientSocket, io } from 'socket.io-client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { RedisService } from 'src/database/redis/redis.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { createTestUser } from '../helper/create-test-user';
 
 describe('GlobalGateway disconnect', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
   let redisService: RedisService;
 
   beforeAll(async () => {
@@ -25,12 +23,6 @@ describe('GlobalGateway disconnect', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
     redisService = app.get<RedisService>(RedisService);
-    authService = app.get<AuthService>(AuthService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
   });
 
   afterAll(async () => {

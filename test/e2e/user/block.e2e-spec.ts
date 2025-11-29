@@ -5,7 +5,7 @@ import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { createTestUser } from '../helper/create-test-user';
 
-describe('PUT /users/:targetId/follow - 팔로우', () => {
+describe('PUT /users/:targetId/block - 유저 차단', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
@@ -29,55 +29,45 @@ describe('PUT /users/:targetId/follow - 팔로우', () => {
     await app.close();
   });
 
-  it('accessToken이 없을 때 401을 반환한다', async () => {
+  it('accessToken이 없을때 401을 반호나한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
-      .put('/users/test/follow')
+      .put('/users/test/block')
       .send();
 
     // then
     expect(status).toBe(401);
   });
 
-  it('204와 함께 팔로우한다', async () => {
+  it('204와 함께 유저를 차단하고 팔로우정보를 삭제한다', async () => {
     // given
-    const { accessToken } = await createTestUser(app, { name: 'test' });
+    const { accessToken, user: me } = await createTestUser(app, {});
+    const { user: targetUser } = await createTestUser(app, {
+      name: 'targetUser',
+      providerId: 'test2',
+      url: 'test2',
+    });
 
-    const targetUser = await prisma.user.create({
-      data: {
-        provider: 'KAKAO',
-        providerId: 'test2',
-        email: 'test@test.com',
-        name: 'test2',
-        url: 'test2',
-      },
+    await prisma.follow.createMany({
+      data: [
+        { followerId: me.id, followingId: targetUser.id },
+        { followerId: targetUser.id, followingId: me.id },
+      ],
     });
 
     // when
     const { status } = await request(app.getHttpServer())
-      .put(`/users/${targetUser.id}/follow`)
+      .put(`/users/${targetUser.id}/block`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send();
 
     // then
     expect(status).toBe(204);
 
-    const follow = await prisma.follow.findFirstOrThrow();
-
-    expect(follow.followingId).toBe(targetUser.id);
-  });
-
-  it('없는 유저를 팔로우하면 404를 반환한다', async () => {
-    // given
-    const { accessToken } = await createTestUser(app, { name: 'test' });
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .put('/users/00000000-0000-0000-0000-000000000000/follow')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send();
-
-    // then
-    expect(status).toBe(404);
+    const blocked = await prisma.block.findFirstOrThrow();
+    expect(blocked.blockerId).toBe(me.id);
+    expect(blocked.blockingId).toBe(targetUser.id);
+    const followCount = await prisma.follow.count();
+    expect(followCount).toBe(0);
   });
 });

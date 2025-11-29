@@ -3,13 +3,11 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { AuthService } from 'src/module/auth/auth.service';
 import { createTestUser } from '../helper/create-test-user';
 
 describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
   let app: INestApplication;
   let prisma: PrismaService;
-  let authService: AuthService;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,12 +16,6 @@ describe('PUT /feed-comments/:id/like - 피드 댓글 좋아요', () => {
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);
-    authService = module.get<AuthService>(AuthService);
-
-    jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
-      kakaoId: 'test',
-      email: 'test@test.com',
-    });
 
     await app.init();
   });
