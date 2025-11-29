@@ -236,7 +236,12 @@ export class FeedReader {
     };
   }
 
-  async findManyLatestWithCursor({ userId, cursor, size }: GetFeedsInput) {
+  async findManyLatestWithCursor({
+    userId,
+    cursor,
+    size,
+    blockingIds,
+  }: GetFeedsInput) {
     let query = this.txHost.tx.$kysely
       .selectFrom('Feed')
       .select([
@@ -260,6 +265,11 @@ export class FeedReader {
             ])
             .as('isLike'),
         ]),
+      )
+      .$if(blockingIds.length > 0, (eb) =>
+        eb.where((eb) =>
+          eb('Feed.authorId', 'not in', blockingIds.map(kyselyUuid)),
+        ),
       )
       .orderBy('Feed.createdAt', 'desc')
       .orderBy('Feed.id', 'desc')
@@ -887,6 +897,7 @@ type GetFeedsInput = {
   userId?: string | null;
   cursor: string | null;
   size: number;
+  blockingIds: string[];
 };
 
 type FindFeedsByUserInput = {

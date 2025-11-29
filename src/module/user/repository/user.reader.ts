@@ -262,6 +262,14 @@ export class UserReader {
     return users;
   }
 
+  async findMyBlockingIds(userId: string) {
+    const blocks = await this.txHost.tx.block.findMany({
+      where: { blockerId: userId },
+      select: { blockingId: true },
+    });
+    return blocks.map((block) => block.blockingId);
+  }
+
   async findPopularUserIds() {
     const users = await this.txHost.tx.user.findMany({
       select: {

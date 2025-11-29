@@ -105,6 +105,46 @@ describe('GET /feeds/latest - 최신 피드 조회', () => {
     expect(body2.nextCursor).toBeNull();
   });
 
+  it('내가 차단한 유저가 있으면 해당 피드는 제외한다', async () => {
+    // given
+    const { accessToken, user } = await createTestUser(app, {});
+    const { user: blockedUser } = await createTestUser(app, {
+      providerId: 'blockedUser',
+      name: 'blockedUser',
+      url: 'blockedUser',
+    });
+
+    await prisma.feed.createMany({
+      data: new Array(15).fill(0).map(() => {
+        return {
+          authorId: blockedUser.id,
+          title: 'test',
+          content: 'test',
+          thumbnail: 'test',
+          likeCount: 0,
+          cards: [],
+        };
+      }),
+    });
+
+    await prisma.block.create({
+      data: {
+        blockerId: user.id,
+        blockingId: blockedUser.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/feeds/latest?size=13`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    // then
+    expect(status).toBe(200);
+    expect(body.cursor).not.toBeNull();
+    expect(body.feeds).toHaveLength(0);
+  });
+
   it('비로그인유저', async () => {
     // given
     const user = await prisma.user.create({
