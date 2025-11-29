@@ -39,13 +39,20 @@ describe('PUT /users/:targetId/block - 유저 차단', () => {
     expect(status).toBe(401);
   });
 
-  it('204와 함께 유저를 차단한다', async () => {
+  it('204와 함께 유저를 차단하고 팔로우정보를 삭제한다', async () => {
     // given
     const { accessToken, user: me } = await createTestUser(app, {});
     const { user: targetUser } = await createTestUser(app, {
       name: 'targetUser',
       providerId: 'test2',
       url: 'test2',
+    });
+
+    await prisma.follow.createMany({
+      data: [
+        { followerId: me.id, followingId: targetUser.id },
+        { followerId: targetUser.id, followingId: me.id },
+      ],
     });
 
     // when
@@ -60,5 +67,7 @@ describe('PUT /users/:targetId/block - 유저 차단', () => {
     const blocked = await prisma.block.findFirstOrThrow();
     expect(blocked.blockerId).toBe(me.id);
     expect(blocked.blockingId).toBe(targetUser.id);
+    const followCount = await prisma.follow.count();
+    expect(followCount).toBe(0);
   });
 });

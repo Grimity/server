@@ -136,8 +136,10 @@ export class UserService {
     return;
   }
 
+  @Transactional()
   async block(userId: string, targetUserId: string) {
     await this.userWriter.createBlock(userId, targetUserId);
+    await this.userWriter.deleteFollowerAndFollowing(userId, targetUserId);
     return;
   }
 

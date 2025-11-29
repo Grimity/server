@@ -85,6 +85,24 @@ export class UserWriter {
     }
   }
 
+  async deleteFollowerAndFollowing(userId: string, targetUserId: string) {
+    await this.txHost.tx.follow.deleteMany({
+      where: {
+        OR: [
+          {
+            followerId: userId,
+            followingId: targetUserId,
+          },
+          {
+            followerId: targetUserId,
+            followingId: userId,
+          },
+        ],
+      },
+    });
+    return;
+  }
+
   async deleteBlock(userId: string, targetUserId: string) {
     await this.txHost.tx.block.deleteMany({
       where: {
