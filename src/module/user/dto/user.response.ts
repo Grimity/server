@@ -6,25 +6,7 @@ import {
 } from '../../../shared/response/cursor.response';
 import { ConflictResponse } from '../../../shared/response/conflict.response';
 import { AlbumBaseResponse } from '../../album/dto/album.response';
-
-// 최소단위 User
-export class UserBaseResponse {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty()
-  name: string;
-
-  @ApiProperty({
-    example: 'profile/{UUID}.jpg',
-    nullable: true,
-    type: 'string',
-  })
-  image: string | null;
-
-  @ApiProperty({ description: '라우팅용 url' })
-  url: string;
-}
+import { UserBaseResponse } from './user.dto.response';
 
 export class LinkResponse {
   @ApiProperty({ example: '인스타그램' })
@@ -98,6 +80,11 @@ export class MyFollowersResponse extends CursorResponse {
 export class MyFollowingsResponse extends CursorResponse {
   @ApiProperty({ type: FollowUserResponse, isArray: true })
   followings: FollowUserResponse[];
+}
+
+export class MyBlockingsResponse {
+  @ApiProperty({ type: UserBaseResponse, isArray: true })
+  users: UserBaseResponse[];
 }
 
 export class SearchedUserResponse extends UserBaseResponse {

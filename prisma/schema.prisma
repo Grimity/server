@@ -73,8 +73,8 @@ model Block {
   blocker  User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
   blocking User @relation("blocking", fields: [blockingId], references: [id], onDelete: Cascade)
 
-  @@id([blockerId, blockingId])
-  @@index([blockingId])
+  @@id([blockingId, blockerId])
+  @@index([blockerId, createdAt(sort: Desc)])
 }
 
 model Feed {

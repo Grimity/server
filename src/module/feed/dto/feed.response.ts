@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserBaseResponse } from '../../user/dto/user.response';
+import { UserBaseResponse } from '../../user/dto/user.dto.response';
 import {
   CursorAndCountResponse,
   CursorResponse,

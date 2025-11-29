@@ -236,6 +236,16 @@ export class UserService {
     };
   }
 
+  async getMyBlockings(userId: string) {
+    const users = await this.userReader.findMyBlockings(userId);
+    return {
+      users: users.map((user) => ({
+        ...user,
+        image: getImageUrl(user.image),
+      })),
+    };
+  }
+
   async getFeedsByUser(input: GetFeedsInput) {
     const result = await this.feedReader.findManyByUserIdWithCursor(input);
 

@@ -251,6 +251,17 @@ export class UserReader {
     };
   }
 
+  async findMyBlockings(userId: string) {
+    const users = await this.txHost.tx.$kysely
+      .selectFrom('Block')
+      .where('blockerId', '=', kyselyUuid(userId))
+      .innerJoin('User', 'blockingId', 'id')
+      .select(['id', 'name', 'User.image', 'url'])
+      .orderBy('Block.createdAt', 'desc')
+      .execute();
+    return users;
+  }
+
   async findPopularUserIds() {
     const users = await this.txHost.tx.user.findMany({
       select: {
