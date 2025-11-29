@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserBaseResponse } from '../../user/dto/user.dto.response';
+import {
+  UserBaseResponse,
+  UserBaseWithBlockedResponse,
+} from '../../user/dto/user.dto.response';
 import {
   CursorAndCountResponse,
   CursorResponse,
@@ -37,9 +40,6 @@ export class FeedResponse extends FeedBaseResponse {
 
   @ApiProperty()
   tags: string[];
-
-  @ApiProperty({ type: UserBaseResponse })
-  author: UserBaseResponse;
 }
 
 export class SearchedFeedResponse extends FeedBaseResponse {
@@ -89,6 +89,9 @@ export class FollowingFeedResponse extends FeedResponse {
 
   @ApiProperty({ type: FeedCommentBaseResponse, nullable: true })
   comment: FeedCommentBaseResponse | null;
+
+  @ApiProperty({ type: UserBaseResponse })
+  author: UserBaseResponse;
 }
 
 export class FollowingFeedsResponse extends CursorResponse {
@@ -106,8 +109,8 @@ export class FeedDetailResponse extends FeedResponse {
   @ApiProperty()
   commentCount: number;
 
-  @ApiProperty({ type: AlbumBaseResponse, nullable: true })
-  album: AlbumBaseResponse | null;
+  @ApiProperty({ type: UserBaseWithBlockedResponse })
+  author: UserBaseWithBlockedResponse;
 }
 
 export class FeedMetaResponse extends FeedBaseResponse {

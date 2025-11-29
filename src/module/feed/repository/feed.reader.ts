@@ -45,7 +45,7 @@ export class FeedReader {
         'likeCount',
         'content',
       ])
-      .innerJoin('User', 'Feed.authorId', 'User.id')
+      .innerJoin('User as Author', 'Feed.authorId', 'Author.id')
       .leftJoin('Album', 'Album.id', 'Feed.albumId')
       .select(['Album.id as albumId', 'Album.name as albumName'])
       .select((eb) =>
@@ -58,9 +58,9 @@ export class FeedReader {
           .as('commentCount'),
       )
       .select([
-        'User.id as authorId',
-        'User.name',
-        'User.image as image',
+        'Author.id as authorId',
+        'Author.name',
+        'Author.image as image',
         'url',
       ])
       .select((eb) =>
@@ -90,6 +90,14 @@ export class FeedReader {
                 .where('Save.userId', '=', kyselyUuid(userId!)),
             ])
             .as('isSave'),
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Block')
+                .whereRef('Block.blockerId', '=', 'Author.id')
+                .where('Block.blockingId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isBlocked'),
         ]),
       )
       .execute();
@@ -114,6 +122,7 @@ export class FeedReader {
         name: feed.name,
         image: feed.image,
         url: feed.url,
+        isBlocked: feed.isBlocked ?? false,
       },
       album:
         feed.albumId && feed.albumName
