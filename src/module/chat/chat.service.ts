@@ -135,9 +135,13 @@ export class ChatService {
   }
 
   async getOpponentUser(userId: string, chatId: string) {
-    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+    const opponentUser = await this.chatReader.findOpponentUserByChatId(
+      userId,
+      chatId,
+    );
 
-    const opponentUser = chatUsers.filter((user) => user.id !== userId)[0];
+    if (!opponentUser) throw new HttpException('CHAT', 404);
+
     return {
       ...opponentUser,
       image: getImageUrl(opponentUser.image),
