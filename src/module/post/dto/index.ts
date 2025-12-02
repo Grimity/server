@@ -1,2 +1,2 @@
-export * from './post.request';
-export * from './post.response';
+export * from './post.api.request';
+export * from './post.api.response';

@@ -25,16 +25,16 @@ import {
   SearchUserRequest,
   GetFeedsByUserRequest,
   CheckNameRequest,
-} from './dto/user.request';
+} from './dto/user.api.request';
 import { PageRequest } from 'src/shared/request/page.request';
 import {
   SearchedUsersResponse,
   PopularUserResponse,
   UserProfileResponse,
   UserMetaResponse,
-} from './dto/user.response';
-import { UserFeedsResponse } from '../feed/dto/feed.response';
-import { MyPostResponse } from '../post/dto/post.response';
+} from './dto/user.api.response';
+import { UserFeedsResponse } from '../feed/dto/feed.api.response';
+import { MyPostResponse } from '../post/dto/post.api.response';
 
 @ApiTags('/users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserBaseResponse } from '../../user/dto/user.dto.response';
+import { UserBaseResponse } from '../../user/dto/user.base.response';
 
 export class PostCommentBaseResponse {
   @ApiProperty()

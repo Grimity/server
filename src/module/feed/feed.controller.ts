@@ -26,7 +26,7 @@ import {
   UpdateFeedRequest,
   DeleteFeedsRequest,
   GetRankingsRequest,
-} from './dto/feed.request';
+} from './dto/feed.api.request';
 import { IdResponse } from 'src/shared/response/id.response';
 import {
   SearchedFeedsResponse,
@@ -35,8 +35,8 @@ import {
   FeedDetailResponse,
   FeedMetaResponse,
   FeedRankingsResponse,
-} from './dto/feed.response';
-import { FeedLikedUserResponse } from '../user/dto/user.response';
+} from './dto/feed.api.response';
+import { FeedLikedUserResponse } from '../user/dto/user.api.response';
 
 import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';

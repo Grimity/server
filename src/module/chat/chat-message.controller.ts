@@ -22,8 +22,8 @@ import { JwtGuard } from 'src/core/guard';
 import {
   CreateChatMessageRequest,
   GetChatMessagesRequest,
-} from './dto/chat-message.request';
-import { ChatMessagesResponse } from './dto/chat-message.response';
+} from './dto/chat-message.api.request';
+import { ChatMessagesResponse } from './dto/chat-message.api.response';
 import { ChatMessageService } from './chat-message.service';
 import { CurrentUser } from 'src/core/decorator';
 

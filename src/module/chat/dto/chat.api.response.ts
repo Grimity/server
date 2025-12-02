@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CursorResponse } from '../../../shared/response';
-import { UserBaseResponse } from '../../../module/user/dto';
-import { ChatMessageBaseResponse } from './chat-message.response';
+import { UserBaseResponse } from '../../user/dto';
+import { ChatMessageBaseResponse } from './chat-message.base.response';
 
 export class LastChatMessageResponse extends ChatMessageBaseResponse {
   @ApiProperty({

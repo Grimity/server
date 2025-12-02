@@ -23,12 +23,12 @@ import {
   JoinChatRequest,
   LeaveChatRequest,
   BatchDeleteChatsRequest,
-} from './dto/chat.request';
+} from './dto/chat.api.request';
 import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
-import { ChatsResponse } from './dto/chat.response';
+import { ChatsResponse } from './dto/chat.api.response';
 import { UserBaseResponse, UserBaseWithBlockedResponse } from '../user/dto';
 
 @ApiTags('/chats')

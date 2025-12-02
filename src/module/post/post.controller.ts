@@ -25,14 +25,14 @@ import {
   CreatePostRequest,
   GetPostsRequest,
   SearchPostRequest,
-} from './dto/post.request';
+} from './dto/post.api.request';
 import { IdResponse } from 'src/shared/response/id.response';
 import {
   PostBaseResponse,
   PostResponse,
   PostsResponse,
   PostDetailResponse,
-} from './dto/post.response';
+} from './dto/post.api.response';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })

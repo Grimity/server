@@ -15,12 +15,12 @@ import {
   ApiHeader,
 } from '@nestjs/swagger';
 import { AuthService } from 'src/module/auth/auth.service';
-import { LoginRequest, RegisterRequest } from './dto/auth.request';
+import { LoginRequest, RegisterRequest } from './dto/auth.api.request';
 import {
   LoginResponse,
   JwtResponse,
   Register409Response,
-} from './dto/auth.response';
+} from './dto/auth.api.response';
 import {
   GetClientInfo,
   GetRefreshToken,

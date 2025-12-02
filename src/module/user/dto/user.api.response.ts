@@ -5,11 +5,11 @@ import {
   CursorAndCountResponse,
 } from '../../../shared/response/cursor.response';
 import { ConflictResponse } from '../../../shared/response/conflict.response';
-import { AlbumBaseResponse } from '../../album/dto/album.response';
+import { AlbumBaseResponse } from '../../album/dto/album.base.response';
 import {
   UserBaseResponse,
   UserBaseWithBlockedResponse,
-} from './user.dto.response';
+} from './user.base.response';
 
 export class LinkResponse {
   @ApiProperty({ example: '인스타그램' })
