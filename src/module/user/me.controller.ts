@@ -29,7 +29,7 @@ import {
   GetFollowingRequest,
   RegisterPushTokenRequest,
 } from './dto/user.request';
-import { AlbumBaseResponse } from '../album/dto/album.response';
+import { AlbumBaseResponse } from '../album/dto/album.base.response';
 import {
   MyProfileResponse,
   UpdateProfileConflictResponse,

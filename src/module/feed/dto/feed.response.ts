@@ -2,45 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   UserBaseResponse,
   UserBaseWithBlockedResponse,
-} from '../../user/dto/user.dto.response';
+} from '../../user/dto/user.base.response';
 import {
   CursorAndCountResponse,
   CursorResponse,
 } from '../../../shared/response/cursor.response';
-import { AlbumBaseResponse } from '../../album/dto/album.response';
 import { FeedCommentBaseResponse } from 'src/module/feed-comment/dto';
-
-// 최소단위
-export class FeedBaseResponse {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty()
-  title: string;
-
-  @ApiProperty({ example: 'feed/UUID.webp' })
-  thumbnail: string;
-
-  @ApiProperty()
-  likeCount: number;
-
-  @ApiProperty()
-  viewCount: number;
-}
-
-export class FeedResponse extends FeedBaseResponse {
-  @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
-  cards: string[];
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  content: string;
-
-  @ApiProperty()
-  tags: string[];
-}
+import { FeedBaseResponse, FeedResponse } from './feed.base.response';
 
 export class SearchedFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: UserBaseResponse })

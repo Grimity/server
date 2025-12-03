@@ -79,12 +79,13 @@ export class PushService implements OnModuleInit {
       fcmOptions: {
         ...(data.imageUrl && { imageUrl: data.imageUrl }), // 여기에 이미지 URL
       },
-      ...(data.silent && {
-        headers: {
+      headers: {
+        ...(data.silent && {
           'apns-priority': '5', // silent 푸시를 위한 우선순위 설정
           'apns-push-type': 'background',
-        },
-      }),
+        }),
+        ...(data.key && { 'apns-collapse-id': data.key }), // 같은 key면 기존 알림 덮어씀
+      },
     };
 
     try {

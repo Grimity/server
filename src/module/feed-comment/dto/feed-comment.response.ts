@@ -1,24 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserBaseResponse } from '../../user/dto/user.dto.response';
+import { UserBaseResponse } from '../../user/dto/user.base.response';
+import { FeedCommentBaseResponse } from './feed-comment.base.response';
 
-export class FeedCommentBaseResponse {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty()
-  content: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  likeCount: number;
-
+export class FeedCommentWithWriterResponse extends FeedCommentBaseResponse {
   @ApiProperty({ type: UserBaseResponse })
   writer: UserBaseResponse;
 }
 
-export class ChildFeedCommentResponse extends FeedCommentBaseResponse {
+export class ChildFeedCommentResponse extends FeedCommentWithWriterResponse {
   @ApiProperty({ type: UserBaseResponse, nullable: true })
   mentionedUser: UserBaseResponse | null;
 
@@ -26,7 +15,7 @@ export class ChildFeedCommentResponse extends FeedCommentBaseResponse {
   isLike: boolean;
 }
 
-export class ParentFeedCommentResponse extends FeedCommentBaseResponse {
+export class ParentFeedCommentResponse extends FeedCommentWithWriterResponse {
   @ApiProperty({ type: ChildFeedCommentResponse, isArray: true })
   childComments: ChildFeedCommentResponse[];
 
