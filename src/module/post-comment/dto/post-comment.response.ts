@@ -1,36 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserBaseResponse } from '../../user/dto/user.base.response';
+import { PostCommentBaseResponse } from './post-comment.base.response';
 
-export class PostCommentBaseResponse {
-  @ApiProperty()
-  id: string;
-
-  @ApiProperty()
-  content: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  likeCount: number;
-
+export class PostCommentWithWriterResponse extends PostCommentBaseResponse {
   @ApiProperty({
     type: UserBaseResponse,
     nullable: true,
     description: 'null이면 익명화',
   })
   writer: UserBaseResponse | null;
-
-  @ApiProperty()
-  isLike: boolean;
 }
 
-export class ChildPostCommentResponse extends PostCommentBaseResponse {
+export class ChildPostCommentResponse extends PostCommentWithWriterResponse {
   @ApiProperty({ type: UserBaseResponse, nullable: true })
   mentionedUser: UserBaseResponse | null;
 }
 
-export class ParentPostCommentResponse extends PostCommentBaseResponse {
+export class ParentPostCommentResponse extends PostCommentWithWriterResponse {
   @ApiProperty()
   isDeleted: boolean;
 

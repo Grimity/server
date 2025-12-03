@@ -28,7 +28,7 @@ import {
   UpdateSubscriptionRequest,
   GetFollowingRequest,
   RegisterPushTokenRequest,
-} from './dto/user.api.request';
+} from './dto/user.request';
 import { AlbumBaseResponse } from '../album/dto/album.base.response';
 import {
   MyProfileResponse,
@@ -37,9 +37,9 @@ import {
   MyFollowersResponse,
   MyFollowingsResponse,
   MyBlockingsResponse,
-} from './dto/user.api.response';
-import { MyLikeFeedsResponse } from '../feed/dto/feed.api.response';
-import { MySavePostsResponse } from '../post/dto/post.api.response';
+} from './dto/user.response';
+import { MyLikeFeedsResponse } from '../feed/dto/feed.response';
+import { MySavePostsResponse } from '../post/dto/post.response';
 
 @ApiTags('/me')
 @ApiBearerAuth()

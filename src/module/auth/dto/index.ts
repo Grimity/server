@@ -1,2 +1,2 @@
-export * from './auth.api.request';
-export * from './auth.api.response';
+export * from './auth.request';
+export * from './auth.response';

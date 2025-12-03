@@ -17,7 +17,7 @@ import {
   UpdateAlbumOrderRequest,
   InsertFeedsRequest,
   RemoveFeedsAlbumRequest,
-} from './dto/album.api.request';
+} from './dto/album.request';
 import {
   ApiTags,
   ApiResponse,

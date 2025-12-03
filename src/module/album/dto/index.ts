@@ -1,2 +1,2 @@
-export * from './album.api.request';
+export * from './album.request';
 export * from './album.base.response';

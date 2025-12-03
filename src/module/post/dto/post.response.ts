@@ -5,15 +5,6 @@ import { postTypes } from '../../../common/constants/post.constant';
 import { PostBaseResponse, PostResponse } from './post.base.response';
 
 export class PostWithAuthorResponse extends PostResponse {
-  @ApiProperty({ enum: postTypes })
-  type: (typeof postTypes)[number];
-
-  @ApiProperty()
-  viewCount: number;
-
-  @ApiProperty()
-  commentCount: number;
-
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 }

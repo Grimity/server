@@ -25,14 +25,14 @@ import {
   CreatePostRequest,
   GetPostsRequest,
   SearchPostRequest,
-} from './dto/post.api.request';
+} from './dto/post.request';
 import { IdResponse } from 'src/shared/response/id.response';
 import {
-  PostBaseResponse,
-  PostResponse,
   PostsResponse,
   PostDetailResponse,
-} from './dto/post.api.response';
+  PostWithAuthorResponse,
+} from './dto/post.response';
+import { PostBaseResponse } from './dto';
 
 @ApiTags('/posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -67,9 +67,9 @@ export class PostController {
   }
 
   @ApiOperation({ summary: '공지사항 조회' })
-  @ApiResponse({ status: 200, type: [PostResponse] })
+  @ApiResponse({ status: 200, type: [PostWithAuthorResponse] })
   @Get('notices')
-  async getNotices(): Promise<PostResponse[]> {
+  async getNotices(): Promise<PostWithAuthorResponse[]> {
     return await this.postService.getNotices();
   }
 
