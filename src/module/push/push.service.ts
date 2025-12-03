@@ -73,6 +73,7 @@ export class PushService implements OnModuleInit {
           }),
           ...(data.silent && { contentAvailable: true }),
           ...(data.key && { threadId: data.key }),
+          'mutable-content': 1, // Notification Service Extension 호출 허용
         },
         ...data.data, // 커스텀 데이터를 여기에 추가
       },
