@@ -26,3 +26,5 @@ export interface EventPayloadMap {
 
   'notification:FOLLOW': { actorId: string; userId: string };
 }
+
+export type EventName = keyof EventPayloadMap;
