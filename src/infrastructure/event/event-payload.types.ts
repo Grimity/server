@@ -3,24 +3,24 @@ export interface EventPayloadMap {
   'notification:FEED_MENTION': {
     actorId: string;
     feedId: string;
-    mentionedUserId?: string | null;
+    mentionedUserId: string;
   };
   'notification:FEED_REPLY': {
     actorId: string;
     feedId: string;
-    parentId?: string | null;
+    parentId: string;
   };
   'notification:FEED_COMMENT': { actorId: string; feedId: string };
 
   'notification:POST_MENTION': {
     actorId: string;
     postId: string;
-    mentionedUserId?: string | null;
+    mentionedUserId: string;
   };
   'notification:POST_REPLY': {
     actorId: string;
     postId: string;
-    parentId?: string | null;
+    parentId: string;
   };
   'notification:POST_COMMENT': { actorId: string; postId: string };
 
