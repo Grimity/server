@@ -98,8 +98,8 @@ export class ChatReader {
           .fn<boolean>('EXISTS', [
             eb
               .selectFrom('Block')
-              .where('Block.blockerId', '=', kyselyUuid(userId))
-              .whereRef('Block.blockingId', '=', 'User.id'),
+              .where('Block.blockingId', '=', kyselyUuid(userId))
+              .whereRef('Block.blockerId', '=', 'User.id'),
           ])
           .as('isBlocked'),
       )
