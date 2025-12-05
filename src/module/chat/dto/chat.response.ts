@@ -38,3 +38,11 @@ export class ChatsResponse extends CursorResponse {
   @ApiProperty({ type: ChatResponse, isArray: true })
   chats: ChatResponse[];
 }
+
+export class OpponentUserResponse extends UserBaseResponse {
+  @ApiProperty()
+  isBlocked: boolean;
+
+  @ApiProperty()
+  isBlocking: boolean;
+}

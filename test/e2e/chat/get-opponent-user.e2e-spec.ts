@@ -135,6 +135,13 @@ describe('GET /chats/:id/user - 상대유저 조회', () => {
       },
     });
 
+    await prisma.block.create({
+      data: {
+        blockerId: me.id,
+        blockingId: targetUser.id,
+      },
+    });
+
     // when
     const { status, body } = await request(app.getHttpServer())
       .get(`/chats/${chat.id}/user`)
@@ -145,5 +152,6 @@ describe('GET /chats/:id/user - 상대유저 조회', () => {
     expect(status).toBe(200);
     expect(body.id).toBe(targetUser.id);
     expect(body.isBlocked).toBe(true);
+    expect(body.isBlocking).toBe(true);
   });
 });
