@@ -28,7 +28,7 @@ import { JwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 import { ChatService } from './chat.service';
 import { IdResponse } from 'src/shared/response';
-import { ChatsResponse } from './dto/chat.response';
+import { ChatsResponse, OpponentUserResponse } from './dto/chat.response';
 import { UserBaseResponse, UserBaseWithBlockedResponse } from '../user/dto';
 
 @ApiTags('/chats')
@@ -93,12 +93,12 @@ export class ChatController {
   }
 
   @ApiOperation({ summary: '상대 유저 조회' })
-  @ApiResponse({ status: 200, type: UserBaseWithBlockedResponse })
+  @ApiResponse({ status: 200, type: OpponentUserResponse })
   @Get(':id/user')
   async getOpponentUser(
     @CurrentUser() userId: string,
     @Param('id', new ParseUUIDPipe()) chatId: string,
-  ): Promise<UserBaseWithBlockedResponse> {
+  ): Promise<OpponentUserResponse> {
     return await this.chatService.getOpponentUser(userId, chatId);
   }
 
