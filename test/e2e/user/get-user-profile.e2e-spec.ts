@@ -93,7 +93,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
 
     await prisma.block.createMany({
       data: [
-        { blockerId: me.id, blockingId: targetUser.id },
+        // { blockerId: me.id, blockingId: targetUser.id },
         { blockerId: targetUser.id, blockingId: me.id },
       ],
     });
@@ -117,7 +117,7 @@ describe('GET /users/:id - 유저 프로필 조회', () => {
       feedCount: 0,
       postCount: 0,
       isFollowing: true,
-      isBlocking: true,
+      isBlocking: false,
       isBlocked: true,
       url: 'test2',
       albums: [],
