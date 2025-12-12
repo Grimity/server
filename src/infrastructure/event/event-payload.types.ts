@@ -25,6 +25,19 @@ export interface EventPayloadMap {
   'notification:POST_COMMENT': { actorId: string; postId: string };
 
   'notification:FOLLOW': { actorId: string; userId: string };
+
+  push: PushPayload;
+}
+
+export interface PushPayload {
+  userId: string;
+  title: string;
+  text: string;
+  imageUrl?: string | null;
+  data?: Record<string, string>;
+  silent?: boolean;
+  key?: string;
+  badge?: number;
 }
 
 export type EventName = keyof EventPayloadMap;

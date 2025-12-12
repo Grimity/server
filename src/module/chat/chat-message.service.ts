@@ -4,7 +4,7 @@ import { ChatReader } from './repository/chat.reader';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { UserReader } from '../user/repository/user.reader';
 import { RedisService } from 'src/database/redis/redis.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 
 @Injectable()
 export class ChatMessageService {
@@ -14,7 +14,7 @@ export class ChatMessageService {
     private readonly chatReader: ChatReader,
     private readonly userReader: UserReader,
     private readonly redisService: RedisService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: TypedEventEmitter,
   ) {
     this.redisClient = this.redisService.pubClient;
   }
@@ -159,7 +159,7 @@ export class ChatMessageService {
       });
     }
     if (!targetUserJoinedChat) {
-      const pushPayload: PushPayload = {
+      this.eventEmitter.emit(`push`, {
         userId: targetUserStatus.userId,
         title: `${myInfo.name}`,
         text:
@@ -174,8 +174,7 @@ export class ChatMessageService {
         },
         key: `chat-message-${chatId}`,
         badge: targetUserStatus.unreadCount + toCreateMessages.length,
-      };
-      this.eventEmitter.emit(`push`, pushPayload);
+      });
     }
 
     return;
