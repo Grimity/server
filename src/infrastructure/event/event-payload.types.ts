@@ -1,3 +1,5 @@
+import type { RedisToEventPayload } from 'src/database/redis/redis-event.types';
+
 export interface EventPayloadMap {
   'notification:FEED_LIKE': { feedId: string; likeCount: number };
   'notification:FEED_MENTION': {
@@ -27,6 +29,12 @@ export interface EventPayloadMap {
   'notification:FOLLOW': { actorId: string; userId: string };
 
   push: PushPayload;
+
+  // Redis Pub/Sub -> EventEmitter로 전달되는 채팅 이벤트
+  newChatMessage: RedisToEventPayload<'newChatMessage'>;
+  likeChatMessage: RedisToEventPayload<'likeChatMessage'>;
+  unlikeChatMessage: RedisToEventPayload<'unlikeChatMessage'>;
+  deleteChat: RedisToEventPayload<'deleteChat'>;
 }
 
 export interface PushPayload {

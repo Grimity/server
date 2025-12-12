@@ -5,6 +5,7 @@ import { getImageUrl } from 'src/shared/util/get-image-url';
 import { UserReader } from '../user/repository/user.reader';
 import { RedisService } from 'src/database/redis/redis.service';
 import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
+import { TypedRedisPublisher } from 'src/database/redis/typed-redis-publisher';
 
 @Injectable()
 export class ChatMessageService {
@@ -15,6 +16,7 @@ export class ChatMessageService {
     private readonly userReader: UserReader,
     private readonly redisService: RedisService,
     private readonly eventEmitter: TypedEventEmitter,
+    private readonly redisPublisher: TypedRedisPublisher,
   ) {
     this.redisClient = this.redisService.pubClient;
   }
@@ -116,7 +118,7 @@ export class ChatMessageService {
 
     const chatUsers = await this.chatReader.findUsersByChatId(chatId);
 
-    const newMessageEvent = {
+    const newMessagePayload = {
       chatId,
       senderId: userId,
       chatUsers: chatUsers.map((user) => ({
@@ -144,19 +146,21 @@ export class ChatMessageService {
       })),
     };
 
-    await this.redisService.publish(`user:${userId}`, {
-      ...newMessageEvent,
-      event: 'newChatMessage',
-    });
+    await this.redisPublisher.publish(
+      `user:${userId}`,
+      'newChatMessage',
+      newMessagePayload,
+    );
 
     const myInfo = chatUsers.find((user) => user.id === userId);
     if (!myInfo) throw new HttpException('USER', 404);
 
     if (targetUserIsOnline) {
-      await this.redisService.publish(`user:${targetUserStatus.userId}`, {
-        ...newMessageEvent,
-        event: 'newChatMessage',
-      });
+      await this.redisPublisher.publish(
+        `user:${targetUserStatus.userId}`,
+        'newChatMessage',
+        newMessagePayload,
+      );
     }
     if (!targetUserJoinedChat) {
       this.eventEmitter.emit(`push`, {
@@ -170,7 +174,7 @@ export class ChatMessageService {
         data: {
           event: 'newChatMessage',
           deepLink: `/chats/${chatId}`,
-          data: JSON.stringify(newMessageEvent),
+          data: JSON.stringify(newMessagePayload),
         },
         key: `chat-message-${chatId}`,
         badge: targetUserStatus.unreadCount + toCreateMessages.length,
@@ -192,14 +196,14 @@ export class ChatMessageService {
 
     await this.chatWriter.updateMessageLike(messageId, true);
 
-    await this.redisService.publish(`user:${userId}`, {
+    await this.redisPublisher.publish(`user:${userId}`, 'likeChatMessage', {
       messageId,
-      event: 'likeChatMessage',
     });
-    await this.redisService.publish(`user:${targetUser.id}`, {
-      messageId,
-      event: 'likeChatMessage',
-    });
+    await this.redisPublisher.publish(
+      `user:${targetUser.id}`,
+      'likeChatMessage',
+      { messageId },
+    );
     return;
   }
 
@@ -214,14 +218,14 @@ export class ChatMessageService {
 
     await this.chatWriter.updateMessageLike(messageId, false);
 
-    await this.redisService.publish(`user:${userId}`, {
+    await this.redisPublisher.publish(`user:${userId}`, 'unlikeChatMessage', {
       messageId,
-      event: 'unlikeChatMessage',
     });
-    await this.redisService.publish(`user:${targetUser.id}`, {
-      messageId,
-      event: 'unlikeChatMessage',
-    });
+    await this.redisPublisher.publish(
+      `user:${targetUser.id}`,
+      'unlikeChatMessage',
+      { messageId },
+    );
     return;
   }
 
