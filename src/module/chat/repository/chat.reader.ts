@@ -98,10 +98,20 @@ export class ChatReader {
           .fn<boolean>('EXISTS', [
             eb
               .selectFrom('Block')
+              .where('Block.blockingId', '=', kyselyUuid(userId))
+              .whereRef('Block.blockerId', '=', 'User.id'),
+          ])
+          .as('isBlocked'),
+      )
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Block')
               .where('Block.blockerId', '=', kyselyUuid(userId))
               .whereRef('Block.blockingId', '=', 'User.id'),
           ])
-          .as('isBlocked'),
+          .as('isBlocking'),
       )
       .executeTakeFirst();
 
@@ -112,6 +122,7 @@ export class ChatReader {
       image: result.image,
       url: result.url,
       isBlocked: result.isBlocked,
+      isBlocking: result.isBlocking,
     };
   }
 

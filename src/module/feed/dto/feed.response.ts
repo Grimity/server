@@ -9,6 +9,7 @@ import {
 } from '../../../shared/response/cursor.response';
 import { FeedCommentBaseResponse } from 'src/module/feed-comment/dto';
 import { FeedBaseResponse, FeedResponse } from './feed.base.response';
+import { AlbumBaseResponse } from 'src/module/album/dto';
 
 export class SearchedFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: UserBaseResponse })
@@ -76,6 +77,9 @@ export class FeedDetailResponse extends FeedResponse {
 
   @ApiProperty()
   commentCount: number;
+
+  @ApiProperty({ type: AlbumBaseResponse, nullable: true })
+  album: AlbumBaseResponse | null;
 
   @ApiProperty({ type: UserBaseWithBlockedResponse })
   author: UserBaseWithBlockedResponse;
