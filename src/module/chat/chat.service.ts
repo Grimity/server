@@ -3,6 +3,7 @@ import { ChatReader } from './repository/chat.reader';
 import { ChatWriter } from './repository/chat.writer';
 import { UserReader } from '../user/repository/user.reader';
 import { RedisService } from 'src/database/redis/redis.service';
+import { TypedRedisPublisher } from 'src/database/redis/typed-redis-publisher';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class ChatService {
     private readonly chatWriter: ChatWriter,
     private readonly userReader: UserReader,
     private readonly redisService: RedisService,
+    private readonly redisPublisher: TypedRedisPublisher,
   ) {
     this.redisClient = this.redisService.pubClient;
   }
@@ -119,18 +121,14 @@ export class ChatService {
       });
     }
 
-    this.redisService.publish(`user:${userId}`, {
-      event: 'deleteChat',
+    this.redisPublisher.publish(`user:${userId}`, 'deleteChat', {
       chatIds: [chatId],
     });
   }
 
   async deleteChats(userId: string, chatIds: string[]) {
     await this.chatWriter.exitManyChats(userId, chatIds);
-    this.redisService.publish(`user:${userId}`, {
-      event: 'deleteChat',
-      chatIds,
-    });
+    this.redisPublisher.publish(`user:${userId}`, 'deleteChat', { chatIds });
     return;
   }
 

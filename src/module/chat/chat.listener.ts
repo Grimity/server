@@ -1,40 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { GlobalGateway } from '../websocket/global.gateway';
-import type { NewChatMessageEventResponse } from './dto';
+import type { EventPayloadMap } from 'src/infrastructure/event/event-payload.types';
 
 @Injectable()
 export class ChatListener {
   constructor(private readonly gateway: GlobalGateway) {}
 
   @OnEvent('newChatMessage')
-  handleNewChatMessageEvent({
-    targetUserId,
-    ...payload
-  }: NewChatMessageEventResponse & { targetUserId: string }) {
-    this.gateway.emitMessageEventToUser(targetUserId, payload);
+  handleNewChatMessageEvent(payload: EventPayloadMap['newChatMessage']) {
+    const { targetUserId, ...rest } = payload;
+    this.gateway.emitMessageEventToUser(targetUserId, rest);
   }
 
   @OnEvent('likeChatMessage')
-  handleLikeChatMessageEvent(payload: {
-    targetUserId: string;
-    messageId: string;
-  }) {
+  handleLikeChatMessageEvent(payload: EventPayloadMap['likeChatMessage']) {
     const { targetUserId, messageId } = payload;
     this.gateway.emitLikeChatMessageEventToUser(targetUserId, messageId);
   }
 
   @OnEvent('unlikeChatMessage')
-  handleUnlikeChatMessageEvent(payload: {
-    targetUserId: string;
-    messageId: string;
-  }) {
+  handleUnlikeChatMessageEvent(payload: EventPayloadMap['unlikeChatMessage']) {
     const { targetUserId, messageId } = payload;
     this.gateway.emitUnlikeChatMessageEventToUser(targetUserId, messageId);
   }
 
   @OnEvent('deleteChat')
-  handleDeleteChatEvent(payload: { targetUserId: string; chatIds: string[] }) {
+  handleDeleteChatEvent(payload: EventPayloadMap['deleteChat']) {
     const { targetUserId, chatIds } = payload;
     this.gateway.emitDeleteChatEventToUser(targetUserId, chatIds);
   }

@@ -1,7 +1,7 @@
 import { Injectable, HttpException } from '@nestjs/common';
 import { PostCommentReader } from './repository/post-comment.reader';
 import { PostCommentWriter } from './repository/post-comment.writer';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class PostCommentService {
   constructor(
     private readonly postCommentReader: PostCommentReader,
     private readonly postCommentWriter: PostCommentWriter,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: TypedEventEmitter,
   ) {}
 
   async create(input: CreateInput) {

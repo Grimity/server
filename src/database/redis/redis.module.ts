@@ -1,9 +1,10 @@
 import { Module, Global } from '@nestjs/common';
 import { RedisService } from 'src/database/redis/redis.service';
+import { TypedRedisPublisher } from './typed-redis-publisher';
 
 @Global()
 @Module({
-  providers: [RedisService],
-  exports: [RedisService],
+  providers: [RedisService, TypedRedisPublisher],
+  exports: [RedisService, TypedRedisPublisher],
 })
 export class RedisModule {}

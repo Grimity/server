@@ -2,7 +2,7 @@ import { Injectable, HttpException } from '@nestjs/common';
 import { FeedCommentReader } from './repository/feed-comment.reader';
 import { FeedCommentWriter } from './repository/feed-comment.writer';
 import { getImageUrl } from 'src/shared/util/get-image-url';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class FeedCommentService {
   constructor(
     private readonly feedCommentReader: FeedCommentReader,
     private readonly feedCommentWriter: FeedCommentWriter,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: TypedEventEmitter,
   ) {}
 
   async create(userId: string, input: CreateFeedCommentInput) {

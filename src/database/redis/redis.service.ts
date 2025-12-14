@@ -1,7 +1,8 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
+import { RedisEventName, RedisEventPayloadMap } from './redis-event.types';
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
@@ -10,7 +11,7 @@ export class RedisService implements OnModuleDestroy {
 
   constructor(
     private configService: ConfigService,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: TypedEventEmitter,
   ) {
     this.redis = new Redis({
       host: this.configService.get('REDIS_HOST'),
@@ -18,12 +19,14 @@ export class RedisService implements OnModuleDestroy {
     this.subRedis = this.redis.duplicate();
 
     this.subRedis.on('message', (channel: string, message: string) => {
-      const { event, ...payload } = JSON.parse(message);
+      const { event, ...payload } = JSON.parse(message) as {
+        event: RedisEventName;
+      } & RedisEventPayloadMap[RedisEventName];
 
       this.eventEmitter.emit(event, {
         ...payload,
         targetUserId: channel.split(':')[1],
-      });
+      } as never);
     });
   }
 

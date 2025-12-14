@@ -272,6 +272,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
         chatId: chat.id,
         userId: me.id,
         content: `test`,
+        createdAt: new Date(Date.now() - 1000),
       },
     });
 

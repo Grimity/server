@@ -3,6 +3,7 @@ import { PushRepository } from './push.repository';
 import * as admin from 'firebase-admin';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
+import { EventPayloadMap } from 'src/infrastructure/event/event-payload.types';
 
 @Injectable()
 export class PushService implements OnModuleInit {
@@ -37,7 +38,7 @@ export class PushService implements OnModuleInit {
   }
 
   @OnEvent('push')
-  async pushNotification({ userId, ...data }: PushPayload) {
+  async pushNotification({ userId, ...data }: EventPayloadMap['push']) {
     if (!this.app) {
       console.error('Firebase Admin SDK is not initialized');
       return;

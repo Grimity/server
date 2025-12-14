@@ -9,7 +9,7 @@ import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
 import { AlbumReader } from '../album/repository/album.reader';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
 const linkSeparator = '|~|';
@@ -24,7 +24,7 @@ export class UserService {
     private postReader: PostReader,
     private redisService: RedisService,
     private albumReader: AlbumReader,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: TypedEventEmitter,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -107,7 +107,6 @@ export class UserService {
 
     if (targetUser.subscription.includes('FOLLOW')) {
       this.eventEmitter.emit('notification:FOLLOW', {
-        type: 'FOLLOW',
         actorId: userId,
         userId: targetUserId,
       });

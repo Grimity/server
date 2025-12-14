@@ -5,7 +5,7 @@ import { SearchService } from 'src/database/search/search.service';
 import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 import { UserReader } from '../user/repository/user.reader';
 
@@ -17,7 +17,7 @@ export class FeedService {
     private ddb: DdbService,
     private redisService: RedisService,
     @Inject(SearchService) private searchService: SearchService,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: TypedEventEmitter,
     private userReader: UserReader,
   ) {}
 

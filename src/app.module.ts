@@ -25,6 +25,7 @@ import { ChatModule } from './module/chat/chat.module';
 import { AppController } from './app.controller';
 import { ImageModule } from './module/image/image.module';
 import { PushModule } from './module/push/push.module';
+import { EventModule } from './infrastructure/event/event.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { PushModule } from './module/push/push.module';
       delimiter: ':',
       wildcard: true,
     }),
+    EventModule,
     ClsModule.forRoot({
       global: true,
       middleware: { mount: true },
