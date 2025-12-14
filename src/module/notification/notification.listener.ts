@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import type * as Event from './types/event';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
 import { GlobalGateway } from '../websocket/global.gateway';
 import { RedisService } from 'src/database/redis/redis.service';
 import { PushService } from '../push/push.service';
+import { EventPayloadMap } from 'src/infrastructure/event/event-payload.types';
 
 function getProfileLink(url: string) {
   return `${process.env.SERVICE_URL}/${url}`;
@@ -30,7 +30,10 @@ export class NotificationListener {
   ) {}
 
   @OnEvent('notification:FOLLOW')
-  async handleFollowEvent({ actorId, userId }: Event.FollowEvent) {
+  async handleFollowEvent({
+    actorId,
+    userId,
+  }: EventPayloadMap['notification:FOLLOW']) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { subscription: true },
@@ -82,7 +85,10 @@ export class NotificationListener {
   }
 
   @OnEvent('notification:FEED_LIKE')
-  async handleFeedLikeEvent({ feedId, likeCount }: Event.FeedLikeEvent) {
+  async handleFeedLikeEvent({
+    feedId,
+    likeCount,
+  }: EventPayloadMap['notification:FEED_LIKE']) {
     const [result] = await this.prisma.$kysely
       .selectFrom('Feed')
       .innerJoin('User', 'Feed.authorId', 'User.id')
@@ -135,7 +141,10 @@ export class NotificationListener {
   }
 
   @OnEvent('notification:FEED_COMMENT')
-  async handleFeedComment({ feedId, actorId }: Event.FeedCommentEvent) {
+  async handleFeedComment({
+    feedId,
+    actorId,
+  }: EventPayloadMap['notification:FEED_COMMENT']) {
     const [result] = await this.prisma.$kysely
       .selectFrom('Feed')
       .innerJoin('User', 'Feed.authorId', 'User.id')
@@ -198,7 +207,11 @@ export class NotificationListener {
   }
 
   @OnEvent('notification:FEED_REPLY')
-  async handleFeedReply({ feedId, actorId, parentId }: Event.FeedReplyEvent) {
+  async handleFeedReply({
+    feedId,
+    actorId,
+    parentId,
+  }: EventPayloadMap['notification:FEED_REPLY']) {
     const [result] = await this.prisma.$kysely
       .selectFrom('FeedComment')
       .innerJoin('User', 'FeedComment.writerId', 'User.id')
@@ -266,7 +279,7 @@ export class NotificationListener {
     feedId,
     actorId,
     mentionedUserId,
-  }: Event.FeedMentionEvent) {
+  }: EventPayloadMap['notification:FEED_MENTION']) {
     const mentionedUser = await this.prisma.user.findUnique({
       where: { id: mentionedUserId },
       select: { id: true, subscription: true },
@@ -324,7 +337,10 @@ export class NotificationListener {
   }
 
   @OnEvent('notification:POST_COMMENT')
-  async handlePostComment({ postId, actorId }: Event.PostCommentEvent) {
+  async handlePostComment({
+    postId,
+    actorId,
+  }: EventPayloadMap['notification:POST_COMMENT']) {
     const [author] = await this.prisma.$kysely
       .selectFrom('Post')
       .innerJoin('User', 'Post.authorId', 'User.id')
@@ -388,7 +404,11 @@ export class NotificationListener {
   }
 
   @OnEvent('notification:POST_REPLY')
-  async handlePostReply({ postId, actorId, parentId }: Event.PostReplyEvent) {
+  async handlePostReply({
+    postId,
+    actorId,
+    parentId,
+  }: EventPayloadMap['notification:POST_REPLY']) {
     const [result] = await this.prisma.$kysely
       .selectFrom('PostComment')
       .innerJoin('User', 'PostComment.writerId', 'User.id')
@@ -461,7 +481,7 @@ export class NotificationListener {
     postId,
     actorId,
     mentionedUserId,
-  }: Event.PostMentionEvent) {
+  }: EventPayloadMap['notification:POST_MENTION']) {
     if (actorId === mentionedUserId) return;
 
     const mentionedUser = await this.prisma.user.findUnique({
