@@ -4,6 +4,10 @@ import { UserReader } from '../user/repository/user.reader';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import type { ClientInfo } from 'src/shared/types/client-info';
+import {
+  googleBanList,
+  kakaoBanList,
+} from 'src/common/constants/ban-list.constant';
 
 @Injectable()
 export class AuthService {
@@ -75,9 +79,9 @@ export class AuthService {
       const googleProfile = await this.getGoogleProfile(
         input.providerAccessToken,
       );
-      if (googleProfile.id === '111415759746016734843') {
-        throw Error('모모임');
-      }
+      if (googleBanList.includes(googleProfile.id))
+        throw new Error(`벤이다 이녀석아 ${googleProfile.id}`);
+
       providerId = googleProfile.id;
       email = googleProfile.email;
     } else if (input.provider === 'APPLE') {
@@ -90,6 +94,9 @@ export class AuthService {
       const kakaoProfile = await this.getKakaoProfile(
         input.providerAccessToken,
       );
+      if (kakaoBanList.includes(kakaoProfile.kakaoId))
+        throw new Error(`벤이다 이녀석아 ${kakaoProfile.kakaoId}`);
+
       providerId = kakaoProfile.kakaoId;
       email = kakaoProfile.email;
     }
