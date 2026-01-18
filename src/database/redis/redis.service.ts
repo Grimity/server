@@ -17,7 +17,10 @@ export class RedisService implements OnModuleDestroy {
     this.redis = new Redis({
       host: this.configService.get('REDIS_HOST'),
       port: Number(this.configService.get('REDIS_PORT')) || 6379,
-      ...(redisPassword && { password: redisPassword, tls: {} }),
+      ...(redisPassword && {
+        password: redisPassword,
+        tls: { rejectUnauthorized: false },
+      }),
     });
     this.subRedis = this.redis.duplicate();
 
