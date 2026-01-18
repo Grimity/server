@@ -210,7 +210,7 @@ export class AuthService {
 
   async getAppleProfile(appleJwt: string) {
     const data = this.jwtService.decode(appleJwt) as AppleProfile;
-    console.log(data);
+
     return data;
   }
 }

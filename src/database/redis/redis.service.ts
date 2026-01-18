@@ -13,8 +13,11 @@ export class RedisService implements OnModuleDestroy {
     private configService: ConfigService,
     private eventEmitter: TypedEventEmitter,
   ) {
+    const redisPassword = this.configService.get('REDIS_PASSWORD');
     this.redis = new Redis({
       host: this.configService.get('REDIS_HOST'),
+      port: Number(this.configService.get('REDIS_PORT')) || 6379,
+      ...(redisPassword && { password: redisPassword, tls: {} }),
     });
     this.subRedis = this.redis.duplicate();
 
