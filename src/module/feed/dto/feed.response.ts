@@ -11,7 +11,7 @@ import { FeedCommentBaseResponse } from 'src/module/feed-comment/dto';
 import { FeedBaseResponse, FeedResponse } from './feed.base.response';
 import { AlbumBaseResponse } from 'src/module/album/dto';
 
-export class SearchedFeedResponse extends FeedBaseResponse {
+export class SearchedFeedResponse extends FeedResponse {
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;
 

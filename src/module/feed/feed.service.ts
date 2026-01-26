@@ -1,8 +1,6 @@
-import { Injectable, HttpException, Inject } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { FeedWriter } from './repository/feed.writer';
 import { FeedReader } from './repository/feed.reader';
-import { SearchService } from 'src/database/search/search.service';
-import { DdbService } from 'src/database/ddb/ddb.service';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
@@ -14,9 +12,7 @@ export class FeedService {
   constructor(
     private feedWriter: FeedWriter,
     private feedReader: FeedReader,
-    private ddb: DdbService,
     private redisService: RedisService,
-    @Inject(SearchService) private searchService: SearchService,
     private eventEmitter: TypedEventEmitter,
     private userReader: UserReader,
   ) {}
@@ -31,12 +27,6 @@ export class FeedService {
     const { id } = await this.feedWriter.create(userId, {
       ...createFeedInput,
       tags: [...trimmedSet],
-    });
-
-    await this.searchService.insertFeed({
-      id,
-      title: createFeedInput.title,
-      tag: [...trimmedSet].join(' '),
     });
 
     return { id };
@@ -76,12 +66,6 @@ export class FeedService {
       });
     }
 
-    await this.ddb.putItemForUpdate({
-      type: 'FEED',
-      id: feedId,
-      count: feed.likeCount,
-    });
-
     return;
   }
 
@@ -106,11 +90,6 @@ export class FeedService {
     const feed = await this.unlikeTransaction(userId, feedId);
     if (feed === null) return;
 
-    await this.ddb.putItemForUpdate({
-      type: 'FEED',
-      id: feedId,
-      count: feed.likeCount,
-    });
     return;
   }
 
@@ -135,7 +114,6 @@ export class FeedService {
 
     const feed = await this.feedWriter.deleteOne(userId, feedId);
 
-    await this.searchService.deleteFeed(feedId);
     return;
   }
 
@@ -157,11 +135,6 @@ export class FeedService {
       tags: [...trimmedSet],
     });
 
-    await this.searchService.updateFeed({
-      id: updateFeedInput.feedId,
-      title: updateFeedInput.title,
-      tag: [...trimmedSet].join(' '),
-    });
     return;
   }
 
@@ -255,48 +228,15 @@ export class FeedService {
   }
 
   async search(input: SearchInput) {
-    const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const { ids, totalCount } = await this.searchService.searchFeed({
-      keyword: input.keyword,
-      cursor: currentCursor,
-      size: input.size,
-      sort: input.sort,
-    });
-
-    let nextCursor: string | null = null;
-
-    if (ids === undefined || ids.length === 0) {
-      return {
-        totalCount,
-        nextCursor,
-        feeds: [],
-      };
-    }
-
-    const feeds = await this.feedReader.findManyByIds(input.userId, ids);
-
-    if (feeds.length === input.size) {
-      nextCursor = `${currentCursor + 1}`;
-    }
-
-    const returnFeeds = [];
-
-    for (const searchedId of ids) {
-      const feed = feeds.find((feed) => feed.id === searchedId);
-
-      if (!feed) {
-        continue;
-      }
-
-      returnFeeds.push(feed);
-    }
+    const result = await this.feedReader.searchFeedsWithCursor(input);
 
     return {
-      totalCount,
-      nextCursor,
-      feeds: returnFeeds.map((feed) => ({
+      totalCount: result.feeds.length,
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
+        cards: feed.cards.map((card) => getImageUrl(card)),
         author: {
           ...feed.author,
           image: getImageUrl(feed.author.image),
@@ -325,10 +265,6 @@ export class FeedService {
 
   async deleteMany(userId: string, ids: string[]) {
     const count = await this.feedWriter.deleteMany(userId, ids);
-
-    if (count === ids.length) {
-      await this.searchService.deleteFeeds(ids);
-    }
 
     return;
   }
@@ -447,11 +383,11 @@ export type GetFeedsInput = {
 };
 
 export type SearchInput = {
-  userId: string | null;
+  userId?: string;
   keyword: string;
   cursor: string | null;
   size: number;
-  sort: 'latest' | 'popular' | 'accuracy';
+  sort: 'latest' | 'popular';
 };
 
 type tagWithThumbnail = {
