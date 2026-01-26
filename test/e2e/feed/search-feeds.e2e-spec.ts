@@ -76,7 +76,6 @@ describe('GET /feeds/search - 피드 검색', () => {
       .get('/feeds/search')
       .set('Authorization', `Bearer ${accessToken}`)
       .query({ keyword: 'sdf' });
-    console.dir(body, { depth: null });
 
     // then
     expect(status).toBe(200);
