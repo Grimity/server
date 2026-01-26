@@ -73,10 +73,11 @@ export class CreateFeedRequest {
 
 export class UpdateFeedRequest extends CreateFeedRequest {}
 
-const searchFeedSortTypes = ['latest', 'popular', 'accuracy'] as const;
+const searchFeedSortTypes = ['latest', 'popular'] as const;
 export class SearchFeedRequest extends CursorKeywordRequest {
   @ApiProperty({ enum: searchFeedSortTypes })
   @TrimAndLowerNullableString()
+  @Transform(({ value }) => (value === 'accuracy' ? 'latest' : value))
   @IsOptional()
   @IsIn(searchFeedSortTypes)
   sort?: (typeof searchFeedSortTypes)[number];

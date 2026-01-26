@@ -255,48 +255,15 @@ export class FeedService {
   }
 
   async search(input: SearchInput) {
-    const currentCursor = input.cursor ? Number(input.cursor) : 0;
-    const { ids, totalCount } = await this.searchService.searchFeed({
-      keyword: input.keyword,
-      cursor: currentCursor,
-      size: input.size,
-      sort: input.sort,
-    });
-
-    let nextCursor: string | null = null;
-
-    if (ids === undefined || ids.length === 0) {
-      return {
-        totalCount,
-        nextCursor,
-        feeds: [],
-      };
-    }
-
-    const feeds = await this.feedReader.findManyByIds(input.userId, ids);
-
-    if (feeds.length === input.size) {
-      nextCursor = `${currentCursor + 1}`;
-    }
-
-    const returnFeeds = [];
-
-    for (const searchedId of ids) {
-      const feed = feeds.find((feed) => feed.id === searchedId);
-
-      if (!feed) {
-        continue;
-      }
-
-      returnFeeds.push(feed);
-    }
+    const result = await this.feedReader.searchFeedsWithCursor(input);
 
     return {
-      totalCount,
-      nextCursor,
-      feeds: returnFeeds.map((feed) => ({
+      totalCount: result.feeds.length,
+      nextCursor: result.nextCursor,
+      feeds: result.feeds.map((feed) => ({
         ...feed,
         thumbnail: getImageUrl(feed.thumbnail),
+        cards: feed.cards.map((card) => getImageUrl(card)),
         author: {
           ...feed.author,
           image: getImageUrl(feed.author.image),
@@ -447,11 +414,11 @@ export type GetFeedsInput = {
 };
 
 export type SearchInput = {
-  userId: string | null;
+  userId?: string;
   keyword: string;
   cursor: string | null;
   size: number;
-  sort: 'latest' | 'popular' | 'accuracy';
+  sort: 'latest' | 'popular';
 };
 
 type tagWithThumbnail = {

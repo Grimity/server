@@ -86,11 +86,11 @@ export class FeedController {
     @Query() { keyword, cursor, size, sort }: SearchFeedRequest,
   ): Promise<SearchedFeedsResponse> {
     return await this.feedService.search({
-      userId,
       keyword,
       cursor: cursor ?? null,
       size: size ?? 20,
       sort: sort ?? 'latest',
+      ...(userId ? { userId } : {}),
     });
   }
 

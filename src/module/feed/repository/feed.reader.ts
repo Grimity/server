@@ -887,6 +887,134 @@ export class FeedReader {
       WHERE rn = 1
     `;
   }
+
+  async searchFeedsWithCursor({
+    userId,
+    keyword,
+    sort,
+    size,
+    cursor,
+  }: {
+    userId?: string;
+    keyword: string;
+    sort: 'latest' | 'popular';
+    size: number;
+    cursor: string | null;
+  }) {
+    // title은 %keyword%, tags는 = keyword
+    const result = await this.txHost.tx.$kysely
+      .selectFrom('Feed')
+      .innerJoin('User as Author', 'Feed.authorId', 'Author.id')
+      .where((eb) =>
+        eb.or([
+          eb('Feed.title', 'ilike', `%${keyword}%`),
+          eb('Feed.id', 'in', (eb) =>
+            eb
+              .selectFrom('Tag')
+              .select('Tag.feedId')
+              .where('Tag.tagName', '=', keyword),
+          ),
+        ]),
+      )
+      .select([
+        'Feed.id',
+        'Feed.title',
+        'Feed.thumbnail',
+        'Feed.createdAt',
+        'Feed.viewCount',
+        'Feed.likeCount',
+        'Feed.content',
+        'Feed.cards',
+        'Author.id as authorId',
+        'Author.name as authorName',
+        'Author.image as authorImage',
+        'Author.url as authorUrl',
+      ])
+      .select((eb) =>
+        eb
+          .selectFrom('FeedComment')
+          .whereRef('FeedComment.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
+          )
+          .as('commentCount'),
+      )
+      .select((eb) =>
+        eb
+          .selectFrom('Tag')
+          .whereRef('Tag.feedId', '=', 'Feed.id')
+          .select((eb) =>
+            eb.fn<string[]>('array_agg', ['tagName']).as('tagName'),
+          )
+          .as('tags'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
+      )
+      .$if(cursor !== null, (eb) => {
+        if (sort === 'latest') {
+          return eb.where('Feed.createdAt', '<', new Date(cursor!));
+        } else {
+          const [likeCount, id] = cursor!.split('_');
+          return eb.where((eb) =>
+            eb.or([
+              eb('Feed.likeCount', '<', Number(likeCount)),
+              eb.and([
+                eb('Feed.likeCount', '=', Number(likeCount)),
+                eb('Feed.id', '<', kyselyUuid(id)),
+              ]),
+            ]),
+          );
+        }
+      })
+      .orderBy(sort === 'latest' ? 'Feed.createdAt' : 'Feed.likeCount', 'desc')
+      .orderBy('Feed.id', 'desc')
+      .limit(size)
+      .execute();
+
+    let nextCursor: string | null = null;
+
+    if (result.length === size) {
+      if (sort === 'latest') {
+        nextCursor = result[size - 1].createdAt.toISOString();
+      } else {
+        nextCursor = `${result[size - 1].likeCount}_${result[size - 1].id}`;
+      }
+    }
+
+    return {
+      nextCursor,
+      feeds: result.map((feed) => ({
+        id: feed.id,
+        title: feed.title,
+        thumbnail: feed.thumbnail,
+        createdAt: feed.createdAt,
+        viewCount: feed.viewCount,
+        likeCount: feed.likeCount,
+        content: feed.content,
+        cards: feed.cards,
+        commentCount:
+          feed.commentCount === null ? 0 : Number(feed.commentCount),
+        tags: feed.tags ?? [],
+        isLike: feed.isLike ?? false,
+        author: {
+          id: feed.authorId,
+          name: feed.authorName,
+          image: feed.authorImage,
+          url: feed.authorUrl,
+        },
+      })),
+    };
+  }
 }
 
 type FindPopularInput = {
