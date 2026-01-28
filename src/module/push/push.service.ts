@@ -100,33 +100,4 @@ export class PushService implements OnModuleInit {
       console.error('Error sending push notification:', error);
     }
   }
-
-  // test
-  async sendTestPushNotification({
-    token,
-    title,
-    message,
-  }: {
-    token: string;
-    title: string;
-    message: string;
-  }) {
-    if (!this.app) {
-      console.error('Firebase Admin SDK is not initialized');
-      return;
-    }
-
-    try {
-      const response = await admin.messaging(this.app).sendEachForMulticast({
-        tokens: [token],
-        notification: {
-          title: title,
-          body: message,
-        },
-      });
-      console.log('Test push notification sent successfully:', response);
-    } catch (error) {
-      console.error('Error sending test push notification:', error);
-    }
-  }
 }
