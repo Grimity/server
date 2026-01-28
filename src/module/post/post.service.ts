@@ -1,9 +1,8 @@
-import { Injectable, HttpException, Inject } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PostWriter } from './repository/post.writer';
 import { postTypes, PostTypeEnum } from 'src/common/constants/post.constant';
 import { convertPostType } from 'src/shared/util/convert-post-type';
 import { PostReader } from './repository/post.reader';
-import { SearchService } from 'src/database/search/search.service';
 import { removeHtml } from 'src/shared/util/remove-html';
 
 function extractImage(htmlString: string): string | null {
@@ -19,7 +18,6 @@ export class PostService {
   constructor(
     private postWriter: PostWriter,
     private postReader: PostReader,
-    @Inject(SearchService) private searchService: SearchService,
   ) {}
 
   async create(userId: string, { title, content, type }: CreateInput) {
@@ -33,20 +31,13 @@ export class PostService {
 
     const typeNumber = PostTypeEnum[type];
 
-    const { id } = await this.postWriter.create({
+    return await this.postWriter.create({
       userId,
       title,
       content,
       type: typeNumber,
       thumbnail,
     });
-
-    await this.searchService.insertPost({
-      id,
-      title,
-      content: parsedContent,
-    });
-    return { id };
   }
 
   async update(
@@ -76,11 +67,6 @@ export class PostService {
       throw new HttpException('POST', 404);
     }
 
-    await this.searchService.updatePost({
-      id: postId,
-      title,
-      content: parsedContent,
-    });
     return;
   }
 
@@ -160,7 +146,6 @@ export class PostService {
     const post = await this.postWriter.deleteOne(userId, postId);
     if (!post) throw new HttpException('POST', 404);
 
-    await this.searchService.deletePost(postId);
     return;
   }
 
@@ -192,14 +177,12 @@ export class PostService {
     };
   }
 
-  async searchByTitleAndContent({ keyword, page, size }: SearchPostInput) {
-    const { totalCount, ids } = await this.searchService.searchPost({
-      keyword,
-      page,
-      size,
-    });
+  async searchByTitle({ keyword, page, size }: SearchPostInput) {
+    const [totalCount, posts] = await Promise.all([
+      this.postReader.countSearchResults(keyword),
+      this.postReader.search({ keyword, page, size }),
+    ]);
 
-    const posts = await this.postReader.findManyByIds(ids);
     return {
       totalCount,
       posts: posts.map((post) => {

@@ -86,7 +86,7 @@ export class PostController {
         size: size ?? 10,
       });
     } else {
-      return await this.postService.searchByTitleAndContent({
+      return await this.postService.searchByTitle({
         keyword,
         page: page ?? 1,
         size: size ?? 10,
