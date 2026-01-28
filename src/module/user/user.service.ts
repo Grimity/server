@@ -1,8 +1,7 @@
-import { HttpException, Injectable, Inject } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { UserWriter, UpdateInput } from './repository/user.writer';
 import { FeedReader } from '../feed/repository/feed.reader';
 import { UserReader } from './repository/user.reader';
-import { SearchService } from 'src/database/search/search.service';
 import { PostReader } from '../post/repository/post.reader';
 import { convertPostType } from 'src/shared/util/convert-post-type';
 import { RedisService } from 'src/database/redis/redis.service';
@@ -20,7 +19,6 @@ export class UserService {
     private userWriter: UserWriter,
     private feedReader: FeedReader,
     private userReader: UserReader,
-    @Inject(SearchService) private searchService: SearchService,
     private postReader: PostReader,
     private redisService: RedisService,
     private albumReader: AlbumReader,
@@ -444,10 +442,9 @@ export class UserService {
       this.feedReader.findAllIdsByUserId(userId),
       this.postReader.findAllIdsByUserId(userId),
     ]);
-    await Promise.all([
-      this.searchService.deleteAll({ feedIds, postIds }),
-      this.userWriter.deleteOne(userId),
-    ]);
+
+    await this.userWriter.deleteOne(userId);
+
     return;
   }
 

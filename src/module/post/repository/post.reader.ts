@@ -246,6 +246,59 @@ export class PostReader {
     }));
   }
 
+  async search(input: { keyword: string; page: number; size: number }) {
+    const result = await this.txHost.tx.$kysely
+      .selectFrom('Post')
+      .where('title', 'ilike', `%${input.keyword}%`)
+      .innerJoin('User as Author', 'authorId', 'Author.id')
+      .select([
+        'Post.id',
+        'Post.title',
+        'Post.content',
+        'Post.thumbnail',
+        'Post.createdAt',
+        'Post.type',
+        'Post.commentCount',
+        'Post.viewCount',
+        'Author.id as authorId',
+        'Author.name as authorName',
+        'Author.url as authorUrl',
+        'Author.image as authorImage',
+      ])
+      .orderBy('Post.createdAt', 'desc')
+      .limit(input.size)
+      .offset((input.page - 1) * input.size)
+      .execute();
+
+    return result.map((post) => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      thumbnail: post.thumbnail,
+      createdAt: post.createdAt,
+      type: post.type,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
+        url: post.authorUrl,
+        image: post.authorImage,
+      },
+    }));
+  }
+
+  async countSearchResults(keyword: string) {
+    return await this.txHost.tx.post.count({
+      where: {
+        title: {
+          contains: keyword,
+          mode: 'insensitive',
+        },
+      },
+    });
+  }
+
   async findManyByIds(ids: string[]) {
     if (ids.length === 0) return [];
     const feeds = await this.txHost.tx.$kysely
