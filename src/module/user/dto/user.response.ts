@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { socialProviders } from '../../../common/constants/social-provider.constant';
-import {
-  CursorResponse,
-  CursorAndCountResponse,
-} from '../../../shared/response/cursor.response';
+import { CursorResponse } from '../../../shared/response/cursor.response';
 import { ConflictResponse } from '../../../shared/response/conflict.response';
 import { AlbumBaseResponse } from '../../album/dto/album.base.response';
 import {
@@ -114,7 +111,7 @@ export class SearchedUserResponse extends UserBaseResponse {
   isBlocked: boolean;
 }
 
-export class SearchedUsersResponse extends CursorAndCountResponse {
+export class SearchedUsersResponse extends CursorResponse {
   @ApiProperty({ type: SearchedUserResponse, isArray: true })
   users: SearchedUserResponse[];
 }

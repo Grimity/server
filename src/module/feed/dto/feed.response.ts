@@ -3,13 +3,10 @@ import {
   UserBaseResponse,
   UserBaseWithBlockedResponse,
 } from '../../user/dto/user.base.response';
-import {
-  CursorAndCountResponse,
-  CursorResponse,
-} from '../../../shared/response/cursor.response';
-import { FeedCommentBaseResponse } from 'src/module/feed-comment/dto';
+import { CursorResponse } from '../../../shared/response/cursor.response';
+import { FeedCommentBaseResponse } from '../../feed-comment/dto/feed-comment.base.response';
 import { FeedBaseResponse, FeedResponse } from './feed.base.response';
-import { AlbumBaseResponse } from 'src/module/album/dto';
+import { AlbumBaseResponse } from '../../album/dto/album.base.response';
 
 export class SearchedFeedResponse extends FeedResponse {
   @ApiProperty({ type: UserBaseResponse })
@@ -25,7 +22,7 @@ export class SearchedFeedResponse extends FeedResponse {
   tags: string[];
 }
 
-export class SearchedFeedsResponse extends CursorAndCountResponse {
+export class SearchedFeedsResponse extends CursorResponse {
   @ApiProperty({ type: SearchedFeedResponse, isArray: true })
   feeds: SearchedFeedResponse[];
 }
