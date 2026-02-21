@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { createTestUser } from '../helper/create-test-user';
+import { SpamDetectionListener } from 'src/module/spam/spam-detection.listener';
 
 describe('POST /posts - 게시글 생성', () => {
   let app: INestApplication;
@@ -12,7 +13,10 @@ describe('POST /posts - 게시글 생성', () => {
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(SpamDetectionListener)
+      .useValue({})
+      .compile();
 
     app = module.createNestApplication();
     prisma = module.get<PrismaService>(PrismaService);

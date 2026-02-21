@@ -4,6 +4,7 @@ import { postTypes, PostTypeEnum } from 'src/common/constants/post.constant';
 import { convertPostType } from 'src/shared/util/convert-post-type';
 import { PostReader } from './repository/post.reader';
 import { removeHtml } from 'src/shared/util/remove-html';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 
 function extractImage(htmlString: string): string | null {
   // 정규 표현식을 사용하여 첫 번째 <img> 태그의 src 속성을 추출
@@ -18,6 +19,7 @@ export class PostService {
   constructor(
     private postWriter: PostWriter,
     private postReader: PostReader,
+    private eventEmitter: TypedEventEmitter,
   ) {}
 
   async create(userId: string, { title, content, type }: CreateInput) {
@@ -31,13 +33,21 @@ export class PostService {
 
     const typeNumber = PostTypeEnum[type];
 
-    return await this.postWriter.create({
+    const post = await this.postWriter.create({
       userId,
       title,
       content,
       type: typeNumber,
       thumbnail,
     });
+
+    this.eventEmitter.emit('post:CREATED', {
+      postId: post.id,
+      title,
+      content: parsedContent,
+    });
+
+    return post;
   }
 
   async update(
