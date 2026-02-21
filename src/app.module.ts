@@ -26,6 +26,7 @@ import { AppController } from './app.controller';
 import { ImageModule } from './module/image/image.module';
 import { PushModule } from './module/push/push.module';
 import { EventModule } from './infrastructure/event/event.module';
+import { SpamModule } from './module/spam/spam.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { EventModule } from './infrastructure/event/event.module';
     ChatModule,
     ImageModule,
     PushModule,
+    SpamModule,
   ],
   controllers: [AppController],
   providers: [

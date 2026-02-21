@@ -28,6 +28,8 @@ export interface EventPayloadMap {
 
   'notification:FOLLOW': { actorId: string; userId: string };
 
+  'post:CREATED': { postId: string; title: string; content: string };
+
   push: PushPayload;
 
   // Redis Pub/Sub -> EventEmitter로 전달되는 채팅 이벤트
