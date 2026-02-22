@@ -17,7 +17,7 @@ export class SpamDetectionListener {
   }: EventPayloadMap['post:CREATED']) {
     try {
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3-flash-preview',
         contents: [`제목: ${title}\n내용: ${content}`],
         config: {
           systemInstruction:
