@@ -2,12 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { GoogleGenAI } from '@google/genai';
 import { EventPayloadMap } from 'src/infrastructure/event/event-payload.types';
+import { PostWriter } from '../post/repository/post.writer';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 @Injectable()
 export class SpamDetectionListener {
   private readonly logger = new Logger(SpamDetectionListener.name);
+
+  constructor(private readonly postWriter: PostWriter) {}
 
   @OnEvent('post:CREATED')
   async handlePostCreated({
@@ -46,6 +49,10 @@ export class SpamDetectionListener {
         this.logger.warn(
           `[스팸 감지] postId=${postId} | reason=${result.reason}`,
         );
+        await this.postWriter.forceDelete(postId);
+        this.logger.warn(`[스팸 삭제 완료] postId=${postId}`);
+        this.logger.warn(`[게시글 제목] ${title}`);
+        this.logger.warn(`[게시글 내용] ${content}`);
       }
     } catch (error) {
       this.logger.error(`[스팸 감지 실패] postId=${postId}`, error);
