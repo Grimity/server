@@ -9,6 +9,6 @@ import { RedisModule } from 'src/database/redis/redis.module';
   imports: [RedisModule],
   controllers: [PostController],
   providers: [PostService, PostReader, PostWriter],
-  exports: [PostReader],
+  exports: [PostReader, PostWriter],
 })
 export class PostModule {}

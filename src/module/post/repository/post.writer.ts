@@ -140,6 +140,20 @@ export class PostWriter {
     }
   }
 
+  async forceDelete(postId: string) {
+    try {
+      return await this.txHost.tx.post.delete({
+        where: { id: postId },
+        select: { id: true },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'NOT_FOUND') return null;
+      }
+      throw e;
+    }
+  }
+
   async deleteOne(userId: string, postId: string) {
     try {
       return await this.txHost.tx.post.delete({
