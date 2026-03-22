@@ -26,7 +26,7 @@
     "@google/genai": "^1.42.0",
     "@nestjs-cls/transactional": "^3.0.2",
     "@nestjs-cls/transactional-adapter-prisma": "^1.2.23",
-    "@nestjs/common": "^11.1.2",
+    "@nestjs/common": "^11.1.17",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.2",
     "@nestjs/event-emitter": "^3.0.1",
