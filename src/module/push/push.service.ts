@@ -52,6 +52,7 @@ export class PushService implements OnModuleInit {
 
     const androidConfig: admin.messaging.AndroidConfig = {
       data: data.data,
+      priority: data.silent ? 'normal' : 'high', // high: 즉시 전달 (Doze 모드에서도)
       ...(!data.silent && {
         notification: {
           title: data.title,
@@ -82,11 +83,16 @@ export class PushService implements OnModuleInit {
         ...(data.imageUrl && { imageUrl: data.imageUrl }), // 여기에 이미지 URL
       },
       headers: {
-        ...(data.silent && {
-          'apns-priority': '5', // silent 푸시를 위한 우선순위 설정
-          'apns-push-type': 'background',
-        }),
-        ...(data.key && { 'apns-collapse-id': data.key }), // 같은 key면 기존 알림 덮어씀
+        ...(data.silent
+          ? {
+              'apns-priority': '5',
+              'apns-push-type': 'background',
+            }
+          : {
+              'apns-priority': '10', // 즉시 전달 (화면 꺼진 상태에서도)
+              'apns-push-type': 'alert',
+            }),
+        ...(data.key && { 'apns-collapse-id': data.key }),
       },
     };
 
