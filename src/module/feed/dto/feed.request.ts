@@ -42,9 +42,9 @@ export class CreateFeedRequest {
 
   @ApiProperty({
     minLength: 1,
-    maxLength: 300,
+    maxLength: 3000,
   })
-  @Length(1, 300)
+  @Length(1, 3000)
   content: string;
 
   @ApiProperty({
