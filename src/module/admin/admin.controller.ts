@@ -1,9 +1,15 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiExcludeController,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { AdminLoginRequest } from './dto/admin.request';
 import { AdminLoginResponse } from './dto/admin.response';
 
+@ApiExcludeController()
 @ApiTags('/admin')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('admin')

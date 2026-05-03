@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiExcludeController,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -18,6 +19,7 @@ import { AdminGuard } from 'src/core/guard';
 import { AdminFeedCommentService } from './admin-feed-comment.service';
 import { CreateAdminFeedCommentRequest } from './dto/admin-feed-comment.request';
 
+@ApiExcludeController()
 @ApiTags('/admin')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @ApiResponse({ status: 401, description: '어드민 인증 실패' })

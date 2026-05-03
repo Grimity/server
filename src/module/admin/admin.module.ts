@@ -9,6 +9,16 @@ import { AdminFeedCommentController } from './admin-feed-comment.controller';
 import { AdminFeedCommentService } from './admin-feed-comment.service';
 import { AdminFeedCommentReader } from './repository/admin-feed-comment.reader';
 import { AdminFeedCommentWriter } from './repository/admin-feed-comment.writer';
+import { AdminPostController } from './admin-post.controller';
+import { AdminPostService } from './admin-post.service';
+import { AdminPostReader } from './repository/admin-post.reader';
+import { AdminPostWriter } from './repository/admin-post.writer';
+import { AdminPostCommentController } from './admin-post-comment.controller';
+import { AdminPostCommentService } from './admin-post-comment.service';
+import { AdminPostCommentReader } from './repository/admin-post-comment.reader';
+import { AdminPostCommentWriter } from './repository/admin-post-comment.writer';
+import { AdminNoticeController } from './admin-notice.controller';
+import { AdminNoticeService } from './admin-notice.service';
 import { AdminGuard } from 'src/core/guard';
 
 @Module({
@@ -16,6 +26,9 @@ import { AdminGuard } from 'src/core/guard';
     AdminController,
     AdminFeedController,
     AdminFeedCommentController,
+    AdminPostController,
+    AdminPostCommentController,
+    AdminNoticeController,
   ],
   providers: [
     AdminService,
@@ -25,6 +38,13 @@ import { AdminGuard } from 'src/core/guard';
     AdminFeedCommentService,
     AdminFeedCommentReader,
     AdminFeedCommentWriter,
+    AdminPostService,
+    AdminPostReader,
+    AdminPostWriter,
+    AdminPostCommentService,
+    AdminPostCommentReader,
+    AdminPostCommentWriter,
+    AdminNoticeService,
     AdminGuard,
   ],
 })
