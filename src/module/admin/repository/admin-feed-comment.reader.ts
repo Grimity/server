@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { kyselyUuid } from 'src/shared/util/convert-uuid';
+import { AdminParentFeedCommentResponse } from '../dto/admin-feed-comment.response';
 
 @Injectable()
 export class AdminFeedCommentReader {
@@ -95,5 +96,77 @@ export class AdminFeedCommentReader {
         },
       })),
     };
+  }
+
+  async findManyByFeedId(
+    feedId: string,
+  ): Promise<AdminParentFeedCommentResponse[]> {
+    const result = await this.txHost.tx.$kysely
+      .selectFrom('FeedComment')
+      .where('FeedComment.feedId', '=', kyselyUuid(feedId))
+      .innerJoin('User as w', 'w.id', 'FeedComment.writerId')
+      .leftJoin('User as m', 'm.id', 'FeedComment.mentionedUserId')
+      .select([
+        'FeedComment.id',
+        'FeedComment.writerId',
+        'FeedComment.parentId',
+        'FeedComment.content',
+        'FeedComment.mentionedUserId',
+        'FeedComment.createdAt',
+        'FeedComment.likeCount',
+        'w.name as writerName',
+        'w.url as writerUrl',
+        'w.image as writerImage',
+        'm.name as mentionedUserName',
+        'm.url as mentionedUserUrl',
+        'm.image as mentionedUserImage',
+      ])
+      .orderBy('FeedComment.createdAt', 'asc')
+      .execute();
+
+    const comments: AdminParentFeedCommentResponse[] = [];
+    const parentRecord = new Map<string, number>();
+
+    for (const row of result) {
+      const writer = {
+        id: row.writerId,
+        name: row.writerName,
+        url: row.writerUrl,
+        image: row.writerImage,
+      };
+
+      if (row.parentId === null) {
+        comments.push({
+          id: row.id,
+          content: row.content,
+          createdAt: row.createdAt,
+          likeCount: row.likeCount,
+          writer,
+          childComments: [],
+        });
+        parentRecord.set(row.id, comments.length - 1);
+      } else {
+        const idx = parentRecord.get(row.parentId);
+        if (idx === undefined) continue;
+        comments[idx].childComments.push({
+          id: row.id,
+          content: row.content,
+          createdAt: row.createdAt,
+          likeCount: row.likeCount,
+          writer,
+          mentionedUser:
+            row.mentionedUserId && row.mentionedUserName
+              ? {
+                  id: row.mentionedUserId,
+                  name: row.mentionedUserName,
+                  url: row.mentionedUserUrl!,
+                  image: row.mentionedUserImage,
+                }
+              : null,
+        });
+      }
+    }
+
+    return comments;
   }
 }

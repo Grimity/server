@@ -23,7 +23,10 @@ import {
   AdminGetFeedCommentsRequest,
   CreateAdminFeedCommentRequest,
 } from './dto/admin-feed-comment.request';
-import { AdminLatestFeedCommentsResponse } from './dto/admin-feed-comment.response';
+import {
+  AdminLatestFeedCommentsResponse,
+  AdminParentFeedCommentResponse,
+} from './dto/admin-feed-comment.response';
 
 @ApiExcludeController()
 @ApiTags('/admin')
@@ -47,6 +50,18 @@ export class AdminFeedCommentController {
       cursor: query.cursor ?? null,
       size: query.size ?? 20,
     });
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '어드민 - 특정 피드의 댓글 트리 조회' })
+  @ApiResponse({ status: 200, type: [AdminParentFeedCommentResponse] })
+  @ApiResponse({ status: 404, description: '피드가 없음' })
+  @UseGuards(AdminGuard)
+  @Get('by-feed')
+  async getCommentsByFeedId(
+    @Query('feedId', new ParseUUIDPipe()) feedId: string,
+  ): Promise<AdminParentFeedCommentResponse[]> {
+    return await this.adminFeedCommentService.getCommentsByFeedId(feedId);
   }
 
   @ApiBearerAuth()

@@ -7,7 +7,10 @@ import {
   AdminFeedCommentWriter,
   CreateAdminFeedCommentInput,
 } from './repository/admin-feed-comment.writer';
-import { AdminLatestFeedCommentsResponse } from './dto/admin-feed-comment.response';
+import {
+  AdminLatestFeedCommentsResponse,
+  AdminParentFeedCommentResponse,
+} from './dto/admin-feed-comment.response';
 
 @Injectable()
 export class AdminFeedCommentService {
@@ -44,6 +47,31 @@ export class AdminFeedCommentService {
         },
       })),
     };
+  }
+
+  async getCommentsByFeedId(
+    feedId: string,
+  ): Promise<AdminParentFeedCommentResponse[]> {
+    const feedExists = await this.adminFeedCommentReader.existsFeed(feedId);
+    if (!feedExists) throw new HttpException('FEED', 404);
+
+    const comments =
+      await this.adminFeedCommentReader.findManyByFeedId(feedId);
+
+    return comments.map((parent) => ({
+      ...parent,
+      writer: { ...parent.writer, image: getImageUrl(parent.writer.image) },
+      childComments: parent.childComments.map((child) => ({
+        ...child,
+        writer: { ...child.writer, image: getImageUrl(child.writer.image) },
+        mentionedUser: child.mentionedUser
+          ? {
+              ...child.mentionedUser,
+              image: getImageUrl(child.mentionedUser.image),
+            }
+          : null,
+      })),
+    }));
   }
 
   async create(input: CreateAdminFeedCommentInput) {
