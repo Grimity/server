@@ -1,11 +1,13 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { getImageUrl } from 'src/shared/util/get-image-url';
 import { AdminFeedCommentReader } from './repository/admin-feed-comment.reader';
 import {
   AdminFeedCommentWriter,
   CreateAdminFeedCommentInput,
 } from './repository/admin-feed-comment.writer';
+import { AdminLatestFeedCommentsResponse } from './dto/admin-feed-comment.response';
 
 @Injectable()
 export class AdminFeedCommentService {
@@ -15,6 +17,34 @@ export class AdminFeedCommentService {
     private readonly adminFeedCommentReader: AdminFeedCommentReader,
     private readonly adminFeedCommentWriter: AdminFeedCommentWriter,
   ) {}
+
+  async getLatestComments({
+    cursor,
+    size,
+  }: {
+    cursor: string | null;
+    size: number;
+  }): Promise<AdminLatestFeedCommentsResponse> {
+    const result = await this.adminFeedCommentReader.findManyLatest({
+      cursor,
+      size,
+    });
+
+    return {
+      nextCursor: result.nextCursor,
+      comments: result.comments.map((c) => ({
+        ...c,
+        writer: {
+          ...c.writer,
+          image: getImageUrl(c.writer.image),
+        },
+        feed: {
+          ...c.feed,
+          thumbnail: getImageUrl(c.feed.thumbnail),
+        },
+      })),
+    };
+  }
 
   async create(input: CreateAdminFeedCommentInput) {
     const officialUserId = this.configService.get<string>('OFFICIAL_USER_ID');

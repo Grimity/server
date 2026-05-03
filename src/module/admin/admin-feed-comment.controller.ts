@@ -2,10 +2,12 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -17,7 +19,11 @@ import {
 } from '@nestjs/swagger';
 import { AdminGuard } from 'src/core/guard';
 import { AdminFeedCommentService } from './admin-feed-comment.service';
-import { CreateAdminFeedCommentRequest } from './dto/admin-feed-comment.request';
+import {
+  AdminGetFeedCommentsRequest,
+  CreateAdminFeedCommentRequest,
+} from './dto/admin-feed-comment.request';
+import { AdminLatestFeedCommentsResponse } from './dto/admin-feed-comment.response';
 
 @ApiExcludeController()
 @ApiTags('/admin')
@@ -28,6 +34,20 @@ export class AdminFeedCommentController {
   constructor(
     private readonly adminFeedCommentService: AdminFeedCommentService,
   ) {}
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '어드민 - 피드 댓글 목록 최신순 조회' })
+  @ApiResponse({ status: 200, type: AdminLatestFeedCommentsResponse })
+  @UseGuards(AdminGuard)
+  @Get()
+  async getComments(
+    @Query() query: AdminGetFeedCommentsRequest,
+  ): Promise<AdminLatestFeedCommentsResponse> {
+    return await this.adminFeedCommentService.getLatestComments({
+      cursor: query.cursor ?? null,
+      size: query.size ?? 20,
+    });
+  }
 
   @ApiBearerAuth()
   @ApiOperation({
