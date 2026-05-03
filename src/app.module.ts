@@ -27,6 +27,7 @@ import { ImageModule } from './module/image/image.module';
 import { PushModule } from './module/push/push.module';
 import { EventModule } from './infrastructure/event/event.module';
 import { SpamModule } from './module/spam/spam.module';
+import { AdminModule } from './module/admin/admin.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { SpamModule } from './module/spam/spam.module';
     ImageModule,
     PushModule,
     SpamModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
