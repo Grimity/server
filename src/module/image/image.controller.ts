@@ -3,11 +3,9 @@ import {
   Controller,
   Post,
   ParseArrayPipe,
-  UseGuards,
   HttpCode,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiResponse,
@@ -16,13 +14,9 @@ import {
 import { GetImageUploadUrlRequest } from './dto/image.request';
 import { ImageUploadUrlResponse } from './dto/image.response';
 import { ImageService } from './image.service';
-import { JwtGuard } from 'src/core/guard';
 
 @ApiTags('/images')
-@ApiBearerAuth()
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
-@ApiResponse({ status: 401, description: 'Unauthorized' })
-@UseGuards(JwtGuard)
 @Controller('images')
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
