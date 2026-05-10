@@ -5,7 +5,10 @@ import { removeHtml } from 'src/shared/util/remove-html';
 import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { IdResponse } from 'src/shared/response/id.response';
 import { AdminPostWriter } from './repository/admin-post.writer';
-import { CreateAdminNoticeRequest } from './dto/admin-notice.request';
+import {
+  CreateAdminNoticeRequest,
+  UpdateAdminNoticeRequest,
+} from './dto/admin-notice.request';
 
 function extractImage(htmlString: string): string | null {
   const imgTagMatch = htmlString.match(/<img[^>]+src="([^">]+)"/);
@@ -48,5 +51,29 @@ export class AdminNoticeService {
     });
 
     return post;
+  }
+
+  async update(
+    noticeId: string,
+    dto: UpdateAdminNoticeRequest,
+  ): Promise<void> {
+    const parsedContent = removeHtml(dto.content);
+    if (parsedContent.length < 1) {
+      throw new HttpException('내용을 입력해주세요', 400);
+    }
+
+    const thumbnail = extractImage(dto.content);
+
+    const updated = await this.adminPostWriter.update({
+      postId: noticeId,
+      type: PostTypeEnum.NOTICE,
+      title: dto.title,
+      content: dto.content,
+      thumbnail,
+    });
+
+    if (!updated) {
+      throw new HttpException('NOTICE', 404);
+    }
   }
 }

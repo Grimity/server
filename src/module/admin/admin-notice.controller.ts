@@ -1,4 +1,13 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiExcludeController,
@@ -9,7 +18,10 @@ import {
 import { AdminGuard } from 'src/core/guard';
 import { IdResponse } from 'src/shared/response/id.response';
 import { AdminNoticeService } from './admin-notice.service';
-import { CreateAdminNoticeRequest } from './dto/admin-notice.request';
+import {
+  CreateAdminNoticeRequest,
+  UpdateAdminNoticeRequest,
+} from './dto/admin-notice.request';
 
 @ApiExcludeController()
 @ApiTags('/admin')
@@ -32,5 +44,20 @@ export class AdminNoticeController {
   @Post()
   async create(@Body() dto: CreateAdminNoticeRequest): Promise<IdResponse> {
     return await this.adminNoticeService.create(dto);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '어드민 - 공지사항 수정' })
+  @ApiResponse({ status: 204, description: '공지사항 수정 성공' })
+  @ApiResponse({ status: 404, description: '공지사항이 없음' })
+  @UseGuards(AdminGuard)
+  @HttpCode(204)
+  @Put(':id')
+  async update(
+    @Param('id', new ParseUUIDPipe()) noticeId: string,
+    @Body() dto: UpdateAdminNoticeRequest,
+  ) {
+    await this.adminNoticeService.update(noticeId, dto);
+    return;
   }
 }

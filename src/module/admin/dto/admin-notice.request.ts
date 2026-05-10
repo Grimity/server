@@ -12,3 +12,5 @@ export class CreateAdminNoticeRequest {
   @Length(1)
   content: string;
 }
+
+export class UpdateAdminNoticeRequest extends CreateAdminNoticeRequest {}
