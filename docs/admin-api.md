@@ -476,6 +476,29 @@ Array<{
 
 ---
 
+### `PUT /admin/notices/:id` — 공지사항 수정
+
+`type=NOTICE` 인 Post 의 `title`, `content`, `thumbnail` 만 갱신한다. NOTICE 가 아닌 일반 게시글 id 가 들어오면 `404` 로 거부된다 (`type=NOTICE` 필터로 보호). 생성과 달리 알림은 발행되지 않는다.
+
+**Path Param**
+
+- `id` (UUID) — 수정할 공지(Post) id
+
+**Request Body**
+
+| 필드      | 타입             | 필수 | 설명 |
+| --------- | ---------------- | ---- | ---- |
+| `title`   | string (1~32)    | ✅   | 공지 제목 |
+| `content` | string (1~)      | ✅   | HTML 본문. 첫 `<img src>` 가 자동으로 thumbnail 로 추출됨 |
+
+**Response**
+
+- `204` 성공 (body 없음)
+- `400` 유효성 실패 또는 본문(HTML 제거 후) 길이 0
+- `404` `NOTICE` — 해당 id 의 공지가 없거나 NOTICE 타입이 아님
+
+---
+
 ## 엔드포인트 요약 표
 
 | Method | Path                          | 설명 |
@@ -495,3 +518,4 @@ Array<{
 | POST   | `/admin/post-comments`        | 공식계정 명의 게시글 댓글 생성 |
 | DELETE | `/admin/post-comments/:id`    | 게시글 댓글 삭제 |
 | POST   | `/admin/notices`              | 공지사항 생성 (`type=NOTICE` Post) |
+| PUT    | `/admin/notices/:id`          | 공지사항 수정 (NOTICE 타입만, 알림 미발행) |
