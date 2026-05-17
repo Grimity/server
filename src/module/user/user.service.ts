@@ -35,10 +35,10 @@ export class UserService {
     private eventEmitter: TypedEventEmitter,
     private configService: ConfigService,
   ) {
-    const hexKey = this.configService.get<string>('PORTONE_PII_ENCRYPTION_KEY');
+    const hexKey = this.configService.get<string>('PII_ENCRYPTION_KEY');
     if (!hexKey || hexKey.length !== 64) {
       throw new Error(
-        'PORTONE_PII_ENCRYPTION_KEY must be a 64-char hex string (32 bytes)',
+        'PII_ENCRYPTION_KEY must be a 64-char hex string (32 bytes)',
       );
     }
     this.piiKey = Buffer.from(hexKey, 'hex');
