@@ -484,4 +484,10 @@ export class UserReader {
       },
     });
   }
+
+  async findIdentityVerificationByUserId(userId: string) {
+    return await this.txHost.tx.identityVerification.findUnique({
+      where: { userId },
+    });
+  }
 }

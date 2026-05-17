@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   Put,
+  Post,
   Body,
   Delete,
   Query,
@@ -28,6 +29,7 @@ import {
   UpdateSubscriptionRequest,
   GetFollowingRequest,
   RegisterPushTokenRequest,
+  VerifyIdentityRequest,
 } from './dto/user.request';
 import { AlbumBaseResponse } from '../album/dto/album.base.response';
 import {
@@ -37,7 +39,14 @@ import {
   MyFollowersResponse,
   MyFollowingsResponse,
   MyBlockingsResponse,
+  MyIdentityVerificationResponse,
 } from './dto/user.response';
+import {
+  VerifyIdentity409Response,
+  VerifyIdentity422Response,
+  VerifyIdentity500Response,
+  VerifyIdentity502Response,
+} from './dto/identity-verification.error';
 import { MyLikeFeedsResponse } from '../feed/dto/feed.response';
 import { MySavePostsResponse } from '../post/dto/post.response';
 
@@ -256,5 +265,34 @@ export class MeController {
     @CurrentUser() userId: string,
   ): Promise<AlbumBaseResponse[]> {
     return await this.userService.getAlbumsByUserId(userId);
+  }
+
+  @ApiOperation({
+    summary: '본인인증 완료 처리',
+    description:
+      '프론트에서 포트원 SDK로 본인인증을 완료한 후 받은 identityVerificationId를 전달하면, 서버가 포트원 API로 검증/저장한다.',
+  })
+  @ApiResponse({ status: 204 })
+  @ApiResponse({ status: 409, type: VerifyIdentity409Response })
+  @ApiResponse({ status: 422, type: VerifyIdentity422Response })
+  @ApiResponse({ status: 500, type: VerifyIdentity500Response })
+  @ApiResponse({ status: 502, type: VerifyIdentity502Response })
+  @HttpCode(204)
+  @Post('identity-verification')
+  async verifyIdentity(
+    @CurrentUser() userId: string,
+    @Body() { identityVerificationId }: VerifyIdentityRequest,
+  ) {
+    await this.userService.verifyIdentity(userId, identityVerificationId);
+    return;
+  }
+
+  @ApiOperation({ summary: '내 본인인증 상태 조회' })
+  @ApiResponse({ status: 200, type: MyIdentityVerificationResponse })
+  @Get('identity-verification')
+  async getMyIdentityVerification(
+    @CurrentUser() userId: string,
+  ): Promise<MyIdentityVerificationResponse> {
+    return await this.userService.getMyIdentityVerification(userId);
   }
 }
