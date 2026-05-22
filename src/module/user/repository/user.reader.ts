@@ -93,6 +93,15 @@ export class UserReader {
           )
           .as('followingCount'),
       )
+      .select((eb) =>
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('IdentityVerification')
+              .where('IdentityVerification.userId', '=', kyselyUuid(userId)),
+          ])
+          .as('isVerified'),
+      )
       .execute();
 
     if (response.length === 0) return null;
@@ -114,6 +123,7 @@ export class UserReader {
       followerCount: user.followerCount,
       followingCount:
         user.followingCount !== null ? Number(user.followingCount) : 0,
+      isVerified: user.isVerified,
     };
   }
 
