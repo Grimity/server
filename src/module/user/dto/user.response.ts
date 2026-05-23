@@ -192,14 +192,3 @@ export class UpdateProfileConflictResponse extends ConflictResponse {
   @ApiProperty({ enum: ['NAME', 'URL'] })
   message: 'NAME' | 'URL';
 }
-
-export class MyIdentityVerificationResponse {
-  @ApiProperty()
-  isVerified: boolean;
-
-  @ApiProperty({ nullable: true, type: 'string' })
-  name: string | null;
-
-  @ApiProperty({ nullable: true, type: 'string', format: 'date-time' })
-  verifiedAt: Date | null;
-}

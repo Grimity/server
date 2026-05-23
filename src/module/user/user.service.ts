@@ -1,7 +1,4 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { CustomException } from 'src/core/exception/custom.exception';
-import { IdentityVerificationErrorCode } from './dto/identity-verification.error';
 import { UserWriter, UpdateInput } from './repository/user.writer';
 import { FeedReader } from '../feed/repository/feed.reader';
 import { UserReader } from './repository/user.reader';
@@ -10,21 +7,14 @@ import { convertPostType } from 'src/shared/util/convert-post-type';
 import { RedisService } from 'src/database/redis/redis.service';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { removeHtml } from 'src/shared/util/remove-html';
-import { encryptPii, decryptPii } from 'src/shared/util/pii-crypto';
 import { AlbumReader } from '../album/repository/album.reader';
 import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
 
 const linkSeparator = '|~|';
 
-const VERIFICATION_FRESHNESS_MS = 10 * 60 * 1000;
-const PORTONE_FETCH_TIMEOUT_MS = 5000;
-
 @Injectable()
 export class UserService {
-  private readonly piiKey: Buffer;
-  private readonly portoneApiSecret: string;
-
   constructor(
     private userWriter: UserWriter,
     private feedReader: FeedReader,
@@ -33,22 +23,7 @@ export class UserService {
     private redisService: RedisService,
     private albumReader: AlbumReader,
     private eventEmitter: TypedEventEmitter,
-    private configService: ConfigService,
-  ) {
-    const hexKey = this.configService.get<string>('PORTONE_PII_ENCRYPTION_KEY');
-    if (!hexKey || hexKey.length !== 64) {
-      throw new Error(
-        'PORTONE_PII_ENCRYPTION_KEY must be a 64-char hex string (32 bytes)',
-      );
-    }
-    this.piiKey = Buffer.from(hexKey, 'hex');
-
-    const apiSecret = this.configService.get<string>('PORTONE_API_SECRET');
-    if (!apiSecret) {
-      throw new Error('PORTONE_API_SECRET is required');
-    }
-    this.portoneApiSecret = apiSecret;
-  }
+  ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
     await this.userWriter.update(userId, { image: imageName });
@@ -520,171 +495,7 @@ export class UserService {
     await this.userWriter.upsertPushToken(input);
     return;
   }
-
-  async verifyIdentity(userId: string, identityVerificationId: string) {
-    const verification = await this.fetchPortOneVerification(
-      identityVerificationId,
-    );
-
-    if (verification.status !== 'VERIFIED') {
-      throw new CustomException(422, {
-        errorCode: IdentityVerificationErrorCode.NOT_VERIFIED,
-      });
-    }
-
-    const customer = verification.verifiedCustomer;
-    if (!customer || !customer.ci) {
-      throw new CustomException(422, {
-        errorCode: IdentityVerificationErrorCode.CI_NOT_PROVIDED,
-      });
-    }
-    if (!customer.name || !customer.phoneNumber || !customer.birthDate) {
-      throw new CustomException(422, {
-        errorCode: IdentityVerificationErrorCode.INCOMPLETE_VERIFIED_CUSTOMER,
-      });
-    }
-
-    const verifiedAt = new Date(verification.verifiedAt);
-    if (Number.isNaN(verifiedAt.getTime())) {
-      throw new CustomException(422, {
-        errorCode: IdentityVerificationErrorCode.INVALID_VERIFIED_AT,
-      });
-    }
-    if (Date.now() - verifiedAt.getTime() > VERIFICATION_FRESHNESS_MS) {
-      throw new CustomException(422, {
-        errorCode: IdentityVerificationErrorCode.STALE_VERIFICATION,
-      });
-    }
-
-    const existing = await this.userReader.findIdentityVerificationByUserId(
-      userId,
-    );
-    if (existing && existing.ci !== customer.ci) {
-      throw new CustomException(409, {
-        errorCode: IdentityVerificationErrorCode.CI_MISMATCH,
-      });
-    }
-
-    const result = await this.userWriter.upsertIdentityVerification(userId, {
-      identityVerificationId: verification.id,
-      ci: customer.ci,
-      nameEncrypted: encryptPii(customer.name, this.piiKey, userId),
-      phoneNumberEncrypted: encryptPii(
-        customer.phoneNumber,
-        this.piiKey,
-        userId,
-      ),
-      birthDateEncrypted: encryptPii(customer.birthDate, this.piiKey, userId),
-      genderEncrypted: encryptPii(customer.gender ?? '', this.piiKey, userId),
-      isForeigner: customer.isForeigner ?? false,
-      pgProvider: verification.channel?.pgProvider ?? '',
-      pgTxId: verification.pgTxId ?? '',
-      verifiedAt,
-    });
-
-    if (result.conflict !== null) {
-      throw new CustomException(409, {
-        errorCode: IdentityVerificationErrorCode[result.conflict],
-      });
-    }
-
-    return;
-  }
-
-  async getMyIdentityVerification(userId: string) {
-    const record = await this.userReader.findIdentityVerificationByUserId(
-      userId,
-    );
-    if (record === null) {
-      return { isVerified: false, name: null, verifiedAt: null };
-    }
-    return {
-      isVerified: true,
-      name: decryptPii(record.nameEncrypted, this.piiKey, userId),
-      verifiedAt: record.verifiedAt,
-    };
-  }
-
-  private async fetchPortOneVerification(
-    identityVerificationId: string,
-  ): Promise<PortOneIdentityVerification> {
-    const url = `https://api.portone.io/identity-verifications/${encodeURIComponent(
-      identityVerificationId,
-    )}`;
-
-    const callOnce = async () => {
-      const controller = new AbortController();
-      const timer = setTimeout(
-        () => controller.abort(),
-        PORTONE_FETCH_TIMEOUT_MS,
-      );
-      try {
-        return await fetch(url, {
-          method: 'GET',
-          headers: {
-            Authorization: `PortOne ${this.portoneApiSecret}`,
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timer);
-      }
-    };
-
-    let response: Response;
-    try {
-      response = await callOnce();
-    } catch {
-      try {
-        response = await callOnce();
-      } catch {
-        throw new CustomException(502, {
-          errorCode: IdentityVerificationErrorCode.UPSTREAM_UNAVAILABLE,
-        });
-      }
-    }
-
-    if (response.status === 404) {
-      throw new CustomException(422, {
-        errorCode: IdentityVerificationErrorCode.VERIFICATION_NOT_FOUND,
-      });
-    }
-    if (response.status === 401 || response.status === 403) {
-      throw new CustomException(500, {
-        errorCode: IdentityVerificationErrorCode.PORTONE_AUTH,
-      });
-    }
-    if (response.status >= 500) {
-      throw new CustomException(502, {
-        errorCode: IdentityVerificationErrorCode.UPSTREAM_UNAVAILABLE,
-      });
-    }
-    if (!response.ok) {
-      throw new CustomException(502, {
-        errorCode: IdentityVerificationErrorCode.PORTONE_ERROR,
-      });
-    }
-
-    return (await response.json()) as PortOneIdentityVerification;
-  }
 }
-
-type PortOneIdentityVerification = {
-  status: 'VERIFIED' | 'READY' | 'FAILED' | string;
-  id: string;
-  channel?: { pgProvider?: string };
-  verifiedCustomer?: {
-    name?: string;
-    phoneNumber?: string;
-    birthDate?: string;
-    gender?: string;
-    isForeigner?: boolean;
-    ci?: string;
-  };
-  verifiedAt: string;
-  pgTxId?: string;
-};
 
 export type SearchUserInput = {
   userId: string | null;

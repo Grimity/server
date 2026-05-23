@@ -28,47 +28,28 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers            Follow[]              @relation("following")
-  followings           Follow[]              @relation("follower")
-  feeds                Feed[]
-  feedLikes            Like[]
-  feedComments         FeedComment[]         @relation("FeedCommentWrite")
-  feedSaves            Save[]
-  feedCommentMentions  FeedComment[]         @relation("MentionedUser")
-  feedCommentLikes     FeedCommentLike[]
-  posts                Post[]
-  postLikes            PostLike[]
-  postSaves            PostSave[]
-  postComments         PostComment[]         @relation("PostCommentWrite")
-  postCommentMentions  PostComment[]         @relation("MentionedUser")
-  postCommentLike      PostCommentLike[]
-  refreshToken         RefreshToken[]
-  albums               Album[]
-  chatUsers            ChatUser[]
-  pushTokens           PushToken[]
-  blockers             Block[]               @relation("blocker")
-  blockings            Block[]               @relation("blocking")
-  identityVerification IdentityVerification?
+  followers           Follow[]          @relation("following")
+  followings          Follow[]          @relation("follower")
+  feeds               Feed[]
+  feedLikes           Like[]
+  feedComments        FeedComment[]     @relation("FeedCommentWrite")
+  feedSaves           Save[]
+  feedCommentMentions FeedComment[]     @relation("MentionedUser")
+  feedCommentLikes    FeedCommentLike[]
+  posts               Post[]
+  postLikes           PostLike[]
+  postSaves           PostSave[]
+  postComments        PostComment[]     @relation("PostCommentWrite")
+  postCommentMentions PostComment[]     @relation("MentionedUser")
+  postCommentLike     PostCommentLike[]
+  refreshToken        RefreshToken[]
+  albums              Album[]
+  chatUsers           ChatUser[]
+  pushTokens          PushToken[]
+  blockers            Block[]           @relation("blocker")
+  blockings           Block[]           @relation("blocking")
 
   @@unique([provider, providerId])
-}
-
-model IdentityVerification {
-  userId                 String   @id @db.Uuid
-  identityVerificationId String   @unique
-  ci                     String   @unique
-  nameEncrypted          String
-  phoneNumberEncrypted   String
-  birthDateEncrypted     String
-  genderEncrypted        String
-  isForeigner            Boolean
-  pgProvider             String
-  pgTxId                 String
-  verifiedAt             DateTime
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Follow {

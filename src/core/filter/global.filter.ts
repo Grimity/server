@@ -37,14 +37,13 @@ export class GlobalFilter implements ExceptionFilter {
         message: 'Internal Server Error',
       };
 
-      const isPiiPath = request.url?.startsWith('/me/identity-verification');
       this.logger.error(
         {
           method: request.method,
           url: request.url,
           params: request.params,
           query: request.query,
-          body: isPiiPath ? '[REDACTED]' : request.body,
+          body: request.body,
           user: request.user || '',
         },
         exception.stack,
