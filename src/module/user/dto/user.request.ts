@@ -130,3 +130,13 @@ export class RegisterPushTokenRequest {
   @Length(1)
   token: string;
 }
+
+export class VerifyIdentityRequest {
+  @ApiProperty({
+    description: '포트원 SDK에서 받은 identityVerificationId',
+    example: 'identity-verification-39ecfa97',
+  })
+  @TrimString()
+  @Length(1, 200)
+  identityVerificationId: string;
+}

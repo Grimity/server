@@ -237,6 +237,51 @@ export class UserWriter {
     });
     return;
   }
+
+  async upsertIdentityVerification(
+    userId: string,
+    input: UpsertIdentityVerificationInput,
+  ): Promise<{ conflict: IdentityVerificationConflict | null }> {
+    try {
+      await this.txHost.tx.identityVerification.upsert({
+        where: { userId },
+        create: { userId, ...input },
+        update: input,
+        select: { userId: true },
+      });
+      return { conflict: null };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (convertCode(e.code) === 'UNIQUE_CONSTRAINT') {
+          const target = e.meta?.target;
+          const targets = Array.isArray(target)
+            ? target
+            : [String(target ?? '')];
+          if (targets.some((t) => t.includes('identityVerificationId'))) {
+            return { conflict: 'ID_REUSED' };
+          }
+          if (targets.some((t) => t.includes('ci'))) {
+            return { conflict: 'CI_TAKEN' };
+          }
+        }
+      }
+      throw e;
+    }
+  }
+}
+
+export type IdentityVerificationConflict = 'ID_REUSED' | 'CI_TAKEN';
+
+export interface UpsertIdentityVerificationInput {
+  identityVerificationId: string;
+  ci: string;
+  name: string;
+  phoneNumber: string;
+  birthDate: Date;
+  gender: string;
+  isForeigner: boolean;
+  pgProvider: string;
+  pgTxId: string;
 }
 
 interface CreateInput {

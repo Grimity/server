@@ -65,6 +65,9 @@ export class MyProfileResponse extends UserBaseResponse {
 
   @ApiProperty()
   followingCount: number;
+
+  @ApiProperty()
+  isVerified: boolean;
 }
 
 export class FollowUserResponse extends UserBaseResponse {
@@ -191,4 +194,20 @@ export class FeedLikedUserResponse extends UserBaseResponse {
 export class UpdateProfileConflictResponse extends ConflictResponse {
   @ApiProperty({ enum: ['NAME', 'URL'] })
   message: 'NAME' | 'URL';
+}
+
+export class MyIdentityVerificationResponse {
+  @ApiProperty()
+  isVerified: boolean;
+
+  @ApiProperty({ nullable: true, type: 'string' })
+  name: string | null;
+
+  @ApiProperty({
+    nullable: true,
+    type: 'string',
+    example: '2000-01-14',
+    description: 'YYYY-MM-DD 형식, 미인증 시 null',
+  })
+  birthDate: string | null;
 }

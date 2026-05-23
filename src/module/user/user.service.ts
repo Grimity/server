@@ -10,6 +10,9 @@ import { removeHtml } from 'src/shared/util/remove-html';
 import { AlbumReader } from '../album/repository/album.reader';
 import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import { Transactional } from '@nestjs-cls/transactional';
+import { PortOneService } from 'src/infrastructure/portone/portone.service';
+import { CustomException } from 'src/core/exception';
+import { IdentityVerificationErrorCode } from './dto/identity-verification.error';
 
 const linkSeparator = '|~|';
 
@@ -23,6 +26,7 @@ export class UserService {
     private redisService: RedisService,
     private albumReader: AlbumReader,
     private eventEmitter: TypedEventEmitter,
+    private portoneService: PortOneService,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -93,6 +97,7 @@ export class UserService {
       hasUnreadChatMessage: user.hasUnreadChatMessage,
       followerCount: user.followerCount,
       followingCount: user.followingCount,
+      isVerified: user.isVerified,
     };
   }
 
@@ -494,6 +499,70 @@ export class UserService {
   }) {
     await this.userWriter.upsertPushToken(input);
     return;
+  }
+
+  async verifyIdentity(userId: string, identityVerificationId: string) {
+    const verification =
+      await this.portoneService.getIdentityVerification(identityVerificationId);
+
+    if (verification.status !== 'VERIFIED') {
+      throw new CustomException(422, {
+        errorCode: IdentityVerificationErrorCode.NOT_VERIFIED,
+      });
+    }
+
+    const customer = verification.verifiedCustomer;
+    if (!customer.ci) {
+      throw new CustomException(422, {
+        errorCode: IdentityVerificationErrorCode.CI_NOT_PROVIDED,
+      });
+    }
+    if (!customer.name || !customer.phoneNumber || !customer.birthDate) {
+      throw new CustomException(422, {
+        errorCode: IdentityVerificationErrorCode.INCOMPLETE_VERIFIED_CUSTOMER,
+      });
+    }
+
+    const existing =
+      await this.userReader.findIdentityVerificationByUserId(userId);
+    if (existing && existing.ci !== customer.ci) {
+      throw new CustomException(409, {
+        errorCode: IdentityVerificationErrorCode.CI_MISMATCH,
+      });
+    }
+
+    const result = await this.userWriter.upsertIdentityVerification(userId, {
+      identityVerificationId: verification.id,
+      ci: customer.ci,
+      name: customer.name,
+      phoneNumber: customer.phoneNumber,
+      birthDate: new Date(customer.birthDate),
+      gender: customer.gender ?? '',
+      isForeigner: customer.isForeigner ?? false,
+      pgProvider: verification.channel?.pgProvider ?? '',
+      pgTxId: verification.pgTxId,
+    });
+
+    if (result.conflict !== null) {
+      throw new CustomException(409, {
+        errorCode: IdentityVerificationErrorCode[result.conflict],
+      });
+    }
+    return;
+  }
+
+  async getMyIdentityVerification(userId: string) {
+    const record = await this.userReader.findIdentityVerificationByUserId(
+      userId,
+    );
+    if (record === null) {
+      return { isVerified: false, name: null, birthDate: null };
+    }
+    return {
+      isVerified: true,
+      name: record.name,
+      birthDate: record.birthDate.toISOString().slice(0, 10),
+    };
   }
 }
 

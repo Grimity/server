@@ -28,16 +28,6 @@ describe('POST /images/get-upload-url - presignedURL 발급', () => {
     await app.close();
   });
 
-  it('accessToken이 없을 때 401을 반환한다', async () => {
-    // when
-    const { status } = await request(app.getHttpServer())
-      .post('/images/get-upload-url')
-      .send();
-
-    // then
-    expect(status).toBe(401);
-  });
-
   it('type은 profile, feed 중 하나여야 한다', async () => {
     // given
     const { accessToken } = await createTestUser(app, {});

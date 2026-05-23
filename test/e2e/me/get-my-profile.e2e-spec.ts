@@ -85,6 +85,7 @@ describe('GET /me - 내 정보 조회', () => {
       hasUnreadChatMessage: true,
       followerCount: 0,
       followingCount: 0,
+      isVerified: false,
     });
   });
 });
