@@ -118,7 +118,6 @@ export class UserService {
       hasUnreadChatMessage: user.hasUnreadChatMessage,
       followerCount: user.followerCount,
       followingCount: user.followingCount,
-      isVerified: user.isVerified,
     };
   }
 

@@ -65,9 +65,6 @@ export class MyProfileResponse extends UserBaseResponse {
 
   @ApiProperty()
   followingCount: number;
-
-  @ApiProperty()
-  isVerified: boolean;
 }
 
 export class FollowUserResponse extends UserBaseResponse {
