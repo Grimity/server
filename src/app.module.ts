@@ -28,6 +28,7 @@ import { PushModule } from './module/push/push.module';
 import { EventModule } from './infrastructure/event/event.module';
 import { SpamModule } from './module/spam/spam.module';
 import { AdminModule } from './module/admin/admin.module';
+import { CommissionModule } from './module/commission/commission.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { AdminModule } from './module/admin/admin.module';
     PushModule,
     SpamModule,
     AdminModule,
+    CommissionModule,
   ],
   controllers: [AppController],
   providers: [

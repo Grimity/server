@@ -49,6 +49,7 @@ model User {
   blockers             Block[]               @relation("blocker")
   blockings            Block[]               @relation("blocking")
   identityVerification IdentityVerification?
+  commissions          Commission[]
 
   @@unique([provider, providerId])
 }
@@ -357,4 +358,49 @@ model PushToken {
 model AppVersion {
   version   String   @id
   createdAt DateTime @default(now())
+}
+
+model Commission {
+  id                  String   @id @default(uuid()) @db.Uuid
+  authorId            String   @db.Uuid
+  title               String
+  description         String
+  additionalCondition String?
+  price               Int
+  workDays            Int      @db.SmallInt
+  revisionCount       Int      @db.SmallInt
+  images              String[]
+  thumbnail           String
+  createdAt           DateTime @default(now())
+
+  author    User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags      CommissionTag[]
+  questions CommissionQuestion[]
+
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model CommissionTag {
+  commissionId String @db.Uuid
+  tagName      String
+
+  commission Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  @@id([commissionId, tagName])
+  @@index([tagName])
+}
+
+model CommissionQuestion {
+  commissionId String   @db.Uuid
+  order        Int      @db.SmallInt
+  type         String
+  title        String
+  description  String?
+  isRequired   Boolean  @default(false)
+  options      String[]
+
+  commission Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+
+  @@id([commissionId, order])
 }
