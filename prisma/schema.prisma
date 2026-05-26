@@ -7,6 +7,10 @@ generator kysely {
   output   = "../src/database/kysely"
 }
 
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -50,6 +54,8 @@ model User {
   blockings            Block[]               @relation("blocking")
   identityVerification IdentityVerification?
   commissions          Commission[]
+  commissionWorksAsAuthor CommissionWork[]   @relation("CommissionWorkAuthor")
+  commissionWorksAsClient CommissionWork[]   @relation("CommissionWorkClient")
 
   @@unique([provider, providerId])
 }
@@ -376,6 +382,7 @@ model Commission {
   author    User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags      CommissionTag[]
   questions CommissionQuestion[]
+  works     CommissionWork[]
 
   @@index([authorId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
@@ -403,4 +410,41 @@ model CommissionQuestion {
   commission Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
 
   @@id([commissionId, order])
+}
+
+enum CommissionWorkStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELED
+}
+
+model CommissionWork {
+  id           String               @id @default(uuid()) @db.Uuid
+  authorId     String               @db.Uuid
+  clientId     String               @db.Uuid
+  commissionId String?              @db.Uuid
+  status       CommissionWorkStatus @default(PENDING)
+  createdAt    DateTime             @default(now())
+
+  author     User               @relation("CommissionWorkAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  client     User               @relation("CommissionWorkClient", fields: [clientId], references: [id], onDelete: Cascade)
+  commission Commission?        @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+  request    CommissionRequest?
+
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([clientId, createdAt(sort: Desc)])
+}
+
+model CommissionRequest {
+  workId          String   @id @db.Uuid
+  /// [CommissionAnswer]
+  answers         Json[]   @default([])
+  description     String?
+  proposedPrice   Int?
+  referenceImages String[]
+  createdAt       DateTime @default(now())
+
+  work CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
 }

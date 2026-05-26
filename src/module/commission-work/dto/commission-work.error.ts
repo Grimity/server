@@ -1,0 +1,59 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+export const CommissionWorkErrorCode = {
+  SELF_REQUEST_NOT_ALLOWED: 'SELF_REQUEST_NOT_ALLOWED',
+  FORM_HAS_DESCRIPTION: 'FORM_HAS_DESCRIPTION',
+  FORM_HAS_PROPOSED_PRICE: 'FORM_HAS_PROPOSED_PRICE',
+  COMMISSION_AUTHOR_MISMATCH: 'COMMISSION_AUTHOR_MISMATCH',
+  ANSWERS_LENGTH_MISMATCH: 'ANSWERS_LENGTH_MISMATCH',
+  TEXT_ANSWER_REQUIRED: 'TEXT_ANSWER_REQUIRED',
+  TEXT_HAS_SELECTED_OPTIONS: 'TEXT_HAS_SELECTED_OPTIONS',
+  SELECT_HAS_TEXT: 'SELECT_HAS_TEXT',
+  SELECTED_OPTION_NOT_IN_OPTIONS: 'SELECTED_OPTION_NOT_IN_OPTIONS',
+  SELECTED_OPTIONS_DUPLICATED: 'SELECTED_OPTIONS_DUPLICATED',
+  SINGLE_SELECT_ANSWER_INVALID: 'SINGLE_SELECT_ANSWER_INVALID',
+  MULTI_SELECT_ANSWER_REQUIRED: 'MULTI_SELECT_ANSWER_REQUIRED',
+  DIRECT_HAS_ANSWERS: 'DIRECT_HAS_ANSWERS',
+  DIRECT_DESCRIPTION_REQUIRED: 'DIRECT_DESCRIPTION_REQUIRED',
+
+  AUTHOR_NOT_FOUND: 'AUTHOR_NOT_FOUND',
+  COMMISSION_NOT_FOUND: 'COMMISSION_NOT_FOUND',
+} as const;
+
+const code400 = [
+  CommissionWorkErrorCode.SELF_REQUEST_NOT_ALLOWED,
+  CommissionWorkErrorCode.FORM_HAS_DESCRIPTION,
+  CommissionWorkErrorCode.FORM_HAS_PROPOSED_PRICE,
+  CommissionWorkErrorCode.COMMISSION_AUTHOR_MISMATCH,
+  CommissionWorkErrorCode.ANSWERS_LENGTH_MISMATCH,
+  CommissionWorkErrorCode.TEXT_ANSWER_REQUIRED,
+  CommissionWorkErrorCode.TEXT_HAS_SELECTED_OPTIONS,
+  CommissionWorkErrorCode.SELECT_HAS_TEXT,
+  CommissionWorkErrorCode.SELECTED_OPTION_NOT_IN_OPTIONS,
+  CommissionWorkErrorCode.SELECTED_OPTIONS_DUPLICATED,
+  CommissionWorkErrorCode.SINGLE_SELECT_ANSWER_INVALID,
+  CommissionWorkErrorCode.MULTI_SELECT_ANSWER_REQUIRED,
+  CommissionWorkErrorCode.DIRECT_HAS_ANSWERS,
+  CommissionWorkErrorCode.DIRECT_DESCRIPTION_REQUIRED,
+] as const;
+
+const code404 = [
+  CommissionWorkErrorCode.AUTHOR_NOT_FOUND,
+  CommissionWorkErrorCode.COMMISSION_NOT_FOUND,
+] as const;
+
+export class CreateCommissionWork400Response {
+  @ApiProperty({ enum: [400] })
+  status: 400;
+
+  @ApiProperty({ enum: code400 })
+  errorCode: (typeof code400)[number];
+}
+
+export class CreateCommissionWork404Response {
+  @ApiProperty({ enum: [404] })
+  status: 404;
+
+  @ApiProperty({ enum: code404 })
+  errorCode: (typeof code404)[number];
+}

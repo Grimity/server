@@ -5,12 +5,7 @@ import {
   ParseArrayPipe,
   HttpCode,
 } from '@nestjs/common';
-import {
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetImageUploadUrlRequest } from './dto/image.request';
 import { ImageUploadUrlResponse } from './dto/image.response';
 import { ImageService } from './image.service';
