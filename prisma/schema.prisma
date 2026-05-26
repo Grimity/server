@@ -32,30 +32,30 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers           Follow[]          @relation("following")
-  followings          Follow[]          @relation("follower")
-  feeds               Feed[]
-  feedLikes           Like[]
-  feedComments        FeedComment[]     @relation("FeedCommentWrite")
-  feedSaves           Save[]
-  feedCommentMentions FeedComment[]     @relation("MentionedUser")
-  feedCommentLikes    FeedCommentLike[]
-  posts               Post[]
-  postLikes           PostLike[]
-  postSaves           PostSave[]
-  postComments        PostComment[]     @relation("PostCommentWrite")
-  postCommentMentions PostComment[]     @relation("MentionedUser")
-  postCommentLike     PostCommentLike[]
-  refreshToken        RefreshToken[]
-  albums              Album[]
-  chatUsers           ChatUser[]
-  pushTokens          PushToken[]
-  blockers             Block[]               @relation("blocker")
-  blockings            Block[]               @relation("blocking")
-  identityVerification IdentityVerification?
-  commissions          Commission[]
-  commissionWorksAsAuthor CommissionWork[]   @relation("CommissionWorkAuthor")
-  commissionWorksAsClient CommissionWork[]   @relation("CommissionWorkClient")
+  followers               Follow[]              @relation("following")
+  followings              Follow[]              @relation("follower")
+  feeds                   Feed[]
+  feedLikes               Like[]
+  feedComments            FeedComment[]         @relation("FeedCommentWrite")
+  feedSaves               Save[]
+  feedCommentMentions     FeedComment[]         @relation("MentionedUser")
+  feedCommentLikes        FeedCommentLike[]
+  posts                   Post[]
+  postLikes               PostLike[]
+  postSaves               PostSave[]
+  postComments            PostComment[]         @relation("PostCommentWrite")
+  postCommentMentions     PostComment[]         @relation("MentionedUser")
+  postCommentLike         PostCommentLike[]
+  refreshToken            RefreshToken[]
+  albums                  Album[]
+  chatUsers               ChatUser[]
+  pushTokens              PushToken[]
+  blockers                Block[]               @relation("blocker")
+  blockings               Block[]               @relation("blocking")
+  identityVerification    IdentityVerification?
+  commissions             Commission[]
+  commissionWorksAsAuthor CommissionWork[]      @relation("CommissionWorkAuthor")
+  commissionWorksAsClient CommissionWork[]      @relation("CommissionWorkClient")
 
   @@unique([provider, providerId])
 }
@@ -441,8 +441,6 @@ model CommissionRequest {
   workId          String   @id @db.Uuid
   /// [CommissionAnswer]
   answers         Json[]   @default([])
-  description     String?
-  proposedPrice   Int?
   referenceImages String[]
   createdAt       DateTime @default(now())
 

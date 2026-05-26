@@ -3,19 +3,67 @@ import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
-  IsInt,
+  IsBoolean,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
-  Length,
-  Max,
   MaxLength,
-  Min,
   ValidateNested,
 } from 'class-validator';
 import { TrimNullableString } from '../../../shared/request/validator';
 
 export class CommissionAnswerItem {
+  @ApiProperty({
+    required: false,
+    enum: ['TEXT', 'SINGLE_SELECT', 'MULTI_SELECT'],
+    description: 'DIRECT 모드 필수. FORM 모드면 서버가 무시.',
+  })
+  @IsOptional()
+  @IsIn(['TEXT', 'SINGLE_SELECT', 'MULTI_SELECT'])
+  type?: 'TEXT' | 'SINGLE_SELECT' | 'MULTI_SELECT';
+
+  @ApiProperty({
+    required: false,
+    maxLength: 100,
+    description: 'DIRECT 모드 필수. FORM 모드면 서버가 무시.',
+  })
+  @IsOptional()
+  @TrimNullableString()
+  @MaxLength(100)
+  title?: string;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    maxLength: 500,
+    description: 'DIRECT 모드 선택. FORM 모드면 서버가 무시.',
+  })
+  @IsOptional()
+  @TrimNullableString()
+  @MaxLength(500)
+  description?: string | null;
+
+  @ApiProperty({
+    required: false,
+    description: 'DIRECT 모드 선택(기본 false). FORM 모드면 서버가 무시.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  isRequired?: boolean;
+
+  @ApiProperty({
+    required: false,
+    isArray: true,
+    type: 'string',
+    description: 'DIRECT 모드 SELECT면 필수. FORM 모드면 서버가 무시.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  options?: string[];
+
   @ApiProperty({
     required: false,
     nullable: true,
@@ -73,7 +121,8 @@ export class CreateCommissionWorkRequest {
     type: [CommissionAnswerItem],
     maxLength: 20,
     description:
-      'FORM 모드일 때만. 배열 인덱스 = 질문 order. questions 순서대로 전송.',
+      'FORM 모드: 배열 인덱스 = 질문 order, text/selectedOptions만 사용(메타는 서버가 무시). ' +
+      'DIRECT 모드: type/title 포함한 완전한 답변 아이템.',
   })
   @IsOptional()
   @IsArray()
@@ -81,25 +130,4 @@ export class CreateCommissionWorkRequest {
   @ValidateNested({ each: true })
   @Type(() => CommissionAnswerItem)
   answers?: CommissionAnswerItem[];
-
-  @ApiProperty({
-    required: false,
-    minLength: 1,
-    maxLength: 500,
-    description: 'DIRECT 모드일 때만 필수. 자유 설명.',
-  })
-  @IsOptional()
-  @Length(1, 500)
-  description?: string;
-
-  @ApiProperty({
-    required: false,
-    nullable: true,
-    description: 'DIRECT 모드일 때 선택. 가격 선 제시 (원). 0 가능.',
-  })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  @Max(100000000)
-  proposedPrice?: number | null;
 }

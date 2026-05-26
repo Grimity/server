@@ -7,8 +7,6 @@ export interface CreateCommissionWorkInput {
   clientId: string;
   commissionId?: string | null;
   answers: PrismaJson.CommissionAnswer[];
-  description?: string | null;
-  proposedPrice?: number | null;
   referenceImages: string[];
 }
 
@@ -33,8 +31,6 @@ export class CommissionWorkWriter {
       data: {
         workId: work.id,
         answers: input.answers,
-        description: input.description ?? null,
-        proposedPrice: input.proposedPrice ?? null,
         referenceImages: input.referenceImages,
       },
     });

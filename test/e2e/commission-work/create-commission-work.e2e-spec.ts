@@ -112,8 +112,19 @@ describe('POST /commission-works - 커미션 신청', () => {
   const directPayload = (authorId: string) => ({
     authorId,
     referenceImages: ['v2/commission-work/ref1.png'],
-    description: 'OC 힐링 분위기 배경 포함 일러스트 요청합니다.',
-    proposedPrice: 30000,
+    answers: [
+      {
+        type: 'TEXT',
+        title: '요청 설명',
+        isRequired: true,
+        text: 'OC 힐링 분위기 배경 포함 일러스트 요청합니다.',
+      },
+      {
+        type: 'TEXT',
+        title: '가격 선 제시',
+        text: '30000',
+      },
+    ],
   });
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
@@ -264,19 +275,6 @@ describe('POST /commission-works - 커미션 신청', () => {
       expect(status).toBe(400);
     });
 
-    it('FORM 모드에서 description을 같이 보내면 400을 반환한다', async () => {
-      const author = await createAuthor();
-      const commission = await createCommission(author.id);
-      const { accessToken } = await createClient();
-
-      const { status } = await request(app.getHttpServer())
-        .post('/commission-works')
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({ ...formPayload(author.id, commission.id), description: 'x' });
-
-      expect(status).toBe(400);
-    });
-
     it('정상 등록 시 201과 id를 반환하고 DB에 Work+Request가 정확히 저장된다', async () => {
       const author = await createAuthor();
       const commission = await createCommission(author.id);
@@ -306,8 +304,6 @@ describe('POST /commission-works - 커미션 신청', () => {
       const req = await prisma.commissionRequest.findUniqueOrThrow({
         where: { workId: body.id },
       });
-      expect(req.description).toBeNull();
-      expect(req.proposedPrice).toBeNull();
       expect(req.referenceImages).toEqual(payload.referenceImages);
       expect(req.answers).toEqual([
         {
@@ -342,7 +338,7 @@ describe('POST /commission-works - 커미션 신청', () => {
   });
 
   describe('DIRECT 모드 (commissionId 없음)', () => {
-    it('description이 없으면 400을 반환한다', async () => {
+    it('answer에 type이 없으면 400을 반환한다', async () => {
       const author = await createAuthor();
       const { accessToken } = await createClient();
 
@@ -352,12 +348,13 @@ describe('POST /commission-works - 커미션 신청', () => {
         .send({
           authorId: author.id,
           referenceImages: [],
+          answers: [{ title: '요청 설명', text: '내용' }],
         });
 
       expect(status).toBe(400);
     });
 
-    it('description이 500자 초과면 400을 반환한다', async () => {
+    it('answer에 title이 비어있으면 400을 반환한다', async () => {
       const author = await createAuthor();
       const { accessToken } = await createClient();
 
@@ -365,14 +362,15 @@ describe('POST /commission-works - 커미션 신청', () => {
         .post('/commission-works')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
-          ...directPayload(author.id),
-          description: 'a'.repeat(501),
+          authorId: author.id,
+          referenceImages: [],
+          answers: [{ type: 'TEXT', title: '   ', text: '내용' }],
         });
 
       expect(status).toBe(400);
     });
 
-    it('answers가 같이 오면 400을 반환한다', async () => {
+    it('필수 TEXT answer가 빈 문자열이면 400을 반환한다', async () => {
       const author = await createAuthor();
       const { accessToken } = await createClient();
 
@@ -380,8 +378,53 @@ describe('POST /commission-works - 커미션 신청', () => {
         .post('/commission-works')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
-          ...directPayload(author.id),
-          answers: [{ text: 'x' }],
+          authorId: author.id,
+          referenceImages: [],
+          answers: [
+            { type: 'TEXT', title: '요청 설명', isRequired: true, text: '   ' },
+          ],
+        });
+
+      expect(status).toBe(400);
+    });
+
+    it('SELECT type인데 options가 비어있으면 400을 반환한다', async () => {
+      const author = await createAuthor();
+      const { accessToken } = await createClient();
+
+      const { status } = await request(app.getHttpServer())
+        .post('/commission-works')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          authorId: author.id,
+          referenceImages: [],
+          answers: [
+            {
+              type: 'SINGLE_SELECT',
+              title: '사용용도',
+              isRequired: true,
+              options: [],
+              selectedOptions: [],
+            },
+          ],
+        });
+
+      expect(status).toBe(400);
+    });
+
+    it('answer.text가 2000자 초과면 400을 반환한다', async () => {
+      const author = await createAuthor();
+      const { accessToken } = await createClient();
+
+      const { status } = await request(app.getHttpServer())
+        .post('/commission-works')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          authorId: author.id,
+          referenceImages: [],
+          answers: [
+            { type: 'TEXT', title: '요청 설명', text: 'a'.repeat(2001) },
+          ],
         });
 
       expect(status).toBe(400);
@@ -415,13 +458,30 @@ describe('POST /commission-works - 커미션 신청', () => {
       const req = await prisma.commissionRequest.findUniqueOrThrow({
         where: { workId: body.id },
       });
-      expect(req.description).toBe(payload.description);
-      expect(req.proposedPrice).toBe(payload.proposedPrice);
       expect(req.referenceImages).toEqual(payload.referenceImages);
-      expect(req.answers).toEqual([]);
+      expect(req.answers).toEqual([
+        {
+          type: 'TEXT',
+          title: '요청 설명',
+          description: null,
+          isRequired: true,
+          options: [],
+          text: 'OC 힐링 분위기 배경 포함 일러스트 요청합니다.',
+          selectedOptions: [],
+        },
+        {
+          type: 'TEXT',
+          title: '가격 선 제시',
+          description: null,
+          isRequired: false,
+          options: [],
+          text: '30000',
+          selectedOptions: [],
+        },
+      ]);
     });
 
-    it('proposedPrice 없이도 정상 등록된다', async () => {
+    it('answers 없이도 정상 등록된다', async () => {
       const author = await createAuthor();
       const { accessToken } = await createClient();
 
@@ -431,7 +491,6 @@ describe('POST /commission-works - 커미션 신청', () => {
         .send({
           authorId: author.id,
           referenceImages: [],
-          description: '간단한 의뢰입니다.',
         });
 
       expect(status).toBe(201);
@@ -439,7 +498,7 @@ describe('POST /commission-works - 커미션 신청', () => {
       const req = await prisma.commissionRequest.findUniqueOrThrow({
         where: { workId: body.id },
       });
-      expect(req.proposedPrice).toBeNull();
+      expect(req.answers).toEqual([]);
     });
   });
 });

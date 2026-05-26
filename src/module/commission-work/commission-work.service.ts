@@ -1,10 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
-import type { CreateCommissionWorkRequest } from './dto/commission-work.request';
+import type {
+  CommissionAnswerItem,
+  CreateCommissionWorkRequest,
+} from './dto/commission-work.request';
 import { CommissionWorkErrorCode } from './dto/commission-work.error';
 import { CommissionWorkReader } from './repository/commission-work.reader';
 import { CommissionWorkWriter } from './repository/commission-work.writer';
+
+type AnswerType = 'TEXT' | 'SINGLE_SELECT' | 'MULTI_SELECT';
+
+interface AnswerMeta {
+  type: AnswerType;
+  title: string;
+  description: string | null;
+  isRequired: boolean;
+  options: string[];
+}
 
 @Injectable()
 export class CommissionWorkService {
@@ -30,32 +43,15 @@ export class CommissionWorkService {
       });
     }
 
-    let answers: PrismaJson.CommissionAnswer[];
-
-    if (dto.commissionId) {
-      answers = await this.buildFormAnswers(dto);
-      if (dto.description !== undefined) {
-        throw new CustomException(400, {
-          errorCode: CommissionWorkErrorCode.FORM_HAS_DESCRIPTION,
-        });
-      }
-      if (dto.proposedPrice !== undefined) {
-        throw new CustomException(400, {
-          errorCode: CommissionWorkErrorCode.FORM_HAS_PROPOSED_PRICE,
-        });
-      }
-    } else {
-      this.validateDirect(dto);
-      answers = [];
-    }
+    const answers = dto.commissionId
+      ? await this.buildFormAnswers(dto)
+      : this.buildDirectAnswers(dto);
 
     return await this.writer.create({
       authorId: dto.authorId,
       clientId,
       commissionId: dto.commissionId ?? null,
       answers,
-      description: dto.description ?? null,
-      proposedPrice: dto.proposedPrice ?? null,
       referenceImages: dto.referenceImages,
     });
   }
@@ -84,89 +80,124 @@ export class CommissionWorkService {
       });
     }
 
-    return commission.questions.map((q, i) => {
-      const a = answers[i];
-      const type = q.type as 'TEXT' | 'SINGLE_SELECT' | 'MULTI_SELECT';
+    return commission.questions.map((q, i) =>
+      this.buildAnswer(
+        {
+          type: q.type as AnswerType,
+          title: q.title,
+          description: q.description ?? null,
+          isRequired: q.isRequired,
+          options: q.options,
+        },
+        answers[i],
+      ),
+    );
+  }
 
-      let text: string | null = null;
-      let selectedOptions: string[] = [];
-
-      if (type === 'TEXT') {
-        text = (a.text ?? '').trim();
-        if (q.isRequired && text.length === 0) {
-          throw new CustomException(400, {
-            errorCode: CommissionWorkErrorCode.TEXT_ANSWER_REQUIRED,
-          });
-        }
-        if (a.selectedOptions && a.selectedOptions.length > 0) {
-          throw new CustomException(400, {
-            errorCode: CommissionWorkErrorCode.TEXT_HAS_SELECTED_OPTIONS,
-          });
-        }
-      } else {
-        if (a.text !== undefined && a.text !== null && a.text !== '') {
-          throw new CustomException(400, {
-            errorCode: CommissionWorkErrorCode.SELECT_HAS_TEXT,
-          });
-        }
-        const chosen = a.selectedOptions ?? [];
-        const optionSet = new Set(q.options);
-        for (const o of chosen) {
-          if (!optionSet.has(o)) {
-            throw new CustomException(400, {
-              errorCode: CommissionWorkErrorCode.SELECTED_OPTION_NOT_IN_OPTIONS,
-            });
-          }
-        }
-        if (new Set(chosen).size !== chosen.length) {
-          throw new CustomException(400, {
-            errorCode: CommissionWorkErrorCode.SELECTED_OPTIONS_DUPLICATED,
-          });
-        }
-        if (type === 'SINGLE_SELECT') {
-          if (q.isRequired && chosen.length !== 1) {
-            throw new CustomException(400, {
-              errorCode: CommissionWorkErrorCode.SINGLE_SELECT_ANSWER_INVALID,
-            });
-          }
-          if (!q.isRequired && chosen.length > 1) {
-            throw new CustomException(400, {
-              errorCode: CommissionWorkErrorCode.SINGLE_SELECT_ANSWER_INVALID,
-            });
-          }
-        } else {
-          if (q.isRequired && chosen.length === 0) {
-            throw new CustomException(400, {
-              errorCode: CommissionWorkErrorCode.MULTI_SELECT_ANSWER_REQUIRED,
-            });
-          }
-        }
-        selectedOptions = chosen;
+  private buildDirectAnswers(
+    dto: CreateCommissionWorkRequest,
+  ): PrismaJson.CommissionAnswer[] {
+    const answers = dto.answers ?? [];
+    return answers.map((a) => {
+      if (!a.type) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.ANSWER_TYPE_REQUIRED,
+        });
       }
-
-      return {
-        type,
-        title: q.title,
-        description: q.description ?? null,
-        isRequired: q.isRequired,
-        options: q.options,
-        text,
-        selectedOptions,
-      };
+      const title = (a.title ?? '').trim();
+      if (title.length === 0) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.ANSWER_TITLE_REQUIRED,
+        });
+      }
+      const isRequired = a.isRequired ?? false;
+      const options = a.type === 'TEXT' ? [] : (a.options ?? []);
+      if (a.type !== 'TEXT' && options.length === 0) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.SELECT_OPTIONS_REQUIRED,
+        });
+      }
+      return this.buildAnswer(
+        {
+          type: a.type,
+          title,
+          description: a.description ?? null,
+          isRequired,
+          options,
+        },
+        a,
+      );
     });
   }
 
-  private validateDirect(dto: CreateCommissionWorkRequest): void {
-    if (dto.answers !== undefined) {
-      throw new CustomException(400, {
-        errorCode: CommissionWorkErrorCode.DIRECT_HAS_ANSWERS,
-      });
+  private buildAnswer(
+    meta: AnswerMeta,
+    a: CommissionAnswerItem,
+  ): PrismaJson.CommissionAnswer {
+    let text: string | null = null;
+    let selectedOptions: string[] = [];
+
+    if (meta.type === 'TEXT') {
+      text = (a.text ?? '').trim();
+      if (meta.isRequired && text.length === 0) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.TEXT_ANSWER_REQUIRED,
+        });
+      }
+      if (a.selectedOptions && a.selectedOptions.length > 0) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.TEXT_HAS_SELECTED_OPTIONS,
+        });
+      }
+    } else {
+      if (a.text !== undefined && a.text !== null && a.text !== '') {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.SELECT_HAS_TEXT,
+        });
+      }
+      const chosen = a.selectedOptions ?? [];
+      const optionSet = new Set(meta.options);
+      for (const o of chosen) {
+        if (!optionSet.has(o)) {
+          throw new CustomException(400, {
+            errorCode: CommissionWorkErrorCode.SELECTED_OPTION_NOT_IN_OPTIONS,
+          });
+        }
+      }
+      if (new Set(chosen).size !== chosen.length) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.SELECTED_OPTIONS_DUPLICATED,
+        });
+      }
+      if (meta.type === 'SINGLE_SELECT') {
+        if (meta.isRequired && chosen.length !== 1) {
+          throw new CustomException(400, {
+            errorCode: CommissionWorkErrorCode.SINGLE_SELECT_ANSWER_INVALID,
+          });
+        }
+        if (!meta.isRequired && chosen.length > 1) {
+          throw new CustomException(400, {
+            errorCode: CommissionWorkErrorCode.SINGLE_SELECT_ANSWER_INVALID,
+          });
+        }
+      } else {
+        if (meta.isRequired && chosen.length === 0) {
+          throw new CustomException(400, {
+            errorCode: CommissionWorkErrorCode.MULTI_SELECT_ANSWER_REQUIRED,
+          });
+        }
+      }
+      selectedOptions = chosen;
     }
-    const description = (dto.description ?? '').trim();
-    if (description.length === 0) {
-      throw new CustomException(400, {
-        errorCode: CommissionWorkErrorCode.DIRECT_DESCRIPTION_REQUIRED,
-      });
-    }
+
+    return {
+      type: meta.type,
+      title: meta.title,
+      description: meta.description,
+      isRequired: meta.isRequired,
+      options: meta.options,
+      text,
+      selectedOptions,
+    };
   }
 }
