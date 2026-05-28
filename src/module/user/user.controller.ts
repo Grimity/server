@@ -32,6 +32,7 @@ import {
   PopularUserResponse,
   UserProfileResponse,
   UserMetaResponse,
+  CommissionNoticeResponse,
 } from './dto/user.response';
 import { UserFeedsResponse } from '../feed/dto/feed.response';
 import { MyPostResponse } from '../post/dto/post.response';
@@ -160,6 +161,15 @@ export class UserController {
       page: page ?? 1,
       size: size ?? 10,
     });
+  }
+
+  @ApiOperation({ summary: '유저의 커미션 공지 조회' })
+  @ApiResponse({ status: 200, type: CommissionNoticeResponse })
+  @Get(':id/commission-notice')
+  async getUserCommissionNotice(
+    @Param('id', ParseUUIDPipe) targetId: string,
+  ): Promise<CommissionNoticeResponse> {
+    return await this.userService.findCommissionNoticeByUserId(targetId);
   }
 
   @ApiBearerAuth()

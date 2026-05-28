@@ -140,3 +140,15 @@ export class VerifyIdentityRequest {
   @Length(1, 200)
   identityVerificationId: string;
 }
+
+export class UpsertCommissionNoticeRequest {
+  @ApiProperty({ description: '공지 제목', maxLength: 100 })
+  @TrimString()
+  @Length(1, 100)
+  title: string;
+
+  @ApiProperty({ description: '공지 내용', maxLength: 500 })
+  @TrimString()
+  @Length(1, 500)
+  content: string;
+}

@@ -9,9 +9,17 @@ import { RedisModule } from 'src/database/redis/redis.module';
 import { MeController } from './me.controller';
 import { AlbumModule } from '../album/album.module';
 import { PortOneModule } from 'src/infrastructure/portone/portone.module';
+import { CommissionNoticeModule } from '../commission-notice/commission-notice.module';
 
 @Module({
-  imports: [FeedModule, PostModule, RedisModule, AlbumModule, PortOneModule],
+  imports: [
+    FeedModule,
+    PostModule,
+    RedisModule,
+    AlbumModule,
+    PortOneModule,
+    CommissionNoticeModule,
+  ],
   controllers: [UserController, MeController],
   providers: [UserWriter, UserService, UserReader],
   exports: [UserWriter, UserReader],

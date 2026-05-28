@@ -3,6 +3,7 @@ import { socialProviders } from '../../../common/constants/social-provider.const
 import { CursorResponse } from '../../../shared/response/cursor.response';
 import { ConflictResponse } from '../../../shared/response/conflict.response';
 import { AlbumBaseResponse } from '../../album/dto/album.base.response';
+import { CommissionNoticeBaseResponse } from '../../commission-notice/dto/commission-notice.base.response';
 import {
   UserBaseResponse,
   UserBaseWithBlockedResponse,
@@ -194,6 +195,15 @@ export class FeedLikedUserResponse extends UserBaseResponse {
 export class UpdateProfileConflictResponse extends ConflictResponse {
   @ApiProperty({ enum: ['NAME', 'URL'] })
   message: 'NAME' | 'URL';
+}
+
+export class CommissionNoticeResponse {
+  @ApiProperty({
+    type: CommissionNoticeBaseResponse,
+    nullable: true,
+    description: '공지가 없으면 null',
+  })
+  notice: CommissionNoticeBaseResponse | null;
 }
 
 export class MyIdentityVerificationResponse {

@@ -29,6 +29,7 @@ import { EventModule } from './infrastructure/event/event.module';
 import { SpamModule } from './module/spam/spam.module';
 import { AdminModule } from './module/admin/admin.module';
 import { CommissionModule } from './module/commission/commission.module';
+import { CommissionNoticeModule } from './module/commission-notice/commission-notice.module';
 import { CommissionWorkModule } from './module/commission-work/commission-work.module';
 
 @Module({
@@ -85,6 +86,7 @@ import { CommissionWorkModule } from './module/commission-work/commission-work.m
     SpamModule,
     AdminModule,
     CommissionModule,
+    CommissionNoticeModule,
     CommissionWorkModule,
   ],
   controllers: [AppController],

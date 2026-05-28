@@ -13,6 +13,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { PortOneService } from 'src/infrastructure/portone/portone.service';
 import { CustomException } from 'src/core/exception';
 import { IdentityVerificationErrorCode } from './dto/identity-verification.error';
+import { CommissionNoticeReader } from '../commission-notice/repository/commission-notice.reader';
+import { CommissionNoticeWriter } from '../commission-notice/repository/commission-notice.writer';
+import { UpsertCommissionNoticeRequest } from './dto/user.request';
+import { CommissionNoticeResponse } from './dto/user.response';
 
 const linkSeparator = '|~|';
 
@@ -27,6 +31,8 @@ export class UserService {
     private albumReader: AlbumReader,
     private eventEmitter: TypedEventEmitter,
     private portoneService: PortOneService,
+    private commissionNoticeReader: CommissionNoticeReader,
+    private commissionNoticeWriter: CommissionNoticeWriter,
   ) {}
 
   async updateProfileImage(userId: string, imageName: string | null) {
@@ -502,8 +508,9 @@ export class UserService {
   }
 
   async verifyIdentity(userId: string, identityVerificationId: string) {
-    const verification =
-      await this.portoneService.getIdentityVerification(identityVerificationId);
+    const verification = await this.portoneService.getIdentityVerification(
+      identityVerificationId,
+    );
 
     if (verification.status !== 'VERIFIED') {
       throw new CustomException(422, {
@@ -552,9 +559,8 @@ export class UserService {
   }
 
   async getMyIdentityVerification(userId: string) {
-    const record = await this.userReader.findIdentityVerificationByUserId(
-      userId,
-    );
+    const record =
+      await this.userReader.findIdentityVerificationByUserId(userId);
     if (record === null) {
       return { isVerified: false, name: null, birthDate: null };
     }
@@ -563,6 +569,35 @@ export class UserService {
       name: record.name,
       birthDate: record.birthDate.toISOString().slice(0, 10),
     };
+  }
+
+  async upsertCommissionNotice(
+    userId: string,
+    dto: UpsertCommissionNoticeRequest,
+  ): Promise<CommissionNoticeResponse> {
+    const verified =
+      await this.userReader.findIdentityVerificationByUserId(userId);
+    if (!verified) {
+      throw new CustomException(422, {
+        errorCode: IdentityVerificationErrorCode.NOT_VERIFIED,
+      });
+    }
+    const notice = await this.commissionNoticeWriter.upsertOne(userId, {
+      title: dto.title,
+      content: dto.content,
+    });
+    return { notice };
+  }
+
+  async findCommissionNoticeByUserId(
+    userId: string,
+  ): Promise<CommissionNoticeResponse> {
+    const notice = await this.commissionNoticeReader.findByUserId(userId);
+    return { notice };
+  }
+
+  async deleteCommissionNotice(userId: string): Promise<void> {
+    await this.commissionNoticeWriter.deleteOne(userId);
   }
 }
 

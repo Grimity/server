@@ -30,6 +30,7 @@ import {
   GetFollowingRequest,
   RegisterPushTokenRequest,
   VerifyIdentityRequest,
+  UpsertCommissionNoticeRequest,
 } from './dto/user.request';
 import { AlbumBaseResponse } from '../album/dto/album.base.response';
 import {
@@ -40,6 +41,7 @@ import {
   MyFollowingsResponse,
   MyBlockingsResponse,
   MyIdentityVerificationResponse,
+  CommissionNoticeResponse,
 } from './dto/user.response';
 import {
   VerifyIdentity409Response,
@@ -290,5 +292,42 @@ export class MeController {
     @CurrentUser() userId: string,
   ): Promise<MyIdentityVerificationResponse> {
     return await this.userService.getMyIdentityVerification(userId);
+  }
+
+  @ApiOperation({ summary: '내 커미션 공지 조회' })
+  @ApiResponse({ status: 200, type: CommissionNoticeResponse })
+  @Get('commission-notice')
+  async getMyCommissionNotice(
+    @CurrentUser() userId: string,
+  ): Promise<CommissionNoticeResponse> {
+    return await this.userService.findCommissionNoticeByUserId(userId);
+  }
+
+  @ApiOperation({
+    summary: '내 커미션 공지 등록/수정 (본인인증 필요)',
+    description:
+      '본인인증이 완료된 유저만 가능. 1인 1공지로 동일 유저가 다시 호출하면 덮어쓴다.',
+  })
+  @ApiResponse({ status: 200, type: CommissionNoticeResponse })
+  @ApiResponse({
+    status: 422,
+    type: VerifyIdentity422Response,
+    description: 'NOT_VERIFIED — 본인인증 필요',
+  })
+  @Put('commission-notice')
+  async upsertMyCommissionNotice(
+    @CurrentUser() userId: string,
+    @Body() dto: UpsertCommissionNoticeRequest,
+  ): Promise<CommissionNoticeResponse> {
+    return await this.userService.upsertCommissionNotice(userId, dto);
+  }
+
+  @ApiOperation({ summary: '내 커미션 공지 삭제' })
+  @ApiResponse({ status: 204 })
+  @HttpCode(204)
+  @Delete('commission-notice')
+  async deleteMyCommissionNotice(@CurrentUser() userId: string) {
+    await this.userService.deleteCommissionNotice(userId);
+    return;
   }
 }
