@@ -24,14 +24,14 @@ export class SpamDetectionListener {
         contents: [`제목: ${title}\n내용: ${content}`],
         config: {
           systemInstruction:
-            '우리 서비스는 그림 커뮤니티인데 그림 유저가 아닌 사람이 홍보용으로 글을 쓴 건지 판단해줘',
+            '우리 서비스는 그림 커뮤니티인데 그림 유저가 아닌 사람이 스팸성으로 글을 쓴 건지 판단해줘. 그림 커뮤니티니까 그림에 관련된 모든건 스팸성 글이 아니야. 특히 커미션 홍보같은건 무조건 허용해야되니까 참고해',
           responseMimeType: 'application/json',
           responseSchema: {
             type: 'object' as const,
             properties: {
               isPromotion: {
                 type: 'boolean' as const,
-                description: '홍보성 글 여부',
+                description: '스팸성 글 여부',
               },
               reason: {
                 type: 'string' as const,

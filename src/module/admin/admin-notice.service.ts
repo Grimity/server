@@ -44,19 +44,10 @@ export class AdminNoticeService {
       thumbnail,
     });
 
-    this.eventEmitter.emit('post:CREATED', {
-      postId: post.id,
-      title: dto.title,
-      content: parsedContent,
-    });
-
     return post;
   }
 
-  async update(
-    noticeId: string,
-    dto: UpdateAdminNoticeRequest,
-  ): Promise<void> {
+  async update(noticeId: string, dto: UpdateAdminNoticeRequest): Promise<void> {
     const parsedContent = removeHtml(dto.content);
     if (parsedContent.length < 1) {
       throw new HttpException('내용을 입력해주세요', 400);
