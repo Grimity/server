@@ -15,6 +15,13 @@ export class CommissionWorkReader {
     });
   }
 
+  async findWorkById(id: string) {
+    return this.txHost.tx.commissionWork.findUnique({
+      where: { id },
+      select: { id: true, authorId: true, status: true },
+    });
+  }
+
   async findCommissionWithQuestions(commissionId: string) {
     return this.txHost.tx.commission.findUnique({
       where: { id: commissionId },

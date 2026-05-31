@@ -131,3 +131,16 @@ export class CreateCommissionWorkRequest {
   @Type(() => CommissionAnswerItem)
   answers?: CommissionAnswerItem[];
 }
+
+export class RejectCommissionWorkRequest {
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    maxLength: 500,
+    description: '거절 사유 (선택)',
+  })
+  @IsOptional()
+  @TrimNullableString()
+  @MaxLength(500)
+  reason?: string | null;
+}

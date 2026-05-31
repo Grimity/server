@@ -17,6 +17,11 @@ export const CommissionWorkErrorCode = {
 
   AUTHOR_NOT_FOUND: 'AUTHOR_NOT_FOUND',
   COMMISSION_NOT_FOUND: 'COMMISSION_NOT_FOUND',
+  WORK_NOT_FOUND: 'WORK_NOT_FOUND',
+
+  NOT_COMMISSION_AUTHOR: 'NOT_COMMISSION_AUTHOR',
+
+  WORK_NOT_PENDING: 'WORK_NOT_PENDING',
 } as const;
 
 const code400 = [
@@ -40,6 +45,12 @@ const code404 = [
   CommissionWorkErrorCode.COMMISSION_NOT_FOUND,
 ] as const;
 
+const rejectCode403 = [CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR] as const;
+
+const rejectCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
+
+const rejectCode409 = [CommissionWorkErrorCode.WORK_NOT_PENDING] as const;
+
 export class CreateCommissionWork400Response {
   @ApiProperty({ enum: [400] })
   status: 400;
@@ -54,4 +65,28 @@ export class CreateCommissionWork404Response {
 
   @ApiProperty({ enum: code404 })
   errorCode: (typeof code404)[number];
+}
+
+export class RejectCommissionWork403Response {
+  @ApiProperty({ enum: [403] })
+  status: 403;
+
+  @ApiProperty({ enum: rejectCode403 })
+  errorCode: (typeof rejectCode403)[number];
+}
+
+export class RejectCommissionWork404Response {
+  @ApiProperty({ enum: [404] })
+  status: 404;
+
+  @ApiProperty({ enum: rejectCode404 })
+  errorCode: (typeof rejectCode404)[number];
+}
+
+export class RejectCommissionWork409Response {
+  @ApiProperty({ enum: [409] })
+  status: 409;
+
+  @ApiProperty({ enum: rejectCode409 })
+  errorCode: (typeof rejectCode409)[number];
 }

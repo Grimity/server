@@ -298,6 +298,8 @@ describe('POST /commission-works - 커미션 신청', () => {
         clientId: client.id,
         commissionId: commission.id,
         status: 'PENDING',
+        rejectReason: null,
+        rejectedAt: null,
         createdAt: expect.any(Date),
       });
 
@@ -452,6 +454,8 @@ describe('POST /commission-works - 커미션 신청', () => {
         clientId: client.id,
         commissionId: null,
         status: 'PENDING',
+        rejectReason: null,
+        rejectedAt: null,
         createdAt: expect.any(Date),
       });
 

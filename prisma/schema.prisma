@@ -436,6 +436,8 @@ model CommissionWork {
   clientId     String               @db.Uuid
   commissionId String?              @db.Uuid
   status       CommissionWorkStatus @default(PENDING)
+  rejectReason String?
+  rejectedAt   DateTime?
   createdAt    DateTime             @default(now())
 
   author     User               @relation("CommissionWorkAuthor", fields: [authorId], references: [id], onDelete: Cascade)

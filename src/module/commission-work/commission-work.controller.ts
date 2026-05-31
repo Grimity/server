@@ -1,4 +1,12 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -12,8 +20,14 @@ import { CommissionWorkService } from './commission-work.service';
 import {
   CreateCommissionWork400Response,
   CreateCommissionWork404Response,
+  RejectCommissionWork403Response,
+  RejectCommissionWork404Response,
+  RejectCommissionWork409Response,
 } from './dto/commission-work.error';
-import { CreateCommissionWorkRequest } from './dto/commission-work.request';
+import {
+  CreateCommissionWorkRequest,
+  RejectCommissionWorkRequest,
+} from './dto/commission-work.request';
 
 @ApiTags('/commission-works')
 @ApiBearerAuth()
@@ -37,5 +51,22 @@ export class CommissionWorkController {
     @Body() dto: CreateCommissionWorkRequest,
   ): Promise<IdResponse> {
     return this.service.create(userId, dto);
+  }
+
+  @ApiOperation({
+    summary: '커미션 거절',
+    description: '작가가 받은 PENDING 상태의 신청을 거절. 거절 사유는 선택.',
+  })
+  @ApiResponse({ status: 200, type: IdResponse })
+  @ApiResponse({ status: 403, type: RejectCommissionWork403Response })
+  @ApiResponse({ status: 404, type: RejectCommissionWork404Response })
+  @ApiResponse({ status: 409, type: RejectCommissionWork409Response })
+  @Patch(':id/reject')
+  async reject(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+    @Body() dto: RejectCommissionWorkRequest,
+  ): Promise<IdResponse> {
+    return this.service.reject(userId, workId, dto.reason ?? null);
   }
 }

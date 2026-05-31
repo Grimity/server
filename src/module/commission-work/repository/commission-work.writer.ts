@@ -37,4 +37,16 @@ export class CommissionWorkWriter {
 
     return work;
   }
+
+  async reject(id: string, reason: string | null) {
+    return this.txHost.tx.commissionWork.update({
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        rejectReason: reason,
+        rejectedAt: new Date(),
+      },
+      select: { id: true },
+    });
+  }
 }
