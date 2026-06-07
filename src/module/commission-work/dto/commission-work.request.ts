@@ -87,6 +87,21 @@ export class CommissionAnswerItem {
   @ArrayMaxSize(20)
   @IsString({ each: true })
   selectedOptions?: string[];
+
+  @ApiProperty({
+    required: false,
+    isArray: true,
+    type: 'string',
+    example: ['v2/commission-work/{UUID}.jpg'],
+    maxLength: 10,
+    description:
+      'TEXT 답변 첨부 이미지 (0~10개). SELECT 질문이면 빈 배열/생략.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsString({ each: true })
+  attachedImages?: string[];
 }
 
 export class CreateCommissionWorkRequest {

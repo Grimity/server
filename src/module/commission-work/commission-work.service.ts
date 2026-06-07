@@ -160,6 +160,7 @@ export class CommissionWorkService {
   ): PrismaJson.CommissionAnswer {
     let text: string | null = null;
     let selectedOptions: string[] = [];
+    let attachedImages: string[] = [];
 
     if (meta.type === 'TEXT') {
       text = (a.text ?? '').trim();
@@ -173,10 +174,16 @@ export class CommissionWorkService {
           errorCode: CommissionWorkErrorCode.TEXT_HAS_SELECTED_OPTIONS,
         });
       }
+      attachedImages = a.attachedImages ?? [];
     } else {
       if (a.text !== undefined && a.text !== null && a.text !== '') {
         throw new CustomException(400, {
           errorCode: CommissionWorkErrorCode.SELECT_HAS_TEXT,
+        });
+      }
+      if (a.attachedImages && a.attachedImages.length > 0) {
+        throw new CustomException(400, {
+          errorCode: CommissionWorkErrorCode.SELECT_HAS_ATTACHED_IMAGES,
         });
       }
       const chosen = a.selectedOptions ?? [];
@@ -222,6 +229,7 @@ export class CommissionWorkService {
       options: meta.options,
       text,
       selectedOptions,
+      attachedImages,
     };
   }
 }

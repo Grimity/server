@@ -8,6 +8,7 @@ declare global {
       options: string[];
       text: string | null;
       selectedOptions: string[];
+      attachedImages: string[];
     };
   }
 }
