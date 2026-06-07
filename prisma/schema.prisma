@@ -387,6 +387,7 @@ model Commission {
   revisionCount       Int      @db.SmallInt
   images              String[]
   thumbnail           String
+  isPublic            Boolean  @default(true)
   createdAt           DateTime @default(now())
 
   author    User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)

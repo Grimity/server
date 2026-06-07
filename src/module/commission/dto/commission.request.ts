@@ -128,4 +128,8 @@ export class CreateCommissionRequest {
   @ValidateNested({ each: true })
   @Type(() => CommissionQuestionItem)
   questions: CommissionQuestionItem[];
+
+  @ApiProperty({ description: '공개 여부 (공개=true, 비공개=false)' })
+  @IsBoolean()
+  isPublic: boolean;
 }

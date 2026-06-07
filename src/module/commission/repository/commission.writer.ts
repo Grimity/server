@@ -21,6 +21,7 @@ export class CommissionWriter {
         revisionCount: input.revisionCount,
         images: input.images,
         thumbnail: input.thumbnail,
+        isPublic: input.isPublic,
         tags: {
           createMany: { data: input.tags.map((tagName) => ({ tagName })) },
         },
@@ -51,6 +52,7 @@ export interface CreateCommissionInput {
   revisionCount: number;
   images: string[];
   thumbnail: string;
+  isPublic: boolean;
   tags: string[];
   questions: Array<{
     type: CommissionQuestionType;
