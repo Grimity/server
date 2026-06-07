@@ -5,6 +5,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -23,10 +24,14 @@ import {
   RejectCommissionWork403Response,
   RejectCommissionWork404Response,
   RejectCommissionWork409Response,
+  UploadCommissionWorkResult403Response,
+  UploadCommissionWorkResult404Response,
+  UploadCommissionWorkResult409Response,
 } from './dto/commission-work.error';
 import {
   CreateCommissionWorkRequest,
   RejectCommissionWorkRequest,
+  UploadCommissionWorkResultRequest,
 } from './dto/commission-work.request';
 
 @ApiTags('/commission-works')
@@ -68,5 +73,23 @@ export class CommissionWorkController {
     @Body() dto: RejectCommissionWorkRequest,
   ): Promise<IdResponse> {
     return this.service.reject(userId, workId, dto.reason ?? null);
+  }
+
+  @ApiOperation({
+    summary: '작업물 업로드 (덮어쓰기)',
+    description:
+      '작가가 작업물 이미지를 업로드. 기존 작업물 전체를 덮어씀. 작업물이 있으면 IN_PROGRESS, 최종 체크 시 FINAL로 전환. 종료 상태(REJECTED/CANCELED/COMPLETED)면 409.',
+  })
+  @ApiResponse({ status: 200, type: IdResponse })
+  @ApiResponse({ status: 403, type: UploadCommissionWorkResult403Response })
+  @ApiResponse({ status: 404, type: UploadCommissionWorkResult404Response })
+  @ApiResponse({ status: 409, type: UploadCommissionWorkResult409Response })
+  @Put(':id/result')
+  async uploadResult(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+    @Body() dto: UploadCommissionWorkResultRequest,
+  ): Promise<IdResponse> {
+    return this.service.uploadResult(userId, workId, dto);
   }
 }

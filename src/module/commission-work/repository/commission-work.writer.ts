@@ -38,6 +38,25 @@ export class CommissionWorkWriter {
     return work;
   }
 
+  async upsertResult(
+    workId: string,
+    images: string[],
+    isFinal: boolean,
+    status: 'IN_PROGRESS' | 'FINAL',
+  ) {
+    await this.txHost.tx.commissionWorkResult.upsert({
+      where: { workId },
+      create: { workId, images, isFinal },
+      update: { images, isFinal },
+    });
+
+    return this.txHost.tx.commissionWork.update({
+      where: { id: workId },
+      data: { status },
+      select: { id: true },
+    });
+  }
+
   async reject(id: string, reason: string | null) {
     return this.txHost.tx.commissionWork.update({
       where: { id },

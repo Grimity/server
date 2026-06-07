@@ -23,6 +23,7 @@ export const CommissionWorkErrorCode = {
   NOT_COMMISSION_AUTHOR: 'NOT_COMMISSION_AUTHOR',
 
   WORK_NOT_PENDING: 'WORK_NOT_PENDING',
+  WORK_NOT_ACTIVE: 'WORK_NOT_ACTIVE',
 } as const;
 
 const code400 = [
@@ -52,6 +53,14 @@ const rejectCode403 = [CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR] as const;
 const rejectCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
 
 const rejectCode409 = [CommissionWorkErrorCode.WORK_NOT_PENDING] as const;
+
+const uploadResultCode403 = [
+  CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR,
+] as const;
+
+const uploadResultCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
+
+const uploadResultCode409 = [CommissionWorkErrorCode.WORK_NOT_ACTIVE] as const;
 
 export class CreateCommissionWork400Response {
   @ApiProperty({ enum: [400] })
@@ -91,4 +100,28 @@ export class RejectCommissionWork409Response {
 
   @ApiProperty({ enum: rejectCode409 })
   errorCode: (typeof rejectCode409)[number];
+}
+
+export class UploadCommissionWorkResult403Response {
+  @ApiProperty({ enum: [403] })
+  status: 403;
+
+  @ApiProperty({ enum: uploadResultCode403 })
+  errorCode: (typeof uploadResultCode403)[number];
+}
+
+export class UploadCommissionWorkResult404Response {
+  @ApiProperty({ enum: [404] })
+  status: 404;
+
+  @ApiProperty({ enum: uploadResultCode404 })
+  errorCode: (typeof uploadResultCode404)[number];
+}
+
+export class UploadCommissionWorkResult409Response {
+  @ApiProperty({ enum: [409] })
+  status: 409;
+
+  @ApiProperty({ enum: uploadResultCode409 })
+  errorCode: (typeof uploadResultCode409)[number];
 }

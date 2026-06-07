@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsIn,
@@ -145,6 +146,26 @@ export class CreateCommissionWorkRequest {
   @ValidateNested({ each: true })
   @Type(() => CommissionAnswerItem)
   answers?: CommissionAnswerItem[];
+}
+
+export class UploadCommissionWorkResultRequest {
+  @ApiProperty({
+    isArray: true,
+    type: 'string',
+    example: ['v2/commission-work/{UUID}.jpg'],
+    minLength: 1,
+    maxLength: 20,
+    description: '작업물 이미지 (1~20개)',
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMaxSize(20)
+  @IsString({ each: true })
+  images: string[];
+
+  @ApiProperty({ description: '최종 작업물 여부' })
+  @IsBoolean()
+  isFinal: boolean;
 }
 
 export class RejectCommissionWorkRequest {

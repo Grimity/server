@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { Transactional } from '@nestjs-cls/transactional';
 import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
 import type {
   CommissionAnswerItem,
   CreateCommissionWorkRequest,
+  UploadCommissionWorkResultRequest,
 } from './dto/commission-work.request';
 import { CommissionWorkErrorCode } from './dto/commission-work.error';
 import { CommissionWorkReader } from './repository/commission-work.reader';
@@ -54,6 +56,42 @@ export class CommissionWorkService {
       answers,
       referenceImages: dto.referenceImages,
     });
+  }
+
+  @Transactional()
+  async uploadResult(
+    userId: string,
+    workId: string,
+    dto: UploadCommissionWorkResultRequest,
+  ): Promise<IdResponse> {
+    const work = await this.reader.findWorkById(workId);
+    if (!work) {
+      throw new CustomException(404, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_FOUND,
+      });
+    }
+    if (work.authorId !== userId) {
+      throw new CustomException(403, {
+        errorCode: CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR,
+      });
+    }
+    if (
+      work.status === 'REJECTED' ||
+      work.status === 'CANCELED' ||
+      work.status === 'COMPLETED'
+    ) {
+      throw new CustomException(409, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_ACTIVE,
+      });
+    }
+
+    const status = dto.isFinal ? 'FINAL' : 'IN_PROGRESS';
+    return await this.writer.upsertResult(
+      workId,
+      dto.images,
+      dto.isFinal,
+      status,
+    );
   }
 
   async reject(

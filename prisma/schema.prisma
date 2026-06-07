@@ -425,7 +425,9 @@ model CommissionQuestion {
 
 enum CommissionWorkStatus {
   PENDING
+  ACCEPTED
   IN_PROGRESS
+  FINAL
   COMPLETED
   REJECTED
   CANCELED
@@ -441,10 +443,11 @@ model CommissionWork {
   rejectedAt   DateTime?
   createdAt    DateTime             @default(now())
 
-  author     User               @relation("CommissionWorkAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  client     User               @relation("CommissionWorkClient", fields: [clientId], references: [id], onDelete: Cascade)
-  commission Commission?        @relation(fields: [commissionId], references: [id], onDelete: SetNull)
+  author     User                  @relation("CommissionWorkAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  client     User                  @relation("CommissionWorkClient", fields: [clientId], references: [id], onDelete: Cascade)
+  commission Commission?           @relation(fields: [commissionId], references: [id], onDelete: SetNull)
   request    CommissionRequest?
+  result     CommissionWorkResult?
 
   @@index([authorId, createdAt(sort: Desc)])
   @@index([clientId, createdAt(sort: Desc)])
@@ -456,6 +459,16 @@ model CommissionRequest {
   answers         Json[]   @default([])
   referenceImages String[]
   createdAt       DateTime @default(now())
+
+  work CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+}
+
+model CommissionWorkResult {
+  workId    String   @id @db.Uuid
+  images    String[]
+  isFinal   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   work CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
 }
