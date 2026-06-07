@@ -4,6 +4,7 @@ import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
 import type {
   CommissionAnswerItem,
+  CreateCommissionWorkMemoRequest,
   CreateCommissionWorkRequest,
   UploadCommissionWorkResultRequest,
 } from './dto/commission-work.request';
@@ -116,6 +117,25 @@ export class CommissionWorkService {
       });
     }
     return await this.writer.reject(workId, reason ?? null);
+  }
+
+  async createMemo(
+    userId: string,
+    workId: string,
+    dto: CreateCommissionWorkMemoRequest,
+  ): Promise<IdResponse> {
+    const work = await this.reader.findWorkById(workId);
+    if (!work) {
+      throw new CustomException(404, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_FOUND,
+      });
+    }
+    if (work.authorId !== userId) {
+      throw new CustomException(403, {
+        errorCode: CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR,
+      });
+    }
+    return await this.writer.createMemo(workId, dto.content);
   }
 
   private async buildFormAnswers(

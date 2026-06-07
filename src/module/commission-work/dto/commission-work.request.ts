@@ -9,10 +9,14 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Length,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { TrimNullableString } from '../../../shared/request/validator';
+import {
+  TrimNullableString,
+  TrimString,
+} from '../../../shared/request/validator';
 
 export class CommissionAnswerItem {
   @ApiProperty({
@@ -179,4 +183,11 @@ export class RejectCommissionWorkRequest {
   @TrimNullableString()
   @MaxLength(500)
   reason?: string | null;
+}
+
+export class CreateCommissionWorkMemoRequest {
+  @ApiProperty({ minLength: 1, maxLength: 500, description: '작업 메모 내용' })
+  @TrimString()
+  @Length(1, 500)
+  content: string;
 }

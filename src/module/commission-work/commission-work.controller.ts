@@ -21,6 +21,8 @@ import { CommissionWorkService } from './commission-work.service';
 import {
   CreateCommissionWork400Response,
   CreateCommissionWork404Response,
+  CreateCommissionWorkMemo403Response,
+  CreateCommissionWorkMemo404Response,
   RejectCommissionWork403Response,
   RejectCommissionWork404Response,
   RejectCommissionWork409Response,
@@ -29,6 +31,7 @@ import {
   UploadCommissionWorkResult409Response,
 } from './dto/commission-work.error';
 import {
+  CreateCommissionWorkMemoRequest,
   CreateCommissionWorkRequest,
   RejectCommissionWorkRequest,
   UploadCommissionWorkResultRequest,
@@ -91,5 +94,22 @@ export class CommissionWorkController {
     @Body() dto: UploadCommissionWorkResultRequest,
   ): Promise<IdResponse> {
     return this.service.uploadResult(userId, workId, dto);
+  }
+
+  @ApiOperation({
+    summary: '작업 메모 작성',
+    description:
+      '작가가 해당 커미션 작업에 메모를 작성. 메모는 의뢰인에게 노출됨. 여러 개 작성 가능.',
+  })
+  @ApiResponse({ status: 201, type: IdResponse })
+  @ApiResponse({ status: 403, type: CreateCommissionWorkMemo403Response })
+  @ApiResponse({ status: 404, type: CreateCommissionWorkMemo404Response })
+  @Post(':id/memos')
+  async createMemo(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+    @Body() dto: CreateCommissionWorkMemoRequest,
+  ): Promise<IdResponse> {
+    return this.service.createMemo(userId, workId, dto);
   }
 }

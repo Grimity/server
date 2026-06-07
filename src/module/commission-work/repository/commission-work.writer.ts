@@ -68,4 +68,11 @@ export class CommissionWorkWriter {
       select: { id: true },
     });
   }
+
+  async createMemo(workId: string, content: string) {
+    return this.txHost.tx.commissionWorkMemo.create({
+      data: { workId, content },
+      select: { id: true },
+    });
+  }
 }

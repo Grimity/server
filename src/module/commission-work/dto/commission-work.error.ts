@@ -62,6 +62,12 @@ const uploadResultCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
 
 const uploadResultCode409 = [CommissionWorkErrorCode.WORK_NOT_ACTIVE] as const;
 
+const createMemoCode403 = [
+  CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR,
+] as const;
+
+const createMemoCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
+
 export class CreateCommissionWork400Response {
   @ApiProperty({ enum: [400] })
   status: 400;
@@ -124,4 +130,20 @@ export class UploadCommissionWorkResult409Response {
 
   @ApiProperty({ enum: uploadResultCode409 })
   errorCode: (typeof uploadResultCode409)[number];
+}
+
+export class CreateCommissionWorkMemo403Response {
+  @ApiProperty({ enum: [403] })
+  status: 403;
+
+  @ApiProperty({ enum: createMemoCode403 })
+  errorCode: (typeof createMemoCode403)[number];
+}
+
+export class CreateCommissionWorkMemo404Response {
+  @ApiProperty({ enum: [404] })
+  status: 404;
+
+  @ApiProperty({ enum: createMemoCode404 })
+  errorCode: (typeof createMemoCode404)[number];
 }

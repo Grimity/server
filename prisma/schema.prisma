@@ -448,9 +448,21 @@ model CommissionWork {
   commission Commission?           @relation(fields: [commissionId], references: [id], onDelete: SetNull)
   request    CommissionRequest?
   result     CommissionWorkResult?
+  memos      CommissionWorkMemo[]
 
   @@index([authorId, createdAt(sort: Desc)])
   @@index([clientId, createdAt(sort: Desc)])
+}
+
+model CommissionWorkMemo {
+  id        String   @id @default(uuid()) @db.Uuid
+  workId    String   @db.Uuid
+  content   String
+  createdAt DateTime @default(now())
+
+  work CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@index([workId, createdAt(sort: Desc)])
 }
 
 model CommissionRequest {
