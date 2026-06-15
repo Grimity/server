@@ -29,6 +29,7 @@ export class CommissionWorkService {
     private readonly writer: CommissionWorkWriter,
   ) {}
 
+  @Transactional()
   async create(
     clientId: string,
     dto: CreateCommissionWorkRequest,
@@ -50,13 +51,15 @@ export class CommissionWorkService {
       ? await this.buildFormAnswers(dto)
       : this.buildDirectAnswers(dto);
 
-    return await this.writer.create({
+    const work = await this.writer.create({
       authorId: dto.authorId,
       clientId,
       commissionId: dto.commissionId ?? null,
       answers,
       referenceImages: dto.referenceImages,
     });
+    await this.writer.createEvent(work.id, 'REQUESTED');
+    return work;
   }
 
   @Transactional()
@@ -87,14 +90,20 @@ export class CommissionWorkService {
     }
 
     const status = dto.isFinal ? 'FINAL' : 'IN_PROGRESS';
-    return await this.writer.upsertResult(
+    const result = await this.writer.upsertResult(
       workId,
       dto.images,
       dto.isFinal,
       status,
     );
+    await this.writer.createEvent(
+      workId,
+      dto.isFinal ? 'FINAL_UPLOADED' : 'RESULT_UPLOADED',
+    );
+    return result;
   }
 
+  @Transactional()
   async accept(userId: string, workId: string): Promise<IdResponse> {
     const work = await this.reader.findWorkById(workId);
     if (!work) {
@@ -112,9 +121,12 @@ export class CommissionWorkService {
         errorCode: CommissionWorkErrorCode.WORK_NOT_PENDING,
       });
     }
-    return await this.writer.accept(workId);
+    const result = await this.writer.accept(workId);
+    await this.writer.createEvent(workId, 'ACCEPTED');
+    return result;
   }
 
+  @Transactional()
   async complete(userId: string, workId: string): Promise<IdResponse> {
     const work = await this.reader.findWorkById(workId);
     if (!work) {
@@ -136,9 +148,12 @@ export class CommissionWorkService {
         errorCode: CommissionWorkErrorCode.WORK_NOT_COMPLETABLE,
       });
     }
-    return await this.writer.complete(workId);
+    const result = await this.writer.complete(workId);
+    await this.writer.createEvent(workId, 'COMPLETED');
+    return result;
   }
 
+  @Transactional()
   async reject(
     userId: string,
     workId: string,
@@ -160,7 +175,9 @@ export class CommissionWorkService {
         errorCode: CommissionWorkErrorCode.WORK_NOT_PENDING,
       });
     }
-    return await this.writer.reject(workId, reason ?? null);
+    const result = await this.writer.reject(workId, reason ?? null);
+    await this.writer.createEvent(workId, 'REJECTED');
+    return result;
   }
 
   async createMemo(

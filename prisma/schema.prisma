@@ -449,9 +449,30 @@ model CommissionWork {
   request    CommissionRequest?
   result     CommissionWorkResult?
   memos      CommissionWorkMemo[]
+  events     CommissionWorkEvent[]
 
   @@index([authorId, createdAt(sort: Desc)])
   @@index([clientId, createdAt(sort: Desc)])
+}
+
+enum CommissionWorkEventType {
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  RESULT_UPLOADED
+  FINAL_UPLOADED
+  COMPLETED
+}
+
+model CommissionWorkEvent {
+  id        String                  @id @default(uuid()) @db.Uuid
+  workId    String                  @db.Uuid
+  type      CommissionWorkEventType
+  createdAt DateTime                @default(now())
+
+  work CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@index([workId, createdAt(sort: Desc)])
 }
 
 model CommissionWorkMemo {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { CommissionWorkEventType } from '@prisma/client';
 
 export interface CreateCommissionWorkInput {
   authorId: string;
@@ -89,6 +90,12 @@ export class CommissionWorkWriter {
     return this.txHost.tx.commissionWorkMemo.create({
       data: { workId, content },
       select: { id: true },
+    });
+  }
+
+  async createEvent(workId: string, type: CommissionWorkEventType) {
+    return this.txHost.tx.commissionWorkEvent.create({
+      data: { workId, type },
     });
   }
 }
