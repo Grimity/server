@@ -18,7 +18,7 @@ export class CommissionWorkReader {
   async findWorkById(id: string) {
     return this.txHost.tx.commissionWork.findUnique({
       where: { id },
-      select: { id: true, authorId: true, status: true },
+      select: { id: true, authorId: true, clientId: true, status: true },
     });
   }
 

@@ -22,6 +22,9 @@ import {
   AcceptCommissionWork403Response,
   AcceptCommissionWork404Response,
   AcceptCommissionWork409Response,
+  CompleteCommissionWork403Response,
+  CompleteCommissionWork404Response,
+  CompleteCommissionWork409Response,
   CreateCommissionWork400Response,
   CreateCommissionWork404Response,
   CreateCommissionWorkMemo403Response,
@@ -79,6 +82,23 @@ export class CommissionWorkController {
     @Param('id', new ParseUUIDPipe()) workId: string,
   ): Promise<IdResponse> {
     return this.service.accept(userId, workId);
+  }
+
+  @ApiOperation({
+    summary: '커미션 작업 완료',
+    description:
+      '신청자(의뢰인)가 작업을 완료 처리. ACCEPTED/IN_PROGRESS/FINAL 상태에서 COMPLETED로 전환.',
+  })
+  @ApiResponse({ status: 200, type: IdResponse })
+  @ApiResponse({ status: 403, type: CompleteCommissionWork403Response })
+  @ApiResponse({ status: 404, type: CompleteCommissionWork404Response })
+  @ApiResponse({ status: 409, type: CompleteCommissionWork409Response })
+  @Patch(':id/complete')
+  async complete(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+  ): Promise<IdResponse> {
+    return this.service.complete(userId, workId);
   }
 
   @ApiOperation({

@@ -21,9 +21,11 @@ export const CommissionWorkErrorCode = {
   WORK_NOT_FOUND: 'WORK_NOT_FOUND',
 
   NOT_COMMISSION_AUTHOR: 'NOT_COMMISSION_AUTHOR',
+  NOT_COMMISSION_CLIENT: 'NOT_COMMISSION_CLIENT',
 
   WORK_NOT_PENDING: 'WORK_NOT_PENDING',
   WORK_NOT_ACTIVE: 'WORK_NOT_ACTIVE',
+  WORK_NOT_COMPLETABLE: 'WORK_NOT_COMPLETABLE',
 } as const;
 
 const code400 = [
@@ -73,6 +75,16 @@ const createMemoCode403 = [
 ] as const;
 
 const createMemoCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
+
+const completeCode403 = [
+  CommissionWorkErrorCode.NOT_COMMISSION_CLIENT,
+] as const;
+
+const completeCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
+
+const completeCode409 = [
+  CommissionWorkErrorCode.WORK_NOT_COMPLETABLE,
+] as const;
 
 export class CreateCommissionWork400Response {
   @ApiProperty({ enum: [400] })
@@ -176,4 +188,28 @@ export class CreateCommissionWorkMemo404Response {
 
   @ApiProperty({ enum: createMemoCode404 })
   errorCode: (typeof createMemoCode404)[number];
+}
+
+export class CompleteCommissionWork403Response {
+  @ApiProperty({ enum: [403] })
+  status: 403;
+
+  @ApiProperty({ enum: completeCode403 })
+  errorCode: (typeof completeCode403)[number];
+}
+
+export class CompleteCommissionWork404Response {
+  @ApiProperty({ enum: [404] })
+  status: 404;
+
+  @ApiProperty({ enum: completeCode404 })
+  errorCode: (typeof completeCode404)[number];
+}
+
+export class CompleteCommissionWork409Response {
+  @ApiProperty({ enum: [409] })
+  status: 409;
+
+  @ApiProperty({ enum: completeCode409 })
+  errorCode: (typeof completeCode409)[number];
 }

@@ -115,6 +115,30 @@ export class CommissionWorkService {
     return await this.writer.accept(workId);
   }
 
+  async complete(userId: string, workId: string): Promise<IdResponse> {
+    const work = await this.reader.findWorkById(workId);
+    if (!work) {
+      throw new CustomException(404, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_FOUND,
+      });
+    }
+    if (work.clientId !== userId) {
+      throw new CustomException(403, {
+        errorCode: CommissionWorkErrorCode.NOT_COMMISSION_CLIENT,
+      });
+    }
+    if (
+      work.status !== 'ACCEPTED' &&
+      work.status !== 'IN_PROGRESS' &&
+      work.status !== 'FINAL'
+    ) {
+      throw new CustomException(409, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_COMPLETABLE,
+      });
+    }
+    return await this.writer.complete(workId);
+  }
+
   async reject(
     userId: string,
     workId: string,
