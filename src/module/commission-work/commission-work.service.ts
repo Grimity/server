@@ -95,6 +95,26 @@ export class CommissionWorkService {
     );
   }
 
+  async accept(userId: string, workId: string): Promise<IdResponse> {
+    const work = await this.reader.findWorkById(workId);
+    if (!work) {
+      throw new CustomException(404, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_FOUND,
+      });
+    }
+    if (work.authorId !== userId) {
+      throw new CustomException(403, {
+        errorCode: CommissionWorkErrorCode.NOT_COMMISSION_AUTHOR,
+      });
+    }
+    if (work.status !== 'PENDING') {
+      throw new CustomException(409, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_PENDING,
+      });
+    }
+    return await this.writer.accept(workId);
+  }
+
   async reject(
     userId: string,
     workId: string,

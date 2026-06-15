@@ -19,6 +19,9 @@ import { JwtGuard } from 'src/core/guard';
 import { IdResponse } from 'src/shared/response/id.response';
 import { CommissionWorkService } from './commission-work.service';
 import {
+  AcceptCommissionWork403Response,
+  AcceptCommissionWork404Response,
+  AcceptCommissionWork409Response,
   CreateCommissionWork400Response,
   CreateCommissionWork404Response,
   CreateCommissionWorkMemo403Response,
@@ -59,6 +62,23 @@ export class CommissionWorkController {
     @Body() dto: CreateCommissionWorkRequest,
   ): Promise<IdResponse> {
     return this.service.create(userId, dto);
+  }
+
+  @ApiOperation({
+    summary: '커미션 수락',
+    description:
+      '작가가 받은 PENDING 상태의 신청을 수락. ACCEPTED 상태로 전환.',
+  })
+  @ApiResponse({ status: 200, type: IdResponse })
+  @ApiResponse({ status: 403, type: AcceptCommissionWork403Response })
+  @ApiResponse({ status: 404, type: AcceptCommissionWork404Response })
+  @ApiResponse({ status: 409, type: AcceptCommissionWork409Response })
+  @Patch(':id/accept')
+  async accept(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+  ): Promise<IdResponse> {
+    return this.service.accept(userId, workId);
   }
 
   @ApiOperation({

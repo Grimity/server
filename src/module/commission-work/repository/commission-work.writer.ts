@@ -57,6 +57,14 @@ export class CommissionWorkWriter {
     });
   }
 
+  async accept(id: string) {
+    return this.txHost.tx.commissionWork.update({
+      where: { id },
+      data: { status: 'ACCEPTED' },
+      select: { id: true },
+    });
+  }
+
   async reject(id: string, reason: string | null) {
     return this.txHost.tx.commissionWork.update({
       where: { id },
