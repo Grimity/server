@@ -316,6 +316,7 @@ describe('POST /commission-works - 커미션 신청', () => {
           options: ['개인소장용', '방송/홍보', '상업용'],
           text: null,
           selectedOptions: ['개인소장용'],
+          attachedImages: [],
         },
         {
           type: 'MULTI_SELECT',
@@ -325,6 +326,7 @@ describe('POST /commission-works - 커미션 신청', () => {
           options: ['배경', '소품', '효과'],
           text: null,
           selectedOptions: ['배경', '소품'],
+          attachedImages: [],
         },
         {
           type: 'TEXT',
@@ -334,6 +336,7 @@ describe('POST /commission-works - 커미션 신청', () => {
           options: [],
           text: '검정 단발머리, 붉은 눈',
           selectedOptions: [],
+          attachedImages: [],
         },
       ]);
     });
@@ -472,6 +475,7 @@ describe('POST /commission-works - 커미션 신청', () => {
           options: [],
           text: 'OC 힐링 분위기 배경 포함 일러스트 요청합니다.',
           selectedOptions: [],
+          attachedImages: [],
         },
         {
           type: 'TEXT',
@@ -481,6 +485,7 @@ describe('POST /commission-works - 커미션 신청', () => {
           options: [],
           text: '30000',
           selectedOptions: [],
+          attachedImages: [],
         },
       ]);
     });

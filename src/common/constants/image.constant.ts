@@ -4,6 +4,9 @@ export const imageTypes = [
   'background',
   'post',
   'chat',
+  'commission',
+  'commission-reference',
+  'commission-answer',
   'commission-work',
 ] as const;
 

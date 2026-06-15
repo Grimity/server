@@ -59,6 +59,7 @@ describe('POST /commissions - 커미션 등록', () => {
         options: [],
       },
     ],
+    isPublic: true,
   });
 
   it('accessToken이 없을 때 401을 반환한다', async () => {
@@ -244,6 +245,7 @@ describe('POST /commissions - 커미션 등록', () => {
       revisionCount: payload.revisionCount,
       images: payload.images,
       thumbnail: payload.thumbnail,
+      isPublic: payload.isPublic,
       createdAt: expect.any(Date),
       tags: expect.arrayContaining(
         payload.tags.map((tagName) => ({ commissionId: body.id, tagName })),
