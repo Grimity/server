@@ -22,6 +22,13 @@ export class CommissionWorkReader {
     });
   }
 
+  async findReview(workId: string, reviewerId: string) {
+    return this.txHost.tx.commissionReview.findUnique({
+      where: { workId_reviewerId: { workId, reviewerId } },
+      select: { id: true },
+    });
+  }
+
   async findCommissionWithQuestions(commissionId: string) {
     return this.txHost.tx.commission.findUnique({
       where: { id: commissionId },

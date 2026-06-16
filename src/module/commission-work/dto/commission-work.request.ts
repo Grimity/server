@@ -191,3 +191,23 @@ export class CreateCommissionWorkMemoRequest {
   @Length(1, 500)
   content: string;
 }
+
+export class CreateCommissionReviewRequest {
+  @ApiProperty({
+    enum: ['SATISFIED', 'NORMAL', 'DISSATISFIED'],
+    description: '유저 평가: SATISFIED(만족)/NORMAL(보통)/DISSATISFIED(불만족)',
+  })
+  @IsIn(['SATISFIED', 'NORMAL', 'DISSATISFIED'])
+  rating: 'SATISFIED' | 'NORMAL' | 'DISSATISFIED';
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    maxLength: 500,
+    description: '커미션 후기 (선택)',
+  })
+  @IsOptional()
+  @TrimNullableString()
+  @MaxLength(500)
+  content?: string | null;
+}

@@ -22,10 +22,13 @@ export const CommissionWorkErrorCode = {
 
   NOT_COMMISSION_AUTHOR: 'NOT_COMMISSION_AUTHOR',
   NOT_COMMISSION_CLIENT: 'NOT_COMMISSION_CLIENT',
+  NOT_COMMISSION_PARTICIPANT: 'NOT_COMMISSION_PARTICIPANT',
 
   WORK_NOT_PENDING: 'WORK_NOT_PENDING',
   WORK_NOT_ACTIVE: 'WORK_NOT_ACTIVE',
   WORK_NOT_COMPLETABLE: 'WORK_NOT_COMPLETABLE',
+  WORK_NOT_COMPLETED: 'WORK_NOT_COMPLETED',
+  ALREADY_REVIEWED: 'ALREADY_REVIEWED',
 } as const;
 
 const code400 = [
@@ -84,6 +87,17 @@ const completeCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
 
 const completeCode409 = [
   CommissionWorkErrorCode.WORK_NOT_COMPLETABLE,
+] as const;
+
+const createReviewCode403 = [
+  CommissionWorkErrorCode.NOT_COMMISSION_PARTICIPANT,
+] as const;
+
+const createReviewCode404 = [CommissionWorkErrorCode.WORK_NOT_FOUND] as const;
+
+const createReviewCode409 = [
+  CommissionWorkErrorCode.WORK_NOT_COMPLETED,
+  CommissionWorkErrorCode.ALREADY_REVIEWED,
 ] as const;
 
 export class CreateCommissionWork400Response {
@@ -212,4 +226,28 @@ export class CompleteCommissionWork409Response {
 
   @ApiProperty({ enum: completeCode409 })
   errorCode: (typeof completeCode409)[number];
+}
+
+export class CreateCommissionReview403Response {
+  @ApiProperty({ enum: [403] })
+  status: 403;
+
+  @ApiProperty({ enum: createReviewCode403 })
+  errorCode: (typeof createReviewCode403)[number];
+}
+
+export class CreateCommissionReview404Response {
+  @ApiProperty({ enum: [404] })
+  status: 404;
+
+  @ApiProperty({ enum: createReviewCode404 })
+  errorCode: (typeof createReviewCode404)[number];
+}
+
+export class CreateCommissionReview409Response {
+  @ApiProperty({ enum: [409] })
+  status: 409;
+
+  @ApiProperty({ enum: createReviewCode409 })
+  errorCode: (typeof createReviewCode409)[number];
 }

@@ -57,6 +57,8 @@ model User {
   commissionNotice        CommissionNotice?
   commissionWorksAsAuthor CommissionWork[]      @relation("CommissionWorkAuthor")
   commissionWorksAsClient CommissionWork[]      @relation("CommissionWorkClient")
+  commissionReviewsAsReviewer CommissionReview[] @relation("CommissionReviewReviewer")
+  commissionReviewsAsReviewee CommissionReview[] @relation("CommissionReviewReviewee")
 
   @@unique([provider, providerId])
 }
@@ -450,9 +452,33 @@ model CommissionWork {
   result     CommissionWorkResult?
   memos      CommissionWorkMemo[]
   events     CommissionWorkEvent[]
+  reviews    CommissionReview[]
 
   @@index([authorId, createdAt(sort: Desc)])
   @@index([clientId, createdAt(sort: Desc)])
+}
+
+enum CommissionReviewRating {
+  SATISFIED
+  NORMAL
+  DISSATISFIED
+}
+
+model CommissionReview {
+  id         String                 @id @default(uuid()) @db.Uuid
+  workId     String                 @db.Uuid
+  reviewerId String                 @db.Uuid
+  revieweeId String                 @db.Uuid
+  rating     CommissionReviewRating
+  content    String?
+  createdAt  DateTime               @default(now())
+
+  work     CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+  reviewer User           @relation("CommissionReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee User           @relation("CommissionReviewReviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, reviewerId])
+  @@index([revieweeId, createdAt(sort: Desc)])
 }
 
 enum CommissionWorkEventType {

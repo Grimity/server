@@ -25,6 +25,9 @@ import {
   CompleteCommissionWork403Response,
   CompleteCommissionWork404Response,
   CompleteCommissionWork409Response,
+  CreateCommissionReview403Response,
+  CreateCommissionReview404Response,
+  CreateCommissionReview409Response,
   CreateCommissionWork400Response,
   CreateCommissionWork404Response,
   CreateCommissionWorkMemo403Response,
@@ -37,6 +40,7 @@ import {
   UploadCommissionWorkResult409Response,
 } from './dto/commission-work.error';
 import {
+  CreateCommissionReviewRequest,
   CreateCommissionWorkMemoRequest,
   CreateCommissionWorkRequest,
   RejectCommissionWorkRequest,
@@ -151,5 +155,23 @@ export class CommissionWorkController {
     @Body() dto: CreateCommissionWorkMemoRequest,
   ): Promise<IdResponse> {
     return this.service.createMemo(userId, workId, dto);
+  }
+
+  @ApiOperation({
+    summary: '커미션 후기(유저 평가) 작성',
+    description:
+      'COMPLETED 상태의 커미션에 대해 의뢰인/작가가 상대방에게 후기를 작성. 한 사람당 1회만 작성 가능.',
+  })
+  @ApiResponse({ status: 201, type: IdResponse })
+  @ApiResponse({ status: 403, type: CreateCommissionReview403Response })
+  @ApiResponse({ status: 404, type: CreateCommissionReview404Response })
+  @ApiResponse({ status: 409, type: CreateCommissionReview409Response })
+  @Post(':id/reviews')
+  async createReview(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+    @Body() dto: CreateCommissionReviewRequest,
+  ): Promise<IdResponse> {
+    return this.service.createReview(userId, workId, dto);
   }
 }

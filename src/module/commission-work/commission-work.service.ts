@@ -4,6 +4,7 @@ import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
 import type {
   CommissionAnswerItem,
+  CreateCommissionReviewRequest,
   CreateCommissionWorkMemoRequest,
   CreateCommissionWorkRequest,
   UploadCommissionWorkResultRequest,
@@ -197,6 +198,45 @@ export class CommissionWorkService {
       });
     }
     return await this.writer.createMemo(workId, dto.content);
+  }
+
+  async createReview(
+    userId: string,
+    workId: string,
+    dto: CreateCommissionReviewRequest,
+  ): Promise<IdResponse> {
+    const work = await this.reader.findWorkById(workId);
+    if (!work) {
+      throw new CustomException(404, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_FOUND,
+      });
+    }
+    if (work.authorId !== userId && work.clientId !== userId) {
+      throw new CustomException(403, {
+        errorCode: CommissionWorkErrorCode.NOT_COMMISSION_PARTICIPANT,
+      });
+    }
+    if (work.status !== 'COMPLETED') {
+      throw new CustomException(409, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_COMPLETED,
+      });
+    }
+    const existing = await this.reader.findReview(workId, userId);
+    if (existing) {
+      throw new CustomException(409, {
+        errorCode: CommissionWorkErrorCode.ALREADY_REVIEWED,
+      });
+    }
+
+    const revieweeId =
+      work.authorId === userId ? work.clientId : work.authorId;
+    return await this.writer.createReview({
+      workId,
+      reviewerId: userId,
+      revieweeId,
+      rating: dto.rating,
+      content: dto.content ?? null,
+    });
   }
 
   private async buildFormAnswers(

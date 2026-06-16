@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { CommissionWorkEventType } from '@prisma/client';
+import { CommissionReviewRating, CommissionWorkEventType } from '@prisma/client';
 
 export interface CreateCommissionWorkInput {
   authorId: string;
@@ -96,6 +96,19 @@ export class CommissionWorkWriter {
   async createEvent(workId: string, type: CommissionWorkEventType) {
     return this.txHost.tx.commissionWorkEvent.create({
       data: { workId, type },
+    });
+  }
+
+  async createReview(input: {
+    workId: string;
+    reviewerId: string;
+    revieweeId: string;
+    rating: CommissionReviewRating;
+    content: string | null;
+  }) {
+    return this.txHost.tx.commissionReview.create({
+      data: input,
+      select: { id: true },
     });
   }
 }
