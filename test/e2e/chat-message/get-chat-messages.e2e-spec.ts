@@ -300,6 +300,7 @@ describe('GET /chat-messages?chatId - 채팅방 별 메세지 조회', () => {
       id: targetMessage.id,
       content: 'test',
       image: null,
+      images: [],
       createdAt: targetMessage.createdAt.toISOString(),
     });
   });

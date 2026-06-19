@@ -162,6 +162,7 @@ export class ChatReader {
               'ChatMessage.userId',
               'ChatMessage.content',
               'ChatMessage.image',
+              'ChatMessage.images',
               'ChatMessage.createdAt',
             ])
             .orderBy('ChatMessage.createdAt', 'desc')
@@ -178,6 +179,7 @@ export class ChatReader {
         'LastMessage.id as lastMessageId',
         'LastMessage.content as lastMessageContent',
         'LastMessage.image as lastMessageImage',
+        'LastMessage.images as lastMessageImages',
         'LastMessage.createdAt as lastMessageCreatedAt',
         'LastMessage.userId as lastMessageUserId',
         'User.id as opponentId',
@@ -214,8 +216,14 @@ export class ChatReader {
           id: chat.lastMessageId,
           content: chat.lastMessageContent,
           image: chat.lastMessageImage,
+          images: chat.lastMessageImages?.length
+            ? chat.lastMessageImages
+            : chat.lastMessageImage
+              ? [chat.lastMessageImage]
+              : [],
           createdAt: chat.lastMessageCreatedAt,
-          senderId: chat.lastMessageUserId,
+          // 마지막 메시지는 항상 실제 발신자가 있음(시스템 메시지 생성 로직 도입 시 재검토)
+          senderId: chat.lastMessageUserId!,
         },
         opponentUser: {
           id: chat.opponentId,
@@ -262,6 +270,7 @@ export class ChatReader {
         'ChatMessage.createdAt',
         'ChatMessage.id',
         'ChatMessage.image',
+        'ChatMessage.images',
         'ChatMessage.isLike',
       ])
       .leftJoin(
@@ -274,6 +283,7 @@ export class ChatReader {
         'replyMessage.content as replyContent',
         'replyMessage.createdAt as replyCreatedAt',
         'replyMessage.image as replyImage',
+        'replyMessage.images as replyImages',
       ])
       .innerJoin('User', 'ChatMessage.userId', 'User.id')
       .select([
@@ -296,6 +306,12 @@ export class ChatReader {
         id: message.id,
         content: message.content,
         image: message.image,
+        // 레거시(image)와 신규(images) 머지: 신규 행은 images, 구행은 [image]
+        images: message.images.length
+          ? message.images
+          : message.image
+            ? [message.image]
+            : [],
         createdAt: message.createdAt,
         isLike: message.isLike,
         user: {
@@ -310,6 +326,11 @@ export class ChatReader {
               content: message.replyContent,
               createdAt: message.replyCreatedAt!,
               image: message.replyImage,
+              images: message.replyImages?.length
+                ? message.replyImages
+                : message.replyImage
+                  ? [message.replyImage]
+                  : [],
             }
           : null,
       })),

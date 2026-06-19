@@ -323,15 +323,28 @@ model Chat {
   @@index([createdAt(sort: Desc)])
 }
 
+enum ChatMessageType {
+  USER // 일반 유저 메시지
+  COMMISSION_REQUESTED // 커미션 신청 완료
+  COMMISSION_ACCEPTED // 커미션 수락
+  COMMISSION_REJECTED // 커미션 거절
+  COMMISSION_RESULT_UPLOADED // 중간 작업물 업로드
+  COMMISSION_FINAL_UPLOADED // 최종 작업물 도착
+  COMMISSION_COMPLETED // 커미션 완료/종료
+}
+
 model ChatMessage {
-  id        String   @id @default(uuid()) @db.Uuid
-  chatId    String   @db.Uuid
-  userId    String   @db.Uuid
-  content   String?
-  image     String?
-  createdAt DateTime @default(now())
-  replyToId String?  @db.Uuid
-  isLike    Boolean  @default(false)
+  id          String          @id @default(uuid()) @db.Uuid
+  chatId      String          @db.Uuid
+  userId      String?         @db.Uuid // nullable: 시스템 메시지는 발신자 없음
+  content     String? // 일반 메시지 본문 / 시스템 메시지 카드 문구
+  image       String? // DEPRECATED: 레거시 단일 이미지(= images[0]), 호환용 유지
+  images      String[]        @default([]) // 묶음 이미지(최대 5)
+  type        ChatMessageType @default(USER) // 시스템 메시지 구분
+  referenceId String?         @db.Uuid // 시스템 메시지 클릭 시 이동 대상(커미션 등) ID
+  createdAt   DateTime        @default(now())
+  replyToId   String?         @db.Uuid
+  isLike      Boolean         @default(false)
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 

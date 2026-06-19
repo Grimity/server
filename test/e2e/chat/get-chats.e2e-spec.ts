@@ -121,6 +121,7 @@ describe('GET /chats - 채팅 검색(커서, 이름, 사이즈)', () => {
         content: 'message1',
         createdAt: expect.any(String),
         image: null,
+        images: [],
         senderId: users[1].id,
       },
     });

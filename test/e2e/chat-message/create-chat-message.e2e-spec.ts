@@ -245,13 +245,16 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
       createdAt: expect.any(Date),
       id: expect.any(String),
       image: null,
+      images: [],
+      type: 'USER',
+      referenceId: null,
       isLike: false,
       replyToId: null,
       userId: me.id,
     });
   });
 
-  it('content와 image를 한 번에 만든다', async () => {
+  it('content와 image를 한 메시지로 묶어 만든다', async () => {
     // given
     const { accessToken, user: me } = await createTestUser(app, {});
 
@@ -296,10 +299,23 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
     // then
     expect(status).toBe(201);
     const chatMessages = await prisma.chatMessage.findMany();
-    expect(chatMessages.length).toBe(3);
+    expect(chatMessages.length).toBe(1);
+    expect(chatMessages[0]).toEqual({
+      chatId: chat.id,
+      content: 'test',
+      createdAt: expect.any(Date),
+      id: expect.any(String),
+      image: 'chat/test1.png', // 호환용: images[0]
+      images: ['chat/test1.png', 'chat/test2.png'],
+      type: 'USER',
+      referenceId: null,
+      isLike: false,
+      replyToId: null,
+      userId: me.id,
+    });
   });
 
-  it('reply와 여러 이미지를 한번에 만들면 첫 번째 이미지로 답장을 만든다', async () => {
+  it('reply와 여러 이미지를 한 메시지로 묶어 만든다', async () => {
     // given
     const { accessToken, user: me } = await createTestUser(app, {});
 
@@ -356,13 +372,17 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
         createdAt: 'asc',
       },
     });
-    expect(chatMessages.length).toBe(3);
+    // 답장 대상 1행 + 새로 묶인 1행
+    expect(chatMessages.length).toBe(2);
     expect(chatMessages[1]).toEqual({
       chatId: chat.id,
       content: null,
       createdAt: expect.any(Date),
       id: expect.any(String),
-      image: 'chat/test1.png',
+      image: 'chat/test1.png', // 호환용: images[0]
+      images: ['chat/test1.png', 'chat/test2.png'],
+      type: 'USER',
+      referenceId: null,
       isLike: false,
       replyToId: message.id,
       userId: me.id,
@@ -465,49 +485,21 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
           name: targetUser.name,
           image: null,
           url: targetUser.url,
-          unreadCount: 6,
+          unreadCount: 1,
         }),
       ]),
       messages: [
         {
           id: expect.any(String),
           content: 'test',
-          image: null,
-          createdAt: expect.any(String),
-          replyTo: null,
-        },
-        {
-          id: expect.any(String),
-          content: null,
-          image: getImageUrl('chat/test1.png'),
-          createdAt: expect.any(String),
-          replyTo: null,
-        },
-        {
-          id: expect.any(String),
-          content: null,
-          image: getImageUrl('chat/test2.png'),
-          createdAt: expect.any(String),
-          replyTo: null,
-        },
-        {
-          id: expect.any(String),
-          content: null,
-          image: getImageUrl('chat/test3.png'),
-          createdAt: expect.any(String),
-          replyTo: null,
-        },
-        {
-          id: expect.any(String),
-          content: null,
-          image: getImageUrl('chat/test4.png'),
-          createdAt: expect.any(String),
-          replyTo: null,
-        },
-        {
-          id: expect.any(String),
-          content: null,
-          image: getImageUrl('chat/test5.png'),
+          image: getImageUrl('chat/test1.png'), // 호환용: images[0]
+          images: [
+            getImageUrl('chat/test1.png'),
+            getImageUrl('chat/test2.png'),
+            getImageUrl('chat/test3.png'),
+            getImageUrl('chat/test4.png'),
+            getImageUrl('chat/test5.png'),
+          ],
           createdAt: expect.any(String),
           replyTo: null,
         },

@@ -13,11 +13,13 @@ export interface RedisEventPayloadMap {
       id: string;
       content: string | null;
       image: string | null;
+      images: string[];
       createdAt: Date;
       replyTo: {
         id: string;
         content: string | null;
         image: string | null;
+        images: string[];
         createdAt: Date;
       } | null;
     }[];

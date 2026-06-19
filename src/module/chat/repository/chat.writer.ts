@@ -44,61 +44,29 @@ export class ChatWriter {
     });
   }
 
-  async createMessages(
-    messages: {
-      userId: string;
-      content: string | null;
-      chatId: string;
-      replyToId: string | null;
-      image?: string | null;
-    }[],
-  ) {
-    const createdAt = new Date();
-    return await this.txHost.tx.chatMessage.createManyAndReturn({
-      data: messages.map((message, i) => ({
-        ...message,
-        createdAt: new Date(createdAt.getTime() + i),
-      })),
+  async createMessage(input: {
+    userId: string;
+    chatId: string;
+    content: string | null;
+    images: string[];
+    replyToId: string | null;
+  }) {
+    return await this.txHost.tx.chatMessage.create({
+      data: {
+        userId: input.userId,
+        chatId: input.chatId,
+        content: input.content,
+        images: input.images,
+        image: input.images[0] ?? null, // 호환용: 레거시 단일필드 + 채팅목록 미리보기 + 롤링배포 동안 구코드 호환
+        replyToId: input.replyToId,
+      },
       select: {
         id: true,
         content: true,
         image: true,
+        images: true,
         createdAt: true,
       },
-    });
-  }
-
-  async createMessageByContent(input: {
-    userId: string;
-    chatId: string;
-    content: string;
-    replyToId: string | null;
-  }) {
-    return await this.txHost.tx.chatMessage.create({
-      data: input,
-    });
-  }
-
-  async createMessageByImages({
-    userId,
-    chatId,
-    images,
-    replyToId,
-  }: {
-    userId: string;
-    chatId: string;
-    images: string[];
-    replyToId: string | null;
-  }) {
-    await this.txHost.tx.chatMessage.createMany({
-      data: images.map((image) => {
-        return {
-          chatId,
-          userId,
-          image,
-          replyToId,
-        };
-      }),
     });
   }
 

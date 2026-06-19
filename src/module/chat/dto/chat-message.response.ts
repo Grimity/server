@@ -44,7 +44,7 @@ export class NewChatMessageEventResponse {
   @ApiProperty({
     type: ChatMessageEventResponse,
     isArray: true,
-    description: '최소 1개 최대 6개',
+    description: '1개 (텍스트+이미지가 한 메시지로 묶임)',
   })
   messages: ChatMessageEventResponse[];
 }

@@ -73,6 +73,9 @@ export class ChatService {
             ? {
                 ...chat.lastMessage,
                 image: getImageUrl(chat.lastMessage.image),
+                images: chat.lastMessage.images.map((image) =>
+                  getImageUrl(image),
+                ),
               }
             : null,
         opponentUser: {

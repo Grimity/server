@@ -51,47 +51,14 @@ export class ChatMessageService {
       await this.chatWriter.enterChat(targetUserStatus.userId, chatId);
     }
 
-    const toCreateMessages = [];
+    const createdMessage = await this.chatWriter.createMessage({
+      userId,
+      chatId,
+      content,
+      images,
+      replyToId,
+    });
 
-    if (content) {
-      toCreateMessages.push({
-        userId,
-        content,
-        chatId,
-        replyToId,
-        image: null,
-      });
-    } else if (replyToId) {
-      const image = images.shift()!;
-
-      toCreateMessages.push({
-        userId,
-        content: null,
-        chatId,
-        replyToId: replyToId,
-        image,
-      });
-    }
-
-    if (images.length >= 1) {
-      toCreateMessages.push(
-        ...images.map((image) => ({
-          userId,
-          content: null,
-          chatId,
-          replyToId: null,
-          image,
-        })),
-      );
-    }
-
-    const createdMessages =
-      await this.chatWriter.createMessages(toCreateMessages);
-
-    // 최신순
-    createdMessages.sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-    );
     let replyTo = null;
 
     if (replyToId) {
@@ -113,7 +80,7 @@ export class ChatMessageService {
       await this.chatWriter.increaseUnreadCount({
         userId: targetUserStatus.userId,
         chatId,
-        count: toCreateMessages.length,
+        count: 1,
       });
 
     const chatUsers = await this.chatReader.findUsersByChatId(chatId);
@@ -128,22 +95,28 @@ export class ChatMessageService {
         url: user.url,
         unreadCount: user.unreadCount,
       })),
-      messages: createdMessages.map((message, i) => ({
-        id: message.id,
-        content: message.content,
-        image: getImageUrl(message.image),
-        createdAt: message.createdAt,
-        replyTo: replyTo
-          ? i === 0
+      messages: [
+        {
+          id: createdMessage.id,
+          content: createdMessage.content,
+          image: getImageUrl(createdMessage.image),
+          images: createdMessage.images.map((image) => getImageUrl(image)),
+          createdAt: createdMessage.createdAt,
+          replyTo: replyTo
             ? {
                 id: replyTo.id,
                 content: replyTo.content,
                 image: getImageUrl(replyTo.image),
+                images: replyTo.images.length
+                  ? replyTo.images.map((image) => getImageUrl(image))
+                  : replyTo.image
+                    ? [getImageUrl(replyTo.image)]
+                    : [],
                 createdAt: replyTo.createdAt,
               }
-            : null
-          : null,
-      })),
+            : null,
+        },
+      ],
     };
 
     await this.redisPublisher.publish(
@@ -166,18 +139,15 @@ export class ChatMessageService {
       this.eventEmitter.emit(`push`, {
         userId: targetUserStatus.userId,
         title: `${myInfo.name}`,
-        text:
-          createdMessages[0].content || `${myInfo.name}님이 사진을 보냈어요!`,
-        imageUrl: getImageUrl(
-          createdMessages[createdMessages.length - 1].image,
-        ),
+        text: createdMessage.content || `${myInfo.name}님이 사진을 보냈어요!`,
+        imageUrl: getImageUrl(createdMessage.image),
         data: {
           event: 'newChatMessage',
           deepLink: `/chats/${chatId}`,
           data: JSON.stringify(newMessagePayload),
         },
         key: `chat-message-${chatId}`,
-        badge: targetUserStatus.unreadCount + toCreateMessages.length,
+        badge: targetUserStatus.unreadCount + 1,
       });
     }
 
@@ -256,6 +226,7 @@ export class ChatMessageService {
       messages: result.messages.map((message) => ({
         ...message,
         image: getImageUrl(message.image),
+        images: message.images.map((image) => getImageUrl(image)),
         user: {
           ...message.user,
           image: getImageUrl(message.user.image),
@@ -264,6 +235,7 @@ export class ChatMessageService {
           ? {
               ...message.replyTo,
               image: getImageUrl(message.replyTo.image),
+              images: message.replyTo.images.map((image) => getImageUrl(image)),
             }
           : null,
       })),
