@@ -20,5 +20,6 @@ import { ChatListener } from './chat.listener';
     ChatMessageService,
     ChatListener,
   ],
+  exports: [ChatReader, ChatWriter],
 })
 export class ChatModule {}

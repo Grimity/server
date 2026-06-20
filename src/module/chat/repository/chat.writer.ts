@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { ChatMessageType } from '@prisma/client';
 
 @Injectable()
 export class ChatWriter {
@@ -50,6 +51,8 @@ export class ChatWriter {
     content: string | null;
     images: string[];
     replyToId: string | null;
+    type?: ChatMessageType;
+    referenceId?: string | null;
   }) {
     return await this.txHost.tx.chatMessage.create({
       data: {
@@ -59,12 +62,16 @@ export class ChatWriter {
         images: input.images,
         image: input.images[0] ?? null, // 호환용: 레거시 단일필드 + 채팅목록 미리보기 + 롤링배포 동안 구코드 호환
         replyToId: input.replyToId,
+        type: input.type ?? 'USER',
+        referenceId: input.referenceId ?? null,
       },
       select: {
         id: true,
         content: true,
         image: true,
         images: true,
+        type: true,
+        referenceId: true,
         createdAt: true,
       },
     });

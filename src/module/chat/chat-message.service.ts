@@ -101,6 +101,8 @@ export class ChatMessageService {
           content: createdMessage.content,
           image: getImageUrl(createdMessage.image),
           images: createdMessage.images.map((image) => getImageUrl(image)),
+          type: createdMessage.type,
+          referenceId: createdMessage.referenceId,
           createdAt: createdMessage.createdAt,
           replyTo: replyTo
             ? {

@@ -272,6 +272,8 @@ export class ChatReader {
         'ChatMessage.image',
         'ChatMessage.images',
         'ChatMessage.isLike',
+        'ChatMessage.type',
+        'ChatMessage.referenceId',
       ])
       .leftJoin(
         'ChatMessage as replyMessage',
@@ -312,6 +314,8 @@ export class ChatReader {
           : message.image
             ? [message.image]
             : [],
+        type: message.type,
+        referenceId: message.referenceId,
         createdAt: message.createdAt,
         isLike: message.isLike,
         user: {

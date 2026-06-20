@@ -1,3 +1,5 @@
+import { ChatMessageType } from '@prisma/client';
+
 export interface RedisEventPayloadMap {
   newChatMessage: {
     chatId: string;
@@ -14,6 +16,8 @@ export interface RedisEventPayloadMap {
       content: string | null;
       image: string | null;
       images: string[];
+      type: ChatMessageType;
+      referenceId: string | null;
       createdAt: Date;
       replyTo: {
         id: string;

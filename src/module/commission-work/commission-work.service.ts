@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
 import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
+import { getImageUrl } from 'src/shared/util/get-image-url';
+import { ChatReader } from '../chat/repository/chat.reader';
+import { ChatWriter } from '../chat/repository/chat.writer';
+import { RedisService } from 'src/database/redis/redis.service';
+import { TypedRedisPublisher } from 'src/database/redis/typed-redis-publisher';
+import { TypedEventEmitter } from 'src/infrastructure/event/typed-event-emitter';
 import type {
   CommissionAnswerItem,
   CreateCommissionReviewRequest,
@@ -12,6 +18,7 @@ import type {
 import { CommissionWorkErrorCode } from './dto/commission-work.error';
 import { CommissionWorkReader } from './repository/commission-work.reader';
 import { CommissionWorkWriter } from './repository/commission-work.writer';
+import { ChatMessageType } from '@prisma/client';
 
 type AnswerType = 'TEXT' | 'SINGLE_SELECT' | 'MULTI_SELECT';
 
@@ -28,6 +35,11 @@ export class CommissionWorkService {
   constructor(
     private readonly reader: CommissionWorkReader,
     private readonly writer: CommissionWorkWriter,
+    private readonly chatReader: ChatReader,
+    private readonly chatWriter: ChatWriter,
+    private readonly redisService: RedisService,
+    private readonly redisPublisher: TypedRedisPublisher,
+    private readonly eventEmitter: TypedEventEmitter,
   ) {}
 
   @Transactional()
@@ -60,7 +72,137 @@ export class CommissionWorkService {
       referenceImages: dto.referenceImages,
     });
     await this.writer.createEvent(work.id, 'REQUESTED');
+
+    // 신청자(clientId)가 작가(authorId)에게 "커미션 신청 완료" 시스템 메시지를 전송
+    // (채팅방 없으면 생성, 웹소켓/푸시 발송 포함)
+    await this.sendCommissionSystemMessage({
+      actorId: clientId,
+      recipientId: dto.authorId,
+      type: 'COMMISSION_REQUESTED',
+      referenceId: work.id,
+      content: '커미션을 신청했어요',
+    });
+
     return work;
+  }
+
+  /**
+   * 커미션 진행 이벤트를 시스템 메시지(=신청자/작가가 보낸 특수 메시지)로 채팅방에 전송한다.
+   * 채팅방이 없으면 생성하며, 웹소켓 publish와 (수신자 미입장 시) FCM 푸시까지 처리한다.
+   * 로직은 chat-message.service.ts 의 create() 흐름을 그대로 따른다.
+   * actor=발신자(메시지 userId), recipient=unread+푸시 대상.
+   */
+  private async sendCommissionSystemMessage(params: {
+    actorId: string;
+    recipientId: string;
+    type: ChatMessageType;
+    referenceId: string;
+    content: string;
+  }): Promise<void> {
+    const { actorId, recipientId, type, referenceId, content } = params;
+
+    // 1. 채팅방 find-or-create
+    let chatId = await this.chatReader.findOneByUserIds([actorId, recipientId]);
+    if (!chatId) {
+      const chat = await this.chatWriter.createChat(actorId, recipientId);
+      chatId = chat.id;
+    }
+
+    // 2. 양쪽 입장 보장 (메시지 생성 전이어야 채팅목록 미리보기가 노출됨)
+    const usersStatus = await this.chatReader.findUsersStatusByChatId(chatId);
+    for (const status of usersStatus) {
+      if (status.enteredAt === null) {
+        await this.chatWriter.enterChat(status.userId, chatId);
+      }
+    }
+
+    // 3. 시스템 메시지 생성 (발신자 = actor)
+    const createdMessage = await this.chatWriter.createMessage({
+      userId: actorId,
+      chatId,
+      content,
+      images: [],
+      replyToId: null,
+      type,
+      referenceId,
+    });
+
+    // 4. 수신자가 해당 방을 보고 있는지 -> unread / push 판단
+    const recipientJoined =
+      Number(
+        await this.redisService.pubClient.sismember(
+          `user:${recipientId}:online:chats`,
+          chatId,
+        ),
+      ) === 1;
+    const recipientOnline = await this.redisService.isSubscribed(
+      `user:${recipientId}`,
+    );
+    if (!recipientJoined) {
+      await this.chatWriter.increaseUnreadCount({
+        userId: recipientId,
+        chatId,
+        count: 1,
+      });
+    }
+
+    // 5. 웹소켓 payload 빌드 (unread 증가가 반영된 chatUsers)
+    const chatUsers = await this.chatReader.findUsersByChatId(chatId);
+    const newMessagePayload = {
+      chatId,
+      senderId: actorId,
+      chatUsers: chatUsers.map((user) => ({
+        id: user.id,
+        name: user.name,
+        image: getImageUrl(user.image),
+        url: user.url,
+        unreadCount: user.unreadCount,
+      })),
+      messages: [
+        {
+          id: createdMessage.id,
+          content: createdMessage.content,
+          image: getImageUrl(createdMessage.image),
+          images: createdMessage.images.map((image) => getImageUrl(image)),
+          type: createdMessage.type,
+          referenceId: createdMessage.referenceId,
+          createdAt: createdMessage.createdAt,
+          replyTo: null,
+        },
+      ],
+    };
+
+    // 6. 웹소켓: 발신자 본인은 항상, 수신자는 온라인일 때만
+    await this.redisPublisher.publish(
+      `user:${actorId}`,
+      'newChatMessage',
+      newMessagePayload,
+    );
+    if (recipientOnline) {
+      await this.redisPublisher.publish(
+        `user:${recipientId}`,
+        'newChatMessage',
+        newMessagePayload,
+      );
+    }
+
+    // 7. FCM 푸시: 수신자가 해당 방 미입장일 때만
+    if (!recipientJoined) {
+      const actorInfo = chatUsers.find((user) => user.id === actorId);
+      const recipientInfo = chatUsers.find((user) => user.id === recipientId);
+      this.eventEmitter.emit('push', {
+        userId: recipientId,
+        title: actorInfo?.name ?? '',
+        text: content,
+        data: {
+          event: 'newChatMessage',
+          deepLink: `/chats/${chatId}`,
+          data: JSON.stringify(newMessagePayload),
+        },
+        key: `chat-message-${chatId}`,
+        badge: recipientInfo?.unreadCount,
+      });
+    }
   }
 
   @Transactional()
@@ -228,8 +370,7 @@ export class CommissionWorkService {
       });
     }
 
-    const revieweeId =
-      work.authorId === userId ? work.clientId : work.authorId;
+    const revieweeId = work.authorId === userId ? work.clientId : work.authorId;
     return await this.writer.createReview({
       workId,
       reviewerId: userId,
