@@ -500,6 +500,8 @@ describe('POST /chat-messages - 채팅메시지 생성', () => {
             getImageUrl('chat/test4.png'),
             getImageUrl('chat/test5.png'),
           ],
+          type: 'USER',
+          referenceId: null,
           createdAt: expect.any(String),
           replyTo: null,
         },

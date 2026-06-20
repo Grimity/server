@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Transactional } from '@nestjs-cls/transactional';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
 import { getImageUrl } from 'src/shared/util/get-image-url';
@@ -40,6 +41,7 @@ export class CommissionWorkService {
     private readonly redisService: RedisService,
     private readonly redisPublisher: TypedRedisPublisher,
     private readonly eventEmitter: TypedEventEmitter,
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
   @Transactional()
@@ -172,37 +174,42 @@ export class CommissionWorkService {
       ],
     };
 
-    // 6. 웹소켓: 발신자 본인은 항상, 수신자는 온라인일 때만
-    await this.redisPublisher.publish(
-      `user:${actorId}`,
-      'newChatMessage',
-      newMessagePayload,
-    );
-    if (recipientOnline) {
+    // 6~7. 사이드이펙트(웹소켓 publish + FCM 푸시)는 트랜잭션 바깥에서 실행한다.
+    //   push 핸들러(PushService)가 txHost.tx로 pushToken을 조회하는데, 트랜잭션 내부에서
+    //   emit하면 이미 커밋된 트랜잭션 커넥션을 써서 "Transaction already closed"로 실패함.
+    const actorInfo = chatUsers.find((user) => user.id === actorId);
+    const recipientInfo = chatUsers.find((user) => user.id === recipientId);
+    await this.txHost.withoutTransaction(async () => {
+      // 웹소켓: 발신자 본인은 항상, 수신자는 온라인일 때만
       await this.redisPublisher.publish(
-        `user:${recipientId}`,
+        `user:${actorId}`,
         'newChatMessage',
         newMessagePayload,
       );
-    }
+      if (recipientOnline) {
+        await this.redisPublisher.publish(
+          `user:${recipientId}`,
+          'newChatMessage',
+          newMessagePayload,
+        );
+      }
 
-    // 7. FCM 푸시: 수신자가 해당 방 미입장일 때만
-    if (!recipientJoined) {
-      const actorInfo = chatUsers.find((user) => user.id === actorId);
-      const recipientInfo = chatUsers.find((user) => user.id === recipientId);
-      this.eventEmitter.emit('push', {
-        userId: recipientId,
-        title: actorInfo?.name ?? '',
-        text: content,
-        data: {
-          event: 'newChatMessage',
-          deepLink: `/chats/${chatId}`,
-          data: JSON.stringify(newMessagePayload),
-        },
-        key: `chat-message-${chatId}`,
-        badge: recipientInfo?.unreadCount,
-      });
-    }
+      // FCM 푸시: 수신자가 해당 방 미입장일 때만
+      if (!recipientJoined) {
+        this.eventEmitter.emit('push', {
+          userId: recipientId,
+          title: actorInfo?.name ?? '',
+          text: content,
+          data: {
+            event: 'newChatMessage',
+            deepLink: `/chats/${chatId}`,
+            data: JSON.stringify(newMessagePayload),
+          },
+          key: `chat-message-${chatId}`,
+          badge: recipientInfo?.unreadCount,
+        });
+      }
+    });
   }
 
   @Transactional()
