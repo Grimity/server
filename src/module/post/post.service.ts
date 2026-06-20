@@ -41,11 +41,11 @@ export class PostService {
       thumbnail,
     });
 
-    this.eventEmitter.emit('post:CREATED', {
-      postId: post.id,
-      title,
-      content: parsedContent,
-    });
+    // this.eventEmitter.emit('post:CREATED', {
+    //   postId: post.id,
+    //   title,
+    //   content: parsedContent,
+    // });
 
     return post;
   }
