@@ -247,6 +247,7 @@ describe('POST /commissions - 커미션 등록', () => {
       thumbnail: payload.thumbnail,
       isPublic: payload.isPublic,
       createdAt: expect.any(Date),
+      deletedAt: null,
       tags: expect.arrayContaining(
         payload.tags.map((tagName) => ({ commissionId: body.id, tagName })),
       ),

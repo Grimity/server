@@ -27,6 +27,40 @@ export class CommissionService {
       });
     }
 
+    const tags = this.validatePayload(dto);
+
+    return await this.writer.create(userId, { ...dto, tags });
+  }
+
+  @Transactional()
+  async update(
+    userId: string,
+    commissionId: string,
+    dto: CreateCommissionRequest,
+  ): Promise<void> {
+    const tags = this.validatePayload(dto);
+
+    const updated = await this.writer.update(userId, commissionId, {
+      ...dto,
+      tags,
+    });
+    if (!updated) {
+      throw new HttpException('COMMISSION', 404);
+    }
+  }
+
+  async delete(userId: string, commissionId: string): Promise<void> {
+    const deleted = await this.writer.softDelete(userId, commissionId);
+    if (!deleted) {
+      throw new HttpException('COMMISSION', 404);
+    }
+  }
+
+  /**
+   * create/update 공통 페이로드 검증. thumbnail∈images, 질문 옵션 규칙을 확인하고
+   * 정제(공백·# 제거 + dedup)된 tags 배열을 반환한다.
+   */
+  private validatePayload(dto: CreateCommissionRequest): string[] {
     if (!dto.images.includes(dto.thumbnail)) {
       throw new HttpException('THUMBNAIL_NOT_IN_IMAGES', 400);
     }
@@ -40,12 +74,10 @@ export class CommissionService {
       }
     }
 
-    const tags = [
+    return [
       ...new Set(
         dto.tags.map((t) => t.replaceAll(' ', '').replaceAll('#', '')),
       ),
     ];
-
-    return await this.writer.create(userId, { ...dto, tags });
   }
 }

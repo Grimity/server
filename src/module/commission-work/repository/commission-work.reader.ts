@@ -30,8 +30,8 @@ export class CommissionWorkReader {
   }
 
   async findCommissionWithQuestions(commissionId: string) {
-    return this.txHost.tx.commission.findUnique({
-      where: { id: commissionId },
+    return this.txHost.tx.commission.findFirst({
+      where: { id: commissionId, deletedAt: null },
       select: {
         id: true,
         authorId: true,

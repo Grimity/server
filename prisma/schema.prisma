@@ -404,6 +404,7 @@ model Commission {
   thumbnail           String
   isPublic            Boolean  @default(true)
   createdAt           DateTime @default(now())
+  deletedAt           DateTime?
 
   author    User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
   tags      CommissionTag[]
