@@ -148,4 +148,37 @@ describe('PATCH /commission-works/:id/accept - 커미션 수락', () => {
     });
     expect(updated.status).toBe('ACCEPTED');
   });
+
+  describe('채팅방 / 시스템 메시지', () => {
+    it('수락 시 작가가 신청자에게 COMMISSION_ACCEPTED 시스템 메시지를 보낸다', async () => {
+      const { user: author, accessToken } = await createAuthor();
+      const { user: client } = await createClient();
+      const work = await createWork(author.id, client.id);
+
+      const { status } = await request(app.getHttpServer())
+        .patch(`/commission-works/${work.id}/accept`)
+        .set('Authorization', `Bearer ${accessToken}`);
+      expect(status).toBe(200);
+
+      const messages = await prisma.chatMessage.findMany({
+        where: { type: 'COMMISSION_ACCEPTED', referenceId: work.id },
+      });
+      expect(messages).toHaveLength(1);
+      expect(messages[0]).toEqual(
+        expect.objectContaining({
+          userId: author.id,
+          type: 'COMMISSION_ACCEPTED',
+          referenceId: work.id,
+          content: '커미션을 수락했어요',
+        }),
+      );
+
+      // 수신자(신청자) unread +1
+      const chatUsers = await prisma.chatUser.findMany({
+        where: { userId: { in: [author.id, client.id] } },
+      });
+      const clientChatUser = chatUsers.find((cu) => cu.userId === client.id)!;
+      expect(clientChatUser.unreadCount).toBe(1);
+    });
+  });
 });

@@ -165,4 +165,37 @@ describe('PATCH /commission-works/:id/complete - 커미션 작업 완료', () =>
     });
     expect(updated.status).toBe('COMPLETED');
   });
+
+  describe('채팅방 / 시스템 메시지', () => {
+    it('완료 시 신청자가 작가에게 COMMISSION_COMPLETED 시스템 메시지를 보낸다', async () => {
+      const { user: author } = await createAuthor();
+      const { user: client, accessToken } = await createClient();
+      const work = await createWork(author.id, client.id, 'ACCEPTED');
+
+      const { status } = await request(app.getHttpServer())
+        .patch(`/commission-works/${work.id}/complete`)
+        .set('Authorization', `Bearer ${accessToken}`);
+      expect(status).toBe(200);
+
+      const messages = await prisma.chatMessage.findMany({
+        where: { type: 'COMMISSION_COMPLETED', referenceId: work.id },
+      });
+      expect(messages).toHaveLength(1);
+      expect(messages[0]).toEqual(
+        expect.objectContaining({
+          userId: client.id,
+          type: 'COMMISSION_COMPLETED',
+          referenceId: work.id,
+          content: '커미션을 완료했어요',
+        }),
+      );
+
+      // 수신자(작가) unread +1
+      const chatUsers = await prisma.chatUser.findMany({
+        where: { userId: { in: [author.id, client.id] } },
+      });
+      const authorChatUser = chatUsers.find((cu) => cu.userId === author.id)!;
+      expect(authorChatUser.unreadCount).toBe(1);
+    });
+  });
 });

@@ -165,7 +165,9 @@ describe('PATCH /commission-works/:id/reject - 커미션 거절', () => {
       where: { id: work.id },
     });
     expect(updated.status).toBe('REJECTED');
-    expect(updated.rejectReason).toBe('죄송하지만 일정이 맞지 않아 거절합니다.');
+    expect(updated.rejectReason).toBe(
+      '죄송하지만 일정이 맞지 않아 거절합니다.',
+    );
     expect(updated.rejectedAt).toEqual(expect.any(Date));
   });
 
@@ -187,5 +189,39 @@ describe('PATCH /commission-works/:id/reject - 커미션 거절', () => {
     expect(updated.status).toBe('REJECTED');
     expect(updated.rejectReason).toBeNull();
     expect(updated.rejectedAt).toEqual(expect.any(Date));
+  });
+
+  describe('채팅방 / 시스템 메시지', () => {
+    it('거절 시 작가가 신청자에게 COMMISSION_REJECTED 시스템 메시지를 보낸다', async () => {
+      const { user: author, accessToken } = await createAuthor();
+      const { user: client } = await createClient();
+      const work = await createWork(author.id, client.id);
+
+      const { status } = await request(app.getHttpServer())
+        .patch(`/commission-works/${work.id}/reject`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ reason: '일정이 맞지 않아요' });
+      expect(status).toBe(200);
+
+      const messages = await prisma.chatMessage.findMany({
+        where: { type: 'COMMISSION_REJECTED', referenceId: work.id },
+      });
+      expect(messages).toHaveLength(1);
+      expect(messages[0]).toEqual(
+        expect.objectContaining({
+          userId: author.id,
+          type: 'COMMISSION_REJECTED',
+          referenceId: work.id,
+          content: '커미션을 거절했어요',
+        }),
+      );
+
+      // 수신자(신청자) unread +1
+      const chatUsers = await prisma.chatUser.findMany({
+        where: { userId: { in: [author.id, client.id] } },
+      });
+      const clientChatUser = chatUsers.find((cu) => cu.userId === client.id)!;
+      expect(clientChatUser.unreadCount).toBe(1);
+    });
   });
 });

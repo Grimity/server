@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
-import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { Transactional } from '@nestjs-cls/transactional';
 import { CustomException } from 'src/core/exception/custom.exception';
 import { IdResponse } from 'src/shared/response/id.response';
 import { getImageUrl } from 'src/shared/util/get-image-url';
@@ -41,11 +40,28 @@ export class CommissionWorkService {
     private readonly redisService: RedisService,
     private readonly redisPublisher: TypedRedisPublisher,
     private readonly eventEmitter: TypedEventEmitter,
-    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
-  @Transactional()
   async create(
+    clientId: string,
+    dto: CreateCommissionWorkRequest,
+  ): Promise<IdResponse> {
+    const work = await this.createTransaction(clientId, dto);
+
+    // 트랜잭션 커밋 후 시스템 메시지 전송 (채팅방 없으면 생성, 웹소켓/푸시 발송 포함)
+    await this.sendCommissionSystemMessage({
+      actorId: clientId,
+      recipientId: dto.authorId,
+      type: 'COMMISSION_REQUESTED',
+      referenceId: work.id,
+      content: '커미션을 신청했어요',
+    });
+
+    return work;
+  }
+
+  @Transactional()
+  private async createTransaction(
     clientId: string,
     dto: CreateCommissionWorkRequest,
   ): Promise<IdResponse> {
@@ -75,16 +91,6 @@ export class CommissionWorkService {
     });
     await this.writer.createEvent(work.id, 'REQUESTED');
 
-    // 신청자(clientId)가 작가(authorId)에게 "커미션 신청 완료" 시스템 메시지를 전송
-    // (채팅방 없으면 생성, 웹소켓/푸시 발송 포함)
-    await this.sendCommissionSystemMessage({
-      actorId: clientId,
-      recipientId: dto.authorId,
-      type: 'COMMISSION_REQUESTED',
-      referenceId: work.id,
-      content: '커미션을 신청했어요',
-    });
-
     return work;
   }
 
@@ -93,6 +99,10 @@ export class CommissionWorkService {
    * 채팅방이 없으면 생성하며, 웹소켓 publish와 (수신자 미입장 시) FCM 푸시까지 처리한다.
    * 로직은 chat-message.service.ts 의 create() 흐름을 그대로 따른다.
    * actor=발신자(메시지 userId), recipient=unread+푸시 대상.
+   *
+   * 반드시 트랜잭션 "바깥"(xxxTransaction 커밋 후)에서 호출해야 한다.
+   * 트랜잭션 내부에서 호출하면 push 핸들러(PushService)가 이미 커밋된 트랜잭션 커넥션으로
+   * pushToken을 조회해 "Transaction already closed"로 실패한다.
    */
   private async sendCommissionSystemMessage(params: {
     actorId: string;
@@ -174,50 +184,68 @@ export class CommissionWorkService {
       ],
     };
 
-    // 6~7. 사이드이펙트(웹소켓 publish + FCM 푸시)는 트랜잭션 바깥에서 실행한다.
-    //   push 핸들러(PushService)가 txHost.tx로 pushToken을 조회하는데, 트랜잭션 내부에서
-    //   emit하면 이미 커밋된 트랜잭션 커넥션을 써서 "Transaction already closed"로 실패함.
-    const actorInfo = chatUsers.find((user) => user.id === actorId);
-    const recipientInfo = chatUsers.find((user) => user.id === recipientId);
-    await this.txHost.withoutTransaction(async () => {
-      // 웹소켓: 발신자 본인은 항상, 수신자는 온라인일 때만
+    // 6. 웹소켓: 발신자 본인은 항상, 수신자는 온라인일 때만
+    await this.redisPublisher.publish(
+      `user:${actorId}`,
+      'newChatMessage',
+      newMessagePayload,
+    );
+    if (recipientOnline) {
       await this.redisPublisher.publish(
-        `user:${actorId}`,
+        `user:${recipientId}`,
         'newChatMessage',
         newMessagePayload,
       );
-      if (recipientOnline) {
-        await this.redisPublisher.publish(
-          `user:${recipientId}`,
-          'newChatMessage',
-          newMessagePayload,
-        );
-      }
+    }
 
-      // FCM 푸시: 수신자가 해당 방 미입장일 때만
-      if (!recipientJoined) {
-        this.eventEmitter.emit('push', {
-          userId: recipientId,
-          title: actorInfo?.name ?? '',
-          text: content,
-          data: {
-            event: 'newChatMessage',
-            deepLink: `/chats/${chatId}`,
-            data: JSON.stringify(newMessagePayload),
-          },
-          key: `chat-message-${chatId}`,
-          badge: recipientInfo?.unreadCount,
-        });
-      }
-    });
+    // 7. FCM 푸시: 수신자가 해당 방 미입장일 때만
+    if (!recipientJoined) {
+      const actorInfo = chatUsers.find((user) => user.id === actorId);
+      const recipientInfo = chatUsers.find((user) => user.id === recipientId);
+      this.eventEmitter.emit('push', {
+        userId: recipientId,
+        title: actorInfo?.name ?? '',
+        text: content,
+        data: {
+          event: 'newChatMessage',
+          deepLink: `/chats/${chatId}`,
+          data: JSON.stringify(newMessagePayload),
+        },
+        key: `chat-message-${chatId}`,
+        badge: recipientInfo?.unreadCount,
+      });
+    }
   }
 
-  @Transactional()
   async uploadResult(
     userId: string,
     workId: string,
     dto: UploadCommissionWorkResultRequest,
   ): Promise<IdResponse> {
+    const work = await this.uploadResultTransaction(userId, workId, dto);
+
+    // 작가가 신청자에게 작업물 업로드 시스템 메시지 전송
+    await this.sendCommissionSystemMessage({
+      actorId: work.authorId,
+      recipientId: work.clientId,
+      type: dto.isFinal
+        ? 'COMMISSION_FINAL_UPLOADED'
+        : 'COMMISSION_RESULT_UPLOADED',
+      referenceId: workId,
+      content: dto.isFinal
+        ? '최종 작업물을 업로드했어요'
+        : '작업물을 업로드했어요',
+    });
+
+    return { id: work.id };
+  }
+
+  @Transactional()
+  private async uploadResultTransaction(
+    userId: string,
+    workId: string,
+    dto: UploadCommissionWorkResultRequest,
+  ) {
     const work = await this.reader.findWorkById(workId);
     if (!work) {
       throw new CustomException(404, {
@@ -240,21 +268,32 @@ export class CommissionWorkService {
     }
 
     const status = dto.isFinal ? 'FINAL' : 'IN_PROGRESS';
-    const result = await this.writer.upsertResult(
-      workId,
-      dto.images,
-      dto.isFinal,
-      status,
-    );
+    await this.writer.upsertResult(workId, dto.images, dto.isFinal, status);
     await this.writer.createEvent(
       workId,
       dto.isFinal ? 'FINAL_UPLOADED' : 'RESULT_UPLOADED',
     );
-    return result;
+
+    return work;
+  }
+
+  async accept(userId: string, workId: string): Promise<IdResponse> {
+    const work = await this.acceptTransaction(userId, workId);
+
+    // 작가가 신청자에게 수락 시스템 메시지 전송
+    await this.sendCommissionSystemMessage({
+      actorId: work.authorId,
+      recipientId: work.clientId,
+      type: 'COMMISSION_ACCEPTED',
+      referenceId: workId,
+      content: '커미션을 수락했어요',
+    });
+
+    return { id: work.id };
   }
 
   @Transactional()
-  async accept(userId: string, workId: string): Promise<IdResponse> {
+  private async acceptTransaction(userId: string, workId: string) {
     const work = await this.reader.findWorkById(workId);
     if (!work) {
       throw new CustomException(404, {
@@ -271,13 +310,29 @@ export class CommissionWorkService {
         errorCode: CommissionWorkErrorCode.WORK_NOT_PENDING,
       });
     }
-    const result = await this.writer.accept(workId);
+    await this.writer.accept(workId);
     await this.writer.createEvent(workId, 'ACCEPTED');
-    return result;
+
+    return work;
+  }
+
+  async complete(userId: string, workId: string): Promise<IdResponse> {
+    const work = await this.completeTransaction(userId, workId);
+
+    // 신청자가 작가에게 완료 시스템 메시지 전송
+    await this.sendCommissionSystemMessage({
+      actorId: work.clientId,
+      recipientId: work.authorId,
+      type: 'COMMISSION_COMPLETED',
+      referenceId: workId,
+      content: '커미션을 완료했어요',
+    });
+
+    return { id: work.id };
   }
 
   @Transactional()
-  async complete(userId: string, workId: string): Promise<IdResponse> {
+  private async completeTransaction(userId: string, workId: string) {
     const work = await this.reader.findWorkById(workId);
     if (!work) {
       throw new CustomException(404, {
@@ -298,17 +353,37 @@ export class CommissionWorkService {
         errorCode: CommissionWorkErrorCode.WORK_NOT_COMPLETABLE,
       });
     }
-    const result = await this.writer.complete(workId);
+    await this.writer.complete(workId);
     await this.writer.createEvent(workId, 'COMPLETED');
-    return result;
+
+    return work;
   }
 
-  @Transactional()
   async reject(
     userId: string,
     workId: string,
     reason: string | null,
   ): Promise<IdResponse> {
+    const work = await this.rejectTransaction(userId, workId, reason);
+
+    // 작가가 신청자에게 거절 시스템 메시지 전송
+    await this.sendCommissionSystemMessage({
+      actorId: work.authorId,
+      recipientId: work.clientId,
+      type: 'COMMISSION_REJECTED',
+      referenceId: workId,
+      content: '커미션을 거절했어요',
+    });
+
+    return { id: work.id };
+  }
+
+  @Transactional()
+  private async rejectTransaction(
+    userId: string,
+    workId: string,
+    reason: string | null,
+  ) {
     const work = await this.reader.findWorkById(workId);
     if (!work) {
       throw new CustomException(404, {
@@ -325,9 +400,10 @@ export class CommissionWorkService {
         errorCode: CommissionWorkErrorCode.WORK_NOT_PENDING,
       });
     }
-    const result = await this.writer.reject(workId, reason ?? null);
+    await this.writer.reject(workId, reason ?? null);
     await this.writer.createEvent(workId, 'REJECTED');
-    return result;
+
+    return work;
   }
 
   async createMemo(

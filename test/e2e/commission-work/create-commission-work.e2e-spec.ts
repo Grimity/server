@@ -510,4 +510,110 @@ describe('POST /commission-works - 커미션 신청', () => {
       expect(req.answers).toEqual([]);
     });
   });
+
+  describe('채팅방 / 시스템 메시지 생성', () => {
+    it('기존 채팅방이 없으면 새 채팅방과 COMMISSION_REQUESTED 시스템 메시지를 생성한다', async () => {
+      const author = await createAuthor();
+      const { user: client, accessToken } = await createClient();
+
+      const { status, body } = await request(app.getHttpServer())
+        .post('/commission-works')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(directPayload(author.id));
+
+      expect(status).toBe(201);
+
+      // 신청자-작가가 한 채팅방에 함께 참여
+      const chatUsers = await prisma.chatUser.findMany({
+        where: { userId: { in: [client.id, author.id] } },
+      });
+      expect(chatUsers).toHaveLength(2);
+      const chatIds = [...new Set(chatUsers.map((cu) => cu.chatId))];
+      expect(chatIds).toHaveLength(1);
+      const chatId = chatIds[0];
+
+      // 양쪽 모두 enteredAt 처리 → 채팅목록 노출
+      const clientChatUser = chatUsers.find((cu) => cu.userId === client.id)!;
+      const authorChatUser = chatUsers.find((cu) => cu.userId === author.id)!;
+      expect(clientChatUser.enteredAt).not.toBeNull();
+      expect(authorChatUser.enteredAt).not.toBeNull();
+
+      // 작가(수신자)만 unread +1, 신청자(발신자)는 0
+      expect(authorChatUser.unreadCount).toBe(1);
+      expect(clientChatUser.unreadCount).toBe(0);
+
+      // 시스템 메시지 (발신자=신청자, type/referenceId 세팅)
+      const messages = await prisma.chatMessage.findMany({ where: { chatId } });
+      expect(messages).toHaveLength(1);
+      expect(messages[0]).toEqual(
+        expect.objectContaining({
+          chatId,
+          userId: client.id,
+          type: 'COMMISSION_REQUESTED',
+          referenceId: body.id,
+          content: '커미션을 신청했어요',
+          images: [],
+        }),
+      );
+    });
+
+    it('기존 채팅방이 있으면 새로 만들지 않고 기존 방에 시스템 메시지를 추가한다', async () => {
+      const author = await createAuthor();
+      const { user: client, accessToken } = await createClient();
+
+      // 신청자-작가 사이에 이미 채팅방(+ 일반 메시지) 존재
+      const existingChat = await prisma.chat.create({
+        data: {
+          users: {
+            createMany: {
+              data: [
+                { userId: client.id, enteredAt: new Date() },
+                { userId: author.id, enteredAt: new Date() },
+              ],
+            },
+          },
+          messages: {
+            create: { userId: client.id, content: '안녕하세요', images: [] },
+          },
+        },
+        select: { id: true },
+      });
+
+      const { status, body } = await request(app.getHttpServer())
+        .post('/commission-works')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(directPayload(author.id));
+
+      expect(status).toBe(201);
+
+      // 채팅방 중복 생성 없음 (기존 방 그대로)
+      const chatUsers = await prisma.chatUser.findMany({
+        where: { userId: { in: [client.id, author.id] } },
+      });
+      const chatIds = [...new Set(chatUsers.map((cu) => cu.chatId))];
+      expect(chatIds).toEqual([existingChat.id]);
+
+      // 기존 방에 시스템 메시지가 추가됨 (기존 일반 메시지 + 시스템 메시지 = 2개)
+      const allMessages = await prisma.chatMessage.findMany({
+        where: { chatId: existingChat.id },
+      });
+      expect(allMessages).toHaveLength(2);
+
+      const systemMessage = allMessages.find(
+        (m) => m.type === 'COMMISSION_REQUESTED',
+      );
+      expect(systemMessage).toEqual(
+        expect.objectContaining({
+          chatId: existingChat.id,
+          userId: client.id,
+          referenceId: body.id,
+          content: '커미션을 신청했어요',
+        }),
+      );
+
+      // 작가 unread +1
+      const authorChatUser = chatUsers.find((cu) => cu.userId === author.id)!;
+      expect(authorChatUser.unreadCount).toBe(1);
+    });
+  });
 });
