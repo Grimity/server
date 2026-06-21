@@ -31,7 +31,7 @@ export class CommissionWorkReader {
 
   async findCommissionWithQuestions(commissionId: string) {
     return this.txHost.tx.commission.findFirst({
-      where: { id: commissionId, deletedAt: null },
+      where: { id: commissionId, deletedAt: null, isPublic: true },
       select: {
         id: true,
         authorId: true,

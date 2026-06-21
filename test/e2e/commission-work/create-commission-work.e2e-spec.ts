@@ -189,6 +189,23 @@ describe('POST /commission-works - 커미션 신청', () => {
       expect(status).toBe(404);
     });
 
+    it('비공개(isPublic=false) 커미션이면 404를 반환한다', async () => {
+      const author = await createAuthor();
+      const commission = await createCommission(author.id);
+      await prisma.commission.update({
+        where: { id: commission.id },
+        data: { isPublic: false },
+      });
+      const { accessToken } = await createClient();
+
+      const { status } = await request(app.getHttpServer())
+        .post('/commission-works')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(formPayload(author.id, commission.id));
+
+      expect(status).toBe(404);
+    });
+
     it('commission의 authorId와 요청 body의 authorId가 다르면 400을 반환한다', async () => {
       const author = await createAuthor();
       const otherAuthor = await prisma.user.create({
