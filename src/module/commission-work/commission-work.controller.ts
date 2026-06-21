@@ -22,6 +22,9 @@ import {
   AcceptCommissionWork403Response,
   AcceptCommissionWork404Response,
   AcceptCommissionWork409Response,
+  CancelCommissionWork403Response,
+  CancelCommissionWork404Response,
+  CancelCommissionWork409Response,
   CompleteCommissionWork403Response,
   CompleteCommissionWork404Response,
   CompleteCommissionWork409Response,
@@ -86,6 +89,23 @@ export class CommissionWorkController {
     @Param('id', new ParseUUIDPipe()) workId: string,
   ): Promise<IdResponse> {
     return this.service.accept(userId, workId);
+  }
+
+  @ApiOperation({
+    summary: '커미션 신청 취소',
+    description:
+      '신청자(의뢰인)가 본인이 보낸 PENDING 상태의 신청을 취소. CANCELED 상태로 전환. 작가가 이미 수락/거절했으면 409.',
+  })
+  @ApiResponse({ status: 200, type: IdResponse })
+  @ApiResponse({ status: 403, type: CancelCommissionWork403Response })
+  @ApiResponse({ status: 404, type: CancelCommissionWork404Response })
+  @ApiResponse({ status: 409, type: CancelCommissionWork409Response })
+  @Patch(':id/cancel')
+  async cancel(
+    @CurrentUser() userId: string,
+    @Param('id', new ParseUUIDPipe()) workId: string,
+  ): Promise<IdResponse> {
+    return this.service.cancel(userId, workId);
   }
 
   @ApiOperation({

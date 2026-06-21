@@ -406,6 +406,45 @@ export class CommissionWorkService {
     return work;
   }
 
+  async cancel(userId: string, workId: string): Promise<IdResponse> {
+    const work = await this.cancelTransaction(userId, workId);
+
+    // 의뢰인이 작가에게 취소 시스템 메시지 전송
+    await this.sendCommissionSystemMessage({
+      actorId: work.clientId,
+      recipientId: work.authorId,
+      type: 'COMMISSION_CANCELED',
+      referenceId: workId,
+      content: '커미션 신청을 취소했어요',
+    });
+
+    return { id: work.id };
+  }
+
+  @Transactional()
+  private async cancelTransaction(userId: string, workId: string) {
+    const work = await this.reader.findWorkById(workId);
+    if (!work) {
+      throw new CustomException(404, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_FOUND,
+      });
+    }
+    if (work.clientId !== userId) {
+      throw new CustomException(403, {
+        errorCode: CommissionWorkErrorCode.NOT_COMMISSION_CLIENT,
+      });
+    }
+    if (work.status !== 'PENDING') {
+      throw new CustomException(409, {
+        errorCode: CommissionWorkErrorCode.WORK_NOT_PENDING,
+      });
+    }
+    await this.writer.cancel(workId);
+    await this.writer.createEvent(workId, 'CANCELED');
+
+    return work;
+  }
+
   async createMemo(
     userId: string,
     workId: string,
