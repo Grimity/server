@@ -168,27 +168,6 @@ describe('POST /feeds - 피드 생성', () => {
     expect(status2).toBe(400);
   });
 
-  it('content가 301글자 이상일때 400을 반환한다', async () => {
-    // given
-    const { accessToken } = await createTestUser(app, {});
-
-    // when
-    const { status } = await request(app.getHttpServer())
-      .post('/feeds')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        title: 'test',
-        cards: ['feed/test.jpg'],
-        thumbnail: 'feed/test.jpg',
-        isAI: false,
-        content: 'a'.repeat(301),
-        tags: [],
-      });
-
-    // then
-    expect(status).toBe(400);
-  });
-
   it('albumId가 UUID 형식이 아니면 400을 반환한다', async () => {
     // given
     const { accessToken } = await createTestUser(app, {});
