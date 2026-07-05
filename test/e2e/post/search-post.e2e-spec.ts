@@ -33,20 +33,34 @@ describe('GET /posts/search - 게시글 검색(이름만)', () => {
       .get('/posts/search')
       .query({
         keyword: 'a    ',
-        searchBy: 'title-content',
+        searchBy: 'combined',
       });
 
     // then
     expect(status).toBe(400);
   });
 
-  it('searchBy는 title-content, name 중 하나여야 한다', async () => {
+  it('searchBy는 combined, name 중 하나여야 한다', async () => {
     // when
     const { status } = await request(app.getHttpServer())
       .get('/posts/search')
       .query({
         keyword: 'ab',
         searchBy: 'invalid',
+      });
+
+    // then
+    expect(status).toBe(400);
+  });
+
+  it('type이 유효하지 않으면 400을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .get('/posts/search')
+      .query({
+        keyword: 'ab',
+        searchBy: 'combined',
+        type: 'INVALID',
       });
 
     // then
@@ -123,5 +137,72 @@ describe('GET /posts/search - 게시글 검색(이름만)', () => {
     expect(response3.status).toBe(200);
     expect(response3.body.totalCount).toBe(0);
     expect(response3.body.posts).toHaveLength(0);
+  });
+
+  it('이름 검색에도 type 필터가 적용된다', async () => {
+    // given
+    const user = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'test',
+        name: 'test',
+        email: 'test@test.com',
+        url: 'test',
+      },
+    });
+
+    await prisma.post.createMany({
+      data: [
+        { title: 'notice', content: 'c', authorId: user.id, type: 0 },
+        { title: 'normal', content: 'c', authorId: user.id, type: 1 },
+        { title: 'question', content: 'c', authorId: user.id, type: 2 },
+        {
+          title: 'feedback1',
+          content: 'c',
+          authorId: user.id,
+          type: 3,
+          createdAt: new Date(),
+        },
+        {
+          title: 'feedback2',
+          content: 'c',
+          authorId: user.id,
+          type: 3,
+          createdAt: new Date(Date.now() - 1000),
+        },
+      ],
+    });
+
+    // when
+    const [feedbackResponse, allResponse] = await Promise.all([
+      request(app.getHttpServer()).get('/posts/search').query({
+        keyword: 'test',
+        searchBy: 'name',
+        type: 'FEEDBACK',
+      }),
+      request(app.getHttpServer()).get('/posts/search').query({
+        keyword: 'test',
+        searchBy: 'name',
+      }),
+    ]);
+
+    // then
+    expect(feedbackResponse.status).toBe(200);
+    expect(feedbackResponse.body.totalCount).toBe(2);
+    expect(feedbackResponse.body.posts).toHaveLength(2);
+    expect(
+      feedbackResponse.body.posts.every(
+        (post: { type: string }) => post.type === 'FEEDBACK',
+      ),
+    ).toBe(true);
+
+    expect(allResponse.status).toBe(200);
+    expect(allResponse.body.totalCount).toBe(4);
+    expect(allResponse.body.posts).toHaveLength(4);
+    expect(
+      allResponse.body.posts.every(
+        (post: { type: string }) => post.type !== 'NOTICE',
+      ),
+    ).toBe(true);
   });
 });

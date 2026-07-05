@@ -180,7 +180,7 @@ export class PostReader {
     };
   }
 
-  async countByAuthorName(name: string) {
+  async countByAuthorName(name: string, type: number | null) {
     const [user] = await this.txHost.tx.$kysely
       .selectFrom('User')
       .where('name', '=', name)
@@ -189,6 +189,10 @@ export class PostReader {
         eb
           .selectFrom('Post')
           .whereRef('authorId', '=', 'User.id')
+          .where((eb) => {
+            if (type === null) return eb('type', '!=', 0);
+            return eb('type', '=', type);
+          })
           .select(eb.fn.count<bigint>('id').as('posts'))
           .as('postCount'),
       )
@@ -202,10 +206,14 @@ export class PostReader {
     };
   }
 
-  async findManyByAuthor({ authorId, page, size }: SearchByAuthorInput) {
+  async findManyByAuthor({ authorId, page, size, type }: SearchByAuthorInput) {
     const posts = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where('Post.authorId', '=', kyselyUuid(authorId))
+      .where((eb) => {
+        if (type === null) return eb('type', '!=', 0);
+        return eb('type', '=', type);
+      })
       .select([
         'Post.id',
         'type',
@@ -246,10 +254,19 @@ export class PostReader {
     }));
   }
 
-  async search(input: { keyword: string; page: number; size: number }) {
+  async search(input: {
+    keyword: string;
+    page: number;
+    size: number;
+    type: number | null;
+  }) {
     const result = await this.txHost.tx.$kysely
       .selectFrom('Post')
       .where('title', 'ilike', `%${input.keyword}%`)
+      .where((eb) => {
+        if (input.type === null) return eb('type', '!=', 0);
+        return eb('type', '=', input.type);
+      })
       .innerJoin('User as Author', 'authorId', 'Author.id')
       .select([
         'Post.id',
@@ -288,14 +305,21 @@ export class PostReader {
     }));
   }
 
-  async countSearchResults(keyword: string) {
-    return await this.txHost.tx.post.count({
-      where: {
-        title: {
-          contains: keyword,
-          mode: 'insensitive',
-        },
+  async countSearchResults(keyword: string, type: number | null) {
+    const where: Prisma.PostWhereInput = {
+      title: {
+        contains: keyword,
+        mode: 'insensitive',
       },
+    };
+    if (type === null) {
+      where.type = {
+        not: 0,
+      };
+    } else where.type = type;
+
+    return await this.txHost.tx.post.count({
+      where,
     });
   }
 
@@ -448,6 +472,7 @@ type SearchByAuthorInput = {
   authorId: string;
   size: number;
   page: number;
+  type: number | null;
 };
 
 type UserAndPageInput = {
