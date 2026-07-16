@@ -4,7 +4,7 @@ import {
   UserBaseWithBlockedResponse,
 } from '../../user/dto/user.base.response';
 import { CursorResponse } from '../../../shared/response/cursor.response';
-import { FeedCommentBaseResponse } from '../../feed-comment/dto/feed-comment.base.response';
+import { FeedCommentWithWriterResponse } from '../../feed-comment/dto/feed-comment.response';
 import { FeedBaseResponse, FeedResponse } from './feed.base.response';
 import { AlbumBaseResponse } from '../../album/dto/album.base.response';
 
@@ -53,8 +53,8 @@ export class FollowingFeedResponse extends FeedResponse {
   @ApiProperty()
   isSave: boolean;
 
-  @ApiProperty({ type: FeedCommentBaseResponse, nullable: true })
-  comment: FeedCommentBaseResponse | null;
+  @ApiProperty({ type: FeedCommentWithWriterResponse, nullable: true })
+  comment: FeedCommentWithWriterResponse | null;
 
   @ApiProperty({ type: UserBaseResponse })
   author: UserBaseResponse;

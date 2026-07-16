@@ -41,11 +41,11 @@ export class PostService {
       thumbnail,
     });
 
-    this.eventEmitter.emit('post:CREATED', {
-      postId: post.id,
-      title,
-      content: parsedContent,
-    });
+    // this.eventEmitter.emit('post:CREATED', {
+    //   postId: post.id,
+    //   title,
+    //   content: parsedContent,
+    // });
 
     return post;
   }
@@ -159,8 +159,10 @@ export class PostService {
     return;
   }
 
-  async searchByAuthorName({ keyword, page, size }: SearchPostInput) {
-    const user = await this.postReader.countByAuthorName(keyword);
+  async searchByAuthorName({ keyword, page, size, type }: SearchPostInput) {
+    const typeNumber = type === 'ALL' ? null : PostTypeEnum[type];
+
+    const user = await this.postReader.countByAuthorName(keyword, typeNumber);
 
     if (!user) {
       return {
@@ -173,6 +175,7 @@ export class PostService {
       authorId: user.id,
       page,
       size,
+      type: typeNumber,
     });
 
     return {
@@ -187,10 +190,12 @@ export class PostService {
     };
   }
 
-  async searchByTitle({ keyword, page, size }: SearchPostInput) {
+  async searchByTitle({ keyword, page, size, type }: SearchPostInput) {
+    const typeNumber = type === 'ALL' ? null : PostTypeEnum[type];
+
     const [totalCount, posts] = await Promise.all([
-      this.postReader.countSearchResults(keyword),
-      this.postReader.search({ keyword, page, size }),
+      this.postReader.countSearchResults(keyword, typeNumber),
+      this.postReader.search({ keyword, page, size, type: typeNumber }),
     ]);
 
     return {
@@ -238,4 +243,5 @@ type SearchPostInput = {
   keyword: string;
   page: number;
   size: number;
+  type: (typeof postTypes)[number] | 'ALL';
 };

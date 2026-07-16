@@ -140,24 +140,21 @@ export class UserController {
     });
   }
 
-  @ApiBearerAuth()
+  // @ApiBearerAuth()
   @ApiOperation({
     summary:
       '유저별 게시글 조회 - 일관성을 위해서 경로는 이렇게하지만 accT는 있어야합니다',
   })
   @ApiResponse({ status: 200, type: [MyPostResponse] })
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get(':id/posts')
   async getPosts(
-    @CurrentUser() userId: string,
+    // @CurrentUser() userId: string,
     @Param('id', ParseUUIDPipe) targetId: string,
     @Query() { page, size }: PageRequest,
   ): Promise<MyPostResponse[]> {
-    if (userId !== targetId) {
-      throw new HttpException('Forbidden', 403);
-    }
     return this.userService.getMyPosts({
-      userId,
+      userId: targetId,
       page: page ?? 1,
       size: size ?? 10,
     });

@@ -77,19 +77,21 @@ export class PostController {
   @ApiResponse({ status: 200, type: PostsResponse })
   @Get('search')
   async searchPosts(
-    @Query() { keyword, page, size, searchBy }: SearchPostRequest,
+    @Query() { keyword, page, size, searchBy, type }: SearchPostRequest,
   ): Promise<PostsResponse> {
     if (searchBy === 'name') {
       return await this.postService.searchByAuthorName({
         keyword,
         page: page ?? 1,
         size: size ?? 10,
+        type: type ?? 'ALL',
       });
     } else {
       return await this.postService.searchByTitle({
         keyword,
         page: page ?? 1,
         size: size ?? 10,
+        type: type ?? 'ALL',
       });
     }
   }

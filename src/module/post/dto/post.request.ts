@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsIn } from 'class-validator';
+import { Length, IsIn, IsOptional } from 'class-validator';
 import {
   TrimString,
   TrimAndUpperNullableString,
@@ -43,4 +43,14 @@ export class SearchPostRequest extends PageRequest {
   @TrimAndLowerNullableString()
   @IsIn(searchByTypes)
   searchBy: (typeof searchByTypes)[number];
+
+  @ApiProperty({
+    enum: GetPostsRequestTypes,
+    required: false,
+    description: '생략 시 ALL',
+  })
+  @TrimAndUpperNullableString()
+  @IsOptional()
+  @IsIn(GetPostsRequestTypes)
+  type: (typeof GetPostsRequestTypes)[number] | null;
 }
