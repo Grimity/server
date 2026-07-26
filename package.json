@@ -13,6 +13,8 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "openapi": "ts-node --files -r tsconfig-paths/register scripts/generate-openapi.ts openapi/openapi.json",
+    "openapi:check": "npm run openapi && git diff --exit-code -- openapi/openapi.json",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

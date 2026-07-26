@@ -31,7 +31,7 @@ import { IdResponse } from 'src/shared/response';
 import { ChatsResponse, OpponentUserResponse } from './dto/chat.response';
 import { UserBaseResponse, UserBaseWithBlockedResponse } from '../user/dto';
 
-@ApiTags('/chats')
+@ApiTags('chats')
 @ApiBearerAuth()
 @ApiResponse({ status: 400, description: 'Bad Request' })
 @ApiResponse({ status: 401, description: 'Unauthorized' })

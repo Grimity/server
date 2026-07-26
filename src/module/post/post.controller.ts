@@ -34,7 +34,7 @@ import {
 } from './dto/post.response';
 import { PostBaseResponse } from './dto';
 
-@ApiTags('/posts')
+@ApiTags('posts')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('posts')

@@ -40,7 +40,7 @@ import { UserAgentGuard, JwtRefreshGuard } from 'src/core/guard';
   description: '앱에서만 사용되는 속성입니다',
   required: false,
 })
-@ApiTags('/auth')
+@ApiTags('auth')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('auth')
 export class AuthController {

@@ -20,7 +20,7 @@ import { CurrentUser } from 'src/core/decorator';
 import { NotificationResponse } from './dto/notification.response';
 
 @ApiBearerAuth()
-@ApiTags('/notifications')
+@ApiTags('notifications')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @UseGuards(JwtGuard)

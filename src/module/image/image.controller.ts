@@ -10,7 +10,7 @@ import { GetImageUploadUrlRequest } from './dto/image.request';
 import { ImageUploadUrlResponse } from './dto/image.response';
 import { ImageService } from './image.service';
 
-@ApiTags('/images')
+@ApiTags('images')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('images')
 export class ImageController {

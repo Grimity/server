@@ -11,7 +11,7 @@ import { CurrentUser } from 'src/core/decorator';
 import { JwtGuard } from 'src/core/guard';
 
 @ApiBearerAuth()
-@ApiTags('/reports')
+@ApiTags('reports')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @UseGuards(JwtGuard)

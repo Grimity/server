@@ -10,7 +10,7 @@ import { AdminLoginRequest } from './dto/admin.request';
 import { AdminLoginResponse } from './dto/admin.response';
 
 @ApiExcludeController()
-@ApiTags('/admin')
+@ApiTags('admin')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('admin')
 export class AdminController {

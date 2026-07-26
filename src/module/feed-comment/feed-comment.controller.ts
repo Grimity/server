@@ -27,7 +27,7 @@ import {
 } from './dto/feed-comment.request';
 import { ParentFeedCommentResponse } from './dto/feed-comment.response';
 
-@ApiTags('/feed-comments')
+@ApiTags('feed-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @Controller('feed-comments')

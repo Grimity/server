@@ -41,7 +41,7 @@ import { FeedLikedUserResponse } from '../user/dto/user.response';
 import { JwtGuard, OptionalJwtGuard } from 'src/core/guard';
 import { CurrentUser } from 'src/core/decorator';
 
-@ApiTags('/feeds')
+@ApiTags('feeds')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('feeds')
@@ -96,7 +96,7 @@ export class FeedController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: '랭킹 조회 - Optional Guard' })
-  @ApiResponse({ type: FeedRankingsResponse })
+  @ApiResponse({ status: 200, type: FeedRankingsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get('rankings')
   async getFeedRanks(

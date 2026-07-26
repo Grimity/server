@@ -27,7 +27,7 @@ import { ChatMessagesResponse } from './dto/chat-message.response';
 import { ChatMessageService } from './chat-message.service';
 import { CurrentUser } from 'src/core/decorator';
 
-@ApiTags('/chat-messages')
+@ApiTags('chat-messages')
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: 'Bad Request' })

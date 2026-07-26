@@ -25,7 +25,7 @@ import { CreatePostCommentRequest } from './dto/post-comment.request';
 import { IdResponse } from 'src/shared/response/id.response';
 import { ParentPostCommentResponse } from './dto/post-comment.response';
 
-@ApiTags('/post-comments')
+@ApiTags('post-comments')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @Controller('post-comments')

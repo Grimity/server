@@ -8,6 +8,22 @@ permissions:
   contents: read
 
 jobs:
+  # 커밋된 openapi.json이 소스와 일치하는지 검사한다.
+  # preview 모드라 DB/시크릿이 필요 없어서 test 잡과 분리해 빠르게 돈다.
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx prisma generate
+
+      - name: Check OpenAPI spec is up to date
+        run: npm run openapi:check
+
   test:
     runs-on: ubuntu-latest
     env:

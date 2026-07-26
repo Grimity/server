@@ -50,7 +50,7 @@ import {
   UploadCommissionWorkResultRequest,
 } from './dto/commission-work.request';
 
-@ApiTags('/commission-works')
+@ApiTags('commission-works')
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @UseGuards(JwtGuard)

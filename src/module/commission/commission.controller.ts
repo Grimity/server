@@ -22,7 +22,7 @@ import { IdResponse } from 'src/shared/response/id.response';
 import { CommissionService } from './commission.service';
 import { CreateCommissionRequest } from './dto/commission.request';
 
-@ApiTags('/commissions')
+@ApiTags('commissions')
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })

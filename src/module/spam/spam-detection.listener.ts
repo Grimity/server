@@ -4,7 +4,13 @@ import { GoogleGenAI } from '@google/genai';
 import { EventPayloadMap } from 'src/infrastructure/event/event-payload.types';
 import { PostWriter } from '../post/repository/post.writer';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// import 시점이 아니라 첫 사용 시점에 만든다.
+// 모듈 스코프에서 만들면 GEMINI_API_KEY 없이는 AppModule을 import조차 못 해서
+// 스펙 추출·테스트 같은 도구가 시크릿을 요구하게 된다.
+let client: GoogleGenAI | null = null;
+function ai() {
+  return (client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }));
+}
 
 @Injectable()
 export class SpamDetectionListener {
@@ -19,7 +25,7 @@ export class SpamDetectionListener {
     content,
   }: EventPayloadMap['post:CREATED']) {
     try {
-      const response = await ai.models.generateContent({
+      const response = await ai().models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: [`제목: ${title}\n내용: ${content}`],
         config: {

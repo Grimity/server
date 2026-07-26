@@ -24,7 +24,7 @@ import {
 } from './dto/admin-feed.response';
 
 @ApiExcludeController()
-@ApiTags('/admin')
+@ApiTags('admin')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @ApiResponse({ status: 401, description: '어드민 인증 실패' })
 @Controller('admin/feeds')

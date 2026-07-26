@@ -19,12 +19,17 @@ export class AppVersionResponse {
   createdAt: Date;
 }
 
-@ApiTags('/')
+@ApiTags('app')
 @Controller()
 export class AppController {
   constructor(private readonly prisma: PrismaService) {}
+  @ApiOperation({ summary: '헬스체크' })
+  @ApiResponse({
+    status: 200,
+    schema: { type: 'string', example: 'OK' },
+  })
   @Get('health-check')
-  healthCheck() {
+  healthCheck(): string {
     return 'OK';
   }
 

@@ -37,7 +37,7 @@ import {
 import { UserFeedsResponse } from '../feed/dto/feed.response';
 import { MyPostResponse } from '../post/dto/post.response';
 
-@ApiTags('/users')
+@ApiTags('users')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @Controller('users')
