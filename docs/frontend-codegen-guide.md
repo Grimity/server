@@ -568,26 +568,157 @@ REST가 전부 넘어가기 전까지는 두 방식이 공존한다. 정상이�
 
 ## 부록 D. Flutter(APP-Grimity)
 
-같은 `openapi.json`을 쓰되 생성기만 다르다. 현재 `dio + retrofit + freezed + json_serializable`로
-모델 68개와 api 인터페이스 20개를 손으로 관리 중인데, `swagger_parser`가 **정확히 같은 조합**을
-출력하므로 구조 변경 없이 대체 가능하다.
+**Flutter도 동일하게 적용 가능하다. 오히려 절감 효과가 가장 크다** — 현재 수기로 관리 중인
+모델 68개 + retrofit 인터페이스 17개가 통째로 생성물로 대체된다.
+
+아래 내용은 실제로 생성 → `build_runner` → `dart analyze`까지 돌려서 검증했다.
+(Dart 3.9.2 / swagger_parser 1.44.0 / 앱과 동일한 의존성 버전 기준)
+
+```
+17 rest clients, 118 requests, 197 data classes → 216 files
+build_runner: 403 outputs 성공
+dart analyze: 에러 0건
+```
+
+### D-1. ⚠️ `use_freezed3: true`가 필수다
+
+이 옵션 없이 생성하면 **컴파일 에러 123개**가 난다. swagger_parser는 기본적으로 freezed 2.x
+스타일(`class X with _$X`)로 생성하는데, 앱은 freezed 3.2.3을 쓰고 있고 freezed 3.x는
+`abstract class`를 요구하기 때문이다.
+
+```
+error - Missing concrete implementations of 'getter mixin _$PostBaseResponse on Object.id' ...
+        Try implementing the missing methods, or make the class abstract.
+```
+
+`use_freezed3: true`를 켜면 `abstract class`로 생성되고 에러가 0이 된다.
+
+### D-2. 설정
 
 ```yaml
 # pubspec.yaml (dev_dependencies)
-swagger_parser: ^1.44.0   # 2026-07 기준 최신
+swagger_parser: ^1.44.0
 ```
 
 ```yaml
-# swagger_parser.yaml
-schema_path: openapi.json
-output_directory: lib/data/generated
-language: dart
-json_serializer: freezed
-client_postfix: Api
+# swagger_parser.yaml (프로젝트 루트)
+swagger_parser:
+  schema_path: openapi.json          # 또는 서버 레포 raw URL
+  output_directory: lib/data/generated
+  language: dart
+  json_serializer: freezed
+  use_freezed3: true                 # ← 필수 (D-1)
+  client_postfix: Api
+  put_clients_in_folder: true
+  enums_to_json: true
+  unknown_enum_value: true           # 서버가 enum 값을 추가해도 앱이 안 깨진다
 ```
 
-단, 프론트보다 먼저 소규모 스모크 테스트로 출력물이 기존 `lib/data/model` 구조와 맞는지
-확인하고 진행할 것.
+`unknown_enum_value`는 켜두는 걸 권장한다. 서버가 enum에 새 값을 추가했을 때 구버전 앱이
+파싱 실패로 죽는 대신 `$unknown`으로 떨어진다. 앱은 스토어 배포라 롤백이 느리므로 특히 중요하다.
+
+```bash
+dart run swagger_parser
+dart run build_runner build --delete-conflicting-outputs
+```
+
+### D-3. 생성물이 기존 코드와 얼마나 같은가
+
+거의 동일하다. 구조 변경이 필요 없다.
+
+```dart
+// 생성됨 — lib/data/generated/clients/posts_api.dart
+@RestApi()
+abstract class PostsApi {
+  factory PostsApi(Dio dio, {String? baseUrl}) = _PostsApi;
+
+  /// 게시글 조회
+  @GET('/posts')
+  Future<PostsResponse> postGetPosts({
+    @Query('type') required Type type,
+    @Query('page') num? page = 1,
+    @Query('size') num? size = 10,
+  });
+
+  /// 공지사항 조회
+  @GET('/posts/notices')
+  Future<List<PostWithAuthorResponse>> postGetNotices();
+}
+```
+
+여기서도 **드리프트 버그가 자동으로 고쳐진다.** 현재 `post_api.dart`는
+`getNotices(): Future<List<PostResponse>>`로 되어 있는데 서버는 `PostWithAuthorResponse[]`
+(author 포함)를 반환한다. 웹과 **똑같은 버그가 앱에도 있다.**
+
+차이점은 두 가지뿐이다.
+
+| 항목 | 기존 수기 | 생성물 |
+|---|---|---|
+| `@Freezed(copyWith: false)` | copyWith 비활성 | `@Freezed()` (copyWith 생성됨) |
+| nullable 필드 | `String? thumbnail` | `required String? thumbnail` (명시적 전달 강제) |
+
+### D-4. ⚠️ `toEntity()` 매핑 레이어는 옮겨야 한다
+
+현재 수기 모델 68개 중 **52개가 `toEntity()` 확장**으로 도메인 엔티티(160개)에 매핑되어 있다.
+생성 모델에는 이게 없다.
+
+Dart 확장은 별도 파일에 둘 수 있으므로, 모델 파일에서 분리해 mapper 파일로 옮기면 된다.
+Clean Architecture 구조는 그대로 유지된다.
+
+```dart
+// lib/data/mapper/post_mapper.dart (신규)
+import 'package:grimity/data/generated/models/post_base_response.dart';
+import 'package:grimity/domain/entity/post.dart';
+
+extension PostBaseResponseX on PostBaseResponse {
+  Post toEntity() => Post(
+    id: id, title: title, content: content,
+    thumbnail: thumbnail, createdAt: createdAt,
+  );
+}
+```
+
+**이 52개 이동이 Flutter 이관 작업량의 대부분이다.** 기계적이지만 건수가 있다.
+
+### D-5. analysis_options.yaml에 생성 폴더 제외 추가
+
+생성된 enum 파일에서 `unnecessary_cast` 경고 74건이 나온다(swagger_parser 코드 생성 특성,
+동작에는 문제 없음). 현재 앱 설정은 `*.g.dart`와 `*.freezed.dart`만 제외하고 있으므로
+생성 폴더를 추가한다.
+
+```yaml
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - 'lib/data/generated/**'   # 추가
+```
+
+### D-6. ⚠️ enum 이름은 서버에서 먼저 고쳐야 한다
+
+스펙의 enum이 대부분 **인라인**(이름 없는 스키마)이라, 생성기가 속성 이름으로 타입명을 만든다.
+Dart에서 특히 문제가 되는 것들:
+
+| 스펙 위치 | 생성되는 Dart 타입 | 문제 |
+|---|---|---|
+| `GET /posts ?type` | `Type` | **`dart:core.Type`과 이름 충돌** |
+| `GET /feeds/search ?sort` | `Sort` | — |
+| `GET /users/{id}/feeds ?sort` | `Sort2` | **번호가 붙음. 새 enum이 추가되면 번호가 밀려 기존 코드가 조용히 다른 타입을 가리킬 수 있다** |
+| `GET /posts/search ?searchBy` | `SearchBy` | — |
+
+쿼리 파라미터 인라인 enum이 9개, 컴포넌트 내 enum 속성이 30개 이상 있다.
+
+서버에서 `@ApiProperty({ enum: postTypes, enumName: 'PostType' })`처럼 `enumName`을 지정하면
+스펙에 명명된 스키마로 나오고, Dart·TS 양쪽 생성물 이름이 안정된다.
+**Flutter 이관을 시작하기 전에 백엔드에 요청할 것.** 나중에 바꾸면 앱 코드가 전부 깨진다.
+
+### D-7. 진행 순서
+
+1. 백엔드에 enum 명명(D-6)과 `POST /albums` 메서드명(부록 A) 수정 요청
+2. `swagger_parser.yaml` 작성 → 생성 → `build_runner`
+3. `analysis_options.yaml` 제외 추가(D-5)
+4. 도메인 하나(posts 권장)로 mapper 분리 패턴 확정(D-4)
+5. 나머지 도메인 확장, 기존 `lib/data/model`·`lib/data/data_source/remote` 삭제
 
 ---
 
