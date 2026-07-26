@@ -45,10 +45,21 @@ export const usePostsNotices = () => {
 };
 ```
 
-이 코드에는 **컴파일러가 못 잡는 버그가 실제로 들어 있다.** 서버 `GET /posts/notices`는
-`PostWithAuthorResponse[]`(author 포함)를 반환하는데 여기선 `PostResponse[]`(author 없음)로
-선언돼 있다. 타입만 npm으로 공유하고 "어느 URL에 어느 타입이 붙는지"는 사람이 손으로
-맞추기 때문에 생기는 종류의 버그다.
+**이 코드 자체는 잘못되지 않았다.** 설치된 `@grimity/dto` 1.0.24 기준으로 `PostResponse`에는
+`author`가 포함돼 있어서 당시엔 정확했다.
+
+문제는 그 뒤 서버에서 일어난 일이다. 커밋 `a0b0e47`(2025-12-03, "refactor: dto 타입
+base.response 분리")에서 `PostResponse`가 쪼개지며 **`author`가 빠지고** 새 타입
+`PostWithAuthorResponse`가 생겼다. 즉 **`PostResponse`라는 이름의 의미가 버전 간에 조용히
+바뀌었다.**
+
+- 서버 현재(1.0.34): `PostResponse` = author **없음**
+- 웹 설치본(1.0.24): `PostResponse` = author **있음**
+
+지금은 웹이 옛 버전에 고정돼 있어 동작에 문제가 없다. 하지만 `@grimity/dto`를 올리는 순간
+`PostResponse`가 다른 의미가 되면서 코드가 깨진다. 컴파일러는 "이름이 같으니 괜찮다"고
+판단하기 때문에 **타입 이름만 공유하는 방식으로는 이런 계약 변경을 잡아낼 수 없다.**
+이게 codegen으로 옮기려는 핵심 이유다.
 
 ### 앞으로 (생성됨)
 
@@ -66,8 +77,9 @@ export function usePostGetNotices<
 >(options?: { query?: UseQueryOptions<...> }): UseQueryResult<TData, TError> & { queryKey: QueryKey }
 ```
 
-URL·HTTP 메서드·요청 타입·응답 타입·에러 타입이 **한 덩어리로** 생성되므로 위 버그가
-구조적으로 발생할 수 없다.
+URL·HTTP 메서드·요청 타입·응답 타입·에러 타입이 **한 덩어리로** 생성된다. 서버가 타입을
+쪼개거나 이름의 의미를 바꾸면 재생성 시 diff로 즉시 드러나고, 반영하지 않으면 컴파일이
+실패한다. 위와 같은 무성(無聲) 계약 변경이 구조적으로 불가능해진다.
 
 ### 자동으로 고쳐지는 것들
 
@@ -75,7 +87,7 @@ URL·HTTP 메서드·요청 타입·응답 타입·에러 타입이 **한 덩어
 |---|---|---|
 | `createdAt` | `Date`로 선언되지만 실제론 문자열이 옴 (그래서 곳곳에서 `createdAt: string`으로 재선언 중) | `string` — 스펙의 `format: date-time` 기준 |
 | 에러 바디 | 타입 없음 | `ErrorResponse { statusCode, message, error? }` |
-| `/posts/notices` 반환 | `PostResponse[]` (틀림) | `PostWithAuthorResponse[]` |
+| 타입 이름의 의미 변화 | 서버가 `PostResponse`에서 author를 빼도 구버전 고정이라 모름 | 재생성 diff로 드러나고, 미반영 시 컴파일 실패 |
 | enum | `"ALL" \| "QUESTION" \| "FEEDBACK"` 하드코딩 | 스펙에서 생성 |
 | 버전 동기화 | `@grimity/dto` 수동 publish/install (현재 설치본 1.0.24 vs 서버 1.0.34) | 스펙 파일 하나 |
 
@@ -646,9 +658,10 @@ abstract class PostsApi {
 }
 ```
 
-여기서도 **드리프트 버그가 자동으로 고쳐진다.** 현재 `post_api.dart`는
-`getNotices(): Future<List<PostResponse>>`로 되어 있는데 서버는 `PostWithAuthorResponse[]`
-(author 포함)를 반환한다. 웹과 **똑같은 버그가 앱에도 있다.**
+현재 `post_api.dart`의 `getNotices(): Future<List<PostResponse>>`도 **버그가 아니다.**
+앱의 `PostResponse`에는 `author` 필드가 있어서 서버의 `PostWithAuthorResponse`와 같은 모양이다.
+다만 **타입 이름이 서버와 어긋나 있다** — 서버의 현재 `PostResponse`는 author가 없다.
+생성물로 옮기면 이름이 서버와 1:1로 맞춰진다(`PostWithAuthorResponse`).
 
 차이점은 두 가지뿐이다.
 
