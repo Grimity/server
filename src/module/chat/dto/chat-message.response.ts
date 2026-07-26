@@ -15,6 +15,7 @@ export class ChatMessageResponse extends ChatMessageBaseResponse {
 
   @ApiProperty({
     enum: ChatMessageType,
+    enumName: 'ChatMessageType',
     description: '메시지 타입 (USER: 일반, COMMISSION_*: 시스템 메시지)',
   })
   type: ChatMessageType;
@@ -44,6 +45,7 @@ export class ChatUserEventResponse extends UserBaseResponse {
 export class ChatMessageEventResponse extends ChatMessageBaseResponse {
   @ApiProperty({
     enum: ChatMessageType,
+    enumName: 'ChatMessageType',
     description: '메시지 타입 (USER: 일반, COMMISSION_*: 시스템 메시지)',
   })
   type: ChatMessageType;

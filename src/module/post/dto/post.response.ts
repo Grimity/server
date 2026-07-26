@@ -31,7 +31,7 @@ export class MySavePostsResponse extends TotalCountResponse {
 }
 
 export class MyPostResponse extends PostBaseResponse {
-  @ApiProperty({ enum: postTypes })
+  @ApiProperty({ enum: postTypes, enumName: 'PostType' })
   type: (typeof postTypes)[number];
 
   @ApiProperty()

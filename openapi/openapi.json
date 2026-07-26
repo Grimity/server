@@ -758,12 +758,7 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "latest",
-                "like",
-                "oldest"
-              ]
+              "$ref": "#/components/schemas/UserFeedsSort"
             }
           },
           {
@@ -2504,11 +2499,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "latest",
-                "popular"
-              ]
+              "$ref": "#/components/schemas/FeedSearchSort"
             }
           }
         ],
@@ -3433,14 +3424,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "NORMAL",
-                "QUESTION",
-                "FEEDBACK",
-                "NOTICE",
-                "ALL"
-              ]
+              "$ref": "#/components/schemas/PostTypeFilter"
             }
           }
         ],
@@ -3564,11 +3548,7 @@
             "required": true,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "combined",
-                "name"
-              ]
+              "$ref": "#/components/schemas/PostSearchBy"
             }
           },
           {
@@ -3577,14 +3557,7 @@
             "in": "query",
             "description": "생략 시 ALL",
             "schema": {
-              "type": "string",
-              "enum": [
-                "NORMAL",
-                "QUESTION",
-                "FEEDBACK",
-                "NOTICE",
-                "ALL"
-              ]
+              "$ref": "#/components/schemas/PostTypeFilter"
             }
           }
         ],
@@ -4091,7 +4064,7 @@
     },
     "/albums": {
       "post": {
-        "operationId": "album_update",
+        "operationId": "album_create",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -6922,17 +6895,25 @@
           "createdAt"
         ]
       },
+      "AuthProvider": {
+        "type": "string",
+        "enum": [
+          "GOOGLE",
+          "KAKAO",
+          "APPLE"
+        ],
+        "description": "대소문자 구분 X"
+      },
       "LoginRequest": {
         "type": "object",
         "properties": {
           "provider": {
-            "type": "string",
-            "enum": [
-              "GOOGLE",
-              "KAKAO",
-              "APPLE"
-            ],
-            "description": "대소문자 구분 X"
+            "description": "대소문자 구분 X",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthProvider"
+              }
+            ]
           },
           "providerAccessToken": {
             "type": "string"
@@ -6970,13 +6951,12 @@
         "type": "object",
         "properties": {
           "provider": {
-            "type": "string",
-            "enum": [
-              "GOOGLE",
-              "KAKAO",
-              "APPLE"
-            ],
-            "description": "대소문자 구분 X"
+            "description": "대소문자 구분 X",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuthProvider"
+              }
+            ]
           },
           "providerAccessToken": {
             "type": "string"
@@ -7329,6 +7309,14 @@
           "description"
         ]
       },
+      "UserFeedsSort": {
+        "type": "string",
+        "enum": [
+          "latest",
+          "like",
+          "oldest"
+        ]
+      },
       "UserFeedResponse": {
         "type": "object",
         "properties": {
@@ -7395,6 +7383,15 @@
           "feeds"
         ]
       },
+      "PostType": {
+        "type": "string",
+        "enum": [
+          "NORMAL",
+          "QUESTION",
+          "FEEDBACK",
+          "NOTICE"
+        ]
+      },
       "MyPostResponse": {
         "type": "object",
         "properties": {
@@ -7417,12 +7414,10 @@
             "type": "string"
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "NORMAL",
-              "QUESTION",
-              "FEEDBACK",
-              "NOTICE"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PostType"
+              }
             ]
           },
           "commentCount": {
@@ -7480,6 +7475,13 @@
           "notice"
         ]
       },
+      "SocialProvider": {
+        "type": "string",
+        "enum": [
+          "KAKAO",
+          "GOOGLE"
+        ]
+      },
       "MyProfileResponse": {
         "type": "object",
         "properties": {
@@ -7499,10 +7501,10 @@
             "description": "라우팅용 url"
           },
           "provider": {
-            "type": "string",
-            "enum": [
-              "KAKAO",
-              "GOOGLE"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SocialProvider"
+              }
             ]
           },
           "email": {
@@ -7698,21 +7700,24 @@
           "subscription"
         ]
       },
+      "SubscriptionType": {
+        "type": "string",
+        "enum": [
+          "FOLLOW",
+          "FEED_LIKE",
+          "FEED_COMMENT",
+          "FEED_REPLY",
+          "POST_COMMENT",
+          "POST_REPLY"
+        ]
+      },
       "UpdateSubscriptionRequest": {
         "type": "object",
         "properties": {
           "subscription": {
             "type": "array",
             "items": {
-              "type": "string",
-              "enum": [
-                "FOLLOW",
-                "FEED_LIKE",
-                "FEED_COMMENT",
-                "FEED_REPLY",
-                "POST_COMMENT",
-                "POST_REPLY"
-              ]
+              "$ref": "#/components/schemas/SubscriptionType"
             }
           }
         },
@@ -7922,12 +7927,10 @@
             "type": "string"
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "NORMAL",
-              "QUESTION",
-              "FEEDBACK",
-              "NOTICE"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PostType"
+              }
             ]
           },
           "viewCount": {
@@ -8164,6 +8167,13 @@
         },
         "required": [
           "ids"
+        ]
+      },
+      "FeedSearchSort": {
+        "type": "string",
+        "enum": [
+          "latest",
+          "popular"
         ]
       },
       "SearchedFeedResponse": {
@@ -8755,12 +8765,10 @@
             "minLength": 1
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "NORMAL",
-              "QUESTION",
-              "FEEDBACK",
-              "NOTICE"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PostType"
+              }
             ]
           }
         },
@@ -8768,6 +8776,16 @@
           "title",
           "content",
           "type"
+        ]
+      },
+      "PostTypeFilter": {
+        "type": "string",
+        "enum": [
+          "NORMAL",
+          "QUESTION",
+          "FEEDBACK",
+          "NOTICE",
+          "ALL"
         ]
       },
       "PostsResponse": {
@@ -8786,6 +8804,13 @@
         "required": [
           "totalCount",
           "posts"
+        ]
+      },
+      "PostSearchBy": {
+        "type": "string",
+        "enum": [
+          "combined",
+          "name"
         ]
       },
       "PostDetailResponse": {
@@ -8810,12 +8835,10 @@
             "type": "string"
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "NORMAL",
-              "QUESTION",
-              "FEEDBACK",
-              "NOTICE"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PostType"
+              }
             ]
           },
           "viewCount": {
@@ -9221,31 +9244,47 @@
           "childComments"
         ]
       },
+      "ReportType": {
+        "type": "string",
+        "enum": [
+          "사칭계정",
+          "스팸/도배",
+          "욕설/비방",
+          "부적절한 프로필",
+          "선정적인 컨텐츠",
+          "기타"
+        ],
+        "description": "신고 타입"
+      },
+      "ReportRefType": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "FEED",
+          "FEED_COMMENT",
+          "POST",
+          "POST_COMMENT",
+          "CHAT"
+        ],
+        "description": "신고 대상 타입"
+      },
       "CreateReportRequest": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
             "description": "신고 타입",
-            "enum": [
-              "사칭계정",
-              "스팸/도배",
-              "욕설/비방",
-              "부적절한 프로필",
-              "선정적인 컨텐츠",
-              "기타"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReportType"
+              }
             ]
           },
           "refType": {
-            "type": "string",
             "description": "신고 대상 타입",
-            "enum": [
-              "USER",
-              "FEED",
-              "FEED_COMMENT",
-              "POST",
-              "POST_COMMENT",
-              "CHAT"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ReportRefType"
+              }
             ]
           },
           "refId": {
@@ -9482,6 +9521,20 @@
           "images"
         ]
       },
+      "ChatMessageType": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "COMMISSION_REQUESTED",
+          "COMMISSION_ACCEPTED",
+          "COMMISSION_REJECTED",
+          "COMMISSION_CANCELED",
+          "COMMISSION_RESULT_UPLOADED",
+          "COMMISSION_FINAL_UPLOADED",
+          "COMMISSION_COMPLETED"
+        ],
+        "description": "메시지 타입 (USER: 일반, COMMISSION_*: 시스템 메시지)"
+      },
       "ReplyToResponse": {
         "type": "object",
         "properties": {
@@ -9560,18 +9613,12 @@
             "type": "boolean"
           },
           "type": {
-            "type": "string",
-            "enum": [
-              "USER",
-              "COMMISSION_REQUESTED",
-              "COMMISSION_ACCEPTED",
-              "COMMISSION_REJECTED",
-              "COMMISSION_CANCELED",
-              "COMMISSION_RESULT_UPLOADED",
-              "COMMISSION_FINAL_UPLOADED",
-              "COMMISSION_COMPLETED"
-            ],
-            "description": "메시지 타입 (USER: 일반, COMMISSION_*: 시스템 메시지)"
+            "description": "메시지 타입 (USER: 일반, COMMISSION_*: 시스템 메시지)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ChatMessageType"
+              }
+            ]
           },
           "referenceId": {
             "type": "string",
@@ -9619,28 +9666,43 @@
           "messages"
         ]
       },
+      "ImageType": {
+        "type": "string",
+        "enum": [
+          "profile",
+          "feed",
+          "background",
+          "post",
+          "chat",
+          "commission",
+          "commission-reference",
+          "commission-answer",
+          "commission-work"
+        ],
+        "description": "대소문자 구분 없습니다"
+      },
+      "ImageExt": {
+        "type": "string",
+        "enum": [
+          "webp"
+        ]
+      },
       "GetImageUploadUrlRequest": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "enum": [
-              "profile",
-              "feed",
-              "background",
-              "post",
-              "chat",
-              "commission",
-              "commission-reference",
-              "commission-answer",
-              "commission-work"
-            ],
-            "description": "대소문자 구분 없습니다"
+            "description": "대소문자 구분 없습니다",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImageType"
+              }
+            ]
           },
           "ext": {
-            "type": "string",
-            "enum": [
-              "webp"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImageExt"
+              }
             ]
           },
           "width": {
@@ -9685,15 +9747,22 @@
           "imageUrl"
         ]
       },
+      "CommissionQuestionType": {
+        "type": "string",
+        "enum": [
+          "TEXT",
+          "SINGLE_SELECT",
+          "MULTI_SELECT"
+        ]
+      },
       "CommissionQuestionItem": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "enum": [
-              "TEXT",
-              "SINGLE_SELECT",
-              "MULTI_SELECT"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CommissionQuestionType"
+              }
             ]
           },
           "title": {

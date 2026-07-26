@@ -41,7 +41,7 @@ export class AlbumController {
   @ApiResponse({ status: 201, type: IdResponse })
   @ApiResponse({ status: 409, description: '앨범 이름 중복' })
   @Post()
-  async update(
+  async create(
     @CurrentUser() userId: string,
     @Body() { name }: CreateAlbumRequest,
   ): Promise<IdResponse> {

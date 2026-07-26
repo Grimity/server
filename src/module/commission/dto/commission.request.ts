@@ -26,7 +26,10 @@ import {
 } from '../../../shared/request/validator';
 
 export class CommissionQuestionItem {
-  @ApiProperty({ enum: commissionQuestionTypes })
+  @ApiProperty({
+    enum: commissionQuestionTypes,
+    enumName: 'CommissionQuestionType',
+  })
   @IsIn(commissionQuestionTypes)
   type: CommissionQuestionType;
 

@@ -84,7 +84,11 @@ export class UpdateBackgroundImageRequest {
 }
 
 export class UpdateSubscriptionRequest {
-  @ApiProperty({ enum: subscriptionTypes, isArray: true })
+  @ApiProperty({
+    enum: subscriptionTypes,
+    enumName: 'SubscriptionType',
+    isArray: true,
+  })
   @IsIn(subscriptionTypes, { each: true })
   subscription: SubscriptionType[];
 }
@@ -94,7 +98,11 @@ export class SearchUserRequest extends CursorKeywordRequest {}
 export const GetFeedsByUserSort = ['latest', 'like', 'oldest'] as const;
 
 export class GetFeedsByUserRequest extends CursorRequest {
-  @ApiProperty({ required: false, enum: GetFeedsByUserSort })
+  @ApiProperty({
+    required: false,
+    enum: GetFeedsByUserSort,
+    enumName: 'UserFeedsSort',
+  })
   @TrimAndLowerNullableString()
   @IsOptional()
   @IsIn(GetFeedsByUserSort)

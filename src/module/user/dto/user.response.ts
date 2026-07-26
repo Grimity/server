@@ -33,7 +33,7 @@ export class SubscriptionResponse {
 }
 
 export class MyProfileResponse extends UserBaseResponse {
-  @ApiProperty({ enum: socialProviders })
+  @ApiProperty({ enum: socialProviders, enumName: 'SocialProvider' })
   provider: string;
 
   @ApiProperty()

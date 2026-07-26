@@ -10,12 +10,17 @@ import {
 } from '../../../shared/request/validator';
 
 export class CreateReportRequest {
-  @ApiProperty({ description: '신고 타입', enum: reportTypes })
+  @ApiProperty({
+    description: '신고 타입',
+    enum: reportTypes,
+    enumName: 'ReportType',
+  })
   @IsIn(reportTypes)
   type: (typeof reportTypes)[number];
   @ApiProperty({
     description: '신고 대상 타입',
     enum: refTypes,
+    enumName: 'ReportRefType',
   })
   @TrimAndUpperNullableString()
   @IsIn(refTypes)

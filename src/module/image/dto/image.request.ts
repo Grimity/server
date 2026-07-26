@@ -7,13 +7,14 @@ import { imageTypes, exts } from '../../../common/constants/image.constant';
 export class GetImageUploadUrlRequest {
   @ApiProperty({
     enum: imageTypes,
+    enumName: 'ImageType',
     description: '대소문자 구분 없습니다',
   })
   @Transform(({ value }) => value.toLowerCase())
   @IsIn(imageTypes)
   type: (typeof imageTypes)[number];
 
-  @ApiProperty({ enum: exts })
+  @ApiProperty({ enum: exts, enumName: 'ImageExt' })
   @IsIn(exts)
   ext: (typeof exts)[number];
 

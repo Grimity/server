@@ -20,7 +20,7 @@ export class AdminLatestPostResponse {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({ enum: postTypes })
+  @ApiProperty({ enum: postTypes, enumName: 'PostType' })
   type: (typeof postTypes)[number];
 
   @ApiProperty()
@@ -51,7 +51,7 @@ export class AdminPostDetailResponse {
   @ApiProperty()
   id: string;
 
-  @ApiProperty({ enum: postTypes })
+  @ApiProperty({ enum: postTypes, enumName: 'PostType' })
   type: (typeof postTypes)[number];
 
   @ApiProperty()

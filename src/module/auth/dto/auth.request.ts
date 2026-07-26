@@ -10,7 +10,11 @@ import {
 export const providers = ['GOOGLE', 'KAKAO', 'APPLE'] as const;
 
 export class LoginRequest {
-  @ApiProperty({ enum: providers, description: '대소문자 구분 X' })
+  @ApiProperty({
+    enum: providers,
+    enumName: 'AuthProvider',
+    description: '대소문자 구분 X',
+  })
   @Transform(({ value }) => value.toUpperCase())
   @IsIn(providers)
   provider: (typeof providers)[number];

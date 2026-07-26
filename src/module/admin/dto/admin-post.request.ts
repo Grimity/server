@@ -20,6 +20,7 @@ export class AdminGetPostsRequest {
 
   @ApiProperty({
     enum: GetPostsRequestTypes,
+    enumName: 'PostTypeFilter',
     required: false,
     default: 'ALL',
   })

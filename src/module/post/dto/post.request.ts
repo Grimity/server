@@ -18,7 +18,7 @@ export class CreatePostRequest {
   @Length(1)
   content: string;
 
-  @ApiProperty({ enum: postTypes })
+  @ApiProperty({ enum: postTypes, enumName: 'PostType' })
   @TrimAndUpperNullableString()
   @IsIn(postTypes)
   type: (typeof postTypes)[number];
@@ -26,7 +26,7 @@ export class CreatePostRequest {
 
 export const GetPostsRequestTypes = [...postTypes, 'ALL'] as const;
 export class GetPostsRequest extends PageRequest {
-  @ApiProperty({ enum: GetPostsRequestTypes })
+  @ApiProperty({ enum: GetPostsRequestTypes, enumName: 'PostTypeFilter' })
   @TrimAndUpperNullableString()
   @IsIn(GetPostsRequestTypes)
   type: (typeof GetPostsRequestTypes)[number];
@@ -39,13 +39,14 @@ export class SearchPostRequest extends PageRequest {
   @Length(2, 20)
   keyword: string;
 
-  @ApiProperty({ enum: searchByTypes })
+  @ApiProperty({ enum: searchByTypes, enumName: 'PostSearchBy' })
   @TrimAndLowerNullableString()
   @IsIn(searchByTypes)
   searchBy: (typeof searchByTypes)[number];
 
   @ApiProperty({
     enum: GetPostsRequestTypes,
+    enumName: 'PostTypeFilter',
     required: false,
     description: '생략 시 ALL',
   })

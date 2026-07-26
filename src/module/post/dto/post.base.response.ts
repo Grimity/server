@@ -19,7 +19,7 @@ export class PostBaseResponse {
 }
 
 export class PostResponse extends PostBaseResponse {
-  @ApiProperty({ enum: postTypes })
+  @ApiProperty({ enum: postTypes, enumName: 'PostType' })
   type: (typeof postTypes)[number];
 
   @ApiProperty()

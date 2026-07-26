@@ -10,11 +10,15 @@
 
 ## 0. 세 줄 요약
 
-1. `orval` 하나 설치하고 설정 파일 2개(`orval.config.ts`, 커스텀 mutator) 만들면 끝난다.
-2. 기존 `axiosInstance`(토큰 주입·401 refresh 인터셉터)는 **그대로 재사용**된다. 건드릴 필요 없다.
+1. 생성기를 하나 고른다(2-1). **어느 걸 고르든 서버는 안 바뀐다.** 이 문서는 `orval` 기준으로 쓰였다.
+2. 설정 파일 2개(`orval.config.ts`, 커스텀 mutator)면 끝. 기존 `axiosInstance`(토큰 주입·401 refresh)는 **그대로 재사용**된다.
 3. 진짜 손이 가는 건 코드 생성이 아니라 **쿼리키 34곳 교체**다. 여기가 유일한 위험 구간이다.
 
 **난이도: 중하.** 도메인 단위로 쪼개면 각 도메인은 반나절. 한 번에 다 하려 들면 위험하다.
+
+> **백엔드에 요청할 것은 없다.** 스펙(`openapi.json`)은 커밋돼 있고 CI가 소스와의 일치를
+> 검증한다. 생성기 이름 안정성 문제(enum 명명, 오해를 부르던 메서드명)도 서버에서 이미
+> 정리를 마쳤다. 바로 시작하면 된다.
 
 ---
 
@@ -95,7 +99,45 @@ URL·HTTP 메서드·요청 타입·응답 타입·에러 타입이 **한 덩어
 
 ## 2. 사전 준비
 
-### 2-1. 스펙을 어디서 가져올까
+### 2-1. 어떤 생성기를 쓸 것인가 (프론트 결정 사항)
+
+**어느 걸 고르든 서버는 바뀌지 않는다.** 스펙 하나를 각 생성기가 읽어갈 뿐이므로
+백엔드에 요청할 것이 없다. 편한 걸 고르면 된다.
+
+주간 다운로드는 2026-07 기준 npm 실측값이다.
+
+| 도구 | 다운로드/주 | 방식 | 특징 |
+|---|---:|---|---|
+| **orval** | 175만 | 엔드포인트마다 함수+훅 생성 | axios·react-query 네이티브. **기존 axios 인스턴스를 그대로 재사용** |
+| openapi-typescript + openapi-fetch | 574만 / 663만 | **타입 1파일** + 얇은 fetch 클라이언트 | 생성물이 압도적으로 적음. operationId에 의존하지 않음 |
+| @hey-api/openapi-ts | 387만 | 엔드포인트마다 생성 | axios 지원, TanStack Query 플러그인. 아직 0.x |
+| swagger-typescript-api | 57만 | 엔드포인트마다 생성 | 오래됐고 react-query 지원이 약함 |
+| @openapitools/openapi-generator-cli | 149만 | 다국어 | Java 필요. TS 출력 품질이 위 셋보다 떨어짐 |
+
+**이 문서의 3절 이후는 orval 기준으로 쓰여 있다.** 다른 걸 고르면 3~5절만 해당 도구
+문법으로 바꾸면 되고, 6절(쿼리키)·7절(에러 처리)·9절(이관 순서)은 도구와 무관하게 그대로 적용된다.
+
+#### 검증 상태
+
+- **orval**: 실제로 생성 → `tsc --noEmit` strict 모드로 **234파일 타입체크 통과(에러 0)** 확인함
+- **swagger_parser**(Flutter, 부록 D): 생성 → `build_runner`(289 outputs) → `dart analyze` **에러 0** 확인함
+- 나머지 도구: 검증하지 않았다. 위 표는 공개 정보 기준이다
+
+#### 고를 때 실질적인 판단 기준 하나
+
+`openapi-fetch`는 이름 그대로 **fetch 기반이라 axios를 쓰지 않는다.**
+현재 [`src/constants/baseurl.tsx`](../../FE-Grimity/src/constants/baseurl.tsx)에는
+토큰 자동 주입, **401 → refresh 후 원요청 재시도**, `exclude-access-token` /
+`is-delete-account` 헤더 처리가 axios 인터셉터로 들어 있다.
+이걸 fetch 미들웨어로 다시 구현할 의향이 있으면 openapi-fetch가 더 깔끔하고
+(생성물 1파일, operationId 무관), 인증 레이어를 건드리고 싶지 않으면 orval이 안전하다.
+**401 재시도 로직은 옮기다 버그 내기 쉬운 부분이라 이 판단이 사실상 결론을 정한다.**
+
+참고로 orval을 쓰면 함수 이름이 스펙의 `operationId`에서 나오므로 서버가 컨트롤러
+클래스명·메서드명을 바꾸면 클라이언트 함수명도 바뀐다(부록 B). openapi-fetch는
+경로 문자열을 그대로 쓰므로 이 문제가 없다.
+
+### 2-2. 스펙을 어디서 가져올까
 
 서버 레포(`github.com/Grimity/server`)는 **public**이라 인증 없이 받을 수 있다.
 
@@ -110,7 +152,7 @@ URL·HTTP 메서드·요청 타입·응답 타입·에러 타입이 **한 덩어
 > 주의: `openapi.json`은 서버 PR에서 CI(`openapi:check`)가 소스와 일치하는지 검사하므로
 > 항상 최신이다. 서버 API가 바뀌면 이 파일도 같은 PR에 포함된다.
 
-### 2-2. 설치
+### 2-3. 설치 (orval 기준)
 
 ```bash
 cd FE-Grimity
@@ -532,7 +574,7 @@ REST가 전부 넘어가기 전까지는 두 방식이 공존한다. 정상이�
 | PUT | /notifications/{id} | `putNotificationsId` | `notificationRead` |
 | DELETE | /notifications | `deleteNotifications` | `notificationDeleteAll` |
 | DELETE | /notifications/{id} | `deleteNotificationsId` | `notificationDelete` |
-| POST | /albums | `createAlbums` | `albumUpdate` ⚠️ |
+| POST | /albums | `createAlbums` | `albumCreate` |
 | PATCH | /albums/{id} | `patchAlbums` | `albumUpdateOne` |
 | DELETE | /albums/{id} | `deleteAlbums` | `albumDeleteOne` |
 | PUT | /albums/{id} | `putFeedsInAlbums` | `albumInsertFeeds` |
@@ -549,9 +591,11 @@ REST가 전부 넘어가기 전까지는 두 방식이 공존한다. 정상이�
 | GET | /tags/popular | `getTagsPopular` | `tagFindPopularTags` |
 | POST | /reports | `postReports` | `reportCreate` |
 
-⚠️ `POST /albums`(앨범 생성)이 서버 쪽 메서드명이 `update()`라서 생성 함수가 `albumUpdate`로
-나온다. 이름이 오해를 부르므로 **서버에서 메서드명을 `create`로 바꾸는 게 맞다.** 이관 시작 전에
-백엔드에 요청할 것 (바꾸면 생성 함수는 `albumCreate`가 된다).
+이 표는 `src/api/`의 모든 axios 호출을 스펙과 대조해 만들었고, 오른쪽 열의 이름 71개가
+**실제 생성물에 존재하는지 전수 확인했다.**
+
+`PUT /albums/{id}`(`albumInsertFeeds`)와 `PATCH /albums/{id}`(`albumUpdateOne`)는 서로 다른
+엔드포인트다. 앨범에 피드를 넣는 것과 앨범 자체를 수정하는 것이니 헷갈리지 않도록 주의한다.
 
 ---
 
@@ -566,6 +610,19 @@ REST가 전부 넘어가기 전까지는 두 방식이 공존한다. 정상이�
 | SSR에서 `localStorage` | 서버에서 터짐 | 8절 참고 |
 | 생성 폴더를 수정 | 재생성하면 날아감 | 감싸는 래퍼를 따로 만든다 |
 | commissions 도메인 | 스펙에 있는데 프론트에 없음 | 신규 기능. 이관이 아니라 **처음부터 생성 클라이언트로** 시작하기 좋은 후보 |
+
+### 이미 서버에서 정리된 것 (참고)
+
+착수 전에 처리해 둔 항목이라 **지금은 조치할 게 없다.** 배경만 남긴다.
+
+- **`POST /albums`** — 서버 메서드명이 `update()`라 생성 함수가 `albumUpdate()`(실제로는 생성)로
+  나왔다. `create()`로 변경해 지금은 `albumCreate()`가 된다.
+- **enum 명명** — 스펙 enum이 인라인이라 타입명이 속성명에서 파생됐다. Dart에서 `?type` →
+  `Type`(`dart:core.Type`과 충돌해 앱 코드에서 컴파일 에러), `?sort` → `Sort`/`Sort2`(번호가
+  밀릴 수 있음)가 생겼다. 공유 enum 14개에 `enumName`을 지정해 `PostType`, `PostTypeFilter`,
+  `UserFeedsSort`, `FeedSearchSort` 등 고정된 이름으로 나온다.
+  덤으로 같은 개념이 쪼개져 있던 중복도 합쳐졌다(`postTypes` 하나가 Dart enum 5개로
+  갈라지던 것 → `PostType` 1개).
 
 ---
 
@@ -707,31 +764,33 @@ analyzer:
     - 'lib/data/generated/**'   # 추가
 ```
 
-### D-6. ⚠️ enum 이름은 서버에서 먼저 고쳐야 한다
+### D-6. enum 이름 (서버에서 처리 완료 — 조치 불필요)
 
-스펙의 enum이 대부분 **인라인**(이름 없는 스키마)이라, 생성기가 속성 이름으로 타입명을 만든다.
-Dart에서 특히 문제가 되는 것들:
+Dart는 유니온 타입이 없어서 enum이 전부 **최상위 이름 있는 선언**이 된다. 스펙 enum이
+인라인(이름 없는 스키마)이면 생성기가 속성 이름으로 타입명을 지어내는데, 그 결과가 위험했다.
 
-| 스펙 위치 | 생성되는 Dart 타입 | 문제 |
-|---|---|---|
-| `GET /posts ?type` | `Type` | **`dart:core.Type`과 이름 충돌** |
-| `GET /feeds/search ?sort` | `Sort` | — |
-| `GET /users/{id}/feeds ?sort` | `Sort2` | **번호가 붙음. 새 enum이 추가되면 번호가 밀려 기존 코드가 조용히 다른 타입을 가리킬 수 있다** |
-| `GET /posts/search ?searchBy` | `SearchBy` | — |
+| 스펙 위치 | 예전 Dart 타입 | 문제였던 이유 | 지금 |
+|---|---|---|---|
+| `GET /posts ?type` | `Type` | **`dart:core.Type`과 충돌** — 앱 코드에서 `value.runtimeType`을 함께 쓰면 컴파일 에러 | `PostTypeFilter` |
+| `GET /users/{id}/feeds ?sort` | `Sort` | — | `UserFeedsSort` |
+| `GET /feeds/search ?sort` | `Sort2` | **번호에 의미가 없음.** 값도 다른데(`latest,like,oldest` vs `latest,popular`) 순서가 바뀌면 조용히 다른 타입을 가리킴 | `FeedSearchSort` |
+| `GET /posts/search ?searchBy` | `SearchBy` | — | `PostSearchBy` |
 
-쿼리 파라미터 인라인 enum이 9개, 컴포넌트 내 enum 속성이 30개 이상 있다.
+서버에서 공유 enum 14개에 `@ApiProperty({ enum: postTypes, enumName: 'PostType' })`처럼
+이름을 지정해 해결했다. 중복도 함께 정리됐다 — `postTypes` 하나가 Dart enum 5개
+(`Type`, `CreatePostRequestType`, `MyPostResponseType`, `PostDetailResponseType`,
+`PostWithAuthorResponseType`)로 갈라지던 것이 **`PostType` 하나**가 됐다.
+provider 3종도 `AuthProvider` / `SocialProvider` 2개로 정리됐다.
 
-서버에서 `@ApiProperty({ enum: postTypes, enumName: 'PostType' })`처럼 `enumName`을 지정하면
-스펙에 명명된 스키마로 나오고, Dart·TS 양쪽 생성물 이름이 안정된다.
-**Flutter 이관을 시작하기 전에 백엔드에 요청할 것.** 나중에 바꾸면 앱 코드가 전부 깨진다.
+정리 후 재생성 결과: Dart enum 74개 → **70개**, 위험 이름 **0개**,
+`build_runner` 289 outputs, `dart analyze` **에러 0건**.
 
 ### D-7. 진행 순서
 
-1. 백엔드에 enum 명명(D-6)과 `POST /albums` 메서드명(부록 A) 수정 요청
-2. `swagger_parser.yaml` 작성 → 생성 → `build_runner`
-3. `analysis_options.yaml` 제외 추가(D-5)
-4. 도메인 하나(posts 권장)로 mapper 분리 패턴 확정(D-4)
-5. 나머지 도메인 확장, 기존 `lib/data/model`·`lib/data/data_source/remote` 삭제
+1. `swagger_parser.yaml` 작성 → 생성 → `build_runner`
+2. `analysis_options.yaml` 제외 추가(D-5)
+3. 도메인 하나(posts 권장)로 mapper 분리 패턴 확정(D-4)
+4. 나머지 도메인 확장, 기존 `lib/data/model`·`lib/data/data_source/remote` 삭제
 
 ---
 
