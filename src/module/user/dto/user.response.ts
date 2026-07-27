@@ -76,9 +76,14 @@ export class FollowUserResponse extends UserBaseResponse {
   description: string;
 }
 
+export class FollowerUserResponse extends FollowUserResponse {
+  @ApiProperty({ description: '내가 이 팔로워를 맞팔로우 중인지' })
+  isFollowing: boolean;
+}
+
 export class MyFollowersResponse extends CursorResponse {
-  @ApiProperty({ type: FollowUserResponse, isArray: true })
-  followers: FollowUserResponse[];
+  @ApiProperty({ type: FollowerUserResponse, isArray: true })
+  followers: FollowerUserResponse[];
 }
 
 export class MyFollowingsResponse extends CursorResponse {

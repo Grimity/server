@@ -619,6 +619,7 @@ export type UpdateProfileInput = {
 };
 
 type GetFeedsInput = {
+  userId: string | null;
   sort: 'latest' | 'like' | 'oldest';
   size: number;
   cursor: string | null;

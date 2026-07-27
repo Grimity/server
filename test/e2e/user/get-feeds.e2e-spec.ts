@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { createTestUser } from '../helper/create-test-user';
 
 describe('GET /users/:id/feeds - 유저별 피드조회', () => {
   let app: INestApplication;
@@ -153,5 +154,112 @@ describe('GET /users/:id/feeds - 유저별 피드조회', () => {
     expect(status2).toBe(200);
     expect(body.feeds.length).toBe(12);
     expect(body2.feeds.length).toBe(0);
+  });
+
+  it('비로그인 요청이면 isLike는 모두 false다', async () => {
+    // given
+    const author = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'author',
+        email: 'test@test.com',
+        name: 'author',
+        url: 'author',
+      },
+    });
+
+    const feed = await prisma.feed.create({
+      data: {
+        authorId: author.id,
+        title: 'title',
+        content: 'content',
+        thumbnail: 'test',
+      },
+    });
+
+    const liker = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'liker',
+        email: 'test@test.com',
+        name: 'liker',
+        url: 'liker',
+      },
+    });
+
+    await prisma.like.create({
+      data: {
+        userId: liker.id,
+        feedId: feed.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/users/${author.id}/feeds`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.feeds).toHaveLength(1);
+    expect(body.feeds[0].isLike).toBe(false);
+  });
+
+  it('로그인 요청이면 내가 좋아요한 피드만 isLike가 true다', async () => {
+    // given
+    const { accessToken, user } = await createTestUser(app, {});
+
+    const author = await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'author',
+        email: 'test@test.com',
+        name: 'author',
+        url: 'author',
+      },
+    });
+
+    const likedFeed = await prisma.feed.create({
+      data: {
+        authorId: author.id,
+        title: 'liked',
+        content: 'content',
+        thumbnail: 'test',
+        createdAt: new Date(2021, 1, 2),
+      },
+    });
+
+    const notLikedFeed = await prisma.feed.create({
+      data: {
+        authorId: author.id,
+        title: 'notLiked',
+        content: 'content',
+        thumbnail: 'test',
+        createdAt: new Date(2021, 1, 1),
+      },
+    });
+
+    await prisma.like.create({
+      data: {
+        userId: user.id,
+        feedId: likedFeed.id,
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get(`/users/${author.id}/feeds`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.feeds).toHaveLength(2);
+    expect(
+      body.feeds.find((feed: any) => feed.id === likedFeed.id).isLike,
+    ).toBe(true);
+    expect(
+      body.feeds.find((feed: any) => feed.id === notLikedFeed.id).isLike,
+    ).toBe(false);
   });
 });

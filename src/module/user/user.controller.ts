@@ -122,16 +122,19 @@ export class UserController {
     return this.userService.getMetaById(id);
   }
 
-  @ApiOperation({ summary: '유저별 피드 조회' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '유저별 피드 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: UserFeedsResponse })
   @UseGuards(OptionalJwtGuard)
   @Get(':id/feeds')
   async getFeeds(
+    @CurrentUser() userId: string | null,
     @Param('id', ParseUUIDPipe) targetId: string,
     @Query() query: GetFeedsByUserRequest,
   ): Promise<UserFeedsResponse> {
     const { sort, cursor, size, albumId } = query;
     return this.userService.getFeedsByUser({
+      userId,
       sort: sort ?? 'latest',
       cursor: cursor ?? null,
       size: size ?? 20,

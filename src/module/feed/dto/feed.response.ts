@@ -112,7 +112,7 @@ export class MyLikeFeedsResponse extends CursorResponse {
   feeds: MyLikeFeedResponse[];
 }
 
-class UserFeedResponse extends FeedBaseResponse {
+export class UserFeedResponse extends FeedBaseResponse {
   @ApiProperty({ type: 'string', isArray: true, example: ['feed/UUID.webp'] })
   cards: string[];
 
@@ -121,6 +121,9 @@ class UserFeedResponse extends FeedBaseResponse {
 
   @ApiProperty()
   commentCount: number;
+
+  @ApiProperty()
+  isLike: boolean;
 }
 
 export class UserFeedsResponse extends CursorResponse {

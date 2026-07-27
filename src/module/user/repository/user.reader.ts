@@ -235,6 +235,16 @@ export class UserReader {
       .where('followingId', '=', kyselyUuid(userId))
       .innerJoin('User', 'followerId', 'id')
       .select(['id', 'name', 'User.image', 'description', 'url'])
+      .select((eb) => [
+        eb
+          .fn<boolean>('EXISTS', [
+            eb
+              .selectFrom('Follow as myFollow')
+              .whereRef('myFollow.followingId', '=', 'User.id')
+              .where('myFollow.followerId', '=', kyselyUuid(userId)),
+          ])
+          .as('isFollowing'),
+      ])
       .orderBy('followerId', 'desc')
       .limit(size)
       .$if(cursor !== null, (eb) =>

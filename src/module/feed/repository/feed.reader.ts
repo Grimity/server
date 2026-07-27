@@ -135,6 +135,7 @@ export class FeedReader {
   }
 
   async findManyByUserIdWithCursor({
+    userId,
     sort,
     size,
     cursor,
@@ -161,6 +162,18 @@ export class FeedReader {
             eb.fn.count<bigint>('FeedComment.id').as('commentCount'),
           )
           .as('commentCount'),
+      )
+      .$if(userId !== null, (eb) =>
+        eb.select((eb) => [
+          eb
+            .fn<boolean>('EXISTS', [
+              eb
+                .selectFrom('Like')
+                .whereRef('Like.feedId', '=', 'Feed.id')
+                .where('Like.userId', '=', kyselyUuid(userId!)),
+            ])
+            .as('isLike'),
+        ]),
       )
       .limit(size)
       .$if(albumId !== null, (eb) => {
@@ -239,6 +252,7 @@ export class FeedReader {
         createdAt: feed.createdAt,
         viewCount: feed.viewCount,
         likeCount: feed.likeCount,
+        isLike: feed.isLike ?? false,
         commentCount:
           feed.commentCount === null ? 0 : Number(feed.commentCount),
       })),
@@ -1038,6 +1052,7 @@ type GetFeedsInput = {
 };
 
 type FindFeedsByUserInput = {
+  userId: string | null;
   sort: 'latest' | 'like' | 'oldest';
   size: number;
   cursor: string | null;

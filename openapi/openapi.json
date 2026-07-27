@@ -803,7 +803,12 @@
             }
           }
         },
-        "summary": "유저별 피드 조회",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "유저별 피드 조회 - Optional Guard",
         "tags": [
           "users"
         ]
@@ -7351,6 +7356,9 @@
           },
           "commentCount": {
             "type": "number"
+          },
+          "isLike": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -7361,7 +7369,8 @@
           "viewCount",
           "cards",
           "createdAt",
-          "commentCount"
+          "commentCount",
+          "isLike"
         ]
       },
       "UserFeedsResponse": {
@@ -7725,6 +7734,61 @@
           "subscription"
         ]
       },
+      "FollowerUserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "example": "profile/{UUID}.jpg",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "description": "라우팅용 url"
+          },
+          "description": {
+            "type": "string",
+            "description": "not null인데 공백은 허용"
+          },
+          "isFollowing": {
+            "type": "boolean",
+            "description": "내가 이 팔로워를 맞팔로우 중인지"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "image",
+          "url",
+          "description",
+          "isFollowing"
+        ]
+      },
+      "MyFollowersResponse": {
+        "type": "object",
+        "properties": {
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "followers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FollowerUserResponse"
+            }
+          }
+        },
+        "required": [
+          "nextCursor",
+          "followers"
+        ]
+      },
       "FollowUserResponse": {
         "type": "object",
         "properties": {
@@ -7754,25 +7818,6 @@
           "image",
           "url",
           "description"
-        ]
-      },
-      "MyFollowersResponse": {
-        "type": "object",
-        "properties": {
-          "nextCursor": {
-            "type": "string",
-            "nullable": true
-          },
-          "followers": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FollowUserResponse"
-            }
-          }
-        },
-        "required": [
-          "nextCursor",
-          "followers"
         ]
       },
       "MyFollowingsResponse": {
