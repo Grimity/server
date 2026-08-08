@@ -30,6 +30,11 @@ export class MySavePostsResponse extends TotalCountResponse {
   posts: PostWithAuthorResponse[];
 }
 
+export class MyLikePostsResponse extends TotalCountResponse {
+  @ApiProperty({ type: PostWithAuthorResponse, isArray: true })
+  posts: PostWithAuthorResponse[];
+}
+
 export class MyPostResponse extends PostBaseResponse {
   @ApiProperty({ enum: postTypes, enumName: 'PostType' })
   type: (typeof postTypes)[number];

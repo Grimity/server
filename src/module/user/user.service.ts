@@ -448,6 +448,38 @@ export class UserService {
     };
   }
 
+  async getMyLikePosts({
+    userId,
+    size,
+    page,
+  }: {
+    userId: string;
+    size: number;
+    page: number;
+  }) {
+    const [totalCount, posts] = await Promise.all([
+      this.postReader.countLikedPosts(userId),
+      this.postReader.findManyLikedPosts({ userId, size, page }),
+    ]);
+
+    return {
+      totalCount,
+      posts: posts.map((post) => {
+        return {
+          id: post.id,
+          type: convertPostType(post.type),
+          title: post.title,
+          content: removeHtml(post.content).slice(0, 150),
+          thumbnail: post.thumbnail,
+          commentCount: post.commentCount,
+          viewCount: post.viewCount,
+          createdAt: post.createdAt,
+          author: post.author,
+        };
+      }),
+    };
+  }
+
   async deleteMe(userId: string) {
     const [feedIds, postIds] = await Promise.all([
       this.feedReader.findAllIdsByUserId(userId),

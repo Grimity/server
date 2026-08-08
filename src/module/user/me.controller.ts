@@ -48,7 +48,10 @@ import {
   VerifyIdentity422Response,
 } from './dto/identity-verification.error';
 import { MyLikeFeedsResponse } from '../feed/dto/feed.response';
-import { MySavePostsResponse } from '../post/dto/post.response';
+import {
+  MyLikePostsResponse,
+  MySavePostsResponse,
+} from '../post/dto/post.response';
 
 @ApiTags('me')
 @ApiBearerAuth()
@@ -252,6 +255,23 @@ export class MeController {
     @Query() { page, size }: PageRequest,
   ): Promise<MySavePostsResponse> {
     return await this.userService.getMySavePosts({
+      userId,
+      page: page ?? 1,
+      size: size ?? 10,
+    });
+  }
+
+  @ApiOperation({
+    summary: '내가 좋아요한 게시글 조회',
+    description: '좋아요한 시각 기준 최신순으로 정렬된다.',
+  })
+  @ApiResponse({ status: 200, type: MyLikePostsResponse })
+  @Get('like-posts')
+  async getMyLikePosts(
+    @CurrentUser() userId: string,
+    @Query() { page, size }: PageRequest,
+  ): Promise<MyLikePostsResponse> {
+    return await this.userService.getMyLikePosts({
       userId,
       page: page ?? 1,
       size: size ?? 10,

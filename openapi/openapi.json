@@ -2043,6 +2043,73 @@
         ]
       }
     },
+    "/me/like-posts": {
+      "get": {
+        "description": "좋아요한 시각 기준 최신순으로 정렬된다.",
+        "operationId": "me_getMyLikePosts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyLikePostsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효성 검사 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "내가 좋아요한 게시글 조회",
+        "tags": [
+          "me"
+        ]
+      }
+    },
     "/me/albums": {
       "get": {
         "operationId": "me_getMyAlbums",
@@ -8001,6 +8068,24 @@
         ]
       },
       "MySavePostsResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "number"
+          },
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostWithAuthorResponse"
+            }
+          }
+        },
+        "required": [
+          "totalCount",
+          "posts"
+        ]
+      },
+      "MyLikePostsResponse": {
         "type": "object",
         "properties": {
           "totalCount": {

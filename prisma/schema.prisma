@@ -225,8 +225,9 @@ model Post {
 }
 
 model PostLike {
-  postId String @db.Uuid
-  userId String @db.Uuid
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)

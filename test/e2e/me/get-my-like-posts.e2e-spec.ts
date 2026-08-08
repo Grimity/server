@@ -1,0 +1,120 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from 'src/app.module';
+import { PrismaService } from 'src/database/prisma/prisma.service';
+import { createTestUser } from '../helper/create-test-user';
+
+describe('GET /me/like-posts - 내가 좋아요한 게시글 조회', () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = module.createNestApplication();
+    prisma = module.get<PrismaService>(PrismaService);
+
+    await app.init();
+  });
+
+  afterEach(async () => {
+    await prisma.user.deleteMany();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('accessToken이 없을 때 401을 반환한다', async () => {
+    // when
+    const { status } = await request(app.getHttpServer())
+      .get('/me/like-posts')
+      .send();
+
+    // then
+    expect(status).toBe(401);
+  });
+
+  it('200과 함께 내가 좋아요한 게시글을 반환한다', async () => {
+    // given
+    const { accessToken, user } = await createTestUser(app, {});
+
+    const posts = await prisma.post.createManyAndReturn({
+      data: Array.from({ length: 15 }).map((_, index) => {
+        return {
+          authorId: user.id,
+          type: 1,
+          title: `title${index}`,
+          content: `content${index}`,
+        };
+      }),
+    });
+
+    await prisma.postLike.createMany({
+      data: posts.map((post, i) => {
+        return {
+          userId: user.id,
+          postId: post.id,
+          createdAt: new Date(Date.now() - i * 1000),
+        };
+      }),
+    });
+
+    // when
+    const [res1, res2] = await Promise.all([
+      request(app.getHttpServer())
+        .get('/me/like-posts?page=1&size=10')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(),
+      request(app.getHttpServer())
+        .get('/me/like-posts?page=2&size=10')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(),
+    ]);
+
+    // then
+    expect(res1.status).toBe(200);
+    expect(res1.body.totalCount).toBe(15);
+    expect(res1.body.posts).toHaveLength(10);
+    expect(res1.body.posts[0].id).toBe(posts[0].id);
+
+    expect(res2.status).toBe(200);
+    expect(res2.body.totalCount).toBe(15);
+    expect(res2.body.posts).toHaveLength(5);
+    expect(res2.body.posts[0].id).toBe(posts[10].id);
+  });
+
+  it('좋아요하지 않은 게시글은 포함하지 않는다', async () => {
+    // given
+    const { accessToken, user } = await createTestUser(app, {});
+
+    const [liked, notLiked] = await prisma.post.createManyAndReturn({
+      data: [
+        { authorId: user.id, type: 1, title: 'liked', content: 'liked' },
+        { authorId: user.id, type: 1, title: 'notLiked', content: 'notLiked' },
+      ],
+    });
+
+    await prisma.postLike.create({
+      data: { userId: user.id, postId: liked.id },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .get('/me/like-posts')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    // then
+    expect(status).toBe(200);
+    expect(body.totalCount).toBe(1);
+    expect(body.posts).toHaveLength(1);
+    expect(body.posts[0].id).toBe(liked.id);
+    expect(body.posts.map((post: { id: string }) => post.id)).not.toContain(
+      notLiked.id,
+    );
+  });
+});

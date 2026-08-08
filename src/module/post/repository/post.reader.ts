@@ -434,6 +434,55 @@ export class PostReader {
     }));
   }
 
+  async countLikedPosts(userId: string) {
+    return await this.txHost.tx.postLike.count({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  async findManyLikedPosts({ userId, page, size }: UserAndPageInput) {
+    const posts = await this.txHost.tx.$kysely
+      .selectFrom('PostLike')
+      .where('PostLike.userId', '=', kyselyUuid(userId))
+      .innerJoin('Post', 'Post.id', 'PostLike.postId')
+      .select([
+        'Post.id',
+        'type',
+        'title',
+        'content',
+        'thumbnail',
+        'commentCount',
+        'viewCount',
+        'Post.createdAt',
+        'authorId',
+      ])
+      .innerJoin('User', 'authorId', 'User.id')
+      .select(['name as authorName', 'url', 'image'])
+      .orderBy('PostLike.createdAt', 'desc')
+      .limit(size)
+      .offset((page - 1) * size)
+      .execute();
+
+    return posts.map((post) => ({
+      id: post.id,
+      type: post.type,
+      title: post.title,
+      content: post.content,
+      thumbnail: post.thumbnail,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt,
+      author: {
+        id: post.authorId,
+        name: post.authorName,
+        url: post.url,
+        image: post.image,
+      },
+    }));
+  }
+
   async findAllIdsByUserId(userId: string) {
     const posts = await this.txHost.tx.post.findMany({
       where: {
