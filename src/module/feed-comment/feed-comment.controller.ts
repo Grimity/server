@@ -12,6 +12,7 @@ import {
   Put,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiResponse,
   ApiOperation,
@@ -42,6 +43,7 @@ export class FeedCommentController {
     description: '피드가 없거나..상위댓글이 없거나..',
   })
   @Post()
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   async create(
     @CurrentUser() userId: string,
@@ -54,6 +56,7 @@ export class FeedCommentController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 댓글 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: [ParentFeedCommentResponse] })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get()
   async findAll(
@@ -67,6 +70,7 @@ export class FeedCommentController {
   @ApiOperation({ summary: '피드 댓글 삭제' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id')
@@ -82,6 +86,7 @@ export class FeedCommentController {
   @ApiOperation({ summary: '피드 댓글 좋아요' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/like')
@@ -97,6 +102,7 @@ export class FeedCommentController {
   @ApiOperation({ summary: '피드 댓글 좋아요 취소' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '댓글을 찾을 수 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/like')

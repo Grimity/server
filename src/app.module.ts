@@ -14,6 +14,7 @@ import { GlobalFilter } from './core/filter';
 import { APP_FILTER } from '@nestjs/core';
 import { RedisModule } from './database/redis/redis.module';
 import { ClientInfoMiddleware } from './core/middleware';
+import { AuthResponseMiddleware } from './core/middleware/auth-response.middleware';
 import { AlbumModule } from './module/album/album.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ClsModule } from 'nestjs-cls';
@@ -100,6 +101,8 @@ import { CommissionWorkModule } from './module/commission-work/commission-work.m
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ClientInfoMiddleware).forRoutes('auth');
+    consumer
+      .apply(AuthResponseMiddleware, ClientInfoMiddleware)
+      .forRoutes('auth');
   }
 }

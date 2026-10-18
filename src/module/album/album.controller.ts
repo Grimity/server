@@ -19,6 +19,7 @@ import {
   RemoveFeedsAlbumRequest,
 } from './dto/album.request';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiResponse,
   ApiOperation,
@@ -32,6 +33,7 @@ import { IdResponse } from 'src/shared/response/id.response';
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('albums')
 export class AlbumController {

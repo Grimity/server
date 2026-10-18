@@ -6,6 +6,7 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { ErrorResponse } from 'src/shared/response/error.response';
+import { WEB_SESSION_COOKIE } from './auth.config';
 
 /**
  * 에러 응답은 컨트롤러에서 `@ApiResponse({ status: 404, description: '...' })`처럼
@@ -52,6 +53,7 @@ export function createSwaggerDocument(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
     .setTitle('grimity API')
     .addBearerAuth()
+    .addCookieAuth(WEB_SESSION_COOKIE)
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {

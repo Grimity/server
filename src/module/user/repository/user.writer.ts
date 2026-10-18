@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { convertCode } from 'src/shared/util/convert-prisma-error-code';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { ClientInfo } from 'src/shared/types/client-info';
 
 @Injectable()
 export class UserWriter {
@@ -189,6 +190,27 @@ export class UserWriter {
       }
       throw e;
     }
+  }
+
+  async touchWebSession(
+    userId: string,
+    token: string,
+    client: ClientInfo,
+    cutoff: Date,
+  ) {
+    if (client.type !== 'WEB') return false;
+    const result = await this.txHost.tx.refreshToken.updateMany({
+      where: {
+        userId,
+        token,
+        type: 'WEB',
+        device: client.device,
+        model: client.model,
+        updatedAt: { gt: cutoff },
+      },
+      data: { updatedAt: new Date() },
+    });
+    return result.count === 1;
   }
 
   async deleteRefreshToken(userId: string, token: string) {

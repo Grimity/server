@@ -13,6 +13,7 @@ import {
   HttpException,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiOperation,
   ApiResponse,
@@ -51,6 +52,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 생성' })
   @ApiResponse({ status: 201, type: IdResponse })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Post()
   async create(
@@ -66,6 +68,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 여러개 삭제' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Post('batch-delete')
   async deleteMany(
@@ -79,6 +82,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '피드 검색 - Optional Guard' })
   @ApiResponse({ status: 200, type: SearchedFeedsResponse })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get('search')
   async search(
@@ -97,6 +101,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '랭킹 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: FeedRankingsResponse })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get('rankings')
   async getFeedRanks(
@@ -124,6 +129,7 @@ export class FeedController {
     summary: '최신순 그림 목록 조회, 무한스크롤 - Optional Guard',
   })
   @ApiResponse({ status: 200, type: LatestFeedsResponse })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get('latest')
   async getFeeds(
@@ -139,6 +145,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '팔로잉한 유저들의 피드 목록 조회' })
   @ApiResponse({ status: 200, type: FollowingFeedsResponse })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Get('following')
   async getFollowingFeeds(
@@ -155,6 +162,7 @@ export class FeedController {
   @ApiOperation({ summary: '피드 상세 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: FeedDetailResponse })
   @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getFeed(
@@ -178,6 +186,7 @@ export class FeedController {
   @ApiOperation({ summary: '피드 수정' })
   @ApiResponse({ status: 204, description: '피드 수정 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id')
@@ -198,6 +207,7 @@ export class FeedController {
   @ApiOperation({ summary: '피드 삭제' })
   @ApiResponse({ status: 204, description: '피드 삭제 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id')
@@ -212,6 +222,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '좋아요 누른 유저 목록 조회', deprecated: true })
   @ApiResponse({ status: 200, type: [FeedLikedUserResponse] })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Get(':id/like')
   async getLikeUsers(
@@ -224,6 +235,7 @@ export class FeedController {
   @ApiOperation({ summary: 'like' })
   @ApiResponse({ status: 204, description: '좋아요 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/like')
@@ -238,6 +250,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'unlike' })
   @ApiResponse({ status: 204, description: '좋아요 취소 성공' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/like')
@@ -253,6 +266,7 @@ export class FeedController {
   @ApiOperation({ summary: 'save' })
   @ApiResponse({ status: 204, description: '저장 성공' })
   @ApiResponse({ status: 404, description: '피드가 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/save')
@@ -267,6 +281,7 @@ export class FeedController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'unsave' })
   @ApiResponse({ status: 204, description: '저장 취소 성공' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/save')

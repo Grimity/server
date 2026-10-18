@@ -1,4 +1,5 @@
-import { Injectable, HttpException, Inject } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { UserWriter } from '../user/repository/user.writer';
 import { UserReader } from '../user/repository/user.reader';
 import { JwtService } from '@nestjs/jwt';
@@ -8,6 +9,8 @@ import {
   googleBanList,
   kakaoBanList,
 } from 'src/common/constants/ban-list.constant';
+import { WebSession, WebSessionService } from './web-session.service';
+import { RefreshTokenPayload } from './types/refresh-token';
 
 @Injectable()
 export class AuthService {
@@ -16,9 +19,14 @@ export class AuthService {
     private jwtService: JwtService,
     private userReader: UserReader,
     private configService: ConfigService,
+    private webSessions: WebSessionService,
   ) {}
 
-  async login(input: LoginInput, clientInfo: ClientInfo) {
+  async login(
+    input: LoginInput,
+    clientInfo: ClientInfo,
+    withWebSession = false,
+  ) {
     let providerId;
 
     if (input.provider === 'GOOGLE') {
@@ -47,32 +55,17 @@ export class AuthService {
       throw new HttpException('USER', 404);
     }
 
-    const accessToken = this.jwtService.sign({ id: user.id });
-
-    const refreshToken = this.jwtService.sign(
-      {
-        id: user.id,
-        type: clientInfo.type,
-        device: clientInfo.device,
-        model: clientInfo.model,
-      },
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
-      },
-    );
-
-    await this.userWriter.createRefreshToken({
-      ...clientInfo,
-      userId: user.id,
-      refreshToken,
-      deviceId: input.deviceId ?? null,
-    });
-
-    return { id: user.id, accessToken, refreshToken };
+    const session = withWebSession
+      ? await this.webSessions.create(user.id, clientInfo)
+      : undefined;
+    return this.issueTokens(user.id, clientInfo, input.deviceId, session);
   }
 
-  async register(input: RegisterInput, clientInfo: ClientInfo) {
+  async register(
+    input: RegisterInput,
+    clientInfo: ClientInfo,
+    withWebSession = false,
+  ) {
     let providerId;
     let email;
     if (input.provider === 'GOOGLE') {
@@ -117,49 +110,34 @@ export class AuthService {
       url: input.url,
     });
 
-    const accessToken = this.jwtService.sign({ id: user.id });
-
-    const refreshToken = this.jwtService.sign(
-      {
-        id: user.id,
-        type: clientInfo.type,
-        device: clientInfo.device,
-        model: clientInfo.model,
-      },
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
-      },
-    );
-
-    await this.userWriter.createRefreshToken({
-      ...clientInfo,
-      userId: user.id,
-      refreshToken,
-      deviceId: input.deviceId ?? null,
-    });
-
-    return { accessToken, id: user.id, refreshToken };
+    const session = withWebSession
+      ? await this.webSessions.create(user.id, clientInfo)
+      : undefined;
+    return this.issueTokens(user.id, clientInfo, input.deviceId, session);
   }
 
-  async refresh(userId: string, token: string, clientInfo: ClientInfo) {
+  async refresh(
+    userId: string,
+    token: string,
+    clientInfo: ClientInfo,
+    withWebSession = false,
+  ) {
     const savedToken = await this.userReader.findRefreshToken(userId, token);
     if (!savedToken) {
       throw new HttpException('만료된 refT', 401);
     }
 
+    const { sessionId } = this.jwtService.decode<RefreshTokenPayload>(token);
+    const session = sessionId
+      ? await this.webSessions.renew(userId, sessionId, clientInfo)
+      : withWebSession
+        ? await this.webSessions.create(userId, clientInfo)
+        : undefined;
     const accessToken = this.jwtService.sign({ id: userId });
-    const refreshToken = this.jwtService.sign(
-      {
-        id: userId,
-        type: clientInfo.type,
-        device: clientInfo.device,
-        model: clientInfo.model,
-      },
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
-      },
+    const refreshToken = this.signRefreshToken(
+      userId,
+      clientInfo,
+      session?.sessionId,
     );
 
     const result = await this.userWriter.updateRefreshToken(
@@ -167,14 +145,80 @@ export class AuthService {
       token,
       refreshToken,
     );
-    if (result === null) throw new HttpException('만료된 refT', 401);
+    if (result === null) {
+      if (!sessionId && session)
+        await this.webSessions.revoke(userId, session.sessionId);
+      throw new HttpException('만료된 refT', 401);
+    }
 
-    return { accessToken, refreshToken };
+    return {
+      accessToken,
+      refreshToken,
+      webSession: withWebSession ? session : undefined,
+    };
+  }
+
+  private signRefreshToken(
+    userId: string,
+    clientInfo: ClientInfo,
+    sessionId?: string,
+  ) {
+    return this.jwtService.sign(
+      {
+        id: userId,
+        type: clientInfo.type,
+        device: clientInfo.device,
+        model: clientInfo.model,
+        // Login / refresh requests in the same second must issue distinct tokens.
+        jti: randomUUID(),
+        ...(sessionId ? { sessionId } : {}),
+      },
+      {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+      },
+    );
+  }
+
+  private async issueTokens(
+    userId: string,
+    clientInfo: ClientInfo,
+    deviceId?: string,
+    webSession?: WebSession,
+  ) {
+    const accessToken = this.jwtService.sign({ id: userId });
+    const refreshToken = this.signRefreshToken(
+      userId,
+      clientInfo,
+      webSession?.sessionId,
+    );
+    await this.userWriter.createRefreshToken({
+      ...clientInfo,
+      userId,
+      refreshToken,
+      deviceId: deviceId ?? null,
+    });
+    return { id: userId, accessToken, refreshToken, webSession };
+  }
+
+  async refreshSession(session: WebSession, clientInfo: ClientInfo) {
+    // Each website gets its own rotating header refresh token. The shared
+    // session identifier stays valid across concurrent restores and rotations.
+    const { id: _id, ...tokens } = await this.issueTokens(
+      session.userId,
+      clientInfo,
+      undefined,
+      session,
+    );
+    return tokens;
   }
 
   async logout(userId: string, token: string, clientInfo: ClientInfo) {
     const result = await this.userWriter.deleteRefreshToken(userId, token);
     if (result === null) throw new HttpException('만료된 refT', 401);
+
+    const { sessionId } = this.jwtService.decode<RefreshTokenPayload>(token);
+    if (sessionId) await this.webSessions.revoke(userId, sessionId);
 
     return;
   }

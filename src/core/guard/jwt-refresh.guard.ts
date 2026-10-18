@@ -8,16 +8,23 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import type { RefreshTokenPayload } from 'src/module/auth/types/refresh-token';
+import { WebSessionService } from 'src/module/auth/web-session.service';
 
 @Injectable()
 export class JwtRefreshGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
+    private webSessions: WebSessionService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
+    if (request.headers.authorization === undefined) {
+      request.webSession = await this.webSessions.authenticateRequest(request);
+      request.user = { id: request.webSession.userId };
+      return true;
+    }
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {

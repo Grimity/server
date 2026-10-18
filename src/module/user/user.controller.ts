@@ -13,6 +13,7 @@ import {
   Body,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
@@ -55,6 +56,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저 검색' })
   @ApiResponse({ status: 200, type: SearchedUsersResponse })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get('search')
   async searchUser(
@@ -72,6 +74,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '인기 유저 조회' })
   @ApiResponse({ status: 200, type: [PopularUserResponse] })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get('popular')
   async getPopularUsers(
@@ -84,6 +87,7 @@ export class UserController {
   @ApiOperation({ summary: 'url로 유저 정보 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: UserProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get('/profile/:url')
   async getProfileByUrl(
@@ -104,6 +108,7 @@ export class UserController {
   @ApiOperation({ summary: '유저 정보 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: UserProfileResponse })
   @ApiResponse({ status: 404, description: '없는 유저' })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getUserById(
@@ -125,6 +130,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저별 피드 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: UserFeedsResponse })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get(':id/feeds')
   async getFeeds(
@@ -149,7 +155,8 @@ export class UserController {
       '유저별 게시글 조회 - 일관성을 위해서 경로는 이렇게하지만 accT는 있어야합니다',
   })
   @ApiResponse({ status: 200, type: [MyPostResponse] })
-  // @UseGuards(JwtGuard)
+  // @ApiCookieAuth()
+  @UseGuards(JwtGuard)
   @Get(':id/posts')
   async getPosts(
     // @CurrentUser() userId: string,
@@ -175,6 +182,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '팔로우' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/follow')
@@ -189,6 +197,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '언팔로우' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/follow')
@@ -203,6 +212,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '차단' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Put(':id/block')
@@ -217,6 +227,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '차단 풀기' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Delete(':id/block')

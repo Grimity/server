@@ -12,6 +12,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiResponse,
   ApiOperation,
@@ -45,6 +46,7 @@ export class PostController {
   @ApiOperation({ summary: '게시글 생성' })
   @ApiResponse({ status: 201, type: IdResponse })
   @Post()
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   async create(
     @CurrentUser() userId: string,
@@ -100,6 +102,7 @@ export class PostController {
   @ApiOperation({ summary: '게시글 상세 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: PostDetailResponse })
   @ApiResponse({ status: 404, description: '게시글 없음' })
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   @Get(':id')
   async getPost(
@@ -123,6 +126,7 @@ export class PostController {
   @ApiOperation({ summary: '게시글 수정' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '게시글 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Put(':id')
   @HttpCode(204)
@@ -139,6 +143,7 @@ export class PostController {
   @ApiOperation({ summary: '게시글 삭제' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '게시글 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Delete(':id')
   @HttpCode(204)
@@ -153,6 +158,7 @@ export class PostController {
   @ApiOperation({ summary: '게시글 좋아요' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '좋아요할 게시글 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Put(':id/like')
   @HttpCode(204)
@@ -166,6 +172,7 @@ export class PostController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 좋아요 취소' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Delete(':id/like')
   @HttpCode(204)
@@ -180,6 +187,7 @@ export class PostController {
   @ApiOperation({ summary: '게시글 저장' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '저장할 게시글 없음' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Put(':id/save')
   @HttpCode(204)
@@ -193,6 +201,7 @@ export class PostController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '게시글 저장 취소' })
   @ApiResponse({ status: 204 })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Delete(':id/save')
   @HttpCode(204)

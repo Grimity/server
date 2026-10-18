@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setupSwagger } from './common/config/swagger.config';
+import { ConfigService } from '@nestjs/config';
+import { createCorsOptions } from './common/config/auth.config';
 
 // 전역 에러 핸들러 추가
 process.on('uncaughtException', (error) => {
@@ -15,11 +17,7 @@ process.on('unhandledRejection', (reason, promise) => {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: '*',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  });
+  app.enableCors(createCorsOptions(app.get(ConfigService)));
 
   setupSwagger(app);
 

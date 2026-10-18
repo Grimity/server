@@ -1,5 +1,6 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiOperation,
   ApiBearerAuth,
@@ -14,6 +15,7 @@ import { JwtGuard } from 'src/core/guard';
 @ApiTags('reports')
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
 @ApiResponse({ status: 401, description: 'Unauthorized' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('reports')
 export class ReportController {

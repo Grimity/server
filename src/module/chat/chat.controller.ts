@@ -1,4 +1,5 @@
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiOperation,
   ApiResponse,
@@ -35,6 +36,7 @@ import { UserBaseResponse, UserBaseWithBlockedResponse } from '../user/dto';
 @ApiBearerAuth()
 @ApiResponse({ status: 400, description: 'Bad Request' })
 @ApiResponse({ status: 401, description: 'Unauthorized' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('chats')
 export class ChatController {

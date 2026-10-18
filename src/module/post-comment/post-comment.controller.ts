@@ -12,6 +12,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiResponse,
   ApiBearerAuth,
@@ -36,6 +37,7 @@ export class PostCommentController {
   @ApiOperation({ summary: '댓글 생성' })
   @ApiResponse({ status: 201, type: IdResponse })
   @Post()
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   async createPostComment(
     @CurrentUser() userId: string,
@@ -51,6 +53,7 @@ export class PostCommentController {
   @ApiOperation({ summary: '댓글 조회 - Optional Guard' })
   @ApiResponse({ status: 200, type: [ParentPostCommentResponse] })
   @Get()
+  @ApiCookieAuth()
   @UseGuards(OptionalJwtGuard)
   async getPostComments(
     @CurrentUser() userId: string | null,
@@ -63,6 +66,7 @@ export class PostCommentController {
   @ApiOperation({ summary: '댓글 삭제' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '없는 댓글' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Delete(':id')
   @HttpCode(204)
@@ -78,6 +82,7 @@ export class PostCommentController {
   @ApiOperation({ summary: '댓글 좋아요' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '없는 댓글' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Put(':id/like')
   @HttpCode(204)
@@ -93,6 +98,7 @@ export class PostCommentController {
   @ApiOperation({ summary: '댓글 좋아요 취소' })
   @ApiResponse({ status: 204 })
   @ApiResponse({ status: 404, description: '없는 댓글' })
+  @ApiCookieAuth()
   @UseGuards(JwtGuard)
   @Delete(':id/like')
   @HttpCode(204)

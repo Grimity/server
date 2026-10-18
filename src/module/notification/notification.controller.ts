@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiResponse,
   ApiOperation,
@@ -23,6 +24,7 @@ import { NotificationResponse } from './dto/notification.response';
 @ApiTags('notifications')
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('notifications')
 export class NotificationController {

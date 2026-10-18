@@ -198,6 +198,7 @@
     },
     "/auth/refresh": {
       "get": {
+        "description": "Authorization 헤더의 refreshToken을 우선 사용합니다. 헤더가 없을 때만 공유 쿠키를 사용하며, 잘못된 헤더는 쿠키로 우회하지 않습니다.",
         "operationId": "auth_refresh",
         "parameters": [
           {
@@ -247,10 +248,13 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
-        "summary": "토큰 재발급 - refT를 담아야함",
+        "summary": "토큰 재발급",
         "tags": [
           "auth"
         ]
@@ -258,6 +262,7 @@
     },
     "/auth/logout": {
       "post": {
+        "description": "헤더 refreshToken을 우선 사용하고, 헤더가 없으면 공유 쿠키를 사용합니다. 다른 계정의 쿠키는 헤더 인증 결과나 로그아웃에 영향을 주지 않습니다.",
         "operationId": "auth_logout",
         "parameters": [
           {
@@ -300,10 +305,13 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
-        "summary": "로그아웃 - refT를 담아야함",
+        "summary": "로그아웃",
         "tags": [
           "auth"
         ]
@@ -431,6 +439,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -480,6 +491,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -546,6 +560,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -663,6 +680,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -804,6 +824,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -977,6 +1000,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1023,6 +1049,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1073,6 +1102,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1119,6 +1151,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1176,6 +1211,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1235,6 +1273,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1272,6 +1313,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1323,6 +1367,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1360,6 +1407,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1411,6 +1461,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1461,6 +1514,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1498,6 +1554,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1546,6 +1605,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1593,6 +1655,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1658,6 +1723,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1732,6 +1800,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1778,6 +1849,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1837,6 +1911,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -1903,6 +1980,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -1967,6 +2047,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2033,6 +2116,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2101,6 +2187,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2150,6 +2239,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2222,6 +2314,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2266,6 +2361,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2313,6 +2411,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2380,6 +2481,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2417,6 +2521,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2475,6 +2582,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2524,6 +2634,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2609,6 +2722,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2685,6 +2801,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2749,6 +2868,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2815,6 +2937,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -2880,6 +3005,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -2948,6 +3076,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -3004,6 +3135,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -3126,6 +3260,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -3183,6 +3320,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -3229,6 +3369,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -3289,6 +3432,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -3335,6 +3481,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -3461,6 +3610,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -3728,6 +3880,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -3795,6 +3950,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -3851,6 +4009,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -3972,6 +4133,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4018,6 +4182,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4078,6 +4245,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4124,6 +4294,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4192,6 +4365,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4242,6 +4418,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4291,6 +4470,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4350,6 +4532,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4418,6 +4603,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4464,6 +4652,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4525,6 +4716,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4581,6 +4775,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4641,6 +4838,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4700,6 +4900,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4757,6 +4960,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4807,6 +5013,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4845,6 +5054,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4882,6 +5094,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -4932,6 +5147,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -4978,6 +5196,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5036,6 +5257,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5092,6 +5316,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5152,6 +5379,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5211,6 +5441,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5268,6 +5501,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5317,6 +5553,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5374,6 +5613,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5448,6 +5690,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5497,6 +5742,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5557,6 +5805,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5612,6 +5863,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5682,6 +5936,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5740,6 +5997,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5810,6 +6070,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -5883,6 +6146,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5942,6 +6208,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -5998,6 +6267,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -6157,6 +6429,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6227,6 +6502,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6284,6 +6562,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -6352,6 +6633,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -6430,6 +6714,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6507,6 +6794,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6583,6 +6873,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -6671,6 +6964,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6758,6 +7054,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6834,6 +7133,9 @@
           }
         },
         "security": [
+          {
+            "cookie": []
+          },
           {
             "bearer": []
           }
@@ -6922,6 +7224,9 @@
         },
         "security": [
           {
+            "cookie": []
+          },
+          {
             "bearer": []
           }
         ],
@@ -6946,6 +7251,11 @@
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http"
+      },
+      "cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "grimity_session"
       }
     },
     "schemas": {

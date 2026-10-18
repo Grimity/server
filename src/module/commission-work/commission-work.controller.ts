@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
@@ -53,6 +54,7 @@ import {
 @ApiTags('commission-works')
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('commission-works')
 export class CommissionWorkController {

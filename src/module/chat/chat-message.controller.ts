@@ -1,4 +1,5 @@
 import {
+  ApiCookieAuth,
   ApiTags,
   ApiResponse,
   ApiOperation,
@@ -31,6 +32,7 @@ import { CurrentUser } from 'src/core/decorator';
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: 'Bad Request' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('chat-messages')
 export class ChatMessageController {

@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiCookieAuth,
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
@@ -26,6 +27,7 @@ import { CreateCommissionRequest } from './dto/commission.request';
 @ApiBearerAuth()
 @ApiResponse({ status: 401, description: 'Unauthorized' })
 @ApiResponse({ status: 400, description: '유효성 검사 실패' })
+@ApiCookieAuth()
 @UseGuards(JwtGuard)
 @Controller('commissions')
 export class CommissionController {

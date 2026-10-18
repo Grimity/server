@@ -3,4 +3,5 @@ export type RefreshTokenPayload = {
   type: 'WEB' | 'APP';
   device: string;
   model: string;
+  sessionId?: string;
 };
