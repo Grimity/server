@@ -7276,6 +7276,86 @@
           "boards"
         ]
       }
+    },
+    "/boards/{id}/join": {
+      "post": {
+        "description": "로그인·비로그인 모두 호출할 수 있습니다. 소유자이거나 개별 초대로 권한을 받았거나 링크 권한이 EDIT이면 입장하고, 소켓 연결용 보드 토큰을 발급합니다. 입장한 사람은 모두 보드 참여자로 기록됩니다. 링크로 입장한 사람은 권한 없이 기록되므로, 링크 권한을 NONE으로 바꾸면 더 이상 입장할 수 없습니다. 비로그인 사용자는 형용사+동물 이름의 게스트로 입장하며, 이전 보드 토큰을 보내면 같은 게스트로 다시 입장합니다. 로그인한 상태로 이전 게스트 토큰을 보내면 그 게스트를 계정에 연결합니다. Authorization 헤더를 보냈는데 유효하지 않으면 게스트로 바꾸지 않고 401을 반환합니다.",
+        "operationId": "board_join",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinBoardRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinBoardResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "헤더 토큰이 유효하지 않음, 또는 비로그인 사용자가 링크 권한 NONE 보드에 입장",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "로그인 사용자가 초대받지 않았는데 링크 권한이 NONE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "보드 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "보드 입장",
+        "tags": [
+          "boards"
+        ]
+      }
     }
   },
   "info": {
@@ -11006,6 +11086,102 @@
         "required": [
           "status",
           "errorCode"
+        ]
+      },
+      "JoinBoardRequest": {
+        "type": "object",
+        "properties": {
+          "boardToken": {
+            "type": "string",
+            "description": "이전 입장에서 받은 보드 토큰. 비로그인 사용자가 같은 게스트 신원(내 그림)을 유지하려면 보냅니다. 만료돼도 됩니다."
+          }
+        }
+      },
+      "BoardPermission": {
+        "type": "string",
+        "enum": [
+          "EDIT"
+        ]
+      },
+      "BoardMemberType": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "GUEST"
+        ]
+      },
+      "BoardMemberResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "보드 참여자 ID. 로그인 사용자와 게스트 모두 이 값으로 구분"
+          },
+          "userId": {
+            "type": "string",
+            "description": "로그인 사용자의 userId. 게스트는 null",
+            "nullable": true
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoardMemberType"
+              }
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "example": "https://image.grimity.com/profile/{UUID}.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "type",
+          "name",
+          "image"
+        ]
+      },
+      "JoinBoardResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "permission": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoardPermission"
+              }
+            ]
+          },
+          "member": {
+            "$ref": "#/components/schemas/BoardMemberResponse"
+          },
+          "claimedGuestId": {
+            "type": "string",
+            "description": "로그인 사용자가 이전 게스트 토큰을 보내 이번 요청에서 계정에 연결된 게스트의 참여자 ID. 연결하지 않았으면 null",
+            "nullable": true
+          },
+          "boardToken": {
+            "type": "string",
+            "description": "보드 소켓 연결에 쓰는 토큰. 비로그인 사용자는 저장해 두었다가 다시 입장할 때 보냅니다."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "permission",
+          "member",
+          "claimedGuestId",
+          "boardToken"
         ]
       },
       "ErrorResponse": {

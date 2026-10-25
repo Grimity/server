@@ -574,15 +574,21 @@ model Board {
   @@index([ownerId, createdAt(sort: Desc)])
 }
 
+// 보드에 참여한 사람 전체. 로그인 사용자는 userId, 게스트는 userId 없이 name으로 구분한다.
+// 행이 있다고 권한이 있는 것은 아니다. 권한은 permission(개별 초대)과 링크 권한으로만 판단한다.
 model BoardMember {
-  boardId    String                @db.Uuid
-  userId     String                @db.Uuid
-  permission BoardMemberPermission @default(EDIT)
-  createdAt  DateTime              @default(now())
+  id         String                 @id @default(uuid()) @db.Uuid
+  boardId    String                 @db.Uuid
+  userId     String?                @db.Uuid
+  name       String?                @db.VarChar(30) // 게스트 이름. 로그인 사용자는 User.name을 쓴다
+  permission BoardMemberPermission? // null이면 링크로 들어온 참여자
+  createdAt  DateTime               @default(now())
 
   board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([boardId, userId])
+  // NULL끼리는 겹치지 않으므로 게스트 여러 명과 로그인 사용자 여러 명이 함께 있을 수 있다.
+  @@unique([boardId, userId])
+  @@unique([boardId, name])
   @@index([userId])
 }

@@ -1,4 +1,5 @@
 import { INestApplication, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { TransactionHost } from '@nestjs-cls/transactional';
@@ -26,6 +27,7 @@ describe('POST /boards', () => {
         }
         if (token === JwtService) return jwt;
         if (token === WebSessionService) return { authenticateRequest };
+        if (token === ConfigService) return { getOrThrow: () => 'secret' };
       })
       .compile();
 
