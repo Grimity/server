@@ -22,6 +22,13 @@ export class BoardReader {
     });
   }
 
+  async findMember(boardId: string, memberId: string) {
+    return await this.txHost.tx.boardMember.findFirst({
+      where: { id: memberId, boardId },
+      select: { id: true, userId: true, permission: true },
+    });
+  }
+
   async findGuestMember(boardId: string, memberId: string) {
     return await this.txHost.tx.boardMember.findFirst({
       where: { id: memberId, boardId, userId: null },

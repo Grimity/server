@@ -33,6 +33,7 @@ import { CommissionModule } from './module/commission/commission.module';
 import { CommissionNoticeModule } from './module/commission-notice/commission-notice.module';
 import { CommissionWorkModule } from './module/commission-work/commission-work.module';
 import { BoardModule } from './module/board/board.module';
+import { BoardGatewayModule } from './module/board/board-gateway.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { BoardModule } from './module/board/board.module';
     CommissionNoticeModule,
     CommissionWorkModule,
     BoardModule,
+    BoardGatewayModule,
   ],
   controllers: [AppController],
   providers: [

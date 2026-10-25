@@ -8,6 +8,6 @@ import { BoardWriter } from './repository/board.writer';
 @Module({
   controllers: [BoardController],
   providers: [BoardService, BoardTokenService, BoardReader, BoardWriter],
-  exports: [BoardTokenService],
+  exports: [BoardService, BoardTokenService],
 })
 export class BoardModule {}

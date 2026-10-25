@@ -3,7 +3,7 @@ import { BoardLinkPermission, BoardMemberPermission } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { IdResponse } from 'src/shared/response/id.response';
-import { BoardTokenService } from './board-token.service';
+import { BoardTokenClaims, BoardTokenService } from './board-token.service';
 import {
   BoardMemberResponse,
   BoardPermission,
@@ -69,6 +69,34 @@ export class BoardService {
     );
     const member = await this.getUserMember(boardId, userId);
     return this.toJoinResponse(board, permission, member, claimedGuestId);
+  }
+
+  // 소켓 연결 때 토큰 발급 이후 바뀐 것이 없는지 다시 확인한다.
+  async verifyConnection(claims: BoardTokenClaims): Promise<BoardPermission> {
+    const board = await this.boardReader.findOneById(claims.boardId);
+    if (!board) {
+      throw new HttpException('BOARD', 404);
+    }
+
+    // 게스트가 계정에 연결되면 게스트 행이 지워지거나 사용자 행으로 바뀐다.
+    // 바뀐 행을 예전 게스트 토큰으로 쓰지 못하게 userId까지 비교한다.
+    const member = await this.boardReader.findMember(
+      claims.boardId,
+      claims.memberId,
+    );
+    if (!member || member.userId !== claims.userId) {
+      throw new HttpException('BOARD_MEMBER', 401);
+    }
+
+    const permission = this.getPermission(
+      board,
+      member.userId,
+      member.permission,
+    );
+    if (!permission) {
+      throw new HttpException('BOARD_ACCESS', 403);
+    }
+    return permission;
   }
 
   // 참여자 행이 있다고 권한이 있는 것은 아니다. 권한은 여기서만 판단한다.
