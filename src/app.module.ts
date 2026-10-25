@@ -32,6 +32,7 @@ import { AdminModule } from './module/admin/admin.module';
 import { CommissionModule } from './module/commission/commission.module';
 import { CommissionNoticeModule } from './module/commission-notice/commission-notice.module';
 import { CommissionWorkModule } from './module/commission-work/commission-work.module';
+import { BoardModule } from './module/board/board.module';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { CommissionWorkModule } from './module/commission-work/commission-work.m
     CommissionModule,
     CommissionNoticeModule,
     CommissionWorkModule,
+    BoardModule,
   ],
   controllers: [AppController],
   providers: [

@@ -7235,6 +7235,47 @@
           "commission-works"
         ]
       }
+    },
+    "/boards": {
+      "post": {
+        "description": "입력값 없이 기본 제목과 EDIT 링크 권한으로 생성하고, 로그인한 사용자를 소유자 및 EDIT 권한의 멤버로 등록합니다.",
+        "operationId": "board_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "보드 생성",
+        "tags": [
+          "boards"
+        ]
+      }
     }
   },
   "info": {

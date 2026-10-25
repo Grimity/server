@@ -32,33 +32,35 @@ model User {
 
   createdAt DateTime @default(now())
 
-  followers               Follow[]              @relation("following")
-  followings              Follow[]              @relation("follower")
-  feeds                   Feed[]
-  feedLikes               Like[]
-  feedComments            FeedComment[]         @relation("FeedCommentWrite")
-  feedSaves               Save[]
-  feedCommentMentions     FeedComment[]         @relation("MentionedUser")
-  feedCommentLikes        FeedCommentLike[]
-  posts                   Post[]
-  postLikes               PostLike[]
-  postSaves               PostSave[]
-  postComments            PostComment[]         @relation("PostCommentWrite")
-  postCommentMentions     PostComment[]         @relation("MentionedUser")
-  postCommentLike         PostCommentLike[]
-  refreshToken            RefreshToken[]
-  albums                  Album[]
-  chatUsers               ChatUser[]
-  pushTokens              PushToken[]
-  blockers                Block[]               @relation("blocker")
-  blockings               Block[]               @relation("blocking")
-  identityVerification    IdentityVerification?
-  commissions             Commission[]
-  commissionNotice        CommissionNotice?
-  commissionWorksAsAuthor CommissionWork[]      @relation("CommissionWorkAuthor")
-  commissionWorksAsClient CommissionWork[]      @relation("CommissionWorkClient")
-  commissionReviewsAsReviewer CommissionReview[] @relation("CommissionReviewReviewer")
-  commissionReviewsAsReviewee CommissionReview[] @relation("CommissionReviewReviewee")
+  followers                   Follow[]              @relation("following")
+  followings                  Follow[]              @relation("follower")
+  feeds                       Feed[]
+  feedLikes                   Like[]
+  feedComments                FeedComment[]         @relation("FeedCommentWrite")
+  feedSaves                   Save[]
+  feedCommentMentions         FeedComment[]         @relation("MentionedUser")
+  feedCommentLikes            FeedCommentLike[]
+  posts                       Post[]
+  postLikes                   PostLike[]
+  postSaves                   PostSave[]
+  postComments                PostComment[]         @relation("PostCommentWrite")
+  postCommentMentions         PostComment[]         @relation("MentionedUser")
+  postCommentLike             PostCommentLike[]
+  refreshToken                RefreshToken[]
+  albums                      Album[]
+  chatUsers                   ChatUser[]
+  pushTokens                  PushToken[]
+  blockers                    Block[]               @relation("blocker")
+  blockings                   Block[]               @relation("blocking")
+  identityVerification        IdentityVerification?
+  commissions                 Commission[]
+  commissionNotice            CommissionNotice?
+  commissionWorksAsAuthor     CommissionWork[]      @relation("CommissionWorkAuthor")
+  commissionWorksAsClient     CommissionWork[]      @relation("CommissionWorkClient")
+  commissionReviewsAsReviewer CommissionReview[]    @relation("CommissionReviewReviewer")
+  commissionReviewsAsReviewee CommissionReview[]    @relation("CommissionReviewReviewee")
+  ownedBoards                 Board[]
+  boardMembers                BoardMember[]
 
   @@unique([provider, providerId])
 }
@@ -394,18 +396,18 @@ model CommissionNotice {
 }
 
 model Commission {
-  id                  String   @id @default(uuid()) @db.Uuid
-  authorId            String   @db.Uuid
+  id                  String    @id @default(uuid()) @db.Uuid
+  authorId            String    @db.Uuid
   title               String
   description         String
   additionalCondition String?
   price               Int
-  workDays            Int      @db.SmallInt
-  revisionCount       Int      @db.SmallInt
+  workDays            Int       @db.SmallInt
+  revisionCount       Int       @db.SmallInt
   images              String[]
   thumbnail           String
-  isPublic            Boolean  @default(true)
-  createdAt           DateTime @default(now())
+  isPublic            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
   deletedAt           DateTime?
 
   author    User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -547,4 +549,40 @@ model CommissionWorkResult {
   updatedAt DateTime @updatedAt
 
   work CommissionWork @relation(fields: [workId], references: [id], onDelete: Cascade)
+}
+
+enum BoardLinkPermission {
+  NONE // 초대 없이 접근 불가
+  EDIT // 링크로 편집 가능
+}
+
+enum BoardMemberPermission {
+  EDIT // 개별 초대로 편집 가능
+}
+
+model Board {
+  id             String              @id @default(uuid()) @db.Uuid
+  ownerId        String              @db.Uuid
+  title          String              @default("새 그리미티 보드") @db.VarChar(100)
+  linkPermission BoardLinkPermission @default(EDIT)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  owner   User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members BoardMember[]
+
+  @@index([ownerId, createdAt(sort: Desc)])
+}
+
+model BoardMember {
+  boardId    String                @db.Uuid
+  userId     String                @db.Uuid
+  permission BoardMemberPermission @default(EDIT)
+  createdAt  DateTime              @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([boardId, userId])
+  @@index([userId])
 }
