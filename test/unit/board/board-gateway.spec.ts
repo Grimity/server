@@ -32,6 +32,14 @@ describe('보드 소켓 (/boards)', () => {
   const findBoard = jest.fn();
   const findMember = jest.fn();
 
+  type Hello = {
+    protocol: number;
+    serverTime: number;
+    self: { memberId: string; permission: string };
+    members: Member[];
+    limits: Record<string, number>;
+  };
+
   type Member = {
     id: string;
     userId: string | null;
@@ -127,10 +135,19 @@ describe('보드 소켓 (/boards)', () => {
     urls.push(`${await app.getUrl()}/boards`.replace('[::1]', 'localhost'));
   };
 
+  const NO_PROTOCOL = Symbol('no protocol');
+
   // 서버가 연결 직후 보내는 이벤트를 놓치지 않도록 리스너를 먼저 단다.
-  const connect = (token: string | undefined, server = 0) => {
+  const connect = (
+    token: string | undefined,
+    server = 0,
+    protocol: unknown = 1,
+  ) => {
+    const auth: Record<string, unknown> = {};
+    if (token !== undefined) auth.boardToken = token;
+    if (protocol !== NO_PROTOCOL) auth.protocol = protocol;
     const socket = io(urls[server], {
-      auth: token === undefined ? {} : { boardToken: token },
+      auth,
       transports: ['websocket'],
       forceNew: true,
       reconnection: false,
@@ -138,22 +155,23 @@ describe('보드 소켓 (/boards)', () => {
     });
     sockets.push(socket);
     const joined: Member[] = [];
-    const left: { id: string }[] = [];
-    socket.on('boardMemberJoined', (member: Member) => joined.push(member));
-    socket.on('boardMemberLeft', (payload: { id: string }) =>
+    const left: { memberId: string }[] = [];
+    socket.on('members:joined', ({ member }: { member: Member }) =>
+      joined.push(member),
+    );
+    socket.on('members:left', (payload: { memberId: string }) =>
       left.push(payload),
     );
-    const members = new Promise<Member[]>((resolve) =>
-      socket.once('boardMembers', (payload: { members: Member[] }) =>
-        resolve(payload.members),
-      ),
+    const hello = new Promise<Hello>((resolve) =>
+      socket.once('hello', resolve),
     );
+    const members = hello.then((payload) => payload.members);
     const error = new Promise<{
       message: string;
-      data?: { statusCode: number };
+      data?: Record<string, number>;
     }>((resolve) => socket.once('connect_error', resolve));
     socket.connect();
-    return { socket, members, error, joined, left };
+    return { socket, hello, members, error, joined, left };
   };
 
   const waitFor = <T>(
@@ -204,10 +222,16 @@ describe('보드 소켓 (/boards)', () => {
   });
 
   describe('인증', () => {
-    it('유효한 보드 토큰이면 연결하고 접속자 목록을 받는다', async () => {
-      const { members } = connect(tokenOf(user));
+    it('유효한 보드 토큰이면 연결하고 hello로 보드 상태를 받는다', async () => {
+      const { hello } = connect(tokenOf(user));
 
-      expect(await members).toEqual([user]);
+      expect(await hello).toEqual({
+        protocol: 1,
+        serverTime: expect.any(Number),
+        self: { memberId: userMemberId, permission: 'EDIT' },
+        members: [user],
+        limits: {},
+      });
       expect(findMember).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: userMemberId, boardId } }),
       );
@@ -227,6 +251,24 @@ describe('보드 소켓 (/boards)', () => {
       });
       expect(findBoard).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ['규약 버전이 없으면', NO_PROTOCOL],
+      ['지원하는 버전보다 낮으면', 0],
+      ['지원하는 버전보다 높으면', 2],
+      ['숫자가 아니면', '1'],
+    ])(
+      '%s 토큰보다 먼저 PROTOCOL로 거절하고 지원 범위를 알려 준다',
+      async (_, protocol) => {
+        const { error } = connect(tokenOf(user), 0, protocol);
+
+        expect(await error).toMatchObject({
+          message: 'PROTOCOL',
+          data: { statusCode: 426, minProtocol: 1, maxProtocol: 1 },
+        });
+        expect(findBoard).not.toHaveBeenCalled();
+      },
+    );
 
     it('보드가 없으면 BOARD로 거절한다', async () => {
       findBoard.mockResolvedValue(null);
@@ -294,16 +336,19 @@ describe('보드 소켓 (/boards)', () => {
       const first = connect(tokenOf(user), 0);
       expect(await first.members).toEqual([user]);
 
-      const joined = waitFor<Member>(first.socket, 'boardMemberJoined');
+      const joined = waitFor<{ member: Member }>(
+        first.socket,
+        'members:joined',
+      );
       const second = connect(tokenOf(guest), 1);
 
       // 새로 들어온 쪽은 다른 서버의 참여자까지 먼저 들어온 순서로 받는다.
       expect(await second.members).toEqual([user, guest]);
-      expect(await joined).toEqual(guest);
+      expect(await joined).toEqual({ member: guest });
 
-      const left = waitFor(first.socket, 'boardMemberLeft');
+      const left = waitFor(first.socket, 'members:left');
       second.socket.disconnect();
-      expect(await left).toEqual({ id: guestId });
+      expect(await left).toEqual({ memberId: guestId });
       // 자기 자신의 입장은 다른 참여자에게만 알린다.
       expect(second.joined).toEqual([]);
     });
@@ -325,7 +370,7 @@ describe('보드 소켓 (/boards)', () => {
 
       tab2.socket.disconnect();
       await settle();
-      expect(observer.left).toEqual([{ id: userMemberId }]);
+      expect(observer.left).toEqual([{ memberId: userMemberId }]);
     });
 
     it('다른 보드의 입장은 알리지 않는다', async () => {
@@ -357,6 +402,33 @@ describe('보드 소켓 (/boards)', () => {
       expect(await other.members).toEqual([guest]);
       await settle();
       expect(observer.joined).toEqual([]);
+    });
+
+    it('members:sync로 모든 서버의 접속자 목록을 다시 받는다', async () => {
+      const first = connect(tokenOf(user), 0);
+      await first.members;
+      const second = connect(tokenOf(guest), 1);
+      await second.members;
+
+      const result: unknown = await first.socket
+        .timeout(2000)
+        .emitWithAck('members:sync', {});
+
+      expect(result).toEqual({ ok: true, data: { members: [user, guest] } });
+    });
+
+    it('요청 본문이 객체가 아니면 BAD_REQUEST로 답한다', async () => {
+      const { socket, members } = connect(tokenOf(user));
+      await members;
+
+      const result: unknown = await socket
+        .timeout(2000)
+        .emitWithAck('members:sync', 'not-an-object');
+
+      expect(result).toEqual({
+        ok: false,
+        error: { code: 'BAD_REQUEST', retryable: false },
+      });
     });
   });
 });
