@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from 'src/app.module';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthService } from 'src/module/auth/auth.service';
+import * as randomUrl from 'src/module/auth/random-url';
 
 describe('POST /auth/register - 회원가입', () => {
   let app: INestApplication;
@@ -170,6 +171,119 @@ describe('POST /auth/register - 회원가입', () => {
       .set('Authorization', `Bearer ${body.accessToken}`);
 
     expect(status2).toBe(200);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('url을 보내지 않으면 서버가 만든다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId',
+      email: 'test@test.com',
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: body.id },
+    });
+    expect(user.url).toMatch(/^user_[a-z0-9]{8}$/);
+
+    // cleanup
+    spy.mockRestore();
+  });
+
+  it('만든 url이 이미 있으면 다른 url로 다시 시도한다', async () => {
+    // given
+    const profileSpy = jest
+      .spyOn(authService, 'getKakaoProfile')
+      .mockResolvedValue({ kakaoId: 'kakaoId', email: 'test@test.com' });
+    await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'other',
+        email: 'other@test.com',
+        name: 'other',
+        url: 'user_taken000',
+      },
+    });
+    const urlSpy = jest
+      .spyOn(randomUrl, 'createRandomUrl')
+      .mockReturnValueOnce('user_taken000')
+      .mockReturnValueOnce('user_fresh000');
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+      });
+
+    // then
+    expect(status).toBe(201);
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: body.id },
+    });
+    expect(user.url).toBe('user_fresh000');
+    expect(urlSpy).toHaveBeenCalledTimes(2);
+
+    // cleanup
+    profileSpy.mockRestore();
+    urlSpy.mockRestore();
+  });
+
+  it('url 없이 가입해도 이름이 중복이면 409 NAME을 반환한다', async () => {
+    // given
+    const spy = jest.spyOn(authService, 'getKakaoProfile').mockResolvedValue({
+      kakaoId: 'kakaoId',
+      email: 'test@test.com',
+    });
+    await prisma.user.create({
+      data: {
+        provider: 'KAKAO',
+        providerId: 'other',
+        email: 'other@test.com',
+        name: 'test',
+        url: 'other',
+      },
+    });
+
+    // when
+    const { status, body } = await request(app.getHttpServer())
+      .post('/auth/register')
+      .set(
+        'User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+      )
+      .send({
+        provider: 'kakao',
+        providerAccessToken: 'test',
+        name: 'test',
+      });
+
+    // then
+    expect(status).toBe(409);
+    expect(body.message).toBe('NAME');
 
     // cleanup
     spy.mockRestore();

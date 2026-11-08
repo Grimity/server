@@ -7477,7 +7477,7 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 20,
-            "description": "id필드말고 url 필드를 써주세요"
+            "description": "보내지 않으면 서버가 `user_` + 영문 소문자·숫자 8자로 만듭니다(가입 후 변경 가능)"
           }
         },
         "required": [

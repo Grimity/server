@@ -36,15 +36,18 @@ export class RegisterRequest extends LoginRequest {
   name: string;
 
   @ApiProperty({
+    type: String,
     minLength: 2,
     maxLength: 20,
     required: false,
-    description: 'id필드말고 url 필드를 써주세요',
+    description:
+      '보내지 않으면 서버가 `user_` + 영문 소문자·숫자 8자로 만듭니다(가입 후 변경 가능)',
   })
   @TrimNullableString()
+  @IsOptional()
   @Length(2, 20)
   @Validate(UrlValidator)
-  url: string;
+  url?: string | null;
 
   @ApiProperty({ required: false, description: '디바이스 ID, 앱에서만 씁니다' })
   @IsOptional()

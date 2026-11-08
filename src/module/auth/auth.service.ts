@@ -11,6 +11,9 @@ import {
 } from 'src/common/constants/ban-list.constant';
 import { WebSession, WebSessionService } from './web-session.service';
 import { RefreshTokenPayload } from './types/refresh-token';
+import { createRandomUrl } from './random-url';
+
+const RANDOM_URL_ATTEMPTS = 5;
 
 @Injectable()
 export class AuthService {
@@ -94,6 +97,23 @@ export class AuthService {
       email = kakaoProfile.email;
     }
 
+    const profile = {
+      provider: input.provider,
+      providerId,
+      email,
+      name: input.name,
+    };
+    const user = input.url
+      ? await this.createUser({ ...profile, url: input.url })
+      : await this.createUserWithRandomUrl(profile);
+
+    const session = withWebSession
+      ? await this.webSessions.create(user.id, clientInfo)
+      : undefined;
+    return this.issueTokens(user.id, clientInfo, input.deviceId, session);
+  }
+
+  private async createUser(input: CreateUserInput & { url: string }) {
     const [urlConflictUser, nameConflictUser] = await Promise.all([
       this.userReader.findOneByUrl(input.url),
       this.userReader.findOneByName(input.name),
@@ -102,18 +122,22 @@ export class AuthService {
     if (nameConflictUser !== null) throw new HttpException('NAME', 409);
     if (urlConflictUser !== null) throw new HttpException('URL', 409);
 
-    const user = await this.userWriter.create({
-      provider: input.provider,
-      providerId,
-      email,
-      name: input.name,
-      url: input.url,
-    });
+    return await this.userWriter.create(input);
+  }
 
-    const session = withWebSession
-      ? await this.webSessions.create(user.id, clientInfo)
-      : undefined;
-    return this.issueTokens(user.id, clientInfo, input.deviceId, session);
+  /** url 없이 가입하면(그리미티 보드 등) 겹치지 않는 url을 만들어 준다. */
+  private async createUserWithRandomUrl(input: CreateUserInput) {
+    const nameConflictUser = await this.userReader.findOneByName(input.name);
+    if (nameConflictUser !== null) throw new HttpException('NAME', 409);
+
+    for (let attempt = 0; attempt < RANDOM_URL_ATTEMPTS; attempt++) {
+      const user = await this.userWriter.createUnlessUrlTaken({
+        ...input,
+        url: createRandomUrl(),
+      });
+      if (user) return user;
+    }
+    throw new Error('Failed to create a unique profile url');
   }
 
   async refresh(
@@ -305,6 +329,14 @@ export type RegisterInput = {
   provider: string;
   providerAccessToken: string;
   name: string;
-  url: string;
+  /** 없으면 서버가 만든다. */
+  url?: string | null;
   deviceId?: string;
+};
+
+type CreateUserInput = {
+  provider: string;
+  providerId: string;
+  email: string;
+  name: string;
 };

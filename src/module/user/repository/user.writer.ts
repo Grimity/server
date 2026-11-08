@@ -24,6 +24,25 @@ export class UserWriter {
     });
   }
 
+  /**
+   * url이 이미 쓰이고 있으면 null을 돌려준다. 호출한 쪽에서 다른 url로 다시 시도한다.
+   * 다른 유니크 위반(예: 같은 name으로 동시에 가입)은 그대로 던진다.
+   */
+  async createUnlessUrlTaken(input: CreateInput) {
+    try {
+      return await this.create(input);
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        convertCode(e.code) === 'UNIQUE_CONSTRAINT' &&
+        (e.meta?.target as string[] | undefined)?.includes('url')
+      ) {
+        return null;
+      }
+      throw e;
+    }
+  }
+
   async update(id: string, input: UpdateInput) {
     await this.txHost.tx.user.update({
       where: { id },
