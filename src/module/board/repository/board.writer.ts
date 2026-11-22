@@ -64,7 +64,7 @@ export class BoardWriter {
     try {
       // 조건부 update라 같은 게스트를 두 계정이 동시에 가져가도 한쪽만 성공한다.
       const { count } = await this.txHost.tx.boardMember.updateMany({
-        where: { id: memberId, boardId, userId: null },
+        where: { id: memberId, boardId, userId: null, name: { not: null } },
         data: { userId, name: null },
       });
       return count === 1;
@@ -77,7 +77,7 @@ export class BoardWriter {
 
   async deleteGuestMember(boardId: string, memberId: string) {
     const { count } = await this.txHost.tx.boardMember.deleteMany({
-      where: { id: memberId, boardId, userId: null },
+      where: { id: memberId, boardId, userId: null, name: { not: null } },
     });
     return count === 1;
   }

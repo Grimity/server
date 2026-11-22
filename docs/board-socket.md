@@ -42,6 +42,7 @@ io(`${API}/boards`, {
 | `BOARD_MEMBER` | 401 | 참여자 행이 없거나 다른 사람 것이 됨(게스트 → 계정 합치기) | 위와 같음 |
 | `BOARD` | 404 | 보드 없음 | 접근 불가 화면 |
 | `BOARD_ACCESS` | 403 | 지금 권한 없음 | 접근 불가 화면 |
+| `BOARD_FULL` | 409 | 동시 참여 인원이 가득 참 | "꽉 찼어요" 화면 |
 | `INTERNAL` | 500 | 서버 오류 | 잠시 뒤 같은 토큰으로 다시 연결 |
 
 ---
@@ -54,9 +55,10 @@ io(`${API}/boards`, {
 {
   protocol: 1,
   serverTime: number,                       // ms. 시계 차이 보정용
-  self: { memberId: string, permission: 'EDIT' },
+  self: { memberId: string, permission: 'EDIT', isOwner: boolean },
   members: BoardMemberResponse[],           // 지금 접속 중, 나 포함, 먼저 들어온 순
-  limits: Record<string, number>,           // 키가 없으면 제한 없음. 지금은 비어 있다
+  limits: Record<string, number>,           // 5-4. 키가 없으면 제한 없음
+  seq: number,                              // 이 시점의 마지막 변경 순서
 }
 ```
 
@@ -73,6 +75,23 @@ io(`${API}/boards`, {
 
 그 참여자의 마지막 소켓이 끊길 때. 서버가 비정상 종료되면 빠질 수 있다 → `members:sync`로 바로잡는다.
 
+### `board:changed` (그림 결과를 바꾼 변경, 나 포함 방 전체)
+
+```ts
+| { seq, type: 'stroke', stroke: BoardStroke }
+| { seq, type: 'hide',  opId, authorId, strokeId }
+| { seq, type: 'show',  opId, authorId, stroke: BoardStroke }  // 숨겼던 획은 스냅샷에 없을 수 있어 획 전체를 싣는다
+| { seq, type: 'clear', opId, authorId }                       // authorId의 seq보다 앞선 펜 획·own 지우개를 지운다
+| { seq, type: 'merge', opId, from, to }                       // 게스트를 계정에 합침
+```
+
+종류를 이벤트로 나누지 않고 `type`으로 구분한다. 모르는 `type`도 `seq`는 진행해야 예전 클라이언트가 빈 번호로 오해하지 않는다.
+재전송으로 같은 변경이 다시 올 수 있으므로 `seq`가 이미 적용한 번호 이하면 버린다.
+
+### `stroke:preview` (그리는 중, 나를 뺀 방 전체, volatile)
+
+`BoardStrokePreviewInput` + 서버가 넣은 `authorId`. 늦거나 빠질 수 있다.
+
 ---
 
 ## 4. 클라이언트 → 서버 (요청과 ack)
@@ -82,7 +101,7 @@ io(`${API}/boards`, {
 ```ts
 type BoardAck<T> =
   | { ok: true; data: T }
-  | { ok: false; error: { code: 'BAD_REQUEST' | 'FORBIDDEN' | 'INTERNAL'; retryable: boolean; message?: string } };
+  | { ok: false; error: { code: 'BAD_REQUEST' | 'FORBIDDEN' | 'RATE_LIMITED' | 'INTERNAL'; retryable: boolean; message?: string } };
 ```
 
 - 본문이 객체가 아니면 `BAD_REQUEST`. 서버 오류는 예외로 끊지 않고 `INTERNAL`(retryable)로 답한다.
@@ -95,11 +114,30 @@ type BoardAck<T> =
 모든 서버에 물어 지금 접속자 목록을 돌려준다. 클라이언트는 탭으로 돌아왔을 때(`visibilitychange`) 부르고,
 요청 중에 입장·퇴장 이벤트를 받았으면 응답을 버린다(이벤트가 더 최신이다).
 
+### 획 저장
+
+| 이벤트 | 본문 | 응답 | 설명 |
+| --- | --- | --- | --- |
+| `stroke:commit` | `{ stroke: BoardStrokeInput }` | `{ seq }` | 같은 획 ID는 한 번만 저장. 범위 `all`은 소유자만(`FORBIDDEN`) |
+| `stroke:hide` | `{ opId, strokeId }` | `{ seq \| null }` | 내 획만. 이미 숨겨져 있으면 `null`이고 순서를 쓰지 않는다 |
+| `stroke:show` | `{ opId, strokeId }` | `{ seq \| null }` | 내 획만. 전체 지우기로 지운 획은 `FORBIDDEN` |
+| `stroke:clear` | `{ opId }` | `{ seq }` | 내 펜 획·own 지우개를 숨긴다(삭제 아님) |
+| `strokes:sync` | `{ sinceSeq }` | `{ changes, upToSeq, hasMore } \| { reset: true }` | `sinceSeq` 다음 변경. `reset`이면 스냅샷부터 다시 |
+| `stroke:preview` | `BoardStrokePreviewInput` | 없음 | 저장하지 않고 중계. 잘못됐거나 너무 잦으면 버린다 |
+
+`opId`와 획 ID는 클라이언트가 만든 UUID다. 같은 ID로 다시 보내면 첫 결과를 돌려주고 방에도 다시 보낸다
+(첫 시도가 저장 뒤 방송 전에 실패했을 수 있다).
+
+### REST 스냅샷 `GET /boards/:id/snapshot?cursor=`
+
+헤더 `x-board-token`(입장 API의 보드 토큰, 게스트 포함). 응답 `{ lastSeq, strokes, nextCursor }`, `Cache-Control: no-store`.
+지금 **보이는 획만** seq 순서로 200개씩 준다. 숨긴 획은 다시 실행될 때 `show` 변경에 실려 온다.
+
 ---
 
-## 5. 획 동기화 설계 (② 단계에서 구현)
+## 5. 획 동기화 설계
 
-아직 구현하지 않았다. 아래는 **구현 전에 확정한 규칙**이다. 나중에 바꾸기 어려운 것 위주다.
+나중에 바꾸기 어려운 규칙 위주로 적는다. 구현은 `board-stroke.service.ts`, `board.gateway.ts`, 프론트 `StrokeSync.ts`.
 
 ### 5-0. 정책 결정 (2026-11-08)
 
@@ -111,22 +149,27 @@ type BoardAck<T> =
   보드별로 바꿀 수 있게 `Board.maxMembers`(null이면 기본값)를 둔다. 입장 API와 소켓 연결에서 막고(새 연결 거절 코드 추가),
   값은 `hello.limits.maxMembers`로 내려준다. 프론트는 "꽉 찼어요" 화면. 같은 참여자의 탭 여러 개는 한 명으로 센다.
 - **획 보관은 지금 무제한.** 메시지 크기·빈도 제한(5-4)은 서버 보호용이라 둔다. **보드를 지우면 획도 함께 지운다**(FK cascade).
-- **소유자 지우개**: 입장 응답(`JoinBoardResponse`)에 소유자 여부(예: `isOwner`)를 더하고,
-  프론트 `BoardPage`의 `canEraseAll`(지금 `false` 고정)에 연결한다. 소유자의 지우개 획은 `scope: 'all'`로 저장된다.
+- **소유자 지우개**: 입장 응답의 `isOwner`를 프론트 `canEraseAll`에 연결한다. 소유자의 지우개 획은 범위 `all`로 저장된다.
+- **소유자는 인원 제한에서 제외한다.** 자기 보드에 못 들어가는 일을 막는다. 최대 인원+1명까지 될 수 있다.
+- **회원이 탈퇴해도 획은 남긴다.** 다른 사람과 함께 그린 그림이다. `BoardMember.userId`가 `SetNull`되어
+  `userId`·`name`이 모두 null인 익명 참여자로 남고, 그 행은 다시 입장에 쓸 수 없다.
+  단 **보드 소유자가 탈퇴하면 지금은 보드 전체가 함께 지워진다**(`Board.owner` cascade).
 
 ### 5-1. 순서(`seq`)
 
 - 서버가 보드마다 1부터 늘어나는 `seq`를 매긴다. 획·지우기·전체 지우기처럼 **그림 결과를 바꾸는 모든 변경**에 붙는다.
 - 렌더링 결과가 순서에 따라 달라진다(지우개는 그 시점까지의 그림만 지운다). `createdAt`은 동시 입력·서버 간 시계 차이로
   뒤바뀔 수 있어 순서로 쓰지 않는다. **저장 첫날부터 있어야 한다**(나중에 복원 불가).
-- 서버가 여러 대이므로 DB 한 곳에서 매긴다(보드 행 잠금 + 카운터, 또는 시퀀스).
+- 서버가 여러 대이므로 DB 한 곳에서 매긴다. `Board.lastSeq`를 `SELECT … FOR UPDATE`로 잠그고 → 같은 ID 확인 → 증가 → 저장을 한 트랜잭션에서 한다.
+  같은 보드의 쓰기가 줄을 서므로 커밋 순서가 seq 순서와 같고, 재전송으로 번호가 비지 않는다. 방송은 커밋 뒤에 한다.
 
 ### 5-2. 처음 불러오기와 다시 연결
 
-- 입장: REST로 스냅샷(그 보드의 획 전체 + 마지막 `seq` N)을 받고, 소켓으로 N 이후 변경을 받는다.
-  `hello`에 서버의 현재 `seq`를 넣어 스냅샷과 이어지는지 확인한다.
-- 다시 연결: 마지막으로 적용한 `seq`를 `sinceSeq`로 보내 빠진 변경만 받는다. 너무 오래됐으면(서버가 정한 한도) 스냅샷부터 다시.
-- 받은 `seq`에 빈 번호가 있으면 `sinceSeq`로 다시 요청한다.
+- 입장: 소켓을 먼저 연결해(`hello`) 변경을 모으기 시작하고, REST 스냅샷을 끝까지 받은 뒤 첫 페이지의 `lastSeq` 이후 변경을 적용한다.
+  방에 들어간 뒤 `hello.seq`를 읽으므로 그 뒤 변경을 놓치지 않는다. 페이지 사이에 바뀐 것은 이 변경 적용으로 맞춰진다.
+- 다시 연결: `hello.seq`가 마지막으로 적용한 seq보다 크면 `strokes:sync`로 빠진 변경만 받는다. 2,000개 넘게 뒤처졌으면 `reset`.
+- 서버를 거치는 순서가 뒤바뀌는 건 정상이다. seq 순서대로만 적용하고, 빈 번호는 1초 기다린 뒤에도 비어 있을 때만 `strokes:sync`를 부른다.
+- 응답의 `upToSeq`까지 적용한 것으로 본다. 그래서 DB에서 사라진 번호가 있어도 같은 요청을 반복하지 않는다.
 
 ### 5-3. 저장할 메시지와 흘려보낼 메시지
 
@@ -141,12 +184,22 @@ commit이 거절되면 preview도 지운다.
 ### 5-4. 제한값 (`hello.limits`)
 
 서버가 검사하고 값은 `hello.limits`로 내려준다. 출시 후 제한을 새로 걸면 기존 클라이언트가 갑자기 거절당하므로 처음부터 둔다.
-예: `maxPointsPerMessage`, `maxPointsPerStroke`, `maxStrokeBytes`, `previewIntervalMs`, `maxMessagesPerSecond`.
+
+| 키 | 값 | 설명 |
+| --- | --- | --- |
+| `maxMembers` | 보드별, 기본 5(`BOARD_MAX_MEMBERS`) | 동시 참여 인원 |
+| `maxPointsPerStroke` | 11,000 | 넘으면 클라이언트가 이어지는 새 획으로 나눈다 |
+| `maxStrokeBytes` | 524,288 | socket.io가 연결을 끊는 1MB보다 작게 |
+| `maxPointsPerMessage` | 128 | `stroke:preview` 한 번의 점 개수 |
+| `previewIntervalMs` | 50 | |
+| `maxMessagesPerSecond` | 60 | 소켓별. 넘으면 `RATE_LIMITED`, preview는 버림 |
+| `maxCoordinate` | 1,000,000 | x, y의 절댓값 |
+| `maxStrokeSize` | 200 | 브러시 지름 |
 
 ### 5-5. 획 데이터 (나중에 마이그레이션으로 못 살리는 것)
 
-- **원본 입력 그대로 저장**: 단순화·보정한 점, 계산된 굵기·dab 위치를 저장하지 않는다. 좌표 정밀도(예: 0.1px 반올림)는 저장 전에 정한다.
-- **입력 채널을 늘릴 수 있는 형식**: `channels`(`x`, `y`, `pressure`, `t`, `tiltX`, `tiltY` …) + 숫자 배열.
+- **원본 입력 그대로 저장**: 단순화·보정한 점, 계산된 굵기·dab 위치를 저장하지 않는다. 정밀도는 좌표 0.01px, 필압 소수 3자리, `t`·기울기 정수다(클라이언트가 입력 시점에 맞춘다).
+- **입력 채널을 늘릴 수 있는 형식**: `channels`(`x`, `y`, `pressure`, `t`, `tiltX`, `tiltY` …) + 납작한 숫자 배열. 채널은 이름으로 읽고 모르는 채널은 건너뛴다.
   - `t`(획 시작부터 ms)와 펜 기울기는 지금부터 받는다. 재생·타임랩스·속도/기울기 브러시에 필요하고, 안 받으면 지난 획에는 영영 없다.
 - **브러시 버전**: `brush: { id, version }`. 공개한 버전의 렌더링 동작은 바꾸지 않는다(바꾸면 지난 그림 모양이 바뀐다).
 - **스키마 버전** `v`, **클라이언트가 만든 획 ID(UUID)**, 작성자 `BoardMember.id`.

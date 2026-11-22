@@ -7341,6 +7341,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "동시 참여 인원이 가득 참",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -7352,6 +7362,93 @@
           }
         ],
         "summary": "보드 입장",
+        "tags": [
+          "boards"
+        ]
+      }
+    },
+    "/boards/{id}/snapshot": {
+      "get": {
+        "description": "지금 보이는 획을 seq 순서로 페이지 단위로 돌려줍니다. 입장 API가 발급한 보드 토큰으로 인증합니다. 첫 페이지의 lastSeq 이후 변경은 소켓(board:changed, strokes:sync)으로 이어 받습니다.",
+        "operationId": "board_snapshot",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "이전 응답의 nextCursor. 처음에는 보내지 않습니다.",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x-board-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardSnapshotResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "보드 토큰이 없거나 만료됨",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "접근 권한 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "보드 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "보드 스냅샷",
         "tags": [
           "boards"
         ]
@@ -11165,6 +11262,10 @@
           "member": {
             "$ref": "#/components/schemas/BoardMemberResponse"
           },
+          "isOwner": {
+            "type": "boolean",
+            "description": "보드 소유자 여부. 소유자의 지우개는 모든 사람의 그림을 지웁니다."
+          },
           "claimedGuestId": {
             "type": "string",
             "description": "로그인 사용자가 이전 게스트 토큰을 보내 이번 요청에서 계정에 연결된 게스트의 참여자 ID. 연결하지 않았으면 null",
@@ -11180,8 +11281,144 @@
           "title",
           "permission",
           "member",
+          "isOwner",
           "claimedGuestId",
           "boardToken"
+        ]
+      },
+      "BoardStrokeTool": {
+        "type": "string",
+        "enum": [
+          "pen",
+          "eraser"
+        ]
+      },
+      "BoardBrushResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ]
+      },
+      "BoardEraseScope": {
+        "type": "string",
+        "enum": [
+          "own",
+          "all"
+        ]
+      },
+      "BoardStrokeResponse": {
+        "type": "object",
+        "properties": {
+          "v": {
+            "type": "number",
+            "description": "획 스키마 버전"
+          },
+          "id": {
+            "type": "string",
+            "description": "클라이언트가 만든 획 ID"
+          },
+          "seq": {
+            "type": "number",
+            "description": "보드 안의 변경 순서. 작은 것부터 그립니다."
+          },
+          "authorId": {
+            "type": "string",
+            "description": "작성자 BoardMember.id"
+          },
+          "tool": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoardStrokeTool"
+              }
+            ]
+          },
+          "brush": {
+            "$ref": "#/components/schemas/BoardBrushResponse"
+          },
+          "color": {
+            "type": "string",
+            "example": "#35373c"
+          },
+          "size": {
+            "type": "number"
+          },
+          "eraseScope": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoardEraseScope"
+              }
+            ]
+          },
+          "channels": {
+            "description": "points 한 점의 값 순서",
+            "example": [
+              "x",
+              "y",
+              "pressure",
+              "t",
+              "tiltX",
+              "tiltY"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "points": {
+            "description": "channels 길이 × 점 개수만큼의 숫자",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "v",
+          "id",
+          "seq",
+          "authorId",
+          "tool",
+          "brush",
+          "color",
+          "size",
+          "eraseScope",
+          "channels",
+          "points"
+        ]
+      },
+      "BoardSnapshotResponse": {
+        "type": "object",
+        "properties": {
+          "lastSeq": {
+            "type": "number",
+            "description": "이 페이지를 읽기 직전의 마지막 변경 순서. 첫 페이지의 값 이후 변경을 소켓으로 이어 받습니다."
+          },
+          "strokes": {
+            "description": "지금 보이는 획. seq 오름차순",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardStrokeResponse"
+            }
+          },
+          "nextCursor": {
+            "type": "number",
+            "description": "다음 페이지의 cursor. 마지막 페이지면 null",
+            "nullable": true
+          }
+        },
+        "required": [
+          "lastSeq",
+          "strokes",
+          "nextCursor"
         ]
       },
       "ErrorResponse": {

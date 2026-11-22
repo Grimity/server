@@ -35,9 +35,10 @@ describe('보드 소켓 (/boards)', () => {
   type Hello = {
     protocol: number;
     serverTime: number;
-    self: { memberId: string; permission: string };
+    self: { memberId: string; permission: string; isOwner: boolean };
     members: Member[];
     limits: Record<string, number>;
+    seq: number;
   };
 
   type Member = {
@@ -123,7 +124,9 @@ describe('보드 소켓 (/boards)', () => {
           };
         }
         if (token === JwtService) return jwt;
-        if (token === ConfigService) return { getOrThrow: () => jwtSecret };
+        if (token === ConfigService) {
+          return { getOrThrow: () => jwtSecret, get: () => undefined };
+        }
         if (token === RedisService) return redisService;
         if (token === WebSessionService) return {};
       })
@@ -228,9 +231,14 @@ describe('보드 소켓 (/boards)', () => {
       expect(await hello).toEqual({
         protocol: 1,
         serverTime: expect.any(Number),
-        self: { memberId: userMemberId, permission: 'EDIT' },
+        self: { memberId: userMemberId, permission: 'EDIT', isOwner: false },
         members: [user],
-        limits: {},
+        limits: expect.objectContaining({
+          maxMembers: 5,
+          maxPointsPerStroke: expect.any(Number),
+          previewIntervalMs: expect.any(Number),
+        }),
+        seq: 0,
       });
       expect(findMember).toHaveBeenCalledWith(
         expect.objectContaining({ where: { id: userMemberId, boardId } }),

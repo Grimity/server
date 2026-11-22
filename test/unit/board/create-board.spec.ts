@@ -27,7 +27,9 @@ describe('POST /boards', () => {
         }
         if (token === JwtService) return jwt;
         if (token === WebSessionService) return { authenticateRequest };
-        if (token === ConfigService) return { getOrThrow: () => 'secret' };
+        if (token === ConfigService) {
+          return { getOrThrow: () => 'secret', get: () => undefined };
+        }
       })
       .compile();
 

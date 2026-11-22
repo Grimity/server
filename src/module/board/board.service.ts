@@ -1,12 +1,20 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { BoardLinkPermission, BoardMemberPermission } from '@prisma/client';
 import { randomInt } from 'crypto';
 import { getImageUrl } from 'src/shared/util/get-image-url';
 import { IdResponse } from 'src/shared/response/id.response';
+import { DEFAULT_BOARD_MAX_MEMBERS } from './board-limits';
+import { BoardRealtimeService } from './board-realtime.service';
+import { BoardStrokeService } from './board-stroke.service';
 import { BoardTokenClaims, BoardTokenService } from './board-token.service';
+import type { BoardChange } from './board.protocol';
 import {
   BoardMemberResponse,
   BoardPermission,
+  BoardSnapshotResponse,
   JoinBoardResponse,
 } from './dto/board.response';
 import { createGuestName } from './guest-name';
@@ -20,15 +28,34 @@ type JoinableBoard = {
   title: string;
   ownerId: string;
   linkPermission: BoardLinkPermission;
+  maxMembers: number | null;
+};
+
+export type BoardConnection = {
+  permission: BoardPermission;
+  isOwner: boolean;
+  maxMembers: number;
 };
 
 @Injectable()
 export class BoardService {
+  private readonly defaultMaxMembers: number;
+
   constructor(
+    config: ConfigService,
     private readonly boardReader: BoardReader,
     private readonly boardWriter: BoardWriter,
     private readonly boardToken: BoardTokenService,
-  ) {}
+    private readonly boardStroke: BoardStrokeService,
+    private readonly realtime: BoardRealtimeService,
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {
+    const configured = Number(config.get<string>('BOARD_MAX_MEMBERS'));
+    this.defaultMaxMembers =
+      Number.isInteger(configured) && configured > 0
+        ? configured
+        : DEFAULT_BOARD_MAX_MEMBERS;
+  }
 
   async create(userId: string): Promise<IdResponse> {
     return await this.boardWriter.create(userId);
@@ -56,6 +83,12 @@ export class BoardService {
       // 비로그인 사용자는 로그인하면 초대받은 계정으로 입장할 수 있다.
       throw new HttpException('BOARD_ACCESS', userId ? 403 : 401);
     }
+    await this.assertSeat(
+      board,
+      userId,
+      userMember?.id ?? null,
+      this.getPreviousGuestId(boardId, previousToken),
+    );
 
     if (!userId) {
       const member = await this.getGuestMember(boardId, previousToken);
@@ -72,7 +105,7 @@ export class BoardService {
   }
 
   // 소켓 연결 때 토큰 발급 이후 바뀐 것이 없는지 다시 확인한다.
-  async verifyConnection(claims: BoardTokenClaims): Promise<BoardPermission> {
+  async verifyConnection(claims: BoardTokenClaims): Promise<BoardConnection> {
     const board = await this.boardReader.findOneById(claims.boardId);
     if (!board) {
       throw new HttpException('BOARD', 404);
@@ -84,7 +117,12 @@ export class BoardService {
       claims.boardId,
       claims.memberId,
     );
-    if (!member || member.userId !== claims.userId) {
+    // 탈퇴한 사용자의 행(userId·name 모두 null)도 다시 쓰지 못한다.
+    if (
+      !member ||
+      member.userId !== claims.userId ||
+      (member.userId === null && member.name === null)
+    ) {
       throw new HttpException('BOARD_MEMBER', 401);
     }
 
@@ -96,7 +134,50 @@ export class BoardService {
     if (!permission) {
       throw new HttpException('BOARD_ACCESS', 403);
     }
-    return permission;
+    return {
+      permission,
+      isOwner: this.isOwner(board, member.userId),
+      maxMembers: this.maxMembersOf(board),
+    };
+  }
+
+  /** 스냅샷은 게스트도 받아야 하므로 로그인 대신 보드 토큰으로 인증하고, 권한은 DB로 다시 확인한다. */
+  async getSnapshot(
+    boardId: string,
+    token: string | undefined,
+    cursor: number,
+  ): Promise<BoardSnapshotResponse> {
+    const claims = this.boardToken.verify(token);
+    if (!claims || claims.boardId !== boardId) {
+      throw new HttpException('BOARD_TOKEN', 401);
+    }
+    await this.verifyConnection(claims);
+    return await this.boardStroke.getSnapshot(boardId, cursor);
+  }
+
+  private isOwner(board: JoinableBoard, userId: string | null) {
+    return userId !== null && board.ownerId === userId;
+  }
+
+  private maxMembersOf(board: JoinableBoard) {
+    return board.maxMembers ?? this.defaultMaxMembers;
+  }
+
+  // 이미 접속 중인 참여자(다른 탭)는 자리를 차지하고 있으므로 통과한다. 소유자는 항상 들어올 수 있다.
+  private async assertSeat(
+    board: JoinableBoard,
+    userId: string | null,
+    userMemberId: string | null,
+    guestMemberId: string | null,
+  ) {
+    if (this.isOwner(board, userId)) return;
+    const online = await this.realtime.onlineMemberIds(board.id);
+    const seated =
+      (userMemberId !== null && online.has(userMemberId)) ||
+      (guestMemberId !== null && online.has(guestMemberId));
+    if (!seated && online.size >= this.maxMembersOf(board)) {
+      throw new HttpException('BOARD_FULL', 409);
+    }
   }
 
   // 참여자 행이 있다고 권한이 있는 것은 아니다. 권한은 여기서만 판단한다.
@@ -173,10 +254,34 @@ export class BoardService {
     if (await this.boardWriter.convertGuestToUser(boardId, guestId, userId)) {
       return guestId;
     }
-    // 이미 사용자 행이 있으면 게스트 행을 합친다.
-    // TODO: 획 저장을 만들면 같은 트랜잭션에서 게스트 획을 사용자 행으로 옮긴 뒤 지운다.
-    const deleted = await this.boardWriter.deleteGuestMember(boardId, guestId);
-    return deleted ? guestId : null;
+    // 이미 사용자 행이 있으면 게스트의 획을 옮기고 게스트 행을 지운다.
+    const change = await this.mergeGuest(boardId, guestId, userId);
+    if (!change) return null;
+    // 커밋된 뒤에 알린다. 게스트로 붙어 있던 다른 탭은 다시 입장해 새 신원을 받는다.
+    this.realtime.emitChange(boardId, change);
+    await this.realtime.disconnectMember(boardId, guestId);
+    return guestId;
+  }
+
+  private async mergeGuest(
+    boardId: string,
+    guestId: string,
+    userId: string,
+  ): Promise<BoardChange | null> {
+    return await this.txHost.withTransaction(async () => {
+      // 같은 게스트를 동시에 합쳐도 하나만 진행되도록 잠근 뒤에 확인한다.
+      await this.boardStroke.lock(boardId);
+      const guest = await this.boardReader.findGuestMember(boardId, guestId);
+      const userMember = await this.boardReader.findUserMember(boardId, userId);
+      if (!guest || !userMember) return null;
+      const change = await this.boardStroke.merge(
+        boardId,
+        guestId,
+        userMember.id,
+      );
+      await this.boardWriter.deleteGuestMember(boardId, guestId);
+      return change;
+    });
   }
 
   private getPreviousGuestId(
@@ -198,6 +303,7 @@ export class BoardService {
       id: board.id,
       title: board.title,
       permission,
+      isOwner: member.userId !== null && board.ownerId === member.userId,
       member,
       claimedGuestId,
       boardToken: this.boardToken.issue({

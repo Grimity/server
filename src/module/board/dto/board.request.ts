@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class JoinBoardRequest {
   @ApiProperty({
@@ -10,4 +10,15 @@ export class JoinBoardRequest {
   @IsOptional()
   @IsString()
   boardToken?: string;
+}
+
+export class BoardSnapshotQuery {
+  @ApiProperty({
+    required: false,
+    description: '이전 응답의 nextCursor. 처음에는 보내지 않습니다.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  cursor?: number;
 }

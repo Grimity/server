@@ -85,7 +85,15 @@ describe('POST /boards/:id/join', () => {
       .useMocker((token) => {
         if (token === TransactionHost) {
           return {
+            withTransaction: (fn: () => unknown) => fn(),
             tx: {
+              $queryRaw: () => Promise.resolve([{ lastSeq: 0 }]),
+              $executeRaw: () => Promise.resolve(1),
+              boardStroke: { updateMany: () => Promise.resolve({ count: 0 }) },
+              boardOp: {
+                updateMany: () => Promise.resolve({ count: 0 }),
+                create: () => Promise.resolve({ seq: 1 }),
+              },
               board: { findUnique: findBoard },
               boardMember: {
                 findUnique: findMember,
@@ -103,7 +111,9 @@ describe('POST /boards/:id/join', () => {
         if (token === WebSessionService) {
           return { authenticateRequest, readCookie };
         }
-        if (token === ConfigService) return { getOrThrow: () => jwtSecret };
+        if (token === ConfigService) {
+          return { getOrThrow: () => jwtSecret, get: () => undefined };
+        }
       })
       .compile();
 
@@ -210,7 +220,7 @@ describe('POST /boards/:id/join', () => {
         image: null,
       });
       expect(findGuest).toHaveBeenCalledWith({
-        where: { id: guestId, boardId, userId: null },
+        where: { id: guestId, boardId, userId: null, name: { not: null } },
         select: { id: true, name: true },
       });
       expect(createGuest).not.toHaveBeenCalled();
@@ -336,7 +346,7 @@ describe('POST /boards/:id/join', () => {
         .expect(200);
 
       expect(convertGuest).toHaveBeenCalledWith({
-        where: { id: guestId, boardId, userId: null },
+        where: { id: guestId, boardId, userId: null, name: { not: null } },
         data: { userId, name: null },
       });
       expect(deleteGuest).not.toHaveBeenCalled();
@@ -352,13 +362,15 @@ describe('POST /boards/:id/join', () => {
       findBoard.mockResolvedValue(board('EDIT'));
       convertGuest.mockRejectedValue(uniqueError());
       deleteGuest.mockResolvedValue({ count: 1 });
+      findGuest.mockResolvedValue({ id: guestId, name: '열정적인 코뿔소' });
+      findMember.mockResolvedValue({ id: userMemberId, permission: null });
 
       const { body } = await join({ boardToken: guestToken() })
         .set('Authorization', auth)
         .expect(200);
 
       expect(deleteGuest).toHaveBeenCalledWith({
-        where: { id: guestId, boardId, userId: null },
+        where: { id: guestId, boardId, userId: null, name: { not: null } },
       });
       expect(body.claimedGuestId).toBe(guestId);
       expect(body.member.id).toBe(userMemberId);

@@ -11,7 +11,13 @@ export class BoardReader {
   async findOneById(boardId: string) {
     return await this.txHost.tx.board.findUnique({
       where: { id: boardId },
-      select: { id: true, title: true, ownerId: true, linkPermission: true },
+      select: {
+        id: true,
+        title: true,
+        ownerId: true,
+        linkPermission: true,
+        maxMembers: true,
+      },
     });
   }
 
@@ -25,13 +31,14 @@ export class BoardReader {
   async findMember(boardId: string, memberId: string) {
     return await this.txHost.tx.boardMember.findFirst({
       where: { id: memberId, boardId },
-      select: { id: true, userId: true, permission: true },
+      select: { id: true, userId: true, name: true, permission: true },
     });
   }
 
   async findGuestMember(boardId: string, memberId: string) {
     return await this.txHost.tx.boardMember.findFirst({
-      where: { id: memberId, boardId, userId: null },
+      // 이름이 없는 행은 탈퇴한 사용자의 흔적이라 게스트로 되돌아갈 수 없다.
+      where: { id: memberId, boardId, userId: null, name: { not: null } },
       select: { id: true, name: true },
     });
   }

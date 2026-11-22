@@ -1,15 +1,20 @@
 import {
   Body,
   Controller,
+  Get,
+  Header,
+  Headers,
   HttpCode,
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCookieAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -18,8 +23,8 @@ import { CurrentUser } from 'src/core/decorator';
 import { JwtGuard } from 'src/core/guard';
 import { IdResponse } from 'src/shared/response/id.response';
 import { BoardService } from './board.service';
-import { JoinBoardRequest } from './dto/board.request';
-import { JoinBoardResponse } from './dto/board.response';
+import { BoardSnapshotQuery, JoinBoardRequest } from './dto/board.request';
+import { BoardSnapshotResponse, JoinBoardResponse } from './dto/board.response';
 import { JoinBoardGuard } from './join-board.guard';
 
 @ApiTags('boards')
@@ -62,6 +67,7 @@ export class BoardController {
     description: '로그인 사용자가 초대받지 않았는데 링크 권한이 NONE',
   })
   @ApiResponse({ status: 404, description: '보드 없음' })
+  @ApiResponse({ status: 409, description: '동시 참여 인원이 가득 참' })
   @HttpCode(200)
   @UseGuards(JoinBoardGuard)
   @Post(':id/join')
@@ -71,5 +77,26 @@ export class BoardController {
     @Body() { boardToken }: JoinBoardRequest,
   ): Promise<JoinBoardResponse> {
     return await this.boardService.join(boardId, userId, boardToken);
+  }
+
+  @ApiOperation({
+    summary: '보드 스냅샷',
+    description:
+      '지금 보이는 획을 seq 순서로 페이지 단위로 돌려줍니다. 입장 API가 발급한 보드 토큰으로 인증합니다. ' +
+      '첫 페이지의 lastSeq 이후 변경은 소켓(board:changed, strokes:sync)으로 이어 받습니다.',
+  })
+  @ApiHeader({ name: 'x-board-token', required: true })
+  @ApiResponse({ status: 200, type: BoardSnapshotResponse })
+  @ApiResponse({ status: 401, description: '보드 토큰이 없거나 만료됨' })
+  @ApiResponse({ status: 403, description: '접근 권한 없음' })
+  @ApiResponse({ status: 404, description: '보드 없음' })
+  @Header('Cache-Control', 'no-store')
+  @Get(':id/snapshot')
+  async snapshot(
+    @Param('id', new ParseUUIDPipe()) boardId: string,
+    @Headers('x-board-token') token: string | undefined,
+    @Query() { cursor }: BoardSnapshotQuery,
+  ): Promise<BoardSnapshotResponse> {
+    return await this.boardService.getSnapshot(boardId, token, cursor ?? 0);
   }
 }

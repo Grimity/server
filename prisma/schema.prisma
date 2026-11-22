@@ -565,17 +565,22 @@ model Board {
   ownerId        String              @db.Uuid
   title          String              @default("새 그리미티 보드") @db.VarChar(100)
   linkPermission BoardLinkPermission @default(EDIT)
+  lastSeq        Int                 @default(0) // 마지막으로 매긴 변경 순서. 보드 행을 잠그고 올린다
+  maxMembers     Int? // 동시 참여 인원. null이면 서버 기본값(BOARD_MAX_MEMBERS)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
 
   owner   User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   members BoardMember[]
+  strokes BoardStroke[]
+  ops     BoardOp[]
 
   @@index([ownerId, createdAt(sort: Desc)])
 }
 
 // 보드에 참여한 사람 전체. 로그인 사용자는 userId, 게스트는 userId 없이 name으로 구분한다.
 // 행이 있다고 권한이 있는 것은 아니다. 권한은 permission(개별 초대)과 링크 권한으로만 판단한다.
+// 사용자가 탈퇴해도 다른 사람과 함께 그린 그림은 남긴다. 행은 userId·name이 모두 null인 익명 참여자로 남고 다시 입장에 쓸 수 없다.
 model BoardMember {
   id         String                 @id @default(uuid()) @db.Uuid
   boardId    String                 @db.Uuid
@@ -584,11 +589,76 @@ model BoardMember {
   permission BoardMemberPermission? // null이면 링크로 들어온 참여자
   createdAt  DateTime               @default(now())
 
-  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  user  User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  board   Board         @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user    User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  strokes BoardStroke[]
+  ops     BoardOp[]
 
   // NULL끼리는 겹치지 않으므로 게스트 여러 명과 로그인 사용자 여러 명이 함께 있을 수 있다.
   @@unique([boardId, userId])
   @@unique([boardId, name])
   @@index([userId])
+}
+
+enum BoardStrokeTool {
+  PEN
+  ERASER
+}
+
+enum BoardEraseScope {
+  OWN // 지우개를 쓴 사람의 그림만 지운다
+  ALL // 모든 사람의 그림을 지운다. 보드 소유자만 쓴다
+}
+
+enum BoardOpType {
+  HIDE // 내 획 숨기기(실행 취소)
+  SHOW // 내 획 보이기(다시 실행)
+  CLEAR // 내 획 모두 숨기기(전체 지우기). 삭제가 아니라서 운영에서 롤백할 수 있다
+  MERGE // 게스트를 계정에 합침. data에 from/to
+}
+
+// 획 하나. 원본 입력을 그대로 저장한다(docs/board-socket.md 5-5). 렌더링 순서는 seq다.
+model BoardStroke {
+  boardId      String          @db.Uuid
+  id           String          @db.Uuid // 클라이언트가 만든 ID. 같은 ID 재전송은 한 번만 반영한다
+  seq          Int
+  authorId     String          @db.Uuid // BoardMember.id
+  v            Int // 획 스키마 버전
+  tool         BoardStrokeTool
+  eraseScope   BoardEraseScope @default(OWN)
+  brushId      String          @db.VarChar(32)
+  brushVersion Int
+  color        String          @db.VarChar(7)
+  size         Float
+  channels     String[] // points 한 점의 값 순서. 예: x, y, pressure, t, tiltX, tiltY
+  points       Json            @db.Json // 숫자 배열(channels 길이 × 점 개수). 내부를 조회하지 않으므로 json으로 둔다
+  hiddenBySeq  Int? // null이면 보인다. 값은 이 획을 숨긴 작업의 seq
+  createdAt    DateTime        @default(now())
+
+  board  Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  // 참여자 행을 지워서 획이 함께 사라지는 일이 없게 한다. 보드 삭제 때는 같은 문장 안에서 함께 지워진다.
+  author BoardMember @relation(fields: [authorId], references: [id], onDelete: NoAction)
+
+  @@id([boardId, id])
+  @@unique([boardId, seq])
+  @@index([boardId, authorId])
+}
+
+// 획 추가 외에 그림 결과를 바꾸는 작업. 다시 연결한 클라이언트에 그대로 재생해 준다.
+model BoardOp {
+  boardId   String      @db.Uuid
+  seq       Int
+  id        String      @db.Uuid // 클라이언트가 만든 ID. 같은 ID 재전송은 한 번만 반영한다
+  type      BoardOpType
+  authorId  String      @db.Uuid
+  strokeId  String?     @db.Uuid
+  data      Json?
+  createdAt DateTime    @default(now())
+
+  board  Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  author BoardMember @relation(fields: [authorId], references: [id], onDelete: NoAction)
+
+  @@id([boardId, seq])
+  @@unique([boardId, id])
+  @@index([boardId, authorId, type, seq])
 }
