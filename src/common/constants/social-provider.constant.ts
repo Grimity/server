@@ -1,1 +1,1 @@
-export const socialProviders = ['KAKAO', 'GOOGLE'] as const;
+export const socialProviders = ['KAKAO', 'GOOGLE', 'APPLE'] as const;
